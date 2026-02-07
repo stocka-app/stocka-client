@@ -1,0 +1,17 @@
+{
+  "appName": "Stocka",
+  "loading": "Cargando...",
+  "error": "Ocurrió un error",
+  "success": "Éxito",
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "close": "Cerrar",
+  "back": "Atrás",
+  "next": "Siguiente",
+  "submit": "Enviar",
+  "language": "Idioma",
+  "english": "Inglés",
+  "spanish": "Español"
+}

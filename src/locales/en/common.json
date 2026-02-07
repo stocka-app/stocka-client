@@ -1,0 +1,17 @@
+{
+  "appName": "Stocka",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "success": "Success",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "close": "Close",
+  "back": "Back",
+  "next": "Next",
+  "submit": "Submit",
+  "language": "Language",
+  "english": "English",
+  "spanish": "Spanish"
+}
