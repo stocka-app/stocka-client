@@ -14,6 +14,7 @@ interface SocialButtonProps {
   variant?: 'full' | 'icon'
 }
 
+// Íconos con colores de marca
 const providerIcons = {
   google: (
     <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -53,11 +54,8 @@ const providerIcons = {
   ),
 }
 
-const providerStyles = {
-  google: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-  facebook: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-  microsoft: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-}
+// Estilo outline uniforme para todos los providers
+const buttonStyle = 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
 
 export function SocialButton({
   provider,
@@ -71,10 +69,8 @@ export function SocialButton({
   // Manejar click con OAuth real
   const handleClick = useCallback(() => {
     if (onClick) {
-      // Si se proporciona un handler personalizado, usarlo
       onClick()
     } else {
-      // Por defecto, iniciar flujo OAuth real
       authService.initiateOAuth(provider)
     }
   }, [onClick, provider])
@@ -86,7 +82,7 @@ export function SocialButton({
       onClick={handleClick}
       className={cn(
         'font-medium transition-colors',
-        providerStyles[provider],
+        buttonStyle,
         isIconOnly ? 'h-12 w-12 rounded-full p-0' : 'h-12 w-full gap-3',
         className
       )}
