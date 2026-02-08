@@ -1,7 +1,9 @@
 {
   "appName": "Stocka",
   "loading": "Loading...",
+  "redirecting": "Redirecting...",
   "error": "An error occurred",
+  "tryAgain": "Try again",
   "success": "Success",
   "cancel": "Cancel",
   "save": "Save",
