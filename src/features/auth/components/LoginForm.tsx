@@ -36,8 +36,14 @@ export function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       clearError()
-      await login(data)
-      navigate('/dashboard')
+      const result = await login(data)
+
+      // Si requiere verificación de email, redirigir a la página de verificación
+      if (result?.requiresVerification) {
+        navigate('/auth/verify-email')
+      } else {
+        navigate('/dashboard')
+      }
     } catch {
       // Error is handled in the store
     }
@@ -48,7 +54,7 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {error && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            {error === 'Invalid credentials' ? t('invalidCredentials') : error}
+            {t(`errors.${error}`, { defaultValue: error })}
           </div>
         )}
 
@@ -126,7 +132,7 @@ export function LoginForm() {
             className="flex-1"
           />
           <SocialButton provider="facebook" variant="icon" />
-          <SocialButton provider="apple" variant="icon" />
+          <SocialButton provider="microsoft" variant="icon" />
         </div>
       </form>
     </Form>
