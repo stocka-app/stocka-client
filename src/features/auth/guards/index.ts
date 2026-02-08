@@ -1,0 +1,1 @@
+export { EmailVerifiedGuard } from './EmailVerifiedGuard'
