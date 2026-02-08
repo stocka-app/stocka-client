@@ -7,6 +7,8 @@ import { useAuthStore } from '@/features/auth'
 // Lazy load pages
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage').then((m) => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+const VerifyEmailPage = lazy(() => import('@/features/auth/pages/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage })))
+const OAuthCallbackPage = lazy(() => import('@/features/auth/pages/OAuthCallbackPage').then((m) => ({ default: m.OAuthCallbackPage })))
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 
 // Loading fallback
@@ -24,25 +26,49 @@ function PageLoader() {
   )
 }
 
-// Protected route wrapper
+// Protected route wrapper - verifica autenticación y verificación de email
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  
-  if (!isAuthenticated) {
+  const { isAuthenticated, emailVerificationRequired } = useAuthStore()
+
+  // Si no está autenticado y no tiene verificación pendiente, ir a login
+  if (!isAuthenticated && !emailVerificationRequired) {
     return <Navigate to="/auth/login" replace />
   }
-  
+
+  // Si requiere verificación de email, redirigir a la página de verificación
+  if (emailVerificationRequired) {
+    return <Navigate to="/auth/verify-email" replace />
+  }
+
   return <>{children}</>
 }
 
 // Public route wrapper (redirect if authenticated)
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  
-  if (isAuthenticated) {
+  const { isAuthenticated, emailVerificationRequired } = useAuthStore()
+
+  // Si está completamente autenticado (sin verificación pendiente), ir a dashboard
+  if (isAuthenticated && !emailVerificationRequired) {
     return <Navigate to="/dashboard" replace />
   }
-  
+
+  return <>{children}</>
+}
+
+// Verification route wrapper - solo accesible si tiene verificación pendiente
+function VerificationRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, emailVerificationRequired, pendingVerificationEmail } = useAuthStore()
+
+  // Si ya está autenticado completamente, ir a dashboard
+  if (isAuthenticated && !emailVerificationRequired) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  // Si no hay email pendiente de verificar, ir a login
+  if (!pendingVerificationEmail) {
+    return <Navigate to="/auth/login" replace />
+  }
+
   return <>{children}</>
 }
 
@@ -76,6 +102,24 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <RegisterPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'verify-email',
+        element: (
+          <VerificationRoute>
+            <Suspense fallback={<PageLoader />}>
+              <VerifyEmailPage />
+            </Suspense>
+          </VerificationRoute>
+        ),
+      },
+      {
+        path: 'callback',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <OAuthCallbackPage />
           </Suspense>
         ),
       },
