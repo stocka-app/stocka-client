@@ -36,8 +36,14 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       clearError()
-      await register(data)
-      navigate('/dashboard')
+      const result = await register(data)
+
+      // Registro siempre requiere verificación de email
+      if (result?.requiresVerification) {
+        navigate('/auth/verify-email')
+      } else {
+        navigate('/dashboard')
+      }
     } catch {
       // Error is handled in the store
     }
@@ -48,7 +54,7 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {error && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            {error === 'Email already registered' ? t('emailAlreadyExists') : error}
+            {t(`errors.${error}`, { defaultValue: error })}
           </div>
         )}
 
@@ -137,7 +143,7 @@ export function RegisterForm() {
             className="flex-1"
           />
           <SocialButton provider="facebook" variant="icon" />
-          <SocialButton provider="apple" variant="icon" />
+          <SocialButton provider="microsoft" variant="icon" />
         </div>
       </form>
     </Form>
