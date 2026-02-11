@@ -77,8 +77,22 @@ api.interceptors.request.use(
 )
 
 /**
+ * Rutas de autenticación que NO deben manejar 401 automáticamente
+ * (el 401 en estas rutas es un error de credenciales, no de token expirado)
+ */
+const AUTH_ROUTES = ['/auth/sign-in', '/auth/sign-up', '/auth/verify-email']
+
+/**
+ * Verifica si la URL es una ruta de autenticación
+ */
+function isAuthRoute(url?: string): boolean {
+  if (!url) return false
+  return AUTH_ROUTES.some((route) => url.includes(route))
+}
+
+/**
  * Response interceptor
- * - Maneja refresh de tokens automático en 401
+ * - Maneja refresh de tokens automático en 401 (excepto en rutas de auth)
  * - Transforma errores al formato ApiError
  */
 api.interceptors.response.use(
@@ -86,6 +100,18 @@ api.interceptors.response.use(
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean
+    }
+
+    // NO hacer refresh automático en rutas de autenticación
+    // El 401 en /auth/sign-in es "credenciales inválidas", no "token expirado"
+    if (isAuthRoute(originalRequest?.url)) {
+      // Transformar error al formato ApiError y dejarlo pasar
+      const apiError: ApiError = error.response?.data || {
+        statusCode: error.response?.status || 500,
+        message: error.message || 'An unexpected error occurred',
+        error: 'UNKNOWN_ERROR' as AuthErrorCode,
+      }
+      return Promise.reject(apiError)
     }
 
     // Si es 401 y no es un retry, intentar refresh token
