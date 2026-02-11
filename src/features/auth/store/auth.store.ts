@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { ZodError } from 'zod'
 import { authService } from '../api/auth.service'
 import type {
   AuthStore,
@@ -9,7 +10,6 @@ import type {
   User,
   ApiError,
   AuthResult,
-  ResendVerificationCodeResponse,
   BlockInfo,
 } from '../types/auth.types'
 
@@ -44,6 +44,7 @@ const initialState: AuthState = {
  * - Verificación de email
  * - OAuth social
  * - Persistencia en localStorage
+ * - Validación de respuestas con Zod
  */
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -57,17 +58,32 @@ export const useAuthStore = create<AuthStore>()(
       login: async (credentials: LoginCredentials): Promise<AuthResult> => {
         set({ isLoading: true, error: null, errorCode: null })
         try {
+          // authService valida la respuesta con Zod automáticamente
           const response = await authService.signIn(credentials)
 
+          // Extraer datos de la estructura { data: { user, accessToken, refreshToken } }
+          const { user: backendUser, accessToken, refreshToken, emailVerificationRequired } = response.data
+
+          // Construir usuario con status por defecto (el backend no envía status en sign-in)
+          const user: User = {
+            id: backendUser.id,
+            email: backendUser.email,
+            username: backendUser.username,
+            status: 'active', // Asumimos active para login exitoso
+            createdAt: backendUser.createdAt,
+          }
+
           // Verificar si necesita verificación de email
-          if (response.emailVerificationRequired) {
+          const needsVerification = emailVerificationRequired === true
+
+          if (needsVerification) {
             set({
               isLoading: false,
               emailVerificationRequired: true,
-              pendingVerificationEmail: response.user.email,
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              user: response.user,
+              pendingVerificationEmail: user.email,
+              accessToken,
+              refreshToken,
+              user,
               isAuthenticated: false, // No autenticado hasta verificar
             })
             return { requiresVerification: true }
@@ -75,9 +91,9 @@ export const useAuthStore = create<AuthStore>()(
 
           // Login exitoso sin verificación pendiente
           set({
-            user: response.user,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
+            user,
+            accessToken,
+            refreshToken,
             isAuthenticated: true,
             isLoading: false,
             emailVerificationRequired: false,
@@ -87,10 +103,30 @@ export const useAuthStore = create<AuthStore>()(
           })
           return { requiresVerification: false }
         } catch (error) {
+          // Manejar diferentes tipos de errores
+          let errorMessage = 'UNKNOWN_ERROR'
+          let errorCode: ApiError['error'] = 'UNKNOWN_ERROR'
+
+          // Error de validación Zod (respuesta inválida del servidor)
+          if (error instanceof ZodError) {
+            console.error('Invalid sign-in response structure:', error.issues)
+            errorMessage = 'UNKNOWN_ERROR'
+          } else if (error instanceof Error) {
+            errorMessage = error.message
+          }
+
+          // Si es un error de API con estructura conocida
           const apiError = error as ApiError
+          if (apiError?.error) {
+            errorCode = apiError.error
+          }
+          if (apiError?.message) {
+            errorMessage = apiError.message
+          }
+
           set({
-            error: apiError.message || 'Login failed',
-            errorCode: apiError.error || 'UNKNOWN_ERROR',
+            error: errorMessage,
+            errorCode: errorCode,
             isLoading: false,
           })
           throw error
@@ -104,24 +140,57 @@ export const useAuthStore = create<AuthStore>()(
       register: async (credentials: RegisterCredentials): Promise<AuthResult> => {
         set({ isLoading: true, error: null, errorCode: null })
         try {
+          // authService valida la respuesta con Zod automáticamente
           const response = await authService.signUp(credentials)
 
-          // Registro exitoso - siempre requiere verificación
+          // Extraer datos de la estructura { data: { user, accessToken, refreshToken } }
+          const { user: backendUser, accessToken, refreshToken } = response.data
+
+          // Construir usuario con status pending_verification
+          const user: User = {
+            id: backendUser.id,
+            email: backendUser.email,
+            username: backendUser.username,
+            status: 'pending_verification', // Siempre pending para registro manual
+            createdAt: backendUser.createdAt,
+          }
+
+          // Registro exitoso - siempre requiere verificación para registro manual
           set({
             isLoading: false,
-            emailVerificationRequired: true,
-            pendingVerificationEmail: response.user.email,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            user: response.user,
+            emailVerificationRequired: true, // Siempre true para registro manual
+            pendingVerificationEmail: user.email,
+            accessToken,
+            refreshToken,
+            user,
             isAuthenticated: false,
           })
           return { requiresVerification: true }
         } catch (error) {
+          // Manejar diferentes tipos de errores
+          let errorMessage = 'UNKNOWN_ERROR'
+          let errorCode: ApiError['error'] = 'UNKNOWN_ERROR'
+
+          // Error de validación Zod (respuesta inválida del servidor)
+          if (error instanceof ZodError) {
+            console.error('Invalid sign-up response structure:', error.issues)
+            errorMessage = 'UNKNOWN_ERROR'
+          } else if (error instanceof Error) {
+            errorMessage = error.message
+          }
+
+          // Si es un error de API con estructura conocida
           const apiError = error as ApiError
+          if (apiError?.error) {
+            errorCode = apiError.error
+          }
+          if (apiError?.message) {
+            errorMessage = apiError.message
+          }
+
           set({
-            error: apiError.message || 'Registration failed',
-            errorCode: apiError.error || 'UNKNOWN_ERROR',
+            error: errorMessage,
+            errorCode: errorCode,
             isLoading: false,
           })
           throw error
@@ -186,7 +255,7 @@ export const useAuthStore = create<AuthStore>()(
       /**
        * Reenviar código de verificación
        */
-      resendVerificationCode: async (): Promise<ResendVerificationCodeResponse> => {
+      resendVerificationCode: async () => {
         const { pendingVerificationEmail } = get()
         if (!pendingVerificationEmail) {
           throw new Error('No email pending verification')
@@ -198,7 +267,8 @@ export const useAuthStore = create<AuthStore>()(
             email: pendingVerificationEmail,
           })
           set({ isLoading: false })
-          return response
+          // Extraer datos de la estructura { data: { success, message, ... } }
+          return response.data
         } catch (error) {
           const apiError = error as ApiError
           set({

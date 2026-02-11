@@ -1,11 +1,15 @@
-import type { LoginCredentials, RegisterCredentials, AuthResponse } from '../types/auth.types'
+import type { SignInResponse, SignUpResponse } from '../schemas/auth.schema'
+import type { LoginCredentials, RegisterCredentials } from '../types/auth.types'
 
 // Simula delay de red (800-1500ms)
 const simulateNetworkDelay = () =>
   new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 700))
 
-// Mock login - simula validación de credenciales
-export async function mockLogin(credentials: LoginCredentials): Promise<AuthResponse> {
+/**
+ * Mock login - simula validación de credenciales
+ * Retorna la estructura igual que el backend real: { data: { user, accessToken, refreshToken }, success: true }
+ */
+export async function mockLogin(credentials: LoginCredentials): Promise<SignInResponse> {
   await simulateNetworkDelay()
 
   // Simula error para credenciales inválidas
@@ -13,24 +17,29 @@ export async function mockLogin(credentials: LoginCredentials): Promise<AuthResp
     throw new Error('Invalid credentials')
   }
 
-  // Simula usuario demo
+  // Simula usuario demo (estructura igual al backend)
   const isEmail = credentials.emailOrUsername.includes('@')
-  
+
   return {
-    user: {
-      id: 'user-123',
-      email: isEmail ? credentials.emailOrUsername : `${credentials.emailOrUsername}@stocka.com`,
-      username: isEmail ? credentials.emailOrUsername.split('@')[0] : credentials.emailOrUsername,
-      status: 'active',
-      createdAt: new Date().toISOString(),
+    data: {
+      user: {
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        email: isEmail ? credentials.emailOrUsername : `${credentials.emailOrUsername}@stocka.com`,
+        username: isEmail ? credentials.emailOrUsername.split('@')[0] : credentials.emailOrUsername,
+        createdAt: new Date().toISOString(),
+      },
+      accessToken: 'mock-jwt-token-' + Date.now(),
+      refreshToken: 'mock-refresh-token-' + Date.now(),
     },
-    accessToken: 'mock-jwt-token-' + Date.now(),
-    refreshToken: 'mock-refresh-token-' + Date.now(),
+    success: true,
   }
 }
 
-// Mock register - simula creación de cuenta
-export async function mockRegister(credentials: RegisterCredentials): Promise<AuthResponse> {
+/**
+ * Mock register - simula creación de cuenta
+ * Retorna la estructura igual que el backend real: { data: { user, accessToken, refreshToken }, success: true }
+ */
+export async function mockRegister(credentials: RegisterCredentials): Promise<SignUpResponse> {
   await simulateNetworkDelay()
 
   // Simula error si email ya existe
@@ -44,14 +53,16 @@ export async function mockRegister(credentials: RegisterCredentials): Promise<Au
   }
 
   return {
-    user: {
-      id: 'user-' + Date.now(),
-      email: credentials.email,
-      username: credentials.username,
-      status: 'active',
-      createdAt: new Date().toISOString(),
+    data: {
+      user: {
+        id: `${crypto.randomUUID()}`,
+        email: credentials.email,
+        username: credentials.username,
+        createdAt: new Date().toISOString(),
+      },
+      accessToken: 'mock-jwt-token-' + Date.now(),
+      refreshToken: 'mock-refresh-token-' + Date.now(),
     },
-    accessToken: 'mock-jwt-token-' + Date.now(),
-    refreshToken: 'mock-refresh-token-' + Date.now(),
+    success: true,
   }
 }

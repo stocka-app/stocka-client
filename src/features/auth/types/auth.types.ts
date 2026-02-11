@@ -1,4 +1,30 @@
 // =============================================================================
+// RE-EXPORT CONTRACT TYPES FROM ZOD SCHEMAS
+// =============================================================================
+
+export type {
+  // Request types
+  SignInRequest,
+  SignUpRequest,
+  VerifyEmailRequest,
+  ResendVerificationCodeRequest,
+  RefreshSessionRequest,
+  SignOutRequest,
+  // Response types
+  BackendUser,
+  SignUpResponse,
+  SignInResponse,
+  RefreshSessionResponse,
+  GetMeResponse,
+  VerifyEmailResponse,
+  ResendVerificationCodeResponse,
+  ApiErrorResponse,
+  // Form types
+  LoginFormData,
+  RegisterFormData,
+} from '../schemas/auth.schema'
+
+// =============================================================================
 // USER STATUS & TYPES
 // =============================================================================
 
@@ -13,7 +39,7 @@ export type UserStatus =
   | 'blocked' // Usuario bloqueado
 
 /**
- * Usuario con información completa
+ * Usuario con información completa (usado en el frontend)
  */
 export interface User {
   id: string // UUID
@@ -24,11 +50,12 @@ export interface User {
 }
 
 // =============================================================================
-// AUTHENTICATION CREDENTIALS
+// LEGACY CREDENTIAL INTERFACES (para compatibilidad)
 // =============================================================================
 
 /**
  * Credenciales para login
+ * @deprecated Usar SignInRequest de schemas
  */
 export interface LoginCredentials {
   emailOrUsername: string
@@ -37,93 +64,12 @@ export interface LoginCredentials {
 
 /**
  * Credenciales para registro
+ * @deprecated Usar SignUpRequest de schemas
  */
 export interface RegisterCredentials {
   email: string
   username: string
   password: string
-}
-
-// =============================================================================
-// API RESPONSES
-// =============================================================================
-
-/**
- * Response base de autenticación
- */
-export interface AuthResponse {
-  user: User
-  accessToken: string
-  refreshToken: string
-}
-
-/**
- * Response de Sign Up
- * - emailVerificationRequired siempre es true para registro manual
- */
-export interface SignUpResponse extends AuthResponse {
-  emailVerificationRequired: true
-}
-
-/**
- * Response de Sign In
- * - emailVerificationRequired es true si status === 'pending_verification'
- */
-export interface SignInResponse extends AuthResponse {
-  emailVerificationRequired: boolean
-}
-
-/**
- * Response de Social Login
- * - emailVerificationRequired siempre es false
- */
-export interface SocialSignInResponse extends AuthResponse {
-  emailVerificationRequired: false
-}
-
-/**
- * Response de refresh token
- */
-export interface RefreshSessionResponse {
-  accessToken: string
-  refreshToken: string
-}
-
-// =============================================================================
-// EMAIL VERIFICATION
-// =============================================================================
-
-/**
- * Request para verificar email
- */
-export interface VerifyEmailRequest {
-  email: string
-  code: string // 6 caracteres alfanuméricos
-}
-
-/**
- * Response de verificación de email
- */
-export interface VerifyEmailResponse {
-  success: boolean
-  message: string
-}
-
-/**
- * Request para reenviar código de verificación
- */
-export interface ResendVerificationCodeRequest {
-  email: string
-}
-
-/**
- * Response de reenvío de código
- */
-export interface ResendVerificationCodeResponse {
-  success: boolean
-  message: string
-  cooldownSeconds?: number // Segundos hasta poder reenviar
-  remainingResends?: number // Reenvíos restantes en la hora actual
 }
 
 // =============================================================================
@@ -217,7 +163,7 @@ export interface AuthActions {
 
   // Verificación de email
   verifyEmail: (code: string) => Promise<void>
-  resendVerificationCode: () => Promise<ResendVerificationCodeResponse>
+  resendVerificationCode: () => Promise<{ success: boolean; message: string; cooldownSeconds?: number; remainingResends?: number }>
 
   // OAuth
   handleOAuthCallback: (tokens: {

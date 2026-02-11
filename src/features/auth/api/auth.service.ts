@@ -1,43 +1,55 @@
 import { api } from '@/shared/lib/axios'
-import type {
-  LoginCredentials,
-  RegisterCredentials,
-  SignInResponse,
-  SignUpResponse,
-  VerifyEmailRequest,
-  VerifyEmailResponse,
-  ResendVerificationCodeRequest,
-  ResendVerificationCodeResponse,
-  RefreshSessionResponse,
-  User,
-  OAuthProvider,
-} from '../types/auth.types'
+import {
+  SignUpResponseSchema,
+  SignInResponseSchema,
+  RefreshSessionResponseSchema,
+  GetMeResponseSchema,
+  VerifyEmailResponseSchema,
+  ResendVerificationCodeResponseSchema,
+  type SignInRequest,
+  type SignUpRequest,
+  type SignUpResponse,
+  type SignInResponse,
+  type RefreshSessionResponse,
+  type GetMeResponse,
+  type VerifyEmailRequest,
+  type VerifyEmailResponse,
+  type ResendVerificationCodeRequest,
+  type ResendVerificationCodeResponse,
+} from '../schemas/auth.schema'
+import type { OAuthProvider } from '../types/auth.types'
 
 /**
  * Servicio de autenticación
  * Conecta con el backend stocka-server
+ * Usa Zod para validar las respuestas del API
+ *
+ * NOTA: axios retorna { data: ... }, y dentro de ese data viene la respuesta del backend
+ * que tiene estructura: { data: { ... }, success: true }
  */
 export const authService = {
   /**
    * Registrar nuevo usuario
    * POST /auth/sign-up
    *
-   * @returns SignUpResponse con emailVerificationRequired: true
+   * @returns SignUpResponse validado con Zod
    */
-  async signUp(credentials: RegisterCredentials): Promise<SignUpResponse> {
-    const response = await api.post<SignUpResponse>('/auth/sign-up', credentials)
-    return response.data
+  async signUp(credentials: SignUpRequest): Promise<SignUpResponse> {
+    const response = await api.post('/auth/sign-up', credentials)
+    // response.data es la respuesta del backend: { data: { user, ... }, success: true }
+    return SignUpResponseSchema.parse(response.data)
   },
 
   /**
    * Iniciar sesión
    * POST /auth/sign-in
    *
-   * @returns SignInResponse con emailVerificationRequired si el usuario no ha verificado
+   * @returns SignInResponse validado con Zod
    */
-  async signIn(credentials: LoginCredentials): Promise<SignInResponse> {
-    const response = await api.post<SignInResponse>('/auth/sign-in', credentials)
-    return response.data
+  async signIn(credentials: SignInRequest): Promise<SignInResponse> {
+    const response = await api.post('/auth/sign-in', credentials)
+    // response.data es la respuesta del backend: { data: { user, ... }, success: true }
+    return SignInResponseSchema.parse(response.data)
   },
 
   /**
@@ -54,13 +66,11 @@ export const authService = {
    * Renovar sesión con refresh token
    * POST /auth/refresh-session
    *
-   * @returns Nuevos tokens de acceso y refresh
+   * @returns Nuevos tokens de acceso y refresh validados con Zod
    */
   async refreshSession(refreshToken: string): Promise<RefreshSessionResponse> {
-    const response = await api.post<RefreshSessionResponse>('/auth/refresh-session', {
-      refreshToken,
-    })
-    return response.data
+    const response = await api.post('/auth/refresh-session', { refreshToken })
+    return RefreshSessionResponseSchema.parse(response.data)
   },
 
   /**
@@ -69,9 +79,9 @@ export const authService = {
    *
    * Requiere token de acceso válido
    */
-  async getMe(): Promise<User> {
-    const response = await api.get<User>('/auth/me')
-    return response.data
+  async getMe(): Promise<GetMeResponse> {
+    const response = await api.get('/auth/me')
+    return GetMeResponseSchema.parse(response.data)
   },
 
   /**
@@ -81,8 +91,8 @@ export const authService = {
    * @param data - Email y código de verificación
    */
   async verifyEmail(data: VerifyEmailRequest): Promise<VerifyEmailResponse> {
-    const response = await api.post<VerifyEmailResponse>('/auth/verify-email', data)
-    return response.data
+    const response = await api.post('/auth/verify-email', data)
+    return VerifyEmailResponseSchema.parse(response.data)
   },
 
   /**
@@ -95,17 +105,14 @@ export const authService = {
   async resendVerificationCode(
     data: ResendVerificationCodeRequest
   ): Promise<ResendVerificationCodeResponse> {
-    const response = await api.post<ResendVerificationCodeResponse>(
-      '/auth/resend-verification-code',
-      data
-    )
-    return response.data
+    const response = await api.post('/auth/resend-verification-code', data)
+    return ResendVerificationCodeResponseSchema.parse(response.data)
   },
 
   /**
    * Obtener URL para iniciar OAuth con un proveedor
    *
-   * @param provider - 'google' | 'facebook' | 'apple'
+   * @param provider - 'google' | 'facebook' | 'microsoft'
    * @returns URL completa para redirigir al usuario
    */
   getOAuthUrl(provider: OAuthProvider): string {
@@ -117,7 +124,7 @@ export const authService = {
    * Iniciar flujo de OAuth
    * Redirige al usuario al proveedor seleccionado
    *
-   * @param provider - 'google' | 'facebook' | 'apple'
+   * @param provider - 'google' | 'facebook' | 'microsoft'
    */
   initiateOAuth(provider: OAuthProvider): void {
     const url = this.getOAuthUrl(provider)
