@@ -108,14 +108,14 @@ export const SignUpResponseSchema = z.object({
 
 /**
  * Contrato: POST /auth/sign-in response
- * Estructura real del backend: { data: { user, accessToken, refreshToken, emailVerificationRequired? }, success: true }
+ * Estructura real del backend: { data: { user, accessToken, refreshToken, emailVerificationRequired }, success: true }
  */
 export const SignInResponseSchema = z.object({
   data: z.object({
     user: BackendUserSchema,
     accessToken: z.string(),
     refreshToken: z.string(),
-    emailVerificationRequired: z.boolean().optional(),
+    emailVerificationRequired: z.boolean(),
   }),
   success: z.boolean(),
 })
@@ -185,6 +185,7 @@ export const ApiErrorResponseSchema = z.object({
     'INVALID_CREDENTIALS',
     'EMAIL_ALREADY_EXISTS',
     'USERNAME_ALREADY_EXISTS',
+    'EMAIL_NOT_VERIFIED',
     'INVALID_VERIFICATION_CODE',
     'VERIFICATION_CODE_EXPIRED',
     'TOO_MANY_VERIFICATION_ATTEMPTS',

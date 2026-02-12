@@ -23,7 +23,7 @@ import { cn } from '@/shared/lib/utils'
 export function LoginForm() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
-  const { login, isLoading, error, clearError } = useAuth()
+  const { login, isLoading, error, errorCode, clearError, setPendingVerificationEmail } = useAuth()
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -33,19 +33,28 @@ export function LoginForm() {
     },
   })
 
+  // Guardar el email para verificación cuando hay error EMAIL_NOT_VERIFIED
+  const handleVerifyEmailClick = () => {
+    const emailOrUsername = form.getValues('emailOrUsername')
+    if (emailOrUsername.includes('@')) {
+      setPendingVerificationEmail(emailOrUsername)
+    }
+    clearError()
+    navigate('/auth/verify-email')
+  }
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       clearError()
       const result = await login(data)
 
-      // Si requiere verificación de email, redirigir a la página de verificación
-      if (result?.requiresVerification) {
-        navigate('/auth/verify-email')
-      } else {
+      // Solo redirigir a dashboard si login exitoso (usuario verificado)
+      if (!result?.requiresVerification) {
         navigate('/dashboard')
       }
+      // Si requiresVerification es true, el error se mostrará con el link
     } catch {
-      // Error is handled in the store
+      // Los errores se muestran en el formulario con links según el tipo
     }
   }
 
@@ -54,7 +63,19 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {error && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            {t(`errors.${error}`, { defaultValue: error })}
+            <span>{t(`errors.${errorCode}`, { defaultValue: error })}</span>
+            {errorCode === 'EMAIL_NOT_VERIFIED' && (
+              <>
+                {' '}
+                <button
+                  type="button"
+                  onClick={handleVerifyEmailClick}
+                  className="font-medium underline hover:no-underline"
+                >
+                  {t('verifyEmail.verifyNow', 'Verify now')}
+                </button>
+              </>
+            )}
           </div>
         )}
 

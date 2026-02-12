@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LoginForm } from '../components'
@@ -6,7 +7,12 @@ import { useAuth } from '../hooks/useAuth'
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
-  const { isLoading } = useAuth()
+  const { isLoading, clearError } = useAuth()
+
+  // Limpiar errores al montar el componente
+  useEffect(() => {
+    clearError()
+  }, [clearError])
 
   return (
     <div className="space-y-6">

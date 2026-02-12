@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
@@ -14,12 +14,15 @@ interface VerifyEmailFormProps {
   email: string
 }
 
+const CODE_EXPIRATION_SECONDS = 600 // 10 minutos
+const RESEND_COOLDOWN_SECONDS = 60 // 60 segundos entre reenvíos
+
 /**
  * Formulario de verificación de email
  *
  * Características:
- * - Input de 6 dígitos
- * - Timer de expiración (10 minutos)
+ * - Input de 6 dígitos alfanuméricos
+ * - Timer de expiración (10 minutos) persistente
  * - Botón de reenvío con cooldown
  * - Manejo de errores específicos del backend
  * - Feedback visual de éxito/error
@@ -28,13 +31,44 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
 
-  const { verifyEmail, resendVerificationCode, isLoading, error, errorCode, blockInfo, clearError } =
-    useAuthStore()
+  const {
+    verifyEmail,
+    resendVerificationCode,
+    isLoading,
+    error,
+    errorCode,
+    blockInfo,
+    clearError,
+    verificationCodeSentAt,
+  } = useAuthStore()
+
+  // Calcular tiempo inicial restante basado en cuándo se envió el código
+  const initialSecondsLeft = useMemo(() => {
+    if (!verificationCodeSentAt) return CODE_EXPIRATION_SECONDS
+
+    const sentAt = new Date(verificationCodeSentAt).getTime()
+    const now = Date.now()
+    const elapsedSeconds = Math.floor((now - sentAt) / 1000)
+    const remaining = CODE_EXPIRATION_SECONDS - elapsedSeconds
+
+    return Math.max(0, remaining)
+  }, [verificationCodeSentAt])
+
+  // Calcular cooldown inicial para el botón de reenvío
+  const initialResendCooldown = useMemo(() => {
+    if (!verificationCodeSentAt) return 0
+
+    const sentAt = new Date(verificationCodeSentAt).getTime()
+    const now = Date.now()
+    const elapsedSeconds = Math.floor((now - sentAt) / 1000)
+    const remaining = RESEND_COOLDOWN_SECONDS - elapsedSeconds
+
+    return Math.max(0, remaining)
+  }, [verificationCodeSentAt])
 
   const [code, setCode] = useState('')
-  const [isCodeExpired, setIsCodeExpired] = useState(false)
+  const [isCodeExpired, setIsCodeExpired] = useState(initialSecondsLeft <= 0)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [cooldownSeconds, setCooldownSeconds] = useState(0)
   const [remainingResends, setRemainingResends] = useState<number | undefined>(undefined)
 
   // Limpiar error cuando cambia el código
@@ -104,9 +138,6 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
       setCode('')
       clearError()
 
-      if (response.cooldownSeconds) {
-        setCooldownSeconds(response.cooldownSeconds)
-      }
       if (response.remainingResends !== undefined) {
         setRemainingResends(response.remainingResends)
       }
@@ -114,11 +145,11 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
       return response
     } catch (err) {
       const apiError = err as ApiError
-      // Extraer cooldown del error si existe
+      // Extraer cooldown del error si existe y devolverlo para que ResendButton lo maneje
       if (apiError.error === 'RESEND_COOLDOWN_ACTIVE') {
         const match = apiError.message?.match(/(\d+)\s*seconds?/i)
         if (match) {
-          setCooldownSeconds(parseInt(match[1]))
+          return { cooldownSeconds: parseInt(match[1]) }
         }
       }
       throw err
@@ -205,9 +236,10 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         )}
       </div>
 
-      {/* Timer de expiración */}
+      {/* Timer de expiración - usa el tiempo calculado desde verificationCodeSentAt */}
       <ExpirationTimer
-        totalSeconds={600} // 10 minutos
+        totalSeconds={CODE_EXPIRATION_SECONDS}
+        initialSeconds={initialSecondsLeft}
         onExpire={handleExpire}
         paused={isSuccess}
       />
@@ -237,7 +269,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
 
         <ResendButton
           onResend={handleResend}
-          initialCooldown={cooldownSeconds}
+          initialCooldown={initialResendCooldown}
           initialRemainingResends={remainingResends}
           disabled={isLoading}
         />

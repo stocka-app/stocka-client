@@ -6,10 +6,12 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     error,
+    errorCode,
     login,
     register,
     logout,
     clearError,
+    setPendingVerificationEmail,
   } = useAuthStore()
 
   return {
@@ -17,9 +19,11 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     error,
+    errorCode,
     login,
     register,
     logout,
     clearError,
+    setPendingVerificationEmail,
   }
 }

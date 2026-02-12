@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate } from 'react-router-dom'
 import { Mail } from 'lucide-react'
@@ -16,7 +17,13 @@ import { Logo } from '@/shared/components/Logo'
  */
 export function VerifyEmailPage() {
   const { t } = useTranslation('auth')
-  const { emailVerificationRequired, pendingVerificationEmail, isAuthenticated } = useAuthStore()
+  const { emailVerificationRequired, pendingVerificationEmail, isAuthenticated, clearError } =
+    useAuthStore()
+
+  // Limpiar errores al montar el componente
+  useEffect(() => {
+    clearError()
+  }, [clearError])
 
   // Si ya está autenticado y no requiere verificación, ir a dashboard
   if (isAuthenticated && !emailVerificationRequired) {

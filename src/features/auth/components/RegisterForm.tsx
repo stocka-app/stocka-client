@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import {
   Form,
@@ -22,7 +22,8 @@ import { useAuth } from '../hooks/useAuth'
 export function RegisterForm() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
-  const { register, isLoading, error, clearError } = useAuth()
+  const { register, isLoading, error, errorCode, clearError, setPendingVerificationEmail } =
+    useAuth()
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -32,6 +33,16 @@ export function RegisterForm() {
       password: '',
     },
   })
+
+  // Ir a verificar email con el email del formulario
+  const handleVerifyEmailClick = () => {
+    const email = form.getValues('email')
+    if (email) {
+      setPendingVerificationEmail(email)
+    }
+    clearError()
+    navigate('/auth/verify-email')
+  }
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -45,7 +56,7 @@ export function RegisterForm() {
         navigate('/dashboard')
       }
     } catch {
-      // Error is handled in the store
+      // Los errores se muestran en el formulario con links según el tipo
     }
   }
 
@@ -54,7 +65,27 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {error && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            {t(`errors.${error}`, { defaultValue: error })}
+            <span>{t(`errors.${errorCode}`, { defaultValue: error })}</span>
+            {errorCode === 'EMAIL_ALREADY_EXISTS' && (
+              <>
+                {' '}
+                <Link
+                  to="/auth/login"
+                  className="font-medium underline hover:no-underline"
+                  onClick={clearError}
+                >
+                  {t('signIn')}
+                </Link>
+                {' '}{t('or')}{' '}
+                <button
+                  type="button"
+                  onClick={handleVerifyEmailClick}
+                  className="font-medium underline hover:no-underline"
+                >
+                  {t('verifyEmail.verifyNow')}
+                </button>
+              </>
+            )}
           </div>
         )}
 

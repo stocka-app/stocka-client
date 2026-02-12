@@ -30,6 +30,7 @@ export async function mockLogin(credentials: LoginCredentials): Promise<SignInRe
       },
       accessToken: 'mock-jwt-token-' + Date.now(),
       refreshToken: 'mock-refresh-token-' + Date.now(),
+      emailVerificationRequired: false, // Mock: usuario verificado
     },
     success: true,
   }

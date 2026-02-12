@@ -31,6 +31,7 @@ const initialState: AuthState = {
   // Verificación de email
   emailVerificationRequired: false,
   pendingVerificationEmail: null,
+  verificationCodeSentAt: null,
 
   // Información de bloqueo
   blockInfo: null,
@@ -61,19 +62,19 @@ export const useAuthStore = create<AuthStore>()(
           // authService valida la respuesta con Zod automáticamente
           const response = await authService.signIn(credentials)
 
-          // Extraer datos de la estructura { data: { user, accessToken, refreshToken } }
+          // Extraer datos de la estructura { data: { user, accessToken, refreshToken, emailVerificationRequired } }
           const { user: backendUser, accessToken, refreshToken, emailVerificationRequired } = response.data
 
-          // Construir usuario con status por defecto (el backend no envía status en sign-in)
+          // Construir usuario con status basado en emailVerificationRequired
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
             username: backendUser.username,
-            status: 'active', // Asumimos active para login exitoso
+            status: emailVerificationRequired ? 'pending_verification' : 'active',
             createdAt: backendUser.createdAt,
           }
 
-          // Verificar si necesita verificación de email
+          // Verificar si necesita verificación de email (no permitir acceso si está pendiente)
           const needsVerification = emailVerificationRequired === true
 
           if (needsVerification) {
@@ -124,6 +125,19 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = apiError.message
           }
 
+          // Caso especial: EMAIL_NOT_VERIFIED - guardar email para verificación
+          // El email se guardará desde el LoginForm ya que el error no contiene el email
+          if (errorCode === 'EMAIL_NOT_VERIFIED') {
+            set({
+              error: errorMessage,
+              errorCode: errorCode,
+              isLoading: false,
+              emailVerificationRequired: true,
+              // pendingVerificationEmail se establecerá desde LoginForm
+            })
+            throw error
+          }
+
           set({
             error: errorMessage,
             errorCode: errorCode,
@@ -160,6 +174,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             emailVerificationRequired: true, // Siempre true para registro manual
             pendingVerificationEmail: user.email,
+            verificationCodeSentAt: new Date().toISOString(), // Guardar cuando se envió el código
             accessToken,
             refreshToken,
             user,
@@ -266,7 +281,11 @@ export const useAuthStore = create<AuthStore>()(
           const response = await authService.resendVerificationCode({
             email: pendingVerificationEmail,
           })
-          set({ isLoading: false })
+          // Actualizar timestamp cuando se reenvía el código
+          set({
+            isLoading: false,
+            verificationCodeSentAt: new Date().toISOString(),
+          })
           // Extraer datos de la estructura { data: { success, message, ... } }
           return response.data
         } catch (error) {
@@ -350,6 +369,13 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       /**
+       * Establecer email pendiente de verificación
+       */
+      setPendingVerificationEmail: (email: string | null): void => {
+        set({ pendingVerificationEmail: email })
+      },
+
+      /**
        * Resetear estado de autenticación
        */
       resetAuthState: (): void => {
@@ -367,6 +393,7 @@ export const useAuthStore = create<AuthStore>()(
         isAuthenticated: state.isAuthenticated,
         emailVerificationRequired: state.emailVerificationRequired,
         pendingVerificationEmail: state.pendingVerificationEmail,
+        verificationCodeSentAt: state.verificationCodeSentAt,
       }),
     }
   )

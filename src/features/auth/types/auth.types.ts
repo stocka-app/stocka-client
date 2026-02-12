@@ -83,6 +83,7 @@ export type AuthErrorCode =
   | 'INVALID_CREDENTIALS'
   | 'EMAIL_ALREADY_EXISTS'
   | 'USERNAME_ALREADY_EXISTS'
+  | 'EMAIL_NOT_VERIFIED'
   | 'INVALID_VERIFICATION_CODE'
   | 'VERIFICATION_CODE_EXPIRED'
   | 'TOO_MANY_VERIFICATION_ATTEMPTS'
@@ -140,6 +141,7 @@ export interface AuthState {
   // Verificación de email
   emailVerificationRequired: boolean
   pendingVerificationEmail: string | null
+  verificationCodeSentAt: string | null // ISO timestamp de cuando se envió el código
 
   // Información de bloqueo
   blockInfo: BlockInfo | null
@@ -177,6 +179,7 @@ export interface AuthActions {
   clearError: () => void
   setLoading: (loading: boolean) => void
   setBlockInfo: (blockInfo: BlockInfo | null) => void
+  setPendingVerificationEmail: (email: string | null) => void
   resetAuthState: () => void
 }
 

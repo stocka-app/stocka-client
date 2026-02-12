@@ -48,10 +48,10 @@ export function VerificationCodeInput({
   // Manejar cambio en un input individual
   const handleChange = useCallback(
     (index: number, e: ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value
+      const inputValue = e.target.value.toUpperCase()
 
-      // Solo aceptar números
-      if (inputValue && !/^\d$/.test(inputValue)) {
+      // Solo aceptar caracteres alfanuméricos (A-Z, 0-9)
+      if (inputValue && !/^[A-Z0-9]$/.test(inputValue)) {
         return
       }
 
@@ -60,7 +60,7 @@ export function VerificationCodeInput({
       newDigits[index] = inputValue
       onChange(newDigits.join(''))
 
-      // Auto-avance al siguiente input si se escribió un número
+      // Auto-avance al siguiente input si se escribió un carácter
       if (inputValue && index < length - 1) {
         inputRefs.current[index + 1]?.focus()
       }
@@ -100,16 +100,16 @@ export function VerificationCodeInput({
   const handlePaste = useCallback(
     (e: ClipboardEvent<HTMLInputElement>) => {
       e.preventDefault()
-      const pastedData = e.clipboardData.getData('text/plain').trim()
+      const pastedData = e.clipboardData.getData('text/plain').trim().toUpperCase()
 
-      // Solo procesar si son dígitos
-      const pastedDigits = pastedData.replace(/\D/g, '').slice(0, length)
+      // Solo procesar caracteres alfanuméricos (A-Z, 0-9)
+      const pastedChars = pastedData.replace(/[^A-Z0-9]/g, '').slice(0, length)
 
-      if (pastedDigits) {
-        onChange(pastedDigits)
+      if (pastedChars) {
+        onChange(pastedChars)
 
-        // Focus en el último dígito pegado o el último campo
-        const lastIndex = Math.min(pastedDigits.length, length) - 1
+        // Focus en el último carácter pegado o el último campo
+        const lastIndex = Math.min(pastedChars.length, length) - 1
         if (lastIndex >= 0) {
           inputRefs.current[lastIndex]?.focus()
         }
@@ -136,7 +136,7 @@ export function VerificationCodeInput({
             inputRefs.current[index] = el
           }}
           type="text"
-          inputMode="numeric"
+          inputMode="text"
           autoComplete="one-time-code"
           maxLength={1}
           value={digit}

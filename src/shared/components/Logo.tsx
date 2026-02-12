@@ -1,10 +1,14 @@
+import { Link } from 'react-router-dom'
 import { Package } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
+import { useAuthStore } from '@/features/auth/store/auth.store'
 
 interface LogoProps {
   className?: string
   size?: 'sm' | 'md' | 'lg'
   showIcon?: boolean
+  /** Si es true, el logo no será clickeable */
+  disableLink?: boolean
 }
 
 const sizes = {
@@ -19,15 +23,26 @@ const iconSizes = {
   lg: 'h-8 w-8',
 }
 
-export function Logo({ className, size = 'md', showIcon = true }: LogoProps) {
-  return (
+export function Logo({ className, size = 'md', showIcon = true, disableLink = false }: LogoProps) {
+  const { isAuthenticated } = useAuthStore()
+
+  // Determinar destino según estado de autenticación
+  const destination = isAuthenticated ? '/dashboard' : '/auth/login'
+
+  const logoContent = (
     <div className={cn('flex items-center gap-2', className)}>
-      {showIcon && (
-        <Package className={cn('text-primary', iconSizes[size])} />
-      )}
-      <span className={cn('font-bold text-primary', sizes[size])}>
-        Stocka
-      </span>
+      {showIcon && <Package className={cn('text-primary', iconSizes[size])} />}
+      <span className={cn('font-bold text-primary', sizes[size])}>Stocka</span>
     </div>
+  )
+
+  if (disableLink) {
+    return logoContent
+  }
+
+  return (
+    <Link to={destination} className="transition-opacity hover:opacity-80">
+      {logoContent}
+    </Link>
   )
 }
