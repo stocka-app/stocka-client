@@ -245,8 +245,9 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         )}
       </div>
 
-      {/* Timer de expiración - usa el tiempo calculado desde verificationCodeSentAt */}
+      {/* Timer de expiración - usa key para forzar reinicio cuando se reenvía el código */}
       <ExpirationTimer
+        key={verificationCodeSentAt || 'initial'}
         totalSeconds={CODE_EXPIRATION_SECONDS}
         initialSeconds={initialSecondsLeft}
         onExpire={handleExpire}
@@ -277,6 +278,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         </p>
 
         <ResendButton
+          key={verificationCodeSentAt || 'initial'}
           onResend={handleResend}
           initialCooldown={initialResendCooldown}
           initialRemainingResends={remainingResends}
