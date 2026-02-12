@@ -169,9 +169,18 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         })
       }
       if (errorCode === 'VERIFICATION_BLOCKED') {
-        // Extraer minutos del mensaje original
-        const match = error.match(/(\d+)\s*minutes?/i)
-        const minutes = match ? match[1] : '15'
+        // Calcular minutos restantes desde blockedUntil o parsear del mensaje
+        let minutes = '15'
+        if (blockInfo?.blockedUntil) {
+          const blockedUntilTime = new Date(blockInfo.blockedUntil).getTime()
+          const now = Date.now()
+          const minutesRemaining = Math.ceil((blockedUntilTime - now) / 60000)
+          minutes = String(Math.max(1, minutesRemaining))
+        } else {
+          // Fallback: extraer minutos del mensaje original
+          const match = error.match(/(\d+)\s*minutes?/i)
+          if (match) minutes = match[1]
+        }
         return t(`errors.VERIFICATION_BLOCKED`, { minutes })
       }
 

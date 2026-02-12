@@ -35,6 +35,9 @@ const initialState: AuthState = {
 
   // Información de bloqueo
   blockInfo: null,
+
+  // Indica si el email existente puede ser verificado (pending_verification)
+  canVerifyExistingEmail: false,
 }
 
 /**
@@ -203,10 +206,14 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = apiError.message
           }
 
+          // Si el error es EMAIL_ALREADY_EXISTS, verificar si puede ser verificado
+          const canVerifyExistingEmail = errorCode === 'EMAIL_ALREADY_EXISTS' && apiError.canVerify === true
+
           set({
             error: errorMessage,
             errorCode: errorCode,
             isLoading: false,
+            canVerifyExistingEmail,
           })
           throw error
         }
@@ -240,20 +247,20 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           const apiError = error as ApiError
 
-          // Manejar información de bloqueo si existe
+          // Manejar información de bloqueo usando campos de metadata del backend
           let blockInfo: BlockInfo | null = null
           if (apiError.error === 'VERIFICATION_BLOCKED') {
-            // Extraer tiempo de bloqueo del mensaje si está disponible
             blockInfo = {
               isBlocked: true,
               reason: 'attempts',
+              // Usar campos de metadata directamente del error
+              blockedUntil: apiError.blockedUntil ? new Date(apiError.blockedUntil) : undefined,
             }
           } else if (apiError.error === 'TOO_MANY_VERIFICATION_ATTEMPTS') {
-            // Extraer intentos restantes si están en el mensaje
-            const match = apiError.message?.match(/(\d+)\s*attempts?\s*remaining/i)
             blockInfo = {
               isBlocked: false,
-              attemptsRemaining: match ? parseInt(match[1]) : undefined,
+              // Usar attemptsRemaining directamente del error
+              attemptsRemaining: apiError.attemptsRemaining,
             }
           }
 

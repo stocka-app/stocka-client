@@ -98,6 +98,7 @@ export type AuthErrorCode =
 
 /**
  * Error de API estandarizado del backend
+ * Incluye campos de metadata específicos según el tipo de error
  */
 export interface ApiError {
   statusCode: number
@@ -107,6 +108,11 @@ export interface ApiError {
     field: string
     message: string
   }>
+  // Campos de metadata según el tipo de error
+  attemptsRemaining?: number // TOO_MANY_VERIFICATION_ATTEMPTS
+  minutesRemaining?: number // VERIFICATION_BLOCKED
+  blockedUntil?: string // VERIFICATION_BLOCKED (ISO string)
+  canVerify?: boolean // EMAIL_ALREADY_EXISTS (cuando status es pending_verification)
 }
 
 /**
@@ -145,6 +151,9 @@ export interface AuthState {
 
   // Información de bloqueo
   blockInfo: BlockInfo | null
+
+  // Indica si el email existente puede ser verificado (pending_verification)
+  canVerifyExistingEmail: boolean
 }
 
 /**

@@ -177,6 +177,7 @@ export const ResendVerificationCodeResponseSchema = z.object({
 
 /**
  * Contrato: Error response del API
+ * Incluye campos de metadata específicos según el tipo de error
  */
 export const ApiErrorResponseSchema = z.object({
   statusCode: z.number(),
@@ -206,6 +207,11 @@ export const ApiErrorResponseSchema = z.object({
       })
     )
     .optional(),
+  // Campos de metadata según el tipo de error
+  attemptsRemaining: z.number().optional(), // TOO_MANY_VERIFICATION_ATTEMPTS
+  minutesRemaining: z.number().optional(), // VERIFICATION_BLOCKED
+  blockedUntil: z.string().optional(), // VERIFICATION_BLOCKED
+  canVerify: z.boolean().optional(), // EMAIL_ALREADY_EXISTS (cuando status es pending_verification)
 })
 
 // =============================================================================

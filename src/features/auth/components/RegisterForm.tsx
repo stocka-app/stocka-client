@@ -22,7 +22,7 @@ import { useAuth } from '../hooks/useAuth'
 export function RegisterForm() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
-  const { register, isLoading, error, errorCode, clearError, setPendingVerificationEmail } =
+  const { register, isLoading, error, errorCode, clearError, setPendingVerificationEmail, canVerifyExistingEmail } =
     useAuth()
 
   const form = useForm<RegisterFormData>({
@@ -76,14 +76,19 @@ export function RegisterForm() {
                 >
                   {t('signIn')}
                 </Link>
-                {' '}{t('or')}{' '}
-                <button
-                  type="button"
-                  onClick={handleVerifyEmailClick}
-                  className="font-medium underline hover:no-underline"
-                >
-                  {t('verifyEmail.verifyNow')}
-                </button>
+                {/* Solo mostrar opción de verificar si el backend indica que es posible (status pending_verification) */}
+                {canVerifyExistingEmail && (
+                  <>
+                    {' '}{t('or')}{' '}
+                    <button
+                      type="button"
+                      onClick={handleVerifyEmailClick}
+                      className="font-medium underline hover:no-underline"
+                    >
+                      {t('verifyEmail.verifyNow')}
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>
