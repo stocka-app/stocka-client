@@ -69,25 +69,24 @@ export function RegisterForm() {
             {errorCode === 'EMAIL_ALREADY_EXISTS' && (
               <>
                 {' '}
-                <Link
-                  to="/auth/login"
-                  className="font-medium underline hover:no-underline"
-                  onClick={clearError}
-                >
-                  {t('signIn')}
-                </Link>
-                {/* Solo mostrar opción de verificar si el backend indica que es posible (status pending_verification) */}
-                {canVerifyExistingEmail && (
-                  <>
-                    {' '}{t('or')}{' '}
-                    <button
-                      type="button"
-                      onClick={handleVerifyEmailClick}
-                      className="font-medium underline hover:no-underline"
-                    >
-                      {t('verifyEmail.verifyNow')}
-                    </button>
-                  </>
+                {canVerifyExistingEmail ? (
+                  // Usuario pendiente de verificación - solo mostrar opción de verificar
+                  <button
+                    type="button"
+                    onClick={handleVerifyEmailClick}
+                    className="font-medium underline hover:no-underline"
+                  >
+                    {t('verifyEmail.verifyNow')}
+                  </button>
+                ) : (
+                  // Usuario ya verificado - solo mostrar opción de iniciar sesión
+                  <Link
+                    to="/auth/login"
+                    className="font-medium underline hover:no-underline"
+                    onClick={clearError}
+                  >
+                    {t('signIn')}
+                  </Link>
                 )}
               </>
             )}
