@@ -92,6 +92,7 @@ export type AuthErrorCode =
   | 'MAX_RESENDS_EXCEEDED'
   | 'USER_ALREADY_VERIFIED'
   | 'RATE_LIMIT_EXCEEDED'
+  | 'ACCOUNT_TEMPORARILY_LOCKED'
   | 'ACCOUNT_DEACTIVATED'
   | 'TOKEN_EXPIRED'
   | 'UNKNOWN_ERROR'
@@ -122,7 +123,7 @@ export interface BlockInfo {
   isBlocked: boolean
   blockedUntil?: Date
   attemptsRemaining?: number
-  reason?: 'attempts' | 'rate_limit'
+  reason?: 'attempts' | 'rate_limit' | 'account_locked'
 }
 
 // =============================================================================

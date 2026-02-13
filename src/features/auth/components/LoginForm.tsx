@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Lock } from 'lucide-react'
 import {
   Form,
   FormControl,
@@ -17,13 +18,32 @@ import { PasswordInput } from './PasswordInput'
 import { SocialButton } from './SocialButton'
 import { FormDivider } from './FormDivider'
 import { loginSchema, type LoginFormData } from '../schemas/auth.schema'
-import { useAuth } from '../hooks/useAuth'
+import { useAuthStore } from '../store/auth.store'
 import { cn } from '@/shared/lib/utils'
+
+/**
+ * Formatea segundos a formato legible (1h 5m, 5m 30s, 30s)
+ */
+function formatCountdown(seconds: number): string {
+  if (seconds >= 3600) {
+    const hours = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    return `${hours}h ${mins}m`
+  }
+  if (seconds >= 60) {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}m ${secs}s`
+  }
+  return `${seconds}s`
+}
 
 export function LoginForm() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
-  const { login, isLoading, error, errorCode, clearError, setPendingVerificationEmail } = useAuth()
+  const { login, isLoading, error, errorCode, clearError, setPendingVerificationEmail, blockInfo } =
+    useAuthStore()
+  const [countdown, setCountdown] = useState<number>(0)
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -32,6 +52,35 @@ export function LoginForm() {
       password: '',
     },
   })
+
+  // Countdown para bloqueo temporal
+  useEffect(() => {
+    if (!blockInfo?.blockedUntil) {
+      setCountdown(0)
+      return
+    }
+
+    const updateCountdown = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((blockInfo.blockedUntil!.getTime() - Date.now()) / 1000)
+      )
+      setCountdown(remaining)
+    }
+
+    updateCountdown()
+    const interval = setInterval(updateCountdown, 1000)
+    return () => clearInterval(interval)
+  }, [blockInfo?.blockedUntil])
+
+  // Limpiar blockInfo cuando countdown llega a 0
+  useEffect(() => {
+    if (countdown === 0 && blockInfo?.isBlocked && blockInfo?.reason === 'account_locked') {
+      clearError()
+    }
+  }, [countdown, blockInfo, clearError])
+
+  const isFormDisabled = isLoading || (blockInfo?.isBlocked && countdown > 0)
 
   // Guardar el email para verificación cuando hay error EMAIL_NOT_VERIFIED
   const handleVerifyEmailClick = () => {
@@ -61,7 +110,32 @@ export function LoginForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {error && (
+        {/* Bloqueo temporal por intentos fallidos */}
+        {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && countdown > 0 && (
+          <div className="rounded-md bg-red-50 border border-red-200 p-4">
+            <div className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <p className="text-sm font-medium text-red-800">
+                {t('errors.accountTemporarilyLocked')}
+              </p>
+            </div>
+            <p className="mt-1 text-sm text-red-600">
+              {t('errors.tryAgainIn', { time: formatCountdown(countdown) })}
+            </p>
+          </div>
+        )}
+
+        {/* Rate limit genérico */}
+        {blockInfo?.isBlocked && blockInfo.reason === 'rate_limit' && (
+          <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
+            <p className="text-sm text-amber-800">
+              {t('errors.tooManyRequests')}
+            </p>
+          </div>
+        )}
+
+        {/* Otros errores (credenciales inválidas, etc.) */}
+        {error && !blockInfo?.isBlocked && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
             <span>{t(`errors.${errorCode}`, { defaultValue: error })}</span>
             {errorCode === 'EMAIL_NOT_VERIFIED' && (
@@ -88,7 +162,7 @@ export function LoginForm() {
               <FormControl>
                 <Input
                   placeholder={t('emailOrUsernamePlaceholder')}
-                  disabled={isLoading}
+                  disabled={isFormDisabled}
                   {...field}
                 />
               </FormControl>
@@ -111,7 +185,7 @@ export function LoginForm() {
                   to="/auth/forgot-password"
                   className={cn(
                     'text-sm text-primary hover:underline',
-                    isLoading && 'pointer-events-none opacity-50'
+                    isFormDisabled && 'pointer-events-none opacity-50'
                   )}
                 >
                   {t('forgotPassword')}
@@ -120,7 +194,7 @@ export function LoginForm() {
               <FormControl>
                 <PasswordInput
                   placeholder={t('passwordPlaceholder')}
-                  disabled={isLoading}
+                  disabled={isFormDisabled}
                   {...field}
                 />
               </FormControl>
@@ -132,12 +206,14 @@ export function LoginForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+        <Button type="submit" className="w-full" size="lg" disabled={isFormDisabled}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {t('signingIn')}
             </>
+          ) : countdown > 0 ? (
+            t('errors.lockedCountdown', { time: formatCountdown(countdown) })
           ) : (
             t('signInButton')
           )}
@@ -145,6 +221,7 @@ export function LoginForm() {
 
         <FormDivider />
 
+        {/* Social buttons - siempre habilitados durante bloqueo de password */}
         <div className="flex gap-3">
           <SocialButton
             provider="google"
@@ -155,6 +232,13 @@ export function LoginForm() {
           <SocialButton provider="facebook" variant="icon" />
           <SocialButton provider="microsoft" variant="icon" />
         </div>
+
+        {/* Mensaje de alternativa OAuth durante bloqueo */}
+        {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && countdown > 0 && (
+          <p className="text-xs text-muted-foreground text-center">
+            {t('errors.useAlternativeLogin')}
+          </p>
+        )}
       </form>
     </Form>
   )

@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthStore>()(
        * - Si el usuario no ha verificado su email, establece emailVerificationRequired
        */
       login: async (credentials: LoginCredentials): Promise<AuthResult> => {
-        set({ isLoading: true, error: null, errorCode: null })
+        set({ isLoading: true, error: null, errorCode: null, blockInfo: null })
         try {
           // authService valida la respuesta con Zod automáticamente
           const response = await authService.signIn(credentials)
@@ -141,10 +141,39 @@ export const useAuthStore = create<AuthStore>()(
             throw error
           }
 
+          // Manejar errores de rate limiting
+          let blockInfo: BlockInfo | null = null
+
+          // Cuenta bloqueada por intentos fallidos (Interceptor post-ejecución)
+          if (errorCode === 'ACCOUNT_TEMPORARILY_LOCKED') {
+            blockInfo = {
+              isBlocked: true,
+              reason: 'account_locked',
+              blockedUntil: apiError.blockedUntil ? new Date(apiError.blockedUntil) : undefined,
+            }
+          }
+
+          // Rate limit por IP o identifier (Guard pre-ejecución)
+          if (errorCode === 'RATE_LIMIT_EXCEEDED') {
+            blockInfo = {
+              isBlocked: true,
+              reason: 'rate_limit',
+            }
+          }
+
+          // Throttle HTTP genérico (429 sin error code específico)
+          if (apiError.statusCode === 429 && !blockInfo) {
+            blockInfo = {
+              isBlocked: true,
+              reason: 'rate_limit',
+            }
+          }
+
           set({
             error: errorMessage,
             errorCode: errorCode,
             isLoading: false,
+            blockInfo,
           })
           throw error
         }
