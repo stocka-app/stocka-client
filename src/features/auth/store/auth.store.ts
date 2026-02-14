@@ -125,19 +125,6 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = apiError.message
           }
 
-          // Caso especial: EMAIL_NOT_VERIFIED - guardar email para verificación
-          // El email se guardará desde el LoginForm ya que el error no contiene el email
-          if (errorCode === 'EMAIL_NOT_VERIFIED') {
-            set({
-              error: errorMessage,
-              errorCode: errorCode,
-              isLoading: false,
-              emailVerificationRequired: true,
-              // pendingVerificationEmail se establecerá desde LoginForm
-            })
-            throw error
-          }
-
           // Manejar errores de rate limiting
           let blockInfo: BlockInfo | null = null
 
@@ -166,11 +153,15 @@ export const useAuthStore = create<AuthStore>()(
             }
           }
 
+          // Caso especial: EMAIL_NOT_VERIFIED - marcar que requiere verificación
+          const requiresEmailVerification = errorCode === 'EMAIL_NOT_VERIFIED'
+
           set({
             error: errorMessage,
             errorCode: errorCode,
             isLoading: false,
             blockInfo,
+            emailVerificationRequired: requiresEmailVerification,
           })
           throw error
         }

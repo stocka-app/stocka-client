@@ -73,14 +73,14 @@ export function LoginForm() {
     return () => clearInterval(interval)
   }, [blockInfo?.blockedUntil])
 
-  // Limpiar blockInfo cuando countdown llega a 0
+  // Limpiar blockInfo cuando countdown llega a 0 (solo si había blockedUntil)
   useEffect(() => {
-    if (countdown === 0 && blockInfo?.isBlocked && blockInfo?.reason === 'account_locked') {
+    if (countdown === 0 && blockInfo?.isBlocked && blockInfo?.reason === 'account_locked' && blockInfo?.blockedUntil) {
       clearError()
     }
   }, [countdown, blockInfo, clearError])
 
-  const isFormDisabled = isLoading || (blockInfo?.isBlocked && countdown > 0)
+  const isFormDisabled = isLoading || blockInfo?.isBlocked
 
   // Guardar el email para verificación cuando hay error EMAIL_NOT_VERIFIED
   const handleVerifyEmailClick = () => {
@@ -111,7 +111,7 @@ export function LoginForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Bloqueo temporal por intentos fallidos */}
-        {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && countdown > 0 && (
+        {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && (
           <div className="rounded-md bg-red-50 border border-red-200 p-4">
             <div className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-red-500 flex-shrink-0" />
@@ -119,9 +119,15 @@ export function LoginForm() {
                 {t('errors.accountTemporarilyLocked')}
               </p>
             </div>
-            <p className="mt-1 text-sm text-red-600">
-              {t('errors.tryAgainIn', { time: formatCountdown(countdown) })}
-            </p>
+            {countdown > 0 ? (
+              <p className="mt-1 text-sm text-red-600">
+                {t('errors.tryAgainIn', { time: formatCountdown(countdown) })}
+              </p>
+            ) : error && (
+              <p className="mt-1 text-sm text-red-600">
+                {error}
+              </p>
+            )}
           </div>
         )}
 
@@ -214,6 +220,8 @@ export function LoginForm() {
             </>
           ) : countdown > 0 ? (
             t('errors.lockedCountdown', { time: formatCountdown(countdown) })
+          ) : blockInfo?.isBlocked && blockInfo.reason === 'account_locked' ? (
+            t('errors.accountTemporarilyLocked')
           ) : (
             t('signInButton')
           )}
@@ -234,7 +242,7 @@ export function LoginForm() {
         </div>
 
         {/* Mensaje de alternativa OAuth durante bloqueo */}
-        {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && countdown > 0 && (
+        {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && (
           <p className="text-xs text-muted-foreground text-center">
             {t('errors.useAlternativeLogin')}
           </p>

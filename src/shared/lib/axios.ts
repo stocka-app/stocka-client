@@ -106,10 +106,14 @@ api.interceptors.response.use(
     // El 401 en /auth/sign-in es "credenciales inválidas", no "token expirado"
     if (isAuthRoute(originalRequest?.url)) {
       // Transformar error al formato ApiError y dejarlo pasar
-      const apiError: ApiError = error.response?.data || {
-        statusCode: error.response?.status || 500,
-        message: error.message || 'An unexpected error occurred',
-        error: 'UNKNOWN_ERROR' as AuthErrorCode,
+      // Siempre incluir statusCode del HTTP response, incluso si el backend no lo envía
+      const backendError = error.response?.data || {}
+      const apiError: ApiError = {
+        statusCode: error.response?.status || 500, // Siempre usar el status HTTP real
+        message: backendError.message || error.message || 'An unexpected error occurred',
+        error: backendError.error || ('UNKNOWN_ERROR' as AuthErrorCode),
+        // Preservar campos adicionales del backend (blockedUntil, attemptsRemaining, etc.)
+        ...backendError,
       }
       return Promise.reject(apiError)
     }
@@ -150,10 +154,14 @@ api.interceptors.response.use(
     }
 
     // Transformar error al formato ApiError
-    const apiError: ApiError = error.response?.data || {
-      statusCode: error.response?.status || 500,
-      message: error.message || 'An unexpected error occurred',
-      error: 'UNKNOWN_ERROR' as AuthErrorCode,
+    // Siempre incluir statusCode del HTTP response, incluso si el backend no lo envía
+    const backendError = error.response?.data || {}
+    const apiError: ApiError = {
+      statusCode: error.response?.status || 500, // Siempre usar el status HTTP real
+      message: backendError.message || error.message || 'An unexpected error occurred',
+      error: backendError.error || ('UNKNOWN_ERROR' as AuthErrorCode),
+      // Preservar campos adicionales del backend (blockedUntil, attemptsRemaining, etc.)
+      ...backendError,
     }
 
     return Promise.reject(apiError)
