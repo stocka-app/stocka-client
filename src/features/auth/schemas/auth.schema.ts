@@ -211,8 +211,7 @@ export const ApiErrorResponseSchema = z.object({
   // Campos de metadata según el tipo de error
   attemptsRemaining: z.number().optional(), // TOO_MANY_VERIFICATION_ATTEMPTS
   minutesRemaining: z.number().optional(), // VERIFICATION_BLOCKED
-  blockedUntil: z.string().optional(), // VERIFICATION_BLOCKED
-  canVerify: z.boolean().optional(), // EMAIL_ALREADY_EXISTS (cuando status es pending_verification)
+  blockedUntil: z.string().optional(), // VERIFICATION_BLOCKED, ACCOUNT_TEMPORARILY_LOCKED
 })
 
 // =============================================================================

@@ -35,9 +35,6 @@ const initialState: AuthState = {
 
   // Información de bloqueo
   blockInfo: null,
-
-  // Indica si el email existente puede ser verificado (pending_verification)
-  canVerifyExistingEmail: false,
 }
 
 /**
@@ -235,14 +232,10 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = apiError.message
           }
 
-          // Si el error es EMAIL_ALREADY_EXISTS, verificar si puede ser verificado
-          const canVerifyExistingEmail = errorCode === 'EMAIL_ALREADY_EXISTS' && apiError.canVerify === true
-
           set({
             error: errorMessage,
             errorCode: errorCode,
             isLoading: false,
-            canVerifyExistingEmail,
           })
           throw error
         }

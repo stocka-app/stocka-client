@@ -22,8 +22,7 @@ import { useAuth } from '../hooks/useAuth'
 export function RegisterForm() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
-  const { register, isLoading, error, errorCode, clearError, setPendingVerificationEmail, canVerifyExistingEmail } =
-    useAuth()
+  const { register, isLoading, error, errorCode, clearError } = useAuth()
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -33,16 +32,6 @@ export function RegisterForm() {
       password: '',
     },
   })
-
-  // Ir a verificar email con el email del formulario
-  const handleVerifyEmailClick = () => {
-    const email = form.getValues('email')
-    if (email) {
-      setPendingVerificationEmail(email)
-    }
-    clearError()
-    navigate('/auth/verify-email')
-  }
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -69,25 +58,13 @@ export function RegisterForm() {
             {errorCode === 'EMAIL_ALREADY_EXISTS' && (
               <>
                 {' '}
-                {canVerifyExistingEmail ? (
-                  // Usuario pendiente de verificación - solo mostrar opción de verificar
-                  <button
-                    type="button"
-                    onClick={handleVerifyEmailClick}
-                    className="font-medium underline hover:no-underline"
-                  >
-                    {t('verifyEmail.verifyNow')}
-                  </button>
-                ) : (
-                  // Usuario ya verificado - solo mostrar opción de iniciar sesión
-                  <Link
-                    to="/auth/login"
-                    className="font-medium underline hover:no-underline"
-                    onClick={clearError}
-                  >
-                    {t('signIn')}
-                  </Link>
-                )}
+                <Link
+                  to="/auth/login"
+                  className="font-medium underline hover:no-underline"
+                  onClick={clearError}
+                >
+                  {t('signIn')}
+                </Link>
               </>
             )}
           </div>

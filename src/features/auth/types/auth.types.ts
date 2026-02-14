@@ -112,8 +112,7 @@ export interface ApiError {
   // Campos de metadata según el tipo de error
   attemptsRemaining?: number // TOO_MANY_VERIFICATION_ATTEMPTS
   minutesRemaining?: number // VERIFICATION_BLOCKED
-  blockedUntil?: string // VERIFICATION_BLOCKED (ISO string)
-  canVerify?: boolean // EMAIL_ALREADY_EXISTS (cuando status es pending_verification)
+  blockedUntil?: string // VERIFICATION_BLOCKED, ACCOUNT_TEMPORARILY_LOCKED (ISO string)
 }
 
 /**
@@ -152,9 +151,6 @@ export interface AuthState {
 
   // Información de bloqueo
   blockInfo: BlockInfo | null
-
-  // Indica si el email existente puede ser verificado (pending_verification)
-  canVerifyExistingEmail: boolean
 }
 
 /**
