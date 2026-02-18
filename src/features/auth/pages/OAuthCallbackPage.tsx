@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useAuthStore } from '../store/auth.store'
+import { authService } from '../api/auth.service'
 import { Button } from '@/shared/components/ui/button'
 import type { User } from '../types/auth.types'
 
@@ -43,21 +44,40 @@ export function OAuthCallbackPage() {
         const refreshToken = searchParams.get('refreshToken')
         const userParam = searchParams.get('user')
 
-        // Validar que todos los parámetros estén presentes
-        if (!accessToken || !refreshToken || !userParam) {
+        // LOGS para depuración
+        // eslint-disable-next-line no-console
+        console.log('[OAuthCallback] accessToken:', accessToken)
+        // eslint-disable-next-line no-console
+        console.log('[OAuthCallback] refreshToken:', refreshToken)
+        // eslint-disable-next-line no-console
+        console.log('[OAuthCallback] userParam:', userParam)
+
+        // Validar que los tokens estén presentes
+        if (!accessToken || !refreshToken) {
           setErrorMessage(t('errors.UNKNOWN_ERROR', 'Invalid callback parameters'))
           setStatus('error')
           return
         }
 
-        // Parsear usuario
-        let user: User
-        try {
-          user = JSON.parse(decodeURIComponent(userParam))
-        } catch {
-          setErrorMessage(t('errors.UNKNOWN_ERROR', 'Invalid user data'))
-          setStatus('error')
-          return
+        let user: User | null = null;
+        if (userParam) {
+          try {
+            user = JSON.parse(decodeURIComponent(userParam))
+          } catch {
+            user = null;
+          }
+        }
+
+        // Si no viene el usuario, obtenerlo con el accessToken (opcional, no es error si falla)
+        if (!user) {
+          try {
+            const me = await authService.getMe()
+            user = me.data.user
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.warn('[OAuthCallback] No se pudo obtener el perfil de usuario, pero los tokens existen.', e)
+            // No marcamos error, solo continuamos con user = null
+          }
         }
 
         // Procesar el callback en el store
