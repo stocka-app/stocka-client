@@ -6,6 +6,8 @@ import {
   GetMeResponseSchema,
   VerifyEmailResponseSchema,
   ResendVerificationCodeResponseSchema,
+  ForgotPasswordResponseSchema,
+  ResetPasswordResponseSchema,
   type SignInRequest,
   type SignUpRequest,
   type SignUpResponse,
@@ -16,6 +18,8 @@ import {
   type VerifyEmailResponse,
   type ResendVerificationCodeRequest,
   type ResendVerificationCodeResponse,
+  type ForgotPasswordResponse,
+  type ResetPasswordResponse,
 } from '../schemas/auth.schema'
 import type { OAuthProvider } from '../types/auth.types'
 
@@ -107,6 +111,29 @@ export const authService = {
   ): Promise<ResendVerificationCodeResponse> {
     const response = await api.post('/auth/resend-verification-code', data)
     return ResendVerificationCodeResponseSchema.parse(response.data)
+  },
+
+  /**
+   * Solicitar restablecimiento de contraseña
+   * POST /auth/forgot-password
+   *
+   * Siempre retorna 200 OK (no revela si el email existe)
+   */
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    const response = await api.post('/auth/forgot-password', { email })
+    return ForgotPasswordResponseSchema.parse(response.data)
+  },
+
+  /**
+   * Restablecer contraseña con token del email
+   * POST /auth/reset-password
+   *
+   * @param token - Token plain recibido en el email (query param del link)
+   * @param newPassword - Nueva contraseña del usuario
+   */
+  async resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
+    const response = await api.post('/auth/reset-password', { token, newPassword })
+    return ResetPasswordResponseSchema.parse(response.data)
   },
 
   /**

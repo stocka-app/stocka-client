@@ -29,6 +29,30 @@ export const registerSchema = z.object({
     .regex(/^(?=.*[A-Z])(?=.*[0-9])/, 'errors.passwordPattern'),
 })
 
+/**
+ * Schema de forgot password para validación de formulario
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().min(1, 'errors.emailRequired').email('errors.emailInvalid'),
+})
+
+/**
+ * Schema de reset password para validación de formulario
+ */
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, 'errors.passwordRequired')
+      .min(8, 'errors.passwordMinLength')
+      .regex(/^(?=.*[A-Z])(?=.*[0-9])/, 'errors.passwordPattern'),
+    confirmPassword: z.string().min(1, 'errors.passwordRequired'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'errors.passwordsDoNotMatch',
+    path: ['confirmPassword'],
+  })
+
 // =============================================================================
 // REQUEST CONTRACTS (API Payloads)
 // =============================================================================
@@ -176,6 +200,22 @@ export const ResendVerificationCodeResponseSchema = z.object({
 })
 
 /**
+ * Contrato: POST /auth/forgot-password response
+ */
+export const ForgotPasswordResponseSchema = z.object({
+  data: z.object({ message: z.string() }),
+  success: z.boolean(),
+})
+
+/**
+ * Contrato: POST /auth/reset-password response
+ */
+export const ResetPasswordResponseSchema = z.object({
+  data: z.object({ message: z.string() }),
+  success: z.boolean(),
+})
+
+/**
  * Contrato: Error response del API
  * Incluye campos de metadata específicos según el tipo de error
  */
@@ -221,6 +261,8 @@ export const ApiErrorResponseSchema = z.object({
 // Form validation types
 export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
 // Request types
 export type SignInRequest = z.infer<typeof SignInRequestSchema>
@@ -238,4 +280,6 @@ export type RefreshSessionResponse = z.infer<typeof RefreshSessionResponseSchema
 export type GetMeResponse = z.infer<typeof GetMeResponseSchema>
 export type VerifyEmailResponse = z.infer<typeof VerifyEmailResponseSchema>
 export type ResendVerificationCodeResponse = z.infer<typeof ResendVerificationCodeResponseSchema>
+export type ForgotPasswordResponse = z.infer<typeof ForgotPasswordResponseSchema>
+export type ResetPasswordResponse = z.infer<typeof ResetPasswordResponseSchema>
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>
