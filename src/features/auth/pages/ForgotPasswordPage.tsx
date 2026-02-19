@@ -67,10 +67,10 @@ export function ForgotPasswordPage() {
 
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-            {t('forgotPassword.success')}
+            {t('forgotPasswordPage.success')}
           </h1>
           <p className="text-gray-600">
-            {t('forgotPassword.successDetail', { email: submittedEmail })}
+            {t('forgotPasswordPage.successDetail', { email: submittedEmail })}
           </p>
         </div>
 
@@ -83,10 +83,10 @@ export function ForgotPasswordPage() {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('forgotPassword.sending')}
+              {t('forgotPasswordPage.sending')}
             </>
           ) : (
-            t('forgotPassword.resend')
+            t('forgotPasswordPage.resend')
           )}
         </Button>
 
@@ -96,7 +96,7 @@ export function ForgotPasswordPage() {
             className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
-            {t('forgotPassword.backToLogin')}
+            {t('forgotPasswordPage.backToLogin')}
           </Link>
         </div>
       </div>
@@ -111,9 +111,9 @@ export function ForgotPasswordPage() {
           {t('welcome')} <span className="font-semibold text-primary">Stocka</span>
         </p>
         <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">
-          {t('forgotPassword.title')}
+          {t('forgotPasswordPage.title')}
         </h1>
-        <p className="mt-2 text-sm text-gray-600">{t('forgotPassword.subtitle')}</p>
+        <p className="mt-2 text-sm text-gray-600">{t('forgotPasswordPage.subtitle')}</p>
       </div>
 
       {/* Form */}
@@ -130,7 +130,7 @@ export function ForgotPasswordPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('forgotPassword.emailLabel')}</FormLabel>
+                <FormLabel>{t('forgotPasswordPage.emailLabel')}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -151,10 +151,10 @@ export function ForgotPasswordPage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t('forgotPassword.sending')}
+                {t('forgotPasswordPage.sending')}
               </>
             ) : (
-              t('forgotPassword.submit')
+              t('forgotPasswordPage.submit')
             )}
           </Button>
         </form>
@@ -167,7 +167,7 @@ export function ForgotPasswordPage() {
           className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t('forgotPassword.backToLogin')}
+          {t('forgotPasswordPage.backToLogin')}
         </Link>
       </div>
     </div>

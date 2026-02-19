@@ -107,7 +107,7 @@ export function ResetPasswordPage() {
             to="/auth/login"
             className="text-sm text-gray-600 hover:text-primary hover:underline"
           >
-            {t('forgotPassword.backToLogin')}
+            {t('forgotPasswordPage.backToLogin')}
           </Link>
         </div>
       </div>
