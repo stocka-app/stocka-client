@@ -108,7 +108,7 @@ export function OAuthCallbackPage() {
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-lg text-gray-600">
-          {t('common.loading', 'Loading...')}
+          {t('oauthCallback.loading')}
         </p>
       </div>
     )
@@ -122,7 +122,7 @@ export function OAuthCallbackPage() {
           <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
         <h2 className="mt-4 text-xl font-semibold text-gray-900">
-          {t('verifyEmail.verificationSuccess', 'Successfully authenticated!')}
+          {t('oauthCallback.success')}
         </h2>
         <p className="mt-2 text-gray-600">
           {t('common.redirecting', 'Redirecting...')}
@@ -141,7 +141,7 @@ export function OAuthCallbackPage() {
 
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900">
-            {t('common.error', 'Authentication failed')}
+            {t('oauthCallback.error')}
           </h2>
           <p className="text-gray-600">{errorMessage}</p>
         </div>
@@ -151,7 +151,7 @@ export function OAuthCallbackPage() {
             onClick={() => navigate('/auth/login', { replace: true })}
             className="w-full"
           >
-            {t('signIn', 'Back to Login')}
+            {t('oauthCallback.backToLogin')}
           </Button>
 
           <Button
@@ -159,7 +159,7 @@ export function OAuthCallbackPage() {
             onClick={() => window.location.reload()}
             className="w-full"
           >
-            {t('common.tryAgain', 'Try again')}
+            {t('oauthCallback.tryAgain')}
           </Button>
         </div>
       </div>
