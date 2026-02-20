@@ -15,7 +15,7 @@ import { Logo } from '@/shared/components/Logo'
  * - Formulario de verificación
  * - Nota sobre spam
  */
-export function VerifyEmailPage() {
+function VerifyEmailPage() {
   const { t } = useTranslation('auth')
   const { emailVerificationRequired, pendingVerificationEmail, isAuthenticated, clearError } =
     useAuthStore()
@@ -70,5 +70,6 @@ export function VerifyEmailPage() {
     </div>
   )
 }
+
 
 export default VerifyEmailPage

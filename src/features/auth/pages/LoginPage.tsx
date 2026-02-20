@@ -5,7 +5,7 @@ import { LoginForm } from '../components'
 import { cn } from '@/shared/lib/utils'
 import { useAuth } from '../hooks/useAuth'
 
-export function LoginPage() {
+function LoginPage() {
   const { t } = useTranslation('auth')
   const { isLoading, clearError } = useAuth()
 
@@ -45,3 +45,5 @@ export function LoginPage() {
     </div>
   )
 }
+
+export default LoginPage;

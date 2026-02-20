@@ -30,7 +30,7 @@ function PasswordHint({ met, label }: { met: boolean; label: string }) {
   )
 }
 
-export function ResetPasswordPage() {
+function ResetPasswordPage() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -202,3 +202,5 @@ export function ResetPasswordPage() {
     </div>
   )
 }
+
+export default ResetPasswordPage;

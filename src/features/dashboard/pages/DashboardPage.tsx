@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { useAuth } from '@/features/auth'
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
 
-export function DashboardPage() {
+function DashboardPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
@@ -86,3 +86,5 @@ export function DashboardPage() {
     </div>
   )
 }
+
+export default DashboardPage;

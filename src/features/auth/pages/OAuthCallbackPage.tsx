@@ -79,7 +79,7 @@ function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
  * URL de éxito: /auth/callback?accessToken=xxx&refreshToken=xxx&user=...
  * URL de error: /auth/callback?error=xxx
  */
-export function OAuthCallbackPage() {
+function OAuthCallbackPage() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -243,4 +243,5 @@ export function OAuthCallbackPage() {
   )
 }
 
-export default OAuthCallbackPage
+export default OAuthCallbackPage;
+

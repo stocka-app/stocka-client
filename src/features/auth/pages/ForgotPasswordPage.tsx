@@ -20,7 +20,7 @@ import type { ApiError } from '../types/auth.types'
 
 type PageView = 'form' | 'success'
 
-export function ForgotPasswordPage() {
+function ForgotPasswordPage() {
   const { t } = useTranslation('auth')
   const [view, setView] = useState<PageView>('form')
   const [submittedEmail, setSubmittedEmail] = useState('')
@@ -190,3 +190,5 @@ export function ForgotPasswordPage() {
     </div>
   )
 }
+
+export default ForgotPasswordPage;

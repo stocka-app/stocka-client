@@ -5,7 +5,7 @@ import { RegisterForm } from '../components'
 import { cn } from '@/shared/lib/utils'
 import { useAuth } from '../hooks/useAuth'
 
-export function RegisterPage() {
+function RegisterPage() {
   const { t } = useTranslation('auth')
   const { isLoading, clearError } = useAuth()
 
@@ -45,3 +45,5 @@ export function RegisterPage() {
     </div>
   )
 }
+
+export default RegisterPage;
