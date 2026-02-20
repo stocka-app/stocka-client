@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react'
 import type { KeyboardEvent, ClipboardEvent, ChangeEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/shared/lib/utils'
 
 interface VerificationCodeInputProps {
@@ -30,6 +31,7 @@ export function VerificationCodeInput({
   autoFocus = true,
   className,
 }: VerificationCodeInputProps) {
+  const { t } = useTranslation('common')
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Convertir el valor string a un array de caracteres
@@ -146,7 +148,7 @@ export function VerificationCodeInput({
           onFocus={() => handleFocus(index)}
           onBlur={handleBlur}
           disabled={disabled}
-          aria-label={`Digit ${index + 1} of ${length}`}
+          aria-label={t('digitOf', { index: index + 1, length })}
           className={cn(
             'w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-semibold',
             'border rounded-lg transition-all duration-200',

@@ -15,5 +15,8 @@
   "submit": "Submit",
   "language": "Language",
   "english": "English",
-  "spanish": "Spanish"
+  "spanish": "Spanish",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "digitOf": "Digit {{index}} of {{length}}"
 }
