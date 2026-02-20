@@ -84,7 +84,7 @@ export const authService = {
    * Requiere token de acceso válido
    */
   async getMe(): Promise<GetMeResponse> {
-    const response = await api.get('/auth/me')
+    const response = await api.get('/users/me')
     return GetMeResponseSchema.parse(response.data)
   },
 

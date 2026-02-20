@@ -238,6 +238,8 @@ export const ApiErrorResponseSchema = z.object({
     'ACCOUNT_TEMPORARILY_LOCKED',
     'ACCOUNT_DEACTIVATED',
     'TOKEN_EXPIRED',
+    'INVALID_TOKEN',
+    'TOKEN_ALREADY_USED',
     'UNKNOWN_ERROR',
   ]),
   details: z

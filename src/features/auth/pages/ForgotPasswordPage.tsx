@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,6 +16,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '../schemas/auth.schema'
 import { authService } from '../api/auth.service'
+import type { ApiError } from '../types/auth.types'
 
 type PageView = 'form' | 'success'
 
@@ -25,6 +26,13 @@ export function ForgotPasswordPage() {
   const [submittedEmail, setSubmittedEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [cooldownSeconds, setCooldownSeconds] = useState(0)
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return
+    const timer = setTimeout(() => setCooldownSeconds((s) => s - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [cooldownSeconds])
 
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -38,8 +46,14 @@ export function ForgotPasswordPage() {
       await authService.forgotPassword(data.email)
       setSubmittedEmail(data.email)
       setView('success')
-    } catch {
-      setApiError(t('errors.UNKNOWN_ERROR'))
+      setCooldownSeconds(60)
+    } catch (err: unknown) {
+      const apiErr = err as ApiError
+      if (apiErr.statusCode === 429) {
+        setApiError(t('errors.RATE_LIMIT_EXCEEDED'))
+      } else {
+        setApiError(t('errors.UNKNOWN_ERROR'))
+      }
     } finally {
       setIsLoading(false)
     }
@@ -49,6 +63,7 @@ export function ForgotPasswordPage() {
     try {
       setIsLoading(true)
       await authService.forgotPassword(submittedEmail)
+      setCooldownSeconds(60)
     } catch {
       // El backend siempre retorna 200, cualquier error es de red
     } finally {
@@ -77,7 +92,7 @@ export function ForgotPasswordPage() {
         <Button
           variant="ghost"
           onClick={handleResend}
-          disabled={isLoading}
+          disabled={isLoading || cooldownSeconds > 0}
           className="text-sm text-primary hover:underline"
         >
           {isLoading ? (
@@ -85,6 +100,8 @@ export function ForgotPasswordPage() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {t('forgotPasswordPage.sending')}
             </>
+          ) : cooldownSeconds > 0 ? (
+            t('forgotPasswordPage.resendIn', { seconds: cooldownSeconds })
           ) : (
             t('forgotPasswordPage.resend')
           )}

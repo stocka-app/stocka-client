@@ -16,9 +16,19 @@ import { Button } from '@/shared/components/ui/button'
 import { PasswordInput } from '../components/PasswordInput'
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas/auth.schema'
 import { authService } from '../api/auth.service'
+import type { ApiError } from '../types/auth.types'
 
 type PageView = 'form' | 'success' | 'invalid'
 type InvalidReason = 'expired' | 'invalid' | 'missing'
+
+function PasswordHint({ met, label }: { met: boolean; label: string }) {
+  return (
+    <p className={`flex items-center gap-1.5 text-xs ${met ? 'text-green-600' : 'text-gray-400'}`}>
+      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+      {label}
+    </p>
+  )
+}
 
 export function ResetPasswordPage() {
   const { t } = useTranslation('auth')
@@ -44,7 +54,7 @@ export function ResetPasswordPage() {
       await authService.resetPassword(token, data.password)
       setView('success')
     } catch (err: unknown) {
-      const errorCode = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      const errorCode = (err as ApiError).error
       setInvalidReason(errorCode === 'TOKEN_EXPIRED' ? 'expired' : 'invalid')
       setView('invalid')
     } finally {
@@ -147,6 +157,11 @@ export function ResetPasswordPage() {
                   {form.formState.errors.password?.message &&
                     t(form.formState.errors.password.message)}
                 </FormMessage>
+                <div className="mt-2 space-y-1">
+                  <PasswordHint met={(field.value ?? '').length >= 8} label={t('resetPassword.hintMinLength')} />
+                  <PasswordHint met={/[A-Z]/.test(field.value ?? '')} label={t('resetPassword.hintUppercase')} />
+                  <PasswordHint met={/[0-9]/.test(field.value ?? '')} label={t('resetPassword.hintNumber')} />
+                </div>
               </FormItem>
             )}
           />

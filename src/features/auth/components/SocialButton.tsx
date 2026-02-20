@@ -71,6 +71,8 @@ export function SocialButton({
     if (onClick) {
       onClick()
     } else {
+      // Guardar el provider para mostrar "Reintentar con {{provider}}" en caso de error
+      sessionStorage.setItem('lastOAuthProvider', provider)
       authService.initiateOAuth(provider)
     }
   }, [onClick, provider])

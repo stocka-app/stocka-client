@@ -1,22 +1,83 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useAuthStore } from '../store/auth.store'
 import { authService } from '../api/auth.service'
 import { Button } from '@/shared/components/ui/button'
-import type { User } from '../types/auth.types'
+import type { User, OAuthProvider } from '../types/auth.types'
 
 type CallbackStatus = 'loading' | 'success' | 'error'
+
+type OAuthErrorInfo = {
+  title: string
+  detail: string
+  showRetryWithProvider: boolean
+  showDifferentMethod: boolean
+}
+
+const PROVIDER_NAMES: Record<string, string> = {
+  google: 'Google',
+  facebook: 'Facebook',
+  microsoft: 'Microsoft',
+}
+
+/**
+ * Mapea el error code de la URL a info de error traducida.
+ *
+ * Error codes posibles del backend OAuth:
+ * - access_denied: el usuario canceló en el proveedor
+ * - EMAIL_ALREADY_EXISTS / OAUTH_EMAIL_CONFLICT: el email ya tiene otro método de login
+ * - OAUTH_NO_EMAIL: el proveedor no pudo proporcionar el email
+ * - Cualquier otro: error de conexión / genérico
+ */
+function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
+  const code = errorCode.toLowerCase()
+
+  if (code === 'access_denied' || code === 'oauth_cancelled') {
+    return {
+      title: t('oauthCallback.cancelledTitle'),
+      detail: t('oauthCallback.cancelledDetail'),
+      showRetryWithProvider: true,
+      showDifferentMethod: false,
+    }
+  }
+
+  if (code === 'email_already_exists' || code === 'oauth_email_conflict') {
+    return {
+      title: t('oauthCallback.emailConflictTitle'),
+      detail: t('oauthCallback.emailConflictDetail'),
+      showRetryWithProvider: false,
+      showDifferentMethod: true,
+    }
+  }
+
+  if (code === 'oauth_no_email') {
+    return {
+      title: t('oauthCallback.noEmailTitle'),
+      detail: t('oauthCallback.noEmailDetail'),
+      showRetryWithProvider: false,
+      showDifferentMethod: true,
+    }
+  }
+
+  return {
+    title: t('oauthCallback.connectionErrorTitle'),
+    detail: t('oauthCallback.connectionErrorDetail'),
+    showRetryWithProvider: true,
+    showDifferentMethod: false,
+  }
+}
 
 /**
  * Página de callback para OAuth
  *
- * Maneja el retorno de los proveedores de OAuth (Google, Facebook, Apple)
+ * Maneja el retorno de los proveedores de OAuth (Google, Facebook, Microsoft)
  * procesando los tokens recibidos en la URL.
  *
- * URL esperada: /auth/callback?accessToken=xxx&refreshToken=xxx&user=...
- * O en caso de error: /auth/callback?error=xxx&message=xxx
+ * URL de éxito: /auth/callback?accessToken=xxx&refreshToken=xxx&user=...
+ * URL de error: /auth/callback?error=xxx
  */
 export function OAuthCallbackPage() {
   const { t } = useTranslation('auth')
@@ -25,16 +86,17 @@ export function OAuthCallbackPage() {
   const { handleOAuthCallback } = useAuthStore()
 
   const [status, setStatus] = useState<CallbackStatus>('loading')
-  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [errorInfo, setErrorInfo] = useState<OAuthErrorInfo | null>(null)
+
+  const lastProvider = sessionStorage.getItem('lastOAuthProvider') as OAuthProvider | null
 
   useEffect(() => {
     const processCallback = async () => {
       try {
         // Verificar si hay error en los parámetros
-        const error = searchParams.get('error')
-        if (error) {
-          const message = searchParams.get('message') || t('errors.UNKNOWN_ERROR', 'An unexpected error occurred')
-          setErrorMessage(message)
+        const errorCode = searchParams.get('error')
+        if (errorCode) {
+          setErrorInfo(resolveOAuthError(errorCode, t))
           setStatus('error')
           return
         }
@@ -44,39 +106,29 @@ export function OAuthCallbackPage() {
         const refreshToken = searchParams.get('refreshToken')
         const userParam = searchParams.get('user')
 
-        // LOGS para depuración
-        // eslint-disable-next-line no-console
-        console.log('[OAuthCallback] accessToken:', accessToken)
-        // eslint-disable-next-line no-console
-        console.log('[OAuthCallback] refreshToken:', refreshToken)
-        // eslint-disable-next-line no-console
-        console.log('[OAuthCallback] userParam:', userParam)
-
         // Validar que los tokens estén presentes
         if (!accessToken || !refreshToken) {
-          setErrorMessage(t('errors.UNKNOWN_ERROR', 'Invalid callback parameters'))
+          setErrorInfo(resolveOAuthError('connection_error', t))
           setStatus('error')
           return
         }
 
-        let user: User | null = null;
+        let user: User | null = null
         if (userParam) {
           try {
             user = JSON.parse(decodeURIComponent(userParam))
           } catch {
-            user = null;
+            user = null
           }
         }
 
-        // Si no viene el usuario, obtenerlo con el accessToken (opcional, no es error si falla)
+        // Si no viene el usuario en la URL, intentar obtenerlo con el token
         if (!user) {
           try {
             const me = await authService.getMe()
-            user = me.data.user
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.warn('[OAuthCallback] No se pudo obtener el perfil de usuario, pero los tokens existen.', e)
-            // No marcamos error, solo continuamos con user = null
+            user = me.data as unknown as User
+          } catch {
+            // No es fatal — el store puede funcionar sin el objeto user inicialmente
           }
         }
 
@@ -84,9 +136,11 @@ export function OAuthCallbackPage() {
         handleOAuthCallback({
           accessToken,
           refreshToken,
-          user,
+          user: user as User,
         })
 
+        // Limpiar el provider almacenado al completar exitosamente
+        sessionStorage.removeItem('lastOAuthProvider')
         setStatus('success')
 
         // Redirigir al dashboard después de un breve momento
@@ -94,7 +148,7 @@ export function OAuthCallbackPage() {
           navigate('/dashboard', { replace: true })
         }, 1500)
       } catch {
-        setErrorMessage(t('errors.UNKNOWN_ERROR', 'An unexpected error occurred'))
+        setErrorInfo(resolveOAuthError('connection_error', t))
         setStatus('error')
       }
     }
@@ -102,14 +156,21 @@ export function OAuthCallbackPage() {
     processCallback()
   }, [searchParams, handleOAuthCallback, navigate, t])
 
+  const handleRetryWithProvider = () => {
+    if (lastProvider) {
+      sessionStorage.setItem('lastOAuthProvider', lastProvider)
+      authService.initiateOAuth(lastProvider)
+    } else {
+      navigate('/auth/login', { replace: true })
+    }
+  }
+
   // Estado de carga
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-lg text-gray-600">
-          {t('oauthCallback.loading')}
-        </p>
+        <p className="mt-4 text-lg text-gray-600">{t('oauthCallback.loading')}</p>
       </div>
     )
   }
@@ -124,14 +185,14 @@ export function OAuthCallbackPage() {
         <h2 className="mt-4 text-xl font-semibold text-gray-900">
           {t('oauthCallback.success')}
         </h2>
-        <p className="mt-2 text-gray-600">
-          {t('common.redirecting', 'Redirecting...')}
-        </p>
+        <p className="mt-2 text-gray-600">{t('common.redirecting', 'Redirecting...')}</p>
       </div>
     )
   }
 
   // Estado de error
+  const providerName = lastProvider ? (PROVIDER_NAMES[lastProvider] ?? lastProvider) : undefined
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6 text-center">
@@ -141,12 +202,15 @@ export function OAuthCallbackPage() {
 
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-gray-900">
-            {t('oauthCallback.error')}
+            {errorInfo?.title ?? t('oauthCallback.error')}
           </h2>
-          <p className="text-gray-600">{errorMessage}</p>
+          {errorInfo?.detail && (
+            <p className="text-sm text-gray-600">{errorInfo.detail}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-3">
+          {/* Siempre visible: volver al login */}
           <Button
             onClick={() => navigate('/auth/login', { replace: true })}
             className="w-full"
@@ -154,13 +218,25 @@ export function OAuthCallbackPage() {
             {t('oauthCallback.backToLogin')}
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => window.location.reload()}
-            className="w-full"
-          >
-            {t('oauthCallback.tryAgain')}
-          </Button>
+          {/* Reintentar con el mismo proveedor (cancel / connection errors) */}
+          {errorInfo?.showRetryWithProvider && (
+            <Button variant="outline" onClick={handleRetryWithProvider} className="w-full">
+              {providerName
+                ? t('oauthCallback.tryAgainWith', { provider: providerName })
+                : t('oauthCallback.tryAgain')}
+            </Button>
+          )}
+
+          {/* Probar otro método (conflicto de email, sin email) */}
+          {errorInfo?.showDifferentMethod && (
+            <Button
+              variant="outline"
+              onClick={() => navigate('/auth/login', { replace: true })}
+              className="w-full"
+            >
+              {t('oauthCallback.tryDifferentMethod')}
+            </Button>
+          )}
         </div>
       </div>
     </div>
