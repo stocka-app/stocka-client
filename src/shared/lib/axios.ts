@@ -107,14 +107,13 @@ api.interceptors.response.use(
     if (isAuthRoute(originalRequest?.url)) {
       // Transformar error al formato ApiError y dejarlo pasar
       // Siempre incluir statusCode del HTTP response, incluso si el backend no lo envía
-      const backendError = error.response?.data || {}
+      const backendError = (error.response?.data ?? {}) as Partial<ApiError>;
       const apiError: ApiError = {
-        statusCode: error.response?.status || 500, // Siempre usar el status HTTP real
-        message: backendError.message || error.message || 'An unexpected error occurred',
-        error: backendError.error || ('UNKNOWN_ERROR' as AuthErrorCode),
-        // Preservar campos adicionales del backend (blockedUntil, attemptsRemaining, etc.)
+        statusCode: error.response?.status || 500,
+        message: typeof backendError.message === 'string' ? backendError.message : error.message || 'An unexpected error occurred',
+        error: typeof backendError.error === 'string' ? backendError.error : ('UNKNOWN_ERROR' as AuthErrorCode),
         ...backendError,
-      }
+      };
       return Promise.reject(apiError)
     }
 
@@ -155,14 +154,13 @@ api.interceptors.response.use(
 
     // Transformar error al formato ApiError
     // Siempre incluir statusCode del HTTP response, incluso si el backend no lo envía
-    const backendError = error.response?.data || {}
+    const backendError = (error.response?.data ?? {}) as Partial<ApiError>;
     const apiError: ApiError = {
-      statusCode: error.response?.status || 500, // Siempre usar el status HTTP real
-      message: backendError.message || error.message || 'An unexpected error occurred',
-      error: backendError.error || ('UNKNOWN_ERROR' as AuthErrorCode),
-      // Preservar campos adicionales del backend (blockedUntil, attemptsRemaining, etc.)
+      statusCode: error.response?.status || 500,
+      message: typeof backendError.message === 'string' ? backendError.message : error.message || 'An unexpected error occurred',
+      error: typeof backendError.error === 'string' ? backendError.error : ('UNKNOWN_ERROR' as AuthErrorCode),
       ...backendError,
-    }
+    };
 
     return Promise.reject(apiError)
   }
