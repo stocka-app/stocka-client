@@ -18,5 +18,11 @@
   "spanish": "Spanish",
   "showPassword": "Show password",
   "hidePassword": "Hide password",
-  "digitOf": "Digit {{index}} of {{length}}"
+  "digitOf": "Digit {{index}} of {{length}}",
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. You can reload the page or return to the home page.",
+    "reload": "Reload page",
+    "goHome": "Go to home"
+  }
 }

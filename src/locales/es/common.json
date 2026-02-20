@@ -18,5 +18,11 @@
   "spanish": "Español",
   "showPassword": "Mostrar contraseña",
   "hidePassword": "Ocultar contraseña",
-  "digitOf": "Dígito {{index}} de {{length}}"
+  "digitOf": "Dígito {{index}} de {{length}}",
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "description": "Ocurrió un error inesperado. Puedes recargar la página o volver al inicio.",
+    "reload": "Recargar página",
+    "goHome": "Ir al inicio"
+  }
 }
