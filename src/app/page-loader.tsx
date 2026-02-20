@@ -1,4 +1,4 @@
-import { Skeleton } from "@/shared/components/ui/skeleton";
+import { Skeleton } from '@/shared/components/ui/skeleton';
 
 export function PageLoader() {
   return (
@@ -11,5 +11,5 @@ export function PageLoader() {
         <Skeleton className="h-12 w-full" />
       </div>
     </div>
-  )
+  );
 }

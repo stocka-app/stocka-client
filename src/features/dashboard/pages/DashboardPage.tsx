@@ -1,20 +1,20 @@
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { LogOut, Package } from 'lucide-react'
-import { Button } from '@/shared/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
-import { useAuth } from '@/features/auth'
-import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher'
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { LogOut, Package } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { useAuth } from '@/features/auth';
+import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
 
 function DashboardPage() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    logout()
-    navigate('/auth/login')
-  }
+    logout();
+    navigate('/auth/login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,7 +50,7 @@ function DashboardPage() {
                 This is a placeholder dashboard. Authentication is working with mock data.
               </p>
             </div>
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border p-4">
                 <h4 className="font-medium text-gray-900">User Info</h4>
@@ -69,7 +69,7 @@ function DashboardPage() {
                   </div>
                 </dl>
               </div>
-              
+
               <div className="rounded-lg border p-4">
                 <h4 className="font-medium text-gray-900">Next Steps</h4>
                 <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-gray-600">
@@ -84,7 +84,7 @@ function DashboardPage() {
         </Card>
       </main>
     </div>
-  )
+  );
 }
 
 export default DashboardPage;

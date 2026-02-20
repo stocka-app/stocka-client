@@ -1,2 +1,2 @@
-export { InventoryIllustration } from './InventoryIllustration'
-export { BusinessAnalyticsIllustration } from './BusinessAnalyticsIllustration'
+export { InventoryIllustration } from './InventoryIllustration';
+export { BusinessAnalyticsIllustration } from './BusinessAnalyticsIllustration';

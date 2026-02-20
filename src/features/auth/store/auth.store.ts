@@ -1,7 +1,7 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { ZodError } from 'zod'
-import { authService } from '../api/auth.service'
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { ZodError } from 'zod';
+import { authService } from '../api/auth.service';
 import type {
   AuthStore,
   AuthState,
@@ -11,7 +11,7 @@ import type {
   ApiError,
   AuthResult,
   BlockInfo,
-} from '../types/auth.types'
+} from '../types/auth.types';
 
 /**
  * Estado inicial de autenticación
@@ -35,7 +35,7 @@ const initialState: AuthState = {
 
   // Información de bloqueo
   blockInfo: null,
-}
+};
 
 /**
  * Store de autenticación con Zustand
@@ -57,13 +57,18 @@ export const useAuthStore = create<AuthStore>()(
        * - Si el usuario no ha verificado su email, establece emailVerificationRequired
        */
       login: async (credentials: LoginCredentials): Promise<AuthResult> => {
-        set({ isLoading: true, error: null, errorCode: null, blockInfo: null })
+        set({ isLoading: true, error: null, errorCode: null, blockInfo: null });
         try {
           // authService valida la respuesta con Zod automáticamente
-          const response = await authService.signIn(credentials)
+          const response = await authService.signIn(credentials);
 
           // Extraer datos de la estructura { data: { user, accessToken, refreshToken, emailVerificationRequired } }
-          const { user: backendUser, accessToken, refreshToken, emailVerificationRequired } = response.data
+          const {
+            user: backendUser,
+            accessToken,
+            refreshToken,
+            emailVerificationRequired,
+          } = response.data;
 
           // Construir usuario con status basado en emailVerificationRequired
           const user: User = {
@@ -72,10 +77,10 @@ export const useAuthStore = create<AuthStore>()(
             username: backendUser.username,
             status: emailVerificationRequired ? 'pending_verification' : 'active',
             createdAt: backendUser.createdAt,
-          }
+          };
 
           // Verificar si necesita verificación de email (no permitir acceso si está pendiente)
-          const needsVerification = emailVerificationRequired === true
+          const needsVerification = emailVerificationRequired === true;
 
           if (needsVerification) {
             set({
@@ -86,8 +91,8 @@ export const useAuthStore = create<AuthStore>()(
               refreshToken,
               user,
               isAuthenticated: false, // No autenticado hasta verificar
-            })
-            return { requiresVerification: true }
+            });
+            return { requiresVerification: true };
           }
 
           // Login exitoso sin verificación pendiente
@@ -101,32 +106,32 @@ export const useAuthStore = create<AuthStore>()(
             pendingVerificationEmail: null,
             error: null,
             errorCode: null,
-          })
-          return { requiresVerification: false }
+          });
+          return { requiresVerification: false };
         } catch (error) {
           // Manejar diferentes tipos de errores
-          let errorMessage = 'UNKNOWN_ERROR'
-          let errorCode: ApiError['error'] = 'UNKNOWN_ERROR'
+          let errorMessage = 'UNKNOWN_ERROR';
+          let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';
 
           // Error de validación Zod (respuesta inválida del servidor)
           if (error instanceof ZodError) {
-            console.error('Invalid sign-in response structure:', error.issues)
-            errorMessage = 'UNKNOWN_ERROR'
+            console.error('Invalid sign-in response structure:', error.issues);
+            errorMessage = 'UNKNOWN_ERROR';
           } else if (error instanceof Error) {
-            errorMessage = error.message
+            errorMessage = error.message;
           }
 
           // Si es un error de API con estructura conocida
-          const apiError = error as ApiError
+          const apiError = error as ApiError;
           if (apiError?.error) {
-            errorCode = apiError.error
+            errorCode = apiError.error;
           }
           if (apiError?.message) {
-            errorMessage = apiError.message
+            errorMessage = apiError.message;
           }
 
           // Manejar errores de rate limiting
-          let blockInfo: BlockInfo | null = null
+          let blockInfo: BlockInfo | null = null;
 
           // Cuenta bloqueada por intentos fallidos (Interceptor post-ejecución)
           if (errorCode === 'ACCOUNT_TEMPORARILY_LOCKED') {
@@ -134,7 +139,7 @@ export const useAuthStore = create<AuthStore>()(
               isBlocked: true,
               reason: 'account_locked',
               blockedUntil: apiError.blockedUntil ? new Date(apiError.blockedUntil) : undefined,
-            }
+            };
           }
 
           // Rate limit por IP o identifier (Guard pre-ejecución)
@@ -142,7 +147,7 @@ export const useAuthStore = create<AuthStore>()(
             blockInfo = {
               isBlocked: true,
               reason: 'rate_limit',
-            }
+            };
           }
 
           // Throttle HTTP genérico (429 sin error code específico)
@@ -150,11 +155,11 @@ export const useAuthStore = create<AuthStore>()(
             blockInfo = {
               isBlocked: true,
               reason: 'rate_limit',
-            }
+            };
           }
 
           // Caso especial: EMAIL_NOT_VERIFIED - marcar que requiere verificación
-          const requiresEmailVerification = errorCode === 'EMAIL_NOT_VERIFIED'
+          const requiresEmailVerification = errorCode === 'EMAIL_NOT_VERIFIED';
 
           set({
             error: errorMessage,
@@ -162,8 +167,8 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             blockInfo,
             emailVerificationRequired: requiresEmailVerification,
-          })
-          throw error
+          });
+          throw error;
         }
       },
 
@@ -172,13 +177,13 @@ export const useAuthStore = create<AuthStore>()(
        * - Siempre requiere verificación de email para registro manual
        */
       register: async (credentials: RegisterCredentials): Promise<AuthResult> => {
-        set({ isLoading: true, error: null, errorCode: null })
+        set({ isLoading: true, error: null, errorCode: null });
         try {
           // authService valida la respuesta con Zod automáticamente
-          const response = await authService.signUp(credentials)
+          const response = await authService.signUp(credentials);
 
           // Extraer datos de la estructura { data: { user, accessToken, refreshToken } }
-          const { user: backendUser, accessToken, refreshToken } = response.data
+          const { user: backendUser, accessToken, refreshToken } = response.data;
 
           // Construir usuario con status pending_verification
           const user: User = {
@@ -187,7 +192,7 @@ export const useAuthStore = create<AuthStore>()(
             username: backendUser.username,
             status: 'pending_verification', // Siempre pending para registro manual
             createdAt: backendUser.createdAt,
-          }
+          };
 
           // Registro exitoso - siempre requiere verificación para registro manual
           set({
@@ -199,36 +204,36 @@ export const useAuthStore = create<AuthStore>()(
             refreshToken,
             user,
             isAuthenticated: false,
-          })
-          return { requiresVerification: true }
+          });
+          return { requiresVerification: true };
         } catch (error) {
           // Manejar diferentes tipos de errores
-          let errorMessage = 'UNKNOWN_ERROR'
-          let errorCode: ApiError['error'] = 'UNKNOWN_ERROR'
+          let errorMessage = 'UNKNOWN_ERROR';
+          let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';
 
           // Error de validación Zod (respuesta inválida del servidor)
           if (error instanceof ZodError) {
-            console.error('Invalid sign-up response structure:', error.issues)
-            errorMessage = 'UNKNOWN_ERROR'
+            console.error('Invalid sign-up response structure:', error.issues);
+            errorMessage = 'UNKNOWN_ERROR';
           } else if (error instanceof Error) {
-            errorMessage = error.message
+            errorMessage = error.message;
           }
 
           // Si es un error de API con estructura conocida
-          const apiError = error as ApiError
+          const apiError = error as ApiError;
           if (apiError?.error) {
-            errorCode = apiError.error
+            errorCode = apiError.error;
           }
           if (apiError?.message) {
-            errorMessage = apiError.message
+            errorMessage = apiError.message;
           }
 
           set({
             error: errorMessage,
             errorCode: errorCode,
             isLoading: false,
-          })
-          throw error
+          });
+          throw error;
         }
       },
 
@@ -236,45 +241,45 @@ export const useAuthStore = create<AuthStore>()(
        * Verificar email con código de 6 dígitos
        */
       verifyEmail: async (code: string): Promise<void> => {
-        const { pendingVerificationEmail } = get()
+        const { pendingVerificationEmail } = get();
         if (!pendingVerificationEmail) {
-          throw new Error('No email pending verification')
+          throw new Error('No email pending verification');
         }
 
-        set({ isLoading: true, error: null, errorCode: null, blockInfo: null })
+        set({ isLoading: true, error: null, errorCode: null, blockInfo: null });
         try {
           await authService.verifyEmail({
             email: pendingVerificationEmail,
             code,
-          })
+          });
 
           // Verificación exitosa - autenticar completamente
-          const currentUser = get().user
+          const currentUser = get().user;
           set({
             isAuthenticated: true,
             emailVerificationRequired: false,
             pendingVerificationEmail: null,
             isLoading: false,
             user: currentUser ? { ...currentUser, status: 'active' } : null,
-          })
+          });
         } catch (error) {
-          const apiError = error as ApiError
+          const apiError = error as ApiError;
 
           // Manejar información de bloqueo usando campos de metadata del backend
-          let blockInfo: BlockInfo | null = null
+          let blockInfo: BlockInfo | null = null;
           if (apiError.error === 'VERIFICATION_BLOCKED') {
             blockInfo = {
               isBlocked: true,
               reason: 'attempts',
               // Usar campos de metadata directamente del error
               blockedUntil: apiError.blockedUntil ? new Date(apiError.blockedUntil) : undefined,
-            }
+            };
           } else if (apiError.error === 'TOO_MANY_VERIFICATION_ATTEMPTS') {
             blockInfo = {
               isBlocked: false,
               // Usar attemptsRemaining directamente del error
               attemptsRemaining: apiError.attemptsRemaining,
-            }
+            };
           }
 
           set({
@@ -282,8 +287,8 @@ export const useAuthStore = create<AuthStore>()(
             errorCode: apiError.error || 'UNKNOWN_ERROR',
             isLoading: false,
             blockInfo,
-          })
-          throw error
+          });
+          throw error;
         }
       },
 
@@ -291,31 +296,31 @@ export const useAuthStore = create<AuthStore>()(
        * Reenviar código de verificación
        */
       resendVerificationCode: async () => {
-        const { pendingVerificationEmail } = get()
+        const { pendingVerificationEmail } = get();
         if (!pendingVerificationEmail) {
-          throw new Error('No email pending verification')
+          throw new Error('No email pending verification');
         }
 
-        set({ isLoading: true, error: null, errorCode: null })
+        set({ isLoading: true, error: null, errorCode: null });
         try {
           const response = await authService.resendVerificationCode({
             email: pendingVerificationEmail,
-          })
+          });
           // Actualizar timestamp cuando se reenvía el código
           set({
             isLoading: false,
             verificationCodeSentAt: new Date().toISOString(),
-          })
+          });
           // Extraer datos de la estructura { data: { success, message, ... } }
-          return response.data
+          return response.data;
         } catch (error) {
-          const apiError = error as ApiError
+          const apiError = error as ApiError;
           set({
             error: apiError.message || 'Failed to resend code',
             errorCode: apiError.error || 'UNKNOWN_ERROR',
             isLoading: false,
-          })
-          throw error
+          });
+          throw error;
         }
       },
 
@@ -325,15 +330,15 @@ export const useAuthStore = create<AuthStore>()(
        * - Siempre limpia el estado local
        */
       logout: async (): Promise<void> => {
-        const { refreshToken } = get()
+        const { refreshToken } = get();
         try {
           if (refreshToken) {
-            await authService.signOut(refreshToken)
+            await authService.signOut(refreshToken);
           }
         } catch {
           // Ignorar errores de logout - siempre limpiar estado local
         } finally {
-          set(initialState)
+          set(initialState);
         }
       },
 
@@ -342,9 +347,9 @@ export const useAuthStore = create<AuthStore>()(
        * - Establece el estado de autenticación desde los tokens recibidos
        */
       handleOAuthCallback: (tokens: {
-        accessToken: string
-        refreshToken: string
-        user: User
+        accessToken: string;
+        refreshToken: string;
+        user: User;
       }): void => {
         set({
           user: tokens.user,
@@ -357,49 +362,49 @@ export const useAuthStore = create<AuthStore>()(
           error: null,
           errorCode: null,
           blockInfo: null,
-        })
+        });
       },
 
       /**
        * Establecer usuario
        */
       setUser: (user: User | null): void => {
-        set({ user })
+        set({ user });
       },
 
       /**
        * Limpiar error
        */
       clearError: (): void => {
-        set({ error: null, errorCode: null })
+        set({ error: null, errorCode: null });
       },
 
       /**
        * Establecer estado de carga
        */
       setLoading: (isLoading: boolean): void => {
-        set({ isLoading })
+        set({ isLoading });
       },
 
       /**
        * Establecer información de bloqueo
        */
       setBlockInfo: (blockInfo: BlockInfo | null): void => {
-        set({ blockInfo })
+        set({ blockInfo });
       },
 
       /**
        * Establecer email pendiente de verificación
        */
       setPendingVerificationEmail: (email: string | null): void => {
-        set({ pendingVerificationEmail: email })
+        set({ pendingVerificationEmail: email });
       },
 
       /**
        * Resetear estado de autenticación
        */
       resetAuthState: (): void => {
-        set(initialState)
+        set(initialState);
       },
     }),
     {
@@ -415,6 +420,6 @@ export const useAuthStore = create<AuthStore>()(
         pendingVerificationEmail: state.pendingVerificationEmail,
         verificationCodeSentAt: state.verificationCodeSentAt,
       }),
-    }
-  )
-)
+    },
+  ),
+);

@@ -1,12 +1,12 @@
-import i18n from 'i18next'
-import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translations
-import enCommon from '@/locales/en/common.json'
-import enAuth from '@/locales/en/auth.json'
-import esCommon from '@/locales/es/common.json'
-import esAuth from '@/locales/es/auth.json'
+import enCommon from '@/locales/en/common.json';
+import enAuth from '@/locales/en/auth.json';
+import esCommon from '@/locales/es/common.json';
+import esAuth from '@/locales/es/auth.json';
 
 const resources = {
   en: {
@@ -17,7 +17,7 @@ const resources = {
     common: esCommon,
     auth: esAuth,
   },
-}
+};
 
 i18n
   .use(LanguageDetector)
@@ -34,6 +34,6 @@ i18n
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
     },
-  })
+  });
 
-export default i18n
+export default i18n;

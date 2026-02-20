@@ -1,11 +1,11 @@
-import { RouterProvider } from 'react-router-dom'
-import { router } from './router'
+import { RouterProvider } from 'react-router-dom';
+import { router } from './router';
 
 // Import i18n configuration
-import '@/shared/lib/i18n'
+import '@/shared/lib/i18n';
 
 interface ProvidersProps {
-  children?: React.ReactNode
+  children?: React.ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
@@ -14,5 +14,5 @@ export function Providers({ children }: ProvidersProps) {
       <RouterProvider router={router} />
       {children}
     </>
-  )
+  );
 }

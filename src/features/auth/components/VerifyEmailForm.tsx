@@ -1,21 +1,21 @@
-import { useState, useCallback, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
-import { Button } from '@/shared/components/ui/button'
-import { useAuthStore } from '../store/auth.store'
-import { VerificationCodeInput } from './VerificationCodeInput'
-import { ExpirationTimer } from './ExpirationTimer'
-import { ResendButton } from './ResendButton'
-import { cn } from '@/shared/lib/utils'
-import type { ApiError } from '../types/auth.types'
+import { useState, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/shared/components/ui/button';
+import { useAuthStore } from '../store/auth.store';
+import { VerificationCodeInput } from './VerificationCodeInput';
+import { ExpirationTimer } from './ExpirationTimer';
+import { ResendButton } from './ResendButton';
+import { cn } from '@/shared/lib/utils';
+import type { ApiError } from '../types/auth.types';
 
 interface VerifyEmailFormProps {
-  email: string
+  email: string;
 }
 
-const CODE_EXPIRATION_SECONDS = 600 // 10 minutos
-const RESEND_COOLDOWN_SECONDS = 60 // 60 segundos entre reenvíos
+const CODE_EXPIRATION_SECONDS = 600; // 10 minutos
+const RESEND_COOLDOWN_SECONDS = 60; // 60 segundos entre reenvíos
 
 /**
  * Formulario de verificación de email
@@ -28,8 +28,8 @@ const RESEND_COOLDOWN_SECONDS = 60 // 60 segundos entre reenvíos
  * - Feedback visual de éxito/error
  */
 export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
-  const { t } = useTranslation('auth')
-  const navigate = useNavigate()
+  const { t } = useTranslation('auth');
+  const navigate = useNavigate();
 
   const {
     verifyEmail,
@@ -40,125 +40,125 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
     blockInfo,
     clearError,
     verificationCodeSentAt,
-  } = useAuthStore()
+  } = useAuthStore();
 
   // Calcular tiempo inicial restante basado en cuándo se envió el código
   const initialSecondsLeft = useMemo(() => {
-    if (!verificationCodeSentAt) return CODE_EXPIRATION_SECONDS
+    if (!verificationCodeSentAt) return CODE_EXPIRATION_SECONDS;
 
-    const sentAt = new Date(verificationCodeSentAt).getTime()
-    const now = Date.now()
-    const elapsedSeconds = Math.floor((now - sentAt) / 1000)
-    const remaining = CODE_EXPIRATION_SECONDS - elapsedSeconds
+    const sentAt = new Date(verificationCodeSentAt).getTime();
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - sentAt) / 1000);
+    const remaining = CODE_EXPIRATION_SECONDS - elapsedSeconds;
 
-    return Math.max(0, remaining)
-  }, [verificationCodeSentAt])
+    return Math.max(0, remaining);
+  }, [verificationCodeSentAt]);
 
   // Calcular cooldown inicial para el botón de reenvío
   const initialResendCooldown = useMemo(() => {
-    if (!verificationCodeSentAt) return 0
+    if (!verificationCodeSentAt) return 0;
 
-    const sentAt = new Date(verificationCodeSentAt).getTime()
-    const now = Date.now()
-    const elapsedSeconds = Math.floor((now - sentAt) / 1000)
-    const remaining = RESEND_COOLDOWN_SECONDS - elapsedSeconds
+    const sentAt = new Date(verificationCodeSentAt).getTime();
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - sentAt) / 1000);
+    const remaining = RESEND_COOLDOWN_SECONDS - elapsedSeconds;
 
-    return Math.max(0, remaining)
-  }, [verificationCodeSentAt])
+    return Math.max(0, remaining);
+  }, [verificationCodeSentAt]);
 
-  const [code, setCode] = useState('')
-  const [isCodeExpired, setIsCodeExpired] = useState(initialSecondsLeft <= 0)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [remainingResends, setRemainingResends] = useState<number | undefined>(undefined)
+  const [code, setCode] = useState('');
+  const [isCodeExpired, setIsCodeExpired] = useState(initialSecondsLeft <= 0);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [remainingResends, setRemainingResends] = useState<number | undefined>(undefined);
 
   // Limpiar error cuando cambia el código
   const clearErrorOnChange = useCallback(() => {
     if (error) {
-      clearError()
+      clearError();
     }
-  }, [error, clearError])
+  }, [error, clearError]);
 
   // Manejar submit
   const handleSubmit = useCallback(
     async (e?: React.FormEvent) => {
-      e?.preventDefault()
+      e?.preventDefault();
 
-      if (code.length !== 6 || isLoading || isCodeExpired) return
+      if (code.length !== 6 || isLoading || isCodeExpired) return;
 
       try {
-        await verifyEmail(code)
-        setIsSuccess(true)
+        await verifyEmail(code);
+        setIsSuccess(true);
 
         // Redirigir al dashboard después de un breve momento
         setTimeout(() => {
-          navigate('/dashboard', { replace: true })
-        }, 1500)
+          navigate('/dashboard', { replace: true });
+        }, 1500);
       } catch {
         // El error se maneja en el store
       }
     },
-    [code, isLoading, isCodeExpired, verifyEmail, navigate]
-  )
+    [code, isLoading, isCodeExpired, verifyEmail, navigate],
+  );
 
   // Auto-submit cuando el código está completo
   const handleCodeComplete = useCallback(
     (newCode: string) => {
-      setCode(newCode)
-      clearErrorOnChange()
+      setCode(newCode);
+      clearErrorOnChange();
       if (newCode.length === 6 && !isLoading && !isCodeExpired) {
         // Pequeño delay para mejor UX
         setTimeout(() => {
           verifyEmail(newCode)
             .then(() => {
-              setIsSuccess(true)
+              setIsSuccess(true);
               setTimeout(() => {
-                navigate('/dashboard', { replace: true })
-              }, 1500)
+                navigate('/dashboard', { replace: true });
+              }, 1500);
             })
             .catch(() => {
               // El error se maneja en el store
-            })
-        }, 100)
+            });
+        }, 100);
       }
     },
-    [isLoading, isCodeExpired, verifyEmail, navigate, clearErrorOnChange]
-  )
+    [isLoading, isCodeExpired, verifyEmail, navigate, clearErrorOnChange],
+  );
 
   // Manejar expiración del código
   const handleExpire = useCallback(() => {
-    setIsCodeExpired(true)
-    setCode('')
-  }, [])
+    setIsCodeExpired(true);
+    setCode('');
+  }, []);
 
   // Manejar reenvío
   const handleResend = useCallback(async () => {
     try {
-      const response = await resendVerificationCode()
-      setIsCodeExpired(false)
-      setCode('')
-      clearError()
+      const response = await resendVerificationCode();
+      setIsCodeExpired(false);
+      setCode('');
+      clearError();
 
       if (response.remainingResends !== undefined) {
-        setRemainingResends(response.remainingResends)
+        setRemainingResends(response.remainingResends);
       }
 
-      return response
+      return response;
     } catch (err) {
-      const apiError = err as ApiError
+      const apiError = err as ApiError;
       // Extraer cooldown del error si existe y devolverlo para que ResendButton lo maneje
       if (apiError.error === 'RESEND_COOLDOWN_ACTIVE') {
-        const match = apiError.message?.match(/(\d+)\s*seconds?/i)
+        const match = apiError.message?.match(/(\d+)\s*seconds?/i);
         if (match) {
-          return { cooldownSeconds: parseInt(match[1]) }
+          return { cooldownSeconds: parseInt(match[1]) };
         }
       }
-      throw err
+      throw err;
     }
-  }, [resendVerificationCode, clearError])
+  }, [resendVerificationCode, clearError]);
 
   // Obtener mensaje de error traducido
   const getErrorMessage = () => {
-    if (!error) return null
+    if (!error) return null;
 
     // Si tenemos un código de error, usar la traducción específica
     if (errorCode) {
@@ -166,32 +166,32 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
       if (errorCode === 'TOO_MANY_VERIFICATION_ATTEMPTS' && blockInfo?.attemptsRemaining) {
         return t(`errors.TOO_MANY_VERIFICATION_ATTEMPTS`, {
           remaining: blockInfo.attemptsRemaining,
-        })
+        });
       }
       if (errorCode === 'VERIFICATION_BLOCKED') {
         // Calcular minutos restantes desde blockedUntil o parsear del mensaje
-        let minutes = '15'
+        let minutes = '15';
         if (blockInfo?.blockedUntil) {
-          const blockedUntilTime = new Date(blockInfo.blockedUntil).getTime()
-          const now = Date.now()
-          const minutesRemaining = Math.ceil((blockedUntilTime - now) / 60000)
-          minutes = String(Math.max(1, minutesRemaining))
+          const blockedUntilTime = new Date(blockInfo.blockedUntil).getTime();
+          const now = Date.now();
+          const minutesRemaining = Math.ceil((blockedUntilTime - now) / 60000);
+          minutes = String(Math.max(1, minutesRemaining));
         } else {
           // Fallback: extraer minutos del mensaje original
-          const match = error.match(/(\d+)\s*minutes?/i)
-          if (match) minutes = match[1]
+          const match = error.match(/(\d+)\s*minutes?/i);
+          if (match) minutes = match[1];
         }
-        return t(`errors.VERIFICATION_BLOCKED`, { minutes })
+        return t(`errors.VERIFICATION_BLOCKED`, { minutes });
       }
 
       // Intentar obtener traducción del código
-      const translatedError = t(`errors.${errorCode}`, { defaultValue: '' })
-      if (translatedError) return translatedError
+      const translatedError = t(`errors.${errorCode}`, { defaultValue: '' });
+      if (translatedError) return translatedError;
     }
 
     // Fallback al mensaje original
-    return error
-  }
+    return error;
+  };
 
   // Estado de éxito
   if (isSuccess) {
@@ -205,7 +205,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         </h2>
         <p className="text-gray-600">{t('common.redirecting', 'Redirecting...')}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -229,7 +229,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
           <div
             className={cn(
               'flex items-center justify-center gap-2 text-sm',
-              'text-red-600 bg-red-50 rounded-lg p-3'
+              'text-red-600 bg-red-50 rounded-lg p-3',
             )}
           >
             <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -300,7 +300,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         </p>
       </div>
     </form>
-  )
+  );
 }
 
-export default VerifyEmailForm
+export default VerifyEmailForm;

@@ -1,23 +1,23 @@
 // Components
-export * from './components'
+export * from './components';
 
 // Pages
-export * from './pages'
+export * from './pages';
 
 // Guards
-export * from './guards'
+export * from './guards';
 
 // Hooks
-export { useAuth } from './hooks/useAuth'
+export { useAuth } from './hooks/useAuth';
 
 // Store
-export { useAuthStore } from './store/auth.store'
+export { useAuthStore } from './store/auth.store';
 
 // API Service
-export { authService } from './api/auth.service'
+export { authService } from './api/auth.service';
 
 // Types
-export * from './types/auth.types'
+export * from './types/auth.types';
 
 // Schemas
-export * from './schemas/auth.schema'
+export * from './schemas/auth.schema';

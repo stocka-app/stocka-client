@@ -1,5 +1,5 @@
-import { api } from '@/shared/lib/axios'
-import { env } from '@/shared/lib/env'
+import { api } from '@/shared/lib/axios';
+import { env } from '@/shared/lib/env';
 import {
   SignUpResponseSchema,
   SignInResponseSchema,
@@ -21,8 +21,8 @@ import {
   type ResendVerificationCodeResponse,
   type ForgotPasswordResponse,
   type ResetPasswordResponse,
-} from '../schemas/auth.schema'
-import type { OAuthProvider } from '../types/auth.types'
+} from '../schemas/auth.schema';
+import type { OAuthProvider } from '../types/auth.types';
 
 /**
  * Servicio de autenticación
@@ -40,9 +40,9 @@ export const authService = {
    * @returns SignUpResponse validado con Zod
    */
   async signUp(credentials: SignUpRequest): Promise<SignUpResponse> {
-    const response = await api.post('/auth/sign-up', credentials)
+    const response = await api.post('/auth/sign-up', credentials);
     // response.data es la respuesta del backend: { data: { user, ... }, success: true }
-    return SignUpResponseSchema.parse(response.data)
+    return SignUpResponseSchema.parse(response.data);
   },
 
   /**
@@ -52,9 +52,9 @@ export const authService = {
    * @returns SignInResponse validado con Zod
    */
   async signIn(credentials: SignInRequest): Promise<SignInResponse> {
-    const response = await api.post('/auth/sign-in', credentials)
+    const response = await api.post('/auth/sign-in', credentials);
     // response.data es la respuesta del backend: { data: { user, ... }, success: true }
-    return SignInResponseSchema.parse(response.data)
+    return SignInResponseSchema.parse(response.data);
   },
 
   /**
@@ -64,7 +64,7 @@ export const authService = {
    * Invalida el refresh token en el servidor
    */
   async signOut(refreshToken: string): Promise<void> {
-    await api.post('/auth/sign-out', { refreshToken })
+    await api.post('/auth/sign-out', { refreshToken });
   },
 
   /**
@@ -74,8 +74,8 @@ export const authService = {
    * @returns Nuevos tokens de acceso y refresh validados con Zod
    */
   async refreshSession(refreshToken: string): Promise<RefreshSessionResponse> {
-    const response = await api.post('/auth/refresh-session', { refreshToken })
-    return RefreshSessionResponseSchema.parse(response.data)
+    const response = await api.post('/auth/refresh-session', { refreshToken });
+    return RefreshSessionResponseSchema.parse(response.data);
   },
 
   /**
@@ -85,8 +85,8 @@ export const authService = {
    * Requiere token de acceso válido
    */
   async getMe(): Promise<GetMeResponse> {
-    const response = await api.get('/users/me')
-    return GetMeResponseSchema.parse(response.data)
+    const response = await api.get('/users/me');
+    return GetMeResponseSchema.parse(response.data);
   },
 
   /**
@@ -96,8 +96,8 @@ export const authService = {
    * @param data - Email y código de verificación
    */
   async verifyEmail(data: VerifyEmailRequest): Promise<VerifyEmailResponse> {
-    const response = await api.post('/auth/verify-email', data)
-    return VerifyEmailResponseSchema.parse(response.data)
+    const response = await api.post('/auth/verify-email', data);
+    return VerifyEmailResponseSchema.parse(response.data);
   },
 
   /**
@@ -108,10 +108,10 @@ export const authService = {
    * @returns Información de cooldown y resends restantes
    */
   async resendVerificationCode(
-    data: ResendVerificationCodeRequest
+    data: ResendVerificationCodeRequest,
   ): Promise<ResendVerificationCodeResponse> {
-    const response = await api.post('/auth/resend-verification-code', data)
-    return ResendVerificationCodeResponseSchema.parse(response.data)
+    const response = await api.post('/auth/resend-verification-code', data);
+    return ResendVerificationCodeResponseSchema.parse(response.data);
   },
 
   /**
@@ -121,8 +121,8 @@ export const authService = {
    * Siempre retorna 200 OK (no revela si el email existe)
    */
   async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
-    const response = await api.post('/auth/forgot-password', { email })
-    return ForgotPasswordResponseSchema.parse(response.data)
+    const response = await api.post('/auth/forgot-password', { email });
+    return ForgotPasswordResponseSchema.parse(response.data);
   },
 
   /**
@@ -133,8 +133,8 @@ export const authService = {
    * @param newPassword - Nueva contraseña del usuario
    */
   async resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
-    const response = await api.post('/auth/reset-password', { token, newPassword })
-    return ResetPasswordResponseSchema.parse(response.data)
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return ResetPasswordResponseSchema.parse(response.data);
   },
 
   /**
@@ -144,7 +144,7 @@ export const authService = {
    * @returns URL completa para redirigir al usuario
    */
   getOAuthUrl(provider: OAuthProvider): string {
-    return `${env.VITE_API_URL}/auth/${provider}`
+    return `${env.VITE_API_URL}/auth/${provider}`;
   },
 
   /**
@@ -154,9 +154,9 @@ export const authService = {
    * @param provider - 'google' | 'facebook' | 'microsoft'
    */
   initiateOAuth(provider: OAuthProvider): void {
-    const url = this.getOAuthUrl(provider)
-    window.location.href = url
+    const url = this.getOAuthUrl(provider);
+    window.location.href = url;
   },
-}
+};
 
-export default authService
+export default authService;

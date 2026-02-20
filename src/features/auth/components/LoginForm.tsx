@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
-import { Loader2, Lock } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
+import { Loader2, Lock } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -11,39 +11,39 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/shared/components/ui/form'
-import { Input } from '@/shared/components/ui/input'
-import { Button } from '@/shared/components/ui/button'
-import { PasswordInput } from './PasswordInput'
-import { SocialButton } from './SocialButton'
-import { FormDivider } from './FormDivider'
-import { loginSchema, type LoginFormData } from '../schemas/auth.schema'
-import { useAuthStore } from '../store/auth.store'
-import { cn } from '@/shared/lib/utils'
+} from '@/shared/components/ui/form';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { PasswordInput } from './PasswordInput';
+import { SocialButton } from './SocialButton';
+import { FormDivider } from './FormDivider';
+import { loginSchema, type LoginFormData } from '../schemas/auth.schema';
+import { useAuthStore } from '../store/auth.store';
+import { cn } from '@/shared/lib/utils';
 
 /**
  * Formatea segundos a formato legible (1h 5m, 5m 30s, 30s)
  */
 function formatCountdown(seconds: number): string {
   if (seconds >= 3600) {
-    const hours = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    return `${hours}h ${mins}m`
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    return `${hours}h ${mins}m`;
   }
   if (seconds >= 60) {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}m ${secs}s`
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
   }
-  return `${seconds}s`
+  return `${seconds}s`;
 }
 
 export function LoginForm() {
-  const { t } = useTranslation('auth')
-  const navigate = useNavigate()
+  const { t } = useTranslation('auth');
+  const navigate = useNavigate();
   const { login, isLoading, error, errorCode, clearError, setPendingVerificationEmail, blockInfo } =
-    useAuthStore()
-  const [countdown, setCountdown] = useState<number>(0)
+    useAuthStore();
+  const [countdown, setCountdown] = useState<number>(0);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -51,61 +51,66 @@ export function LoginForm() {
       emailOrUsername: '',
       password: '',
     },
-  })
+  });
 
   // Countdown para bloqueo temporal
   useEffect(() => {
     if (!blockInfo?.blockedUntil) {
-      setCountdown(0)
-      return
+      setCountdown(0);
+      return;
     }
 
     const updateCountdown = () => {
       const remaining = Math.max(
         0,
-        Math.ceil((blockInfo.blockedUntil!.getTime() - Date.now()) / 1000)
-      )
-      setCountdown(remaining)
-    }
+        Math.ceil((blockInfo.blockedUntil!.getTime() - Date.now()) / 1000),
+      );
+      setCountdown(remaining);
+    };
 
-    updateCountdown()
-    const interval = setInterval(updateCountdown, 1000)
-    return () => clearInterval(interval)
-  }, [blockInfo?.blockedUntil])
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [blockInfo?.blockedUntil]);
 
   // Limpiar blockInfo cuando countdown llega a 0 (solo si había blockedUntil)
   useEffect(() => {
-    if (countdown === 0 && blockInfo?.isBlocked && blockInfo?.reason === 'account_locked' && blockInfo?.blockedUntil) {
-      clearError()
+    if (
+      countdown === 0 &&
+      blockInfo?.isBlocked &&
+      blockInfo?.reason === 'account_locked' &&
+      blockInfo?.blockedUntil
+    ) {
+      clearError();
     }
-  }, [countdown, blockInfo, clearError])
+  }, [countdown, blockInfo, clearError]);
 
-  const isFormDisabled = isLoading || blockInfo?.isBlocked
+  const isFormDisabled = isLoading || blockInfo?.isBlocked;
 
   // Guardar el email para verificación cuando hay error EMAIL_NOT_VERIFIED
   const handleVerifyEmailClick = () => {
-    const emailOrUsername = form.getValues('emailOrUsername')
+    const emailOrUsername = form.getValues('emailOrUsername');
     if (emailOrUsername.includes('@')) {
-      setPendingVerificationEmail(emailOrUsername)
+      setPendingVerificationEmail(emailOrUsername);
     }
-    clearError()
-    navigate('/auth/verify-email')
-  }
+    clearError();
+    navigate('/auth/verify-email');
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      clearError()
-      const result = await login(data)
+      clearError();
+      const result = await login(data);
 
       // Solo redirigir a dashboard si login exitoso (usuario verificado)
       if (!result?.requiresVerification) {
-        navigate('/dashboard')
+        navigate('/dashboard');
       }
       // Si requiresVerification es true, el error se mostrará con el link
     } catch {
       // Los errores se muestran en el formulario con links según el tipo
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -123,10 +128,8 @@ export function LoginForm() {
               <p className="mt-1 text-sm text-red-600">
                 {t('errors.tryAgainIn', { time: formatCountdown(countdown) })}
               </p>
-            ) : error && (
-              <p className="mt-1 text-sm text-red-600">
-                {error}
-              </p>
+            ) : (
+              error && <p className="mt-1 text-sm text-red-600">{error}</p>
             )}
           </div>
         )}
@@ -134,9 +137,7 @@ export function LoginForm() {
         {/* Rate limit genérico */}
         {blockInfo?.isBlocked && blockInfo.reason === 'rate_limit' && (
           <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
-            <p className="text-sm text-amber-800">
-              {t('errors.tooManyRequests')}
-            </p>
+            <p className="text-sm text-amber-800">{t('errors.tooManyRequests')}</p>
           </div>
         )}
 
@@ -191,7 +192,7 @@ export function LoginForm() {
                   to="/auth/forgot-password"
                   className={cn(
                     'text-sm text-primary hover:underline',
-                    isFormDisabled && 'pointer-events-none opacity-50'
+                    isFormDisabled && 'pointer-events-none opacity-50',
                   )}
                 >
                   {t('forgotPassword')}
@@ -249,5 +250,5 @@ export function LoginForm() {
         )}
       </form>
     </Form>
-  )
+  );
 }

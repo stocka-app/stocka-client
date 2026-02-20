@@ -1,12 +1,12 @@
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/shared/lib/utils'
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/shared/lib/utils';
 
 interface FormDividerProps {
-  className?: string
+  className?: string;
 }
 
 export function FormDivider({ className }: FormDividerProps) {
-  const { t } = useTranslation('auth')
+  const { t } = useTranslation('auth');
 
   return (
     <div className={cn('relative my-6', className)}>
@@ -17,5 +17,5 @@ export function FormDivider({ className }: FormDividerProps) {
         <span className="bg-white px-4 text-gray-500">{t('or')}</span>
       </div>
     </div>
-  )
+  );
 }

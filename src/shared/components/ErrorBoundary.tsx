@@ -1,4 +1,3 @@
-
 import { Component } from 'react';
 import type { ReactNode } from 'react';
 import { withTranslation } from 'react-i18next';
@@ -41,12 +40,17 @@ class ErrorBoundaryBase extends Component<ErrorBoundaryProps, ErrorBoundaryState
     const { t, children } = this.props;
     if (hasError) {
       return (
-        <div role="alert" className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+        <div
+          role="alert"
+          className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center"
+        >
           <h1 className="text-2xl font-bold mb-4">{t('errorBoundary.title')}</h1>
           <p className="mb-6 text-muted-foreground">{t('errorBoundary.description')}</p>
           <div className="flex gap-4 justify-center">
             <Button onClick={this.handleReload}>{t('errorBoundary.reload')}</Button>
-            <Button variant="secondary" onClick={this.handleGoHome}>{t('errorBoundary.goHome')}</Button>
+            <Button variant="secondary" onClick={this.handleGoHome}>
+              {t('errorBoundary.goHome')}
+            </Button>
           </div>
         </div>
       );

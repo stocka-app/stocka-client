@@ -1,27 +1,27 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import type { TFunction } from 'i18next'
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { useAuthStore } from '../store/auth.store'
-import { authService } from '../api/auth.service'
-import { Button } from '@/shared/components/ui/button'
-import type { User, OAuthProvider } from '../types/auth.types'
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useAuthStore } from '../store/auth.store';
+import { authService } from '../api/auth.service';
+import { Button } from '@/shared/components/ui/button';
+import type { User, OAuthProvider } from '../types/auth.types';
 
-type CallbackStatus = 'loading' | 'success' | 'error'
+type CallbackStatus = 'loading' | 'success' | 'error';
 
 type OAuthErrorInfo = {
-  title: string
-  detail: string
-  showRetryWithProvider: boolean
-  showDifferentMethod: boolean
-}
+  title: string;
+  detail: string;
+  showRetryWithProvider: boolean;
+  showDifferentMethod: boolean;
+};
 
 const PROVIDER_NAMES: Record<string, string> = {
   google: 'Google',
   facebook: 'Facebook',
   microsoft: 'Microsoft',
-}
+};
 
 /**
  * Mapea el error code de la URL a info de error traducida.
@@ -33,7 +33,7 @@ const PROVIDER_NAMES: Record<string, string> = {
  * - Cualquier otro: error de conexión / genérico
  */
 function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
-  const code = errorCode.toLowerCase()
+  const code = errorCode.toLowerCase();
 
   if (code === 'access_denied' || code === 'oauth_cancelled') {
     return {
@@ -41,7 +41,7 @@ function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
       detail: t('oauthCallback.cancelledDetail'),
       showRetryWithProvider: true,
       showDifferentMethod: false,
-    }
+    };
   }
 
   if (code === 'email_already_exists' || code === 'oauth_email_conflict') {
@@ -50,7 +50,7 @@ function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
       detail: t('oauthCallback.emailConflictDetail'),
       showRetryWithProvider: false,
       showDifferentMethod: true,
-    }
+    };
   }
 
   if (code === 'oauth_no_email') {
@@ -59,7 +59,7 @@ function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
       detail: t('oauthCallback.noEmailDetail'),
       showRetryWithProvider: false,
       showDifferentMethod: true,
-    }
+    };
   }
 
   return {
@@ -67,7 +67,7 @@ function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
     detail: t('oauthCallback.connectionErrorDetail'),
     showRetryWithProvider: true,
     showDifferentMethod: false,
-  }
+  };
 }
 
 /**
@@ -80,53 +80,53 @@ function resolveOAuthError(errorCode: string, t: TFunction): OAuthErrorInfo {
  * URL de error: /auth/callback?error=xxx
  */
 function OAuthCallbackPage() {
-  const { t } = useTranslation('auth')
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { handleOAuthCallback } = useAuthStore()
+  const { t } = useTranslation('auth');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { handleOAuthCallback } = useAuthStore();
 
-  const [status, setStatus] = useState<CallbackStatus>('loading')
-  const [errorInfo, setErrorInfo] = useState<OAuthErrorInfo | null>(null)
+  const [status, setStatus] = useState<CallbackStatus>('loading');
+  const [errorInfo, setErrorInfo] = useState<OAuthErrorInfo | null>(null);
 
-  const lastProvider = sessionStorage.getItem('lastOAuthProvider') as OAuthProvider | null
+  const lastProvider = sessionStorage.getItem('lastOAuthProvider') as OAuthProvider | null;
 
   useEffect(() => {
     const processCallback = async () => {
       try {
         // Verificar si hay error en los parámetros
-        const errorCode = searchParams.get('error')
+        const errorCode = searchParams.get('error');
         if (errorCode) {
-          setErrorInfo(resolveOAuthError(errorCode, t))
-          setStatus('error')
-          return
+          setErrorInfo(resolveOAuthError(errorCode, t));
+          setStatus('error');
+          return;
         }
 
         // Obtener tokens de la URL
-        const accessToken = searchParams.get('accessToken')
-        const refreshToken = searchParams.get('refreshToken')
-        const userParam = searchParams.get('user')
+        const accessToken = searchParams.get('accessToken');
+        const refreshToken = searchParams.get('refreshToken');
+        const userParam = searchParams.get('user');
 
         // Validar que los tokens estén presentes
         if (!accessToken || !refreshToken) {
-          setErrorInfo(resolveOAuthError('connection_error', t))
-          setStatus('error')
-          return
+          setErrorInfo(resolveOAuthError('connection_error', t));
+          setStatus('error');
+          return;
         }
 
-        let user: User | null = null
+        let user: User | null = null;
         if (userParam) {
           try {
-            user = JSON.parse(decodeURIComponent(userParam))
+            user = JSON.parse(decodeURIComponent(userParam));
           } catch {
-            user = null
+            user = null;
           }
         }
 
         // Si no viene el usuario en la URL, intentar obtenerlo con el token
         if (!user) {
           try {
-            const me = await authService.getMe()
-            user = me.data as unknown as User
+            const me = await authService.getMe();
+            user = me.data as unknown as User;
           } catch {
             // No es fatal — el store puede funcionar sin el objeto user inicialmente
           }
@@ -137,33 +137,33 @@ function OAuthCallbackPage() {
           accessToken,
           refreshToken,
           user: user as User,
-        })
+        });
 
         // Limpiar el provider almacenado al completar exitosamente
-        sessionStorage.removeItem('lastOAuthProvider')
-        setStatus('success')
+        sessionStorage.removeItem('lastOAuthProvider');
+        setStatus('success');
 
         // Redirigir al dashboard después de un breve momento
         setTimeout(() => {
-          navigate('/dashboard', { replace: true })
-        }, 1500)
+          navigate('/dashboard', { replace: true });
+        }, 1500);
       } catch {
-        setErrorInfo(resolveOAuthError('connection_error', t))
-        setStatus('error')
+        setErrorInfo(resolveOAuthError('connection_error', t));
+        setStatus('error');
       }
-    }
+    };
 
-    processCallback()
-  }, [searchParams, handleOAuthCallback, navigate, t])
+    processCallback();
+  }, [searchParams, handleOAuthCallback, navigate, t]);
 
   const handleRetryWithProvider = () => {
     if (lastProvider) {
-      sessionStorage.setItem('lastOAuthProvider', lastProvider)
-      authService.initiateOAuth(lastProvider)
+      sessionStorage.setItem('lastOAuthProvider', lastProvider);
+      authService.initiateOAuth(lastProvider);
     } else {
-      navigate('/auth/login', { replace: true })
+      navigate('/auth/login', { replace: true });
     }
-  }
+  };
 
   // Estado de carga
   if (status === 'loading') {
@@ -172,7 +172,7 @@ function OAuthCallbackPage() {
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-lg text-gray-600">{t('oauthCallback.loading')}</p>
       </div>
-    )
+    );
   }
 
   // Estado de éxito
@@ -182,16 +182,14 @@ function OAuthCallbackPage() {
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
           <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-gray-900">
-          {t('oauthCallback.success')}
-        </h2>
+        <h2 className="mt-4 text-xl font-semibold text-gray-900">{t('oauthCallback.success')}</h2>
         <p className="mt-2 text-gray-600">{t('common.redirecting', 'Redirecting...')}</p>
       </div>
-    )
+    );
   }
 
   // Estado de error
-  const providerName = lastProvider ? (PROVIDER_NAMES[lastProvider] ?? lastProvider) : undefined
+  const providerName = lastProvider ? (PROVIDER_NAMES[lastProvider] ?? lastProvider) : undefined;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
@@ -204,17 +202,12 @@ function OAuthCallbackPage() {
           <h2 className="text-xl font-semibold text-gray-900">
             {errorInfo?.title ?? t('oauthCallback.error')}
           </h2>
-          {errorInfo?.detail && (
-            <p className="text-sm text-gray-600">{errorInfo.detail}</p>
-          )}
+          {errorInfo?.detail && <p className="text-sm text-gray-600">{errorInfo.detail}</p>}
         </div>
 
         <div className="flex flex-col gap-3">
           {/* Siempre visible: volver al login */}
-          <Button
-            onClick={() => navigate('/auth/login', { replace: true })}
-            className="w-full"
-          >
+          <Button onClick={() => navigate('/auth/login', { replace: true })} className="w-full">
             {t('oauthCallback.backToLogin')}
           </Button>
 
@@ -240,8 +233,7 @@ function OAuthCallbackPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default OAuthCallbackPage;
-

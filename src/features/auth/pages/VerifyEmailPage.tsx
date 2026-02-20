@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Navigate } from 'react-router-dom'
-import { Mail } from 'lucide-react'
-import { useAuthStore } from '../store/auth.store'
-import { VerifyEmailForm } from '../components/VerifyEmailForm'
-import { Logo } from '@/shared/components/Logo'
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Navigate } from 'react-router-dom';
+import { Mail } from 'lucide-react';
+import { useAuthStore } from '../store/auth.store';
+import { VerifyEmailForm } from '../components/VerifyEmailForm';
+import { Logo } from '@/shared/components/Logo';
 
 /**
  * Página de verificación de email
@@ -16,23 +16,23 @@ import { Logo } from '@/shared/components/Logo'
  * - Nota sobre spam
  */
 function VerifyEmailPage() {
-  const { t } = useTranslation('auth')
+  const { t } = useTranslation('auth');
   const { emailVerificationRequired, pendingVerificationEmail, isAuthenticated, clearError } =
-    useAuthStore()
+    useAuthStore();
 
   // Limpiar errores al montar el componente
   useEffect(() => {
-    clearError()
-  }, [clearError])
+    clearError();
+  }, [clearError]);
 
   // Si ya está autenticado y no requiere verificación, ir a dashboard
   if (isAuthenticated && !emailVerificationRequired) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Si no hay email pendiente de verificar, ir a login
   if (!pendingVerificationEmail) {
-    return <Navigate to="/auth/login" replace />
+    return <Navigate to="/auth/login" replace />;
   }
 
   return (
@@ -54,9 +54,7 @@ function VerifyEmailPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           {t('verifyEmail.title', 'Verify your email')}
         </h1>
-        <p className="text-gray-600">
-          {t('verifyEmail.subtitle', 'We sent a 6-digit code to')}
-        </p>
+        <p className="text-gray-600">{t('verifyEmail.subtitle', 'We sent a 6-digit code to')}</p>
         <p className="font-medium text-primary text-lg">{pendingVerificationEmail}</p>
       </div>
 
@@ -68,8 +66,7 @@ function VerifyEmailPage() {
         {t('verifyEmail.checkSpam', "Check your spam folder if you don't see it")}
       </p>
     </div>
-  )
+  );
 }
 
-
-export default VerifyEmailPage
+export default VerifyEmailPage;

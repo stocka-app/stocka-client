@@ -1,16 +1,16 @@
-import { useRef, useCallback, useEffect } from 'react'
-import type { KeyboardEvent, ClipboardEvent, ChangeEvent } from 'react'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/shared/lib/utils'
+import { useRef, useCallback, useEffect } from 'react';
+import type { KeyboardEvent, ClipboardEvent, ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/shared/lib/utils';
 
 interface VerificationCodeInputProps {
-  length?: number
-  value: string
-  onChange: (value: string) => void
-  disabled?: boolean
-  error?: boolean
-  autoFocus?: boolean
-  className?: string
+  length?: number;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  error?: boolean;
+  autoFocus?: boolean;
+  className?: string;
 }
 
 /**
@@ -31,44 +31,44 @@ export function VerificationCodeInput({
   autoFocus = true,
   className,
 }: VerificationCodeInputProps) {
-  const { t } = useTranslation('common')
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const { t } = useTranslation('common');
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Convertir el valor string a un array de caracteres
-  const digits = value.split('').slice(0, length)
+  const digits = value.split('').slice(0, length);
   while (digits.length < length) {
-    digits.push('')
+    digits.push('');
   }
 
   // Focus en el primer input al montar
   useEffect(() => {
     if (autoFocus && inputRefs.current[0]) {
-      inputRefs.current[0].focus()
+      inputRefs.current[0].focus();
     }
-  }, [autoFocus])
+  }, [autoFocus]);
 
   // Manejar cambio en un input individual
   const handleChange = useCallback(
     (index: number, e: ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value.toUpperCase()
+      const inputValue = e.target.value.toUpperCase();
 
       // Solo aceptar caracteres alfanuméricos (A-Z, 0-9)
       if (inputValue && !/^[A-Z0-9]$/.test(inputValue)) {
-        return
+        return;
       }
 
       // Actualizar el valor
-      const newDigits = [...digits]
-      newDigits[index] = inputValue
-      onChange(newDigits.join(''))
+      const newDigits = [...digits];
+      newDigits[index] = inputValue;
+      onChange(newDigits.join(''));
 
       // Auto-avance al siguiente input si se escribió un carácter
       if (inputValue && index < length - 1) {
-        inputRefs.current[index + 1]?.focus()
+        inputRefs.current[index + 1]?.focus();
       }
     },
-    [digits, length, onChange]
-  )
+    [digits, length, onChange],
+  );
 
   // Manejar teclas especiales
   const handleKeyDown = useCallback(
@@ -76,58 +76,58 @@ export function VerificationCodeInput({
       // Backspace: si el campo está vacío, retroceder al anterior
       if (e.key === 'Backspace') {
         if (!digits[index] && index > 0) {
-          e.preventDefault()
-          inputRefs.current[index - 1]?.focus()
+          e.preventDefault();
+          inputRefs.current[index - 1]?.focus();
           // Limpiar el campo anterior
-          const newDigits = [...digits]
-          newDigits[index - 1] = ''
-          onChange(newDigits.join(''))
+          const newDigits = [...digits];
+          newDigits[index - 1] = '';
+          onChange(newDigits.join(''));
         }
       }
 
       // Flechas izquierda/derecha para navegación
       if (e.key === 'ArrowLeft' && index > 0) {
-        e.preventDefault()
-        inputRefs.current[index - 1]?.focus()
+        e.preventDefault();
+        inputRefs.current[index - 1]?.focus();
       }
       if (e.key === 'ArrowRight' && index < length - 1) {
-        e.preventDefault()
-        inputRefs.current[index + 1]?.focus()
+        e.preventDefault();
+        inputRefs.current[index + 1]?.focus();
       }
     },
-    [digits, length, onChange]
-  )
+    [digits, length, onChange],
+  );
 
   // Manejar paste de código completo
   const handlePaste = useCallback(
     (e: ClipboardEvent<HTMLInputElement>) => {
-      e.preventDefault()
-      const pastedData = e.clipboardData.getData('text/plain').trim().toUpperCase()
+      e.preventDefault();
+      const pastedData = e.clipboardData.getData('text/plain').trim().toUpperCase();
 
       // Solo procesar caracteres alfanuméricos (A-Z, 0-9)
-      const pastedChars = pastedData.replace(/[^A-Z0-9]/g, '').slice(0, length)
+      const pastedChars = pastedData.replace(/[^A-Z0-9]/g, '').slice(0, length);
 
       if (pastedChars) {
-        onChange(pastedChars)
+        onChange(pastedChars);
 
         // Focus en el último carácter pegado o el último campo
-        const lastIndex = Math.min(pastedChars.length, length) - 1
+        const lastIndex = Math.min(pastedChars.length, length) - 1;
         if (lastIndex >= 0) {
-          inputRefs.current[lastIndex]?.focus()
+          inputRefs.current[lastIndex]?.focus();
         }
       }
     },
-    [length, onChange]
-  )
+    [length, onChange],
+  );
 
   // Focus handlers (para futuras mejoras de accesibilidad)
   const handleFocus = useCallback((_index: number) => {
     // Placeholder para futuras mejoras
-  }, [])
+  }, []);
 
   const handleBlur = useCallback(() => {
     // Placeholder para futuras mejoras
-  }, [])
+  }, []);
 
   return (
     <div className={cn('flex gap-2 sm:gap-3 justify-center', className)}>
@@ -135,7 +135,7 @@ export function VerificationCodeInput({
         <input
           key={index}
           ref={(el) => {
-            inputRefs.current[index] = el
+            inputRefs.current[index] = el;
           }}
           type="text"
           inputMode="text"
@@ -154,28 +154,26 @@ export function VerificationCodeInput({
             'border rounded-lg transition-all duration-200',
             'focus:outline-none focus:ring-2 focus:ring-offset-1',
             // Estados normales
-            !error && !disabled && [
-              'border-gray-300 bg-white text-gray-900',
-              'hover:border-gray-400',
-              'focus:border-primary focus:ring-primary/30',
-            ],
+            !error &&
+              !disabled && [
+                'border-gray-300 bg-white text-gray-900',
+                'hover:border-gray-400',
+                'focus:border-primary focus:ring-primary/30',
+              ],
             // Estado de error
             error && [
               'border-red-500 bg-red-50 text-red-900',
               'focus:border-red-500 focus:ring-red-500/30',
             ],
             // Estado deshabilitado
-            disabled && [
-              'border-gray-200 bg-gray-100 text-gray-400',
-              'cursor-not-allowed',
-            ],
+            disabled && ['border-gray-200 bg-gray-100 text-gray-400', 'cursor-not-allowed'],
             // Animación de shake en error
-            error && 'animate-shake'
+            error && 'animate-shake',
           )}
         />
       ))}
     </div>
-  )
+  );
 }
 
-export default VerificationCodeInput
+export default VerificationCodeInput;

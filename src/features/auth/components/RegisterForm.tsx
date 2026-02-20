@@ -1,8 +1,8 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { Link, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -10,19 +10,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/shared/components/ui/form'
-import { Input } from '@/shared/components/ui/input'
-import { Button } from '@/shared/components/ui/button'
-import { PasswordInput } from './PasswordInput'
-import { SocialButton } from './SocialButton'
-import { FormDivider } from './FormDivider'
-import { registerSchema, type RegisterFormData } from '../schemas/auth.schema'
-import { useAuth } from '../hooks/useAuth'
+} from '@/shared/components/ui/form';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { PasswordInput } from './PasswordInput';
+import { SocialButton } from './SocialButton';
+import { FormDivider } from './FormDivider';
+import { registerSchema, type RegisterFormData } from '../schemas/auth.schema';
+import { useAuth } from '../hooks/useAuth';
 
 export function RegisterForm() {
-  const { t } = useTranslation('auth')
-  const navigate = useNavigate()
-  const { register, isLoading, error, errorCode, clearError } = useAuth()
+  const { t } = useTranslation('auth');
+  const navigate = useNavigate();
+  const { register, isLoading, error, errorCode, clearError } = useAuth();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -31,23 +31,23 @@ export function RegisterForm() {
       username: '',
       password: '',
     },
-  })
+  });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      clearError()
-      const result = await register(data)
+      clearError();
+      const result = await register(data);
 
       // Registro siempre requiere verificación de email
       if (result?.requiresVerification) {
-        navigate('/auth/verify-email')
+        navigate('/auth/verify-email');
       } else {
-        navigate('/dashboard')
+        navigate('/dashboard');
       }
     } catch {
       // Los errores se muestran en el formulario con links según el tipo
     }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -85,8 +85,7 @@ export function RegisterForm() {
                 />
               </FormControl>
               <FormMessage>
-                {form.formState.errors.email?.message &&
-                  t(form.formState.errors.email.message)}
+                {form.formState.errors.email?.message && t(form.formState.errors.email.message)}
               </FormMessage>
             </FormItem>
           )}
@@ -99,11 +98,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>{t('username')}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder={t('usernamePlaceholder')}
-                  disabled={isLoading}
-                  {...field}
-                />
+                <Input placeholder={t('usernamePlaceholder')} disabled={isLoading} {...field} />
               </FormControl>
               <FormMessage>
                 {form.formState.errors.username?.message &&
@@ -159,5 +154,5 @@ export function RegisterForm() {
         </div>
       </form>
     </Form>
-  )
+  );
 }

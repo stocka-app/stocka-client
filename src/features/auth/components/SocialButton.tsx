@@ -1,17 +1,17 @@
-import { useCallback } from 'react'
-import { Button } from '@/shared/components/ui/button'
-import { cn } from '@/shared/lib/utils'
-import { authService } from '../api/auth.service'
-import type { OAuthProvider } from '../types/auth.types'
+import { useCallback } from 'react';
+import { Button } from '@/shared/components/ui/button';
+import { cn } from '@/shared/lib/utils';
+import { authService } from '../api/auth.service';
+import type { OAuthProvider } from '../types/auth.types';
 
-type SocialProvider = OAuthProvider
+type SocialProvider = OAuthProvider;
 
 interface SocialButtonProps {
-  provider: SocialProvider
-  onClick?: () => void
-  className?: string
-  label?: string
-  variant?: 'full' | 'icon'
+  provider: SocialProvider;
+  onClick?: () => void;
+  className?: string;
+  label?: string;
+  variant?: 'full' | 'icon';
 }
 
 // Íconos con colores de marca
@@ -52,10 +52,10 @@ const providerIcons = {
       <path fill="#FFB900" d="M13 13h10v10H13z" />
     </svg>
   ),
-}
+};
 
 // Estilo outline uniforme para todos los providers
-const buttonStyle = 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+const buttonStyle = 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50';
 
 export function SocialButton({
   provider,
@@ -64,18 +64,18 @@ export function SocialButton({
   label,
   variant = 'full',
 }: SocialButtonProps) {
-  const isIconOnly = variant === 'icon'
+  const isIconOnly = variant === 'icon';
 
   // Manejar click con OAuth real
   const handleClick = useCallback(() => {
     if (onClick) {
-      onClick()
+      onClick();
     } else {
       // Guardar el provider para mostrar "Reintentar con {{provider}}" en caso de error
-      sessionStorage.setItem('lastOAuthProvider', provider)
-      authService.initiateOAuth(provider)
+      sessionStorage.setItem('lastOAuthProvider', provider);
+      authService.initiateOAuth(provider);
     }
-  }, [onClick, provider])
+  }, [onClick, provider]);
 
   return (
     <Button
@@ -86,11 +86,11 @@ export function SocialButton({
         'font-medium transition-colors',
         buttonStyle,
         isIconOnly ? 'h-12 w-12 rounded-full p-0' : 'h-12 w-full gap-3',
-        className
+        className,
       )}
     >
       {providerIcons[provider]}
       {!isIconOnly && label}
     </Button>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useTranslation } from 'react-i18next'
-import { Loader2, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -11,65 +11,65 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/shared/components/ui/form'
-import { Input } from '@/shared/components/ui/input'
-import { Button } from '@/shared/components/ui/button'
-import { forgotPasswordSchema, type ForgotPasswordFormData } from '../schemas/auth.schema'
-import { authService } from '../api/auth.service'
-import type { ApiError } from '../types/auth.types'
+} from '@/shared/components/ui/form';
+import { Input } from '@/shared/components/ui/input';
+import { Button } from '@/shared/components/ui/button';
+import { forgotPasswordSchema, type ForgotPasswordFormData } from '../schemas/auth.schema';
+import { authService } from '../api/auth.service';
+import type { ApiError } from '../types/auth.types';
 
-type PageView = 'form' | 'success'
+type PageView = 'form' | 'success';
 
 function ForgotPasswordPage() {
-  const { t } = useTranslation('auth')
-  const [view, setView] = useState<PageView>('form')
-  const [submittedEmail, setSubmittedEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [apiError, setApiError] = useState('')
-  const [cooldownSeconds, setCooldownSeconds] = useState(0)
+  const { t } = useTranslation('auth');
+  const [view, setView] = useState<PageView>('form');
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   useEffect(() => {
-    if (cooldownSeconds <= 0) return
-    const timer = setTimeout(() => setCooldownSeconds((s) => s - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [cooldownSeconds])
+    if (cooldownSeconds <= 0) return;
+    const timer = setTimeout(() => setCooldownSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldownSeconds]);
 
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: '' },
-  })
+  });
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      setIsLoading(true)
-      setApiError('')
-      await authService.forgotPassword(data.email)
-      setSubmittedEmail(data.email)
-      setView('success')
-      setCooldownSeconds(60)
+      setIsLoading(true);
+      setApiError('');
+      await authService.forgotPassword(data.email);
+      setSubmittedEmail(data.email);
+      setView('success');
+      setCooldownSeconds(60);
     } catch (err: unknown) {
-      const apiErr = err as ApiError
+      const apiErr = err as ApiError;
       if (apiErr.statusCode === 429) {
-        setApiError(t('errors.RATE_LIMIT_EXCEEDED'))
+        setApiError(t('errors.RATE_LIMIT_EXCEEDED'));
       } else {
-        setApiError(t('errors.UNKNOWN_ERROR'))
+        setApiError(t('errors.UNKNOWN_ERROR'));
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleResend = async () => {
     try {
-      setIsLoading(true)
-      await authService.forgotPassword(submittedEmail)
-      setCooldownSeconds(60)
+      setIsLoading(true);
+      await authService.forgotPassword(submittedEmail);
+      setCooldownSeconds(60);
     } catch {
       // El backend siempre retorna 200, cualquier error es de red
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (view === 'success') {
     return (
@@ -117,7 +117,7 @@ function ForgotPasswordPage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -157,8 +157,7 @@ function ForgotPasswordPage() {
                   />
                 </FormControl>
                 <FormMessage>
-                  {form.formState.errors.email?.message &&
-                    t(form.formState.errors.email.message)}
+                  {form.formState.errors.email?.message && t(form.formState.errors.email.message)}
                 </FormMessage>
               </FormItem>
             )}
@@ -188,7 +187,7 @@ function ForgotPasswordPage() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
 
 export default ForgotPasswordPage;

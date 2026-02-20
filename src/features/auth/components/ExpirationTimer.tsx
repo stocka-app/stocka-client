@@ -1,21 +1,21 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Clock } from 'lucide-react'
-import { cn } from '@/shared/lib/utils'
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Clock } from 'lucide-react';
+import { cn } from '@/shared/lib/utils';
 
 interface ExpirationTimerProps {
   /** Tiempo total en segundos (default: 600 = 10 minutos) */
-  totalSeconds?: number
+  totalSeconds?: number;
   /** Tiempo inicial restante en segundos (si se quiere empezar desde un punto específico) */
-  initialSeconds?: number
+  initialSeconds?: number;
   /** Callback cuando el timer llega a 0 */
-  onExpire?: () => void
+  onExpire?: () => void;
   /** Mostrar icono de reloj */
-  showIcon?: boolean
+  showIcon?: boolean;
   /** Clases CSS adicionales */
-  className?: string
+  className?: string;
   /** Si el timer está pausado */
-  paused?: boolean
+  paused?: boolean;
 }
 
 /**
@@ -35,51 +35,51 @@ export function ExpirationTimer({
   className,
   paused = false,
 }: ExpirationTimerProps) {
-  const { t } = useTranslation('auth')
-  const [secondsLeft, setSecondsLeft] = useState(initialSeconds ?? totalSeconds)
-  const [hasExpired, setHasExpired] = useState(false)
+  const { t } = useTranslation('auth');
+  const [secondsLeft, setSecondsLeft] = useState(initialSeconds ?? totalSeconds);
+  const [hasExpired, setHasExpired] = useState(false);
 
   // Formatear tiempo a MM:SS
   const formatTime = useCallback((seconds: number): string => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }, [])
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, []);
 
   // Efecto del countdown
   useEffect(() => {
-    if (paused || hasExpired) return
+    if (paused || hasExpired) return;
 
     if (secondsLeft <= 0) {
-      setHasExpired(true)
-      onExpire?.()
-      return
+      setHasExpired(true);
+      onExpire?.();
+      return;
     }
 
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          setHasExpired(true)
-          onExpire?.()
-          return 0
+          setHasExpired(true);
+          onExpire?.();
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
+        return prev - 1;
+      });
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [secondsLeft, paused, hasExpired, onExpire])
+    return () => clearInterval(interval);
+  }, [secondsLeft, paused, hasExpired, onExpire]);
 
   // Reset timer cuando cambia initialSeconds o totalSeconds
   useEffect(() => {
-    setSecondsLeft(initialSeconds ?? totalSeconds)
-    setHasExpired(false)
-  }, [initialSeconds, totalSeconds])
+    setSecondsLeft(initialSeconds ?? totalSeconds);
+    setHasExpired(false);
+  }, [initialSeconds, totalSeconds]);
 
   // Determinar el estado visual basado en tiempo restante
-  const isWarning = secondsLeft <= 120 && secondsLeft > 30 // Menos de 2 minutos
-  const isCritical = secondsLeft <= 30 && secondsLeft > 0 // Menos de 30 segundos
-  const isExpired = secondsLeft <= 0
+  const isWarning = secondsLeft <= 120 && secondsLeft > 30; // Menos de 2 minutos
+  const isCritical = secondsLeft <= 30 && secondsLeft > 0; // Menos de 30 segundos
+  const isExpired = secondsLeft <= 0;
 
   if (isExpired) {
     return (
@@ -89,7 +89,7 @@ export function ExpirationTimer({
           {t('verifyEmail.codeExpired', 'Code expired. Request a new one.')}
         </span>
       </div>
-    )
+    );
   }
 
   return (
@@ -100,7 +100,7 @@ export function ExpirationTimer({
         !isWarning && !isCritical && 'text-gray-600',
         isWarning && 'text-amber-600',
         isCritical && 'text-red-600 animate-pulse',
-        className
+        className,
       )}
     >
       {showIcon && <Clock className={cn('h-4 w-4', isCritical && 'animate-bounce')} />}
@@ -109,7 +109,7 @@ export function ExpirationTimer({
         <span className="font-mono font-semibold">{formatTime(secondsLeft)}</span>
       </span>
     </div>
-  )
+  );
 }
 
-export default ExpirationTimer
+export default ExpirationTimer;

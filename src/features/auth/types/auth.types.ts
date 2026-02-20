@@ -22,7 +22,7 @@ export type {
   // Form types
   LoginFormData,
   RegisterFormData,
-} from '../schemas/auth.schema'
+} from '../schemas/auth.schema';
 
 // =============================================================================
 // USER STATUS & TYPES
@@ -36,17 +36,17 @@ export type UserStatus =
   | 'active' // Usuario verificado manualmente
   | 'email_verified_by_provider' // Login social (acceso inmediato)
   | 'archived' // Usuario archivado/desactivado
-  | 'blocked' // Usuario bloqueado
+  | 'blocked'; // Usuario bloqueado
 
 /**
  * Usuario con información completa (usado en el frontend)
  */
 export interface User {
-  id: string // UUID
-  email: string
-  username: string
-  status: UserStatus
-  createdAt: string // ISO 8601
+  id: string; // UUID
+  email: string;
+  username: string;
+  status: UserStatus;
+  createdAt: string; // ISO 8601
 }
 
 // =============================================================================
@@ -58,8 +58,8 @@ export interface User {
  * @deprecated Usar SignInRequest de schemas
  */
 export interface LoginCredentials {
-  emailOrUsername: string
-  password: string
+  emailOrUsername: string;
+  password: string;
 }
 
 /**
@@ -67,9 +67,9 @@ export interface LoginCredentials {
  * @deprecated Usar SignUpRequest de schemas
  */
 export interface RegisterCredentials {
-  email: string
-  username: string
-  password: string
+  email: string;
+  username: string;
+  password: string;
 }
 
 // =============================================================================
@@ -97,34 +97,34 @@ export type AuthErrorCode =
   | 'TOKEN_EXPIRED'
   | 'INVALID_TOKEN'
   | 'TOKEN_ALREADY_USED'
-  | 'UNKNOWN_ERROR'
+  | 'UNKNOWN_ERROR';
 
 /**
  * Error de API estandarizado del backend
  * Incluye campos de metadata específicos según el tipo de error
  */
 export interface ApiError {
-  statusCode: number
-  message: string
-  error: AuthErrorCode
+  statusCode: number;
+  message: string;
+  error: AuthErrorCode;
   details?: Array<{
-    field: string
-    message: string
-  }>
+    field: string;
+    message: string;
+  }>;
   // Campos de metadata según el tipo de error
-  attemptsRemaining?: number // TOO_MANY_VERIFICATION_ATTEMPTS
-  minutesRemaining?: number // VERIFICATION_BLOCKED
-  blockedUntil?: string // VERIFICATION_BLOCKED, ACCOUNT_TEMPORARILY_LOCKED (ISO string)
+  attemptsRemaining?: number; // TOO_MANY_VERIFICATION_ATTEMPTS
+  minutesRemaining?: number; // VERIFICATION_BLOCKED
+  blockedUntil?: string; // VERIFICATION_BLOCKED, ACCOUNT_TEMPORARILY_LOCKED (ISO string)
 }
 
 /**
  * Información de bloqueo por intentos
  */
 export interface BlockInfo {
-  isBlocked: boolean
-  blockedUntil?: Date
-  attemptsRemaining?: number
-  reason?: 'attempts' | 'rate_limit' | 'account_locked'
+  isBlocked: boolean;
+  blockedUntil?: Date;
+  attemptsRemaining?: number;
+  reason?: 'attempts' | 'rate_limit' | 'account_locked';
 }
 
 // =============================================================================
@@ -136,30 +136,30 @@ export interface BlockInfo {
  */
 export interface AuthState {
   // Usuario y tokens
-  user: User | null
-  accessToken: string | null
-  refreshToken: string | null
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
 
   // Estados de UI
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
-  errorCode: AuthErrorCode | null
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  errorCode: AuthErrorCode | null;
 
   // Verificación de email
-  emailVerificationRequired: boolean
-  pendingVerificationEmail: string | null
-  verificationCodeSentAt: string | null // ISO timestamp de cuando se envió el código
+  emailVerificationRequired: boolean;
+  pendingVerificationEmail: string | null;
+  verificationCodeSentAt: string | null; // ISO timestamp de cuando se envió el código
 
   // Información de bloqueo
-  blockInfo: BlockInfo | null
+  blockInfo: BlockInfo | null;
 }
 
 /**
  * Resultado de login/register
  */
 export interface AuthResult {
-  requiresVerification: boolean
+  requiresVerification: boolean;
 }
 
 /**
@@ -167,34 +167,35 @@ export interface AuthResult {
  */
 export interface AuthActions {
   // Autenticación
-  login: (credentials: LoginCredentials) => Promise<AuthResult>
-  register: (credentials: RegisterCredentials) => Promise<AuthResult>
-  logout: () => Promise<void>
+  login: (credentials: LoginCredentials) => Promise<AuthResult>;
+  register: (credentials: RegisterCredentials) => Promise<AuthResult>;
+  logout: () => Promise<void>;
 
   // Verificación de email
-  verifyEmail: (code: string) => Promise<void>
-  resendVerificationCode: () => Promise<{ success: boolean; message: string; cooldownSeconds?: number; remainingResends?: number }>
+  verifyEmail: (code: string) => Promise<void>;
+  resendVerificationCode: () => Promise<{
+    success: boolean;
+    message: string;
+    cooldownSeconds?: number;
+    remainingResends?: number;
+  }>;
 
   // OAuth
-  handleOAuthCallback: (tokens: {
-    accessToken: string
-    refreshToken: string
-    user: User
-  }) => void
+  handleOAuthCallback: (tokens: { accessToken: string; refreshToken: string; user: User }) => void;
 
   // Utilidades
-  setUser: (user: User | null) => void
-  clearError: () => void
-  setLoading: (loading: boolean) => void
-  setBlockInfo: (blockInfo: BlockInfo | null) => void
-  setPendingVerificationEmail: (email: string | null) => void
-  resetAuthState: () => void
+  setUser: (user: User | null) => void;
+  clearError: () => void;
+  setLoading: (loading: boolean) => void;
+  setBlockInfo: (blockInfo: BlockInfo | null) => void;
+  setPendingVerificationEmail: (email: string | null) => void;
+  resetAuthState: () => void;
 }
 
 /**
  * Store completo de autenticación
  */
-export type AuthStore = AuthState & AuthActions
+export type AuthStore = AuthState & AuthActions;
 
 // =============================================================================
 // OAUTH
@@ -208,15 +209,15 @@ export type AuthStore = AuthState & AuthActions
  *
  * Nota: Apple está deshabilitado en el backend
  */
-export type OAuthProvider = 'google' | 'facebook' | 'microsoft'
+export type OAuthProvider = 'google' | 'facebook' | 'microsoft';
 
 /**
  * Parámetros de callback de OAuth
  */
 export interface OAuthCallbackParams {
-  accessToken?: string
-  refreshToken?: string
-  user?: string // JSON stringified User
-  error?: string
-  errorCode?: AuthErrorCode
+  accessToken?: string;
+  refreshToken?: string;
+  user?: string; // JSON stringified User
+  error?: string;
+  errorCode?: AuthErrorCode;
 }

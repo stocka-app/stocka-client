@@ -1,4 +1,4 @@
-import { useAuthStore } from '../store/auth.store'
+import { useAuthStore } from '../store/auth.store';
 
 export function useAuth() {
   const {
@@ -12,7 +12,7 @@ export function useAuth() {
     logout,
     clearError,
     setPendingVerificationEmail,
-  } = useAuthStore()
+  } = useAuthStore();
 
   return {
     user,
@@ -25,5 +25,5 @@ export function useAuth() {
     logout,
     clearError,
     setPendingVerificationEmail,
-  }
+  };
 }
