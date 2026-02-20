@@ -1,4 +1,5 @@
 import { api } from '@/shared/lib/axios'
+import { env } from '@/shared/lib/env'
 import {
   SignUpResponseSchema,
   SignInResponseSchema,
@@ -143,8 +144,7 @@ export const authService = {
    * @returns URL completa para redirigir al usuario
    */
   getOAuthUrl(provider: OAuthProvider): string {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-    return `${baseUrl}/auth/${provider}`
+    return `${env.VITE_API_URL}/auth/${provider}`
   },
 
   /**

@@ -1,3 +1,4 @@
+import '@/shared/lib/env' // Fail-fast env validation — must be first
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@/styles/globals.css'

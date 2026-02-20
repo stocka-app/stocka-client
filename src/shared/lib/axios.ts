@@ -1,8 +1,9 @@
 import axios from 'axios'
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import type { ApiError, AuthErrorCode } from '@/features/auth/types/auth.types'
+import { env } from './env'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_URL = env.VITE_API_URL
 
 // Nombre de la clave de persistencia de Zustand
 const AUTH_STORAGE_KEY = 'auth-storage'
