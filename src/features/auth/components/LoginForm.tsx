@@ -150,8 +150,18 @@ export function LoginForm() {
           </div>
         )}
 
+        {/* Cuenta vinculada a proveedor social — EC-002 Flexible Pendiente */}
+        {error && !blockInfo?.isBlocked && errorCode === 'SOCIAL_ACCOUNT_REQUIRED' && (
+          <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
+            <p className="text-sm font-medium text-amber-800">
+              {t('errors.SOCIAL_ACCOUNT_REQUIRED')}
+            </p>
+            <p className="mt-1 text-sm text-amber-700">{t('errors.useAlternativeLogin')}</p>
+          </div>
+        )}
+
         {/* Otros errores (credenciales inválidas, etc.) */}
-        {error && !blockInfo?.isBlocked && (
+        {error && !blockInfo?.isBlocked && errorCode !== 'SOCIAL_ACCOUNT_REQUIRED' && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
             <span>{t(`errors.${errorCode}`, { defaultValue: error })}</span>
             {errorCode === 'EMAIL_NOT_VERIFIED' && (
