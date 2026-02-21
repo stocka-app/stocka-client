@@ -1,10 +1,8 @@
 /**
- * STOC-181 — Auto-rellenar email en Forgot Password cuando viene de Sign In
- *
- * Criterios de aceptación:
- * 1. Email válido en Sign In → campo pre-rellenado en Forgot Password
- * 2. Username (sin @) en Sign In → campo vacío en Forgot Password
- * 3. Acceso directo a /forgot-password → campo vacío
+ * Acceptance criteria:
+ * 1. Valid email typed in Sign In → field pre-filled in Forgot Password
+ * 2. Username (no @) typed in Sign In → field empty in Forgot Password
+ * 3. Direct navigation to /forgot-password → field empty
  */
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,52 +11,41 @@ import { LoginForm } from '../components/LoginForm';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 
 // ---------------------------------------------------------------------------
-// Mocks globales
+// Mocks
+//
+// vi.mock() is hoisted before imports, so imported variables are not yet
+// available inside synchronous factories. Async factories let us import
+// from shared mock files after hoisting is resolved.
 // ---------------------------------------------------------------------------
 
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, opts?: Record<string, unknown>) => {
-      if (opts?.defaultValue) return opts.defaultValue as string;
-      return key;
-    },
-  }),
-}));
-
-vi.mock('../store/auth.store', () => ({
-  useAuthStore: () => ({
-    login: vi.fn(),
-    isLoading: false,
-    error: null,
-    errorCode: null,
-    blockInfo: null,
-    clearError: vi.fn(),
-    setPendingVerificationEmail: vi.fn(),
-  }),
-}));
-
-vi.mock('../api/auth.service', () => ({
-  authService: {
-    forgotPassword: vi.fn().mockResolvedValue({}),
-  },
-}));
-
-// SocialButton hace fetch de OAuth URL — lo silenciamos
-vi.mock('../components/SocialButton', () => ({
-  SocialButton: () => null,
-}));
+vi.mock('react-i18next', async () => {
+  const { i18nMock } = await import('@/test/mocks/i18n.mock');
+  return i18nMock;
+});
+vi.mock('../store/auth.store', async () => {
+  const { authStoreMock } = await import('@/test/mocks/auth.mock');
+  return authStoreMock;
+});
+vi.mock('../api/auth.service', async () => {
+  const { authServiceMock } = await import('@/test/mocks/auth.mock');
+  return authServiceMock;
+});
+vi.mock('../components/SocialButton', async () => {
+  const { socialButtonMock } = await import('@/test/mocks/auth.mock');
+  return socialButtonMock;
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Renderiza LoginForm + ForgotPasswordPage dentro de un MemoryRouter compartido
- * con rutas reales, para que navigate() con state funcione de extremo a extremo.
+ * Renders LoginForm + ForgotPasswordPage in a shared MemoryRouter so that
+ * navigate() with state works end-to-end.
  */
-function renderLoginToForgotFlow(initialPath = '/auth/login') {
+function renderLoginToForgotFlow() {
   return render(
-    <MemoryRouter initialEntries={[initialPath]}>
+    <MemoryRouter initialEntries={['/auth/login']}>
       <Routes>
         <Route path="/auth/login" element={<LoginForm />} />
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
@@ -68,7 +55,7 @@ function renderLoginToForgotFlow(initialPath = '/auth/login') {
 }
 
 /**
- * Renderiza ForgotPasswordPage directamente con un location.state dado.
+ * Renders ForgotPasswordPage directly with a given location.state.
  */
 function renderForgotPasswordWithState(state: unknown) {
   return render(
@@ -84,50 +71,55 @@ function renderForgotPasswordWithState(state: unknown) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('STOC-181 — Auto-rellenar email en Forgot Password desde Sign In', () => {
+describe('STOC-181 — Forgot Password email pre-fill', () => {
   const user = userEvent.setup();
 
-  describe('Desde LoginForm → ForgotPasswordPage (flujo completo)', () => {
-    it('pre-rellena el email cuando el campo contiene un email válido', async () => {
+  describe('Full flow: Sign In → Forgot Password', () => {
+    it('pre-fills the email field when the user typed a valid email in Sign In', async () => {
+      // GIVEN the user is on the Sign In page
       renderLoginToForgotFlow();
 
-      // Escribir un email válido en el campo emailOrUsername
+      // WHEN they type a valid email and click "Forgot password?"
       const emailInput = screen.getByPlaceholderText('emailOrUsernamePlaceholder');
       await user.type(emailInput, 'maria@stocka.com');
 
-      // Click en "Forgot password?"
       const forgotLink = screen.getByRole('button', { name: 'forgotPassword' });
       await user.click(forgotLink);
 
-      // Verificar que ForgotPasswordPage está activa con el email pre-rellenado
+      // THEN the Forgot Password page shows the email pre-filled
       const forgotEmailInput = screen.getByRole<HTMLInputElement>('textbox', {
         name: 'forgotPasswordPage.emailLabel',
       });
       expect(forgotEmailInput.value).toBe('maria@stocka.com');
     });
 
-    it('NO pre-rellena el campo cuando se escribe un username (sin @)', async () => {
+    it('leaves the email field empty when the user typed a username (no @) in Sign In', async () => {
+      // GIVEN the user is on the Sign In page
       renderLoginToForgotFlow();
 
+      // WHEN they type a username (not an email) and click "Forgot password?"
       const emailInput = screen.getByPlaceholderText('emailOrUsernamePlaceholder');
       await user.type(emailInput, 'mariusr');
 
       const forgotLink = screen.getByRole('button', { name: 'forgotPassword' });
       await user.click(forgotLink);
 
+      // THEN the Forgot Password page shows an empty email field (no PII leak)
       const forgotEmailInput = screen.getByRole<HTMLInputElement>('textbox', {
         name: 'forgotPasswordPage.emailLabel',
       });
       expect(forgotEmailInput.value).toBe('');
     });
 
-    it('NO pre-rellena el campo cuando emailOrUsername está vacío', async () => {
+    it('leaves the email field empty when the Sign In field was blank', async () => {
+      // GIVEN the user is on the Sign In page with no input
       renderLoginToForgotFlow();
 
-      // No escribimos nada — click directo en "Forgot password?"
+      // WHEN they click "Forgot password?" without typing anything
       const forgotLink = screen.getByRole('button', { name: 'forgotPassword' });
       await user.click(forgotLink);
 
+      // THEN the Forgot Password page shows an empty email field
       const forgotEmailInput = screen.getByRole<HTMLInputElement>('textbox', {
         name: 'forgotPasswordPage.emailLabel',
       });
@@ -135,28 +127,34 @@ describe('STOC-181 — Auto-rellenar email en Forgot Password desde Sign In', ()
     });
   });
 
-  describe('ForgotPasswordPage accedida directamente', () => {
-    it('campo vacío cuando no hay location.state (acceso directo a /forgot-password)', () => {
+  describe('Direct navigation to /forgot-password', () => {
+    it('shows an empty email field when there is no location.state', () => {
+      // GIVEN the user navigates directly to /forgot-password (no state)
       renderForgotPasswordWithState(null);
 
+      // THEN the email field is empty
       const emailInput = screen.getByRole<HTMLInputElement>('textbox', {
         name: 'forgotPasswordPage.emailLabel',
       });
       expect(emailInput.value).toBe('');
     });
 
-    it('campo pre-rellenado cuando location.state.email está presente', () => {
+    it('pre-fills the email field when location.state carries an email', () => {
+      // GIVEN the user arrives at /forgot-password with an email in location.state
       renderForgotPasswordWithState({ email: 'directo@stocka.com' });
 
+      // THEN the email field is pre-filled with that email
       const emailInput = screen.getByRole<HTMLInputElement>('textbox', {
         name: 'forgotPasswordPage.emailLabel',
       });
       expect(emailInput.value).toBe('directo@stocka.com');
     });
 
-    it('campo vacío cuando location.state existe pero sin propiedad email', () => {
-      renderForgotPasswordWithState({ otherProp: 'algo' });
+    it('shows an empty email field when location.state exists but has no email property', () => {
+      // GIVEN the user arrives at /forgot-password with unrelated state
+      renderForgotPasswordWithState({ otherProp: 'something' });
 
+      // THEN the email field is empty
       const emailInput = screen.getByRole<HTMLInputElement>('textbox', {
         name: 'forgotPasswordPage.emailLabel',
       });
