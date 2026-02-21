@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,9 @@ type PageView = 'form' | 'success';
 
 function ForgotPasswordPage() {
   const { t } = useTranslation('auth');
+  const location = useLocation();
+  const prefillEmail = (location.state as { email?: string } | null)?.email ?? '';
+
   const [view, setView] = useState<PageView>('form');
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +39,7 @@ function ForgotPasswordPage() {
 
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: '' },
+    defaultValues: { email: prefillEmail },
   });
 
   const onSubmit = async (data: ForgotPasswordFormData) => {

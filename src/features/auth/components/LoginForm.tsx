@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Loader2, Lock } from 'lucide-react';
 import {
   Form,
@@ -86,6 +86,15 @@ export function LoginForm() {
   }, [countdown, blockInfo, clearError]);
 
   const isFormDisabled = isLoading || blockInfo?.isBlocked;
+
+  // Navegar a Forgot Password pasando el email si el usuario ya lo ingresó
+  const handleForgotPasswordClick = () => {
+    const emailOrUsername = form.getValues('emailOrUsername');
+    const isEmail = emailOrUsername.includes('@');
+    navigate('/auth/forgot-password', {
+      state: isEmail ? { email: emailOrUsername } : undefined,
+    });
+  };
 
   // Guardar el email para verificación cuando hay error EMAIL_NOT_VERIFIED
   const handleVerifyEmailClick = () => {
@@ -188,15 +197,14 @@ export function LoginForm() {
             <FormItem>
               <div className="flex items-center justify-between">
                 <FormLabel>{t('password')}</FormLabel>
-                <Link
-                  to="/auth/forgot-password"
-                  className={cn(
-                    'text-sm text-primary hover:underline',
-                    isFormDisabled && 'pointer-events-none opacity-50',
-                  )}
+                <button
+                  type="button"
+                  onClick={handleForgotPasswordClick}
+                  disabled={isFormDisabled}
+                  className="text-sm text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
                 >
                   {t('forgotPassword')}
-                </Link>
+                </button>
               </div>
               <FormControl>
                 <PasswordInput
