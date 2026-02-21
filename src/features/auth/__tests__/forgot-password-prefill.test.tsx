@@ -72,7 +72,7 @@ describe('Forgot Password email pre-fill', () => {
   });
 
   describe('Full flow: Sign In → Forgot Password', () => {
-    describe('Given the user is on the Sign In page and has typed a valid email', () => {
+    describe('Given the user is on Sign In and has typed a valid email', () => {
       beforeEach(async () => {
         renderLoginToForgotFlow();
         await user.type(screen.getByPlaceholderText('emailOrUsernamePlaceholder'), 'maria@stocka.com');
@@ -83,15 +83,17 @@ describe('Forgot Password email pre-fill', () => {
           await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
         });
 
-        it('pre-fills the email field in the Forgot Password page', () => {
-          expect(
-            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-          ).toBe('maria@stocka.com');
+        describe('Then', () => {
+          it('the Forgot Password page shows the email pre-filled', () => {
+            expect(
+              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+            ).toBe('maria@stocka.com');
+          });
         });
       });
     });
 
-    describe('Given the user is on the Sign In page and has typed a username (no @)', () => {
+    describe('Given the user is on Sign In and has typed a username instead of an email', () => {
       beforeEach(async () => {
         renderLoginToForgotFlow();
         await user.type(screen.getByPlaceholderText('emailOrUsernamePlaceholder'), 'mariusr');
@@ -102,15 +104,17 @@ describe('Forgot Password email pre-fill', () => {
           await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
         });
 
-        it('leaves the email field empty to avoid revealing user information', () => {
-          expect(
-            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-          ).toBe('');
+        describe('Then', () => {
+          it('the Forgot Password page shows an empty email field', () => {
+            expect(
+              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+            ).toBe('');
+          });
         });
       });
     });
 
-    describe('Given the user is on the Sign In page with no input', () => {
+    describe('Given the user is on Sign In and has not typed anything', () => {
       beforeEach(() => {
         renderLoginToForgotFlow();
       });
@@ -120,45 +124,62 @@ describe('Forgot Password email pre-fill', () => {
           await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
         });
 
-        it('leaves the email field empty', () => {
-          expect(
-            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-          ).toBe('');
+        describe('Then', () => {
+          it('the Forgot Password page shows an empty email field', () => {
+            expect(
+              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+            ).toBe('');
+          });
         });
       });
     });
   });
 
   describe('Direct navigation to /forgot-password', () => {
-    describe('Given there is no location.state', () => {
-      describe('When the Forgot Password page renders', () => {
-        it('shows an empty email field', () => {
-          renderForgotPasswordWithState(null);
-          expect(
-            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-          ).toBe('');
+    describe('Given the user lands on Forgot Password directly without coming from Sign In', () => {
+      beforeEach(() => {
+        renderForgotPasswordWithState(null);
+      });
+
+      describe('When the page loads', () => {
+        describe('Then', () => {
+          it('shows an empty email field', () => {
+            expect(
+              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+            ).toBe('');
+          });
         });
       });
     });
 
-    describe('Given location.state carries an email', () => {
-      describe('When the Forgot Password page renders', () => {
-        it('pre-fills the email field with that email', () => {
-          renderForgotPasswordWithState({ email: 'directo@stocka.com' });
-          expect(
-            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-          ).toBe('directo@stocka.com');
+    describe('Given the user arrives at Forgot Password and an email was passed from a previous step', () => {
+      beforeEach(() => {
+        renderForgotPasswordWithState({ email: 'directo@stocka.com' });
+      });
+
+      describe('When the page loads', () => {
+        describe('Then', () => {
+          it('pre-fills the email field with that email', () => {
+            expect(
+              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+            ).toBe('directo@stocka.com');
+          });
         });
       });
     });
 
-    describe('Given location.state exists but has no email property', () => {
-      describe('When the Forgot Password page renders', () => {
-        it('shows an empty email field', () => {
-          renderForgotPasswordWithState({ otherProp: 'something' });
-          expect(
-            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-          ).toBe('');
+    describe('Given the user arrives at Forgot Password but no email was passed from a previous step', () => {
+      beforeEach(() => {
+        renderForgotPasswordWithState({ otherProp: 'something' });
+      });
+
+      describe('When the page loads', () => {
+        describe('Then', () => {
+          it('shows an empty email field', () => {
+            expect(
+              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+            ).toBe('');
+          });
         });
       });
     });
