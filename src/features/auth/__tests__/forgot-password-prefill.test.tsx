@@ -39,10 +39,6 @@ vi.mock('../components/SocialButton', async () => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Renders LoginForm + ForgotPasswordPage in a shared MemoryRouter so that
- * navigate() with state works end-to-end.
- */
 function renderLoginToForgotFlow() {
   return render(
     <MemoryRouter initialEntries={['/auth/login']}>
@@ -54,9 +50,6 @@ function renderLoginToForgotFlow() {
   );
 }
 
-/**
- * Renders ForgotPasswordPage directly with a given location.state.
- */
 function renderForgotPasswordWithState(state: unknown) {
   return render(
     <MemoryRouter initialEntries={[{ pathname: '/auth/forgot-password', state }]}>
@@ -71,94 +64,103 @@ function renderForgotPasswordWithState(state: unknown) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('STOC-181 — Forgot Password email pre-fill', () => {
-  const user = userEvent.setup();
+describe('Forgot Password email pre-fill', () => {
+  let user: ReturnType<typeof userEvent.setup>;
+
+  beforeEach(() => {
+    user = userEvent.setup();
+  });
 
   describe('Full flow: Sign In → Forgot Password', () => {
-    it('pre-fills the email field when the user typed a valid email in Sign In', async () => {
-      // GIVEN the user is on the Sign In page
-      renderLoginToForgotFlow();
-
-      // WHEN they type a valid email and click "Forgot password?"
-      const emailInput = screen.getByPlaceholderText('emailOrUsernamePlaceholder');
-      await user.type(emailInput, 'maria@stocka.com');
-
-      const forgotLink = screen.getByRole('button', { name: 'forgotPassword' });
-      await user.click(forgotLink);
-
-      // THEN the Forgot Password page shows the email pre-filled
-      const forgotEmailInput = screen.getByRole<HTMLInputElement>('textbox', {
-        name: 'forgotPasswordPage.emailLabel',
+    describe('Given the user is on the Sign In page and has typed a valid email', () => {
+      beforeEach(async () => {
+        renderLoginToForgotFlow();
+        await user.type(screen.getByPlaceholderText('emailOrUsernamePlaceholder'), 'maria@stocka.com');
       });
-      expect(forgotEmailInput.value).toBe('maria@stocka.com');
+
+      describe('When they click "Forgot password?"', () => {
+        beforeEach(async () => {
+          await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
+        });
+
+        it('pre-fills the email field in the Forgot Password page', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('maria@stocka.com');
+        });
+      });
     });
 
-    it('leaves the email field empty when the user typed a username (no @) in Sign In', async () => {
-      // GIVEN the user is on the Sign In page
-      renderLoginToForgotFlow();
-
-      // WHEN they type a username (not an email) and click "Forgot password?"
-      const emailInput = screen.getByPlaceholderText('emailOrUsernamePlaceholder');
-      await user.type(emailInput, 'mariusr');
-
-      const forgotLink = screen.getByRole('button', { name: 'forgotPassword' });
-      await user.click(forgotLink);
-
-      // THEN the Forgot Password page shows an empty email field (no PII leak)
-      const forgotEmailInput = screen.getByRole<HTMLInputElement>('textbox', {
-        name: 'forgotPasswordPage.emailLabel',
+    describe('Given the user is on the Sign In page and has typed a username (no @)', () => {
+      beforeEach(async () => {
+        renderLoginToForgotFlow();
+        await user.type(screen.getByPlaceholderText('emailOrUsernamePlaceholder'), 'mariusr');
       });
-      expect(forgotEmailInput.value).toBe('');
+
+      describe('When they click "Forgot password?"', () => {
+        beforeEach(async () => {
+          await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
+        });
+
+        it('leaves the email field empty to avoid revealing user information', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
+        });
+      });
     });
 
-    it('leaves the email field empty when the Sign In field was blank', async () => {
-      // GIVEN the user is on the Sign In page with no input
-      renderLoginToForgotFlow();
-
-      // WHEN they click "Forgot password?" without typing anything
-      const forgotLink = screen.getByRole('button', { name: 'forgotPassword' });
-      await user.click(forgotLink);
-
-      // THEN the Forgot Password page shows an empty email field
-      const forgotEmailInput = screen.getByRole<HTMLInputElement>('textbox', {
-        name: 'forgotPasswordPage.emailLabel',
+    describe('Given the user is on the Sign In page with no input', () => {
+      beforeEach(() => {
+        renderLoginToForgotFlow();
       });
-      expect(forgotEmailInput.value).toBe('');
+
+      describe('When they click "Forgot password?"', () => {
+        beforeEach(async () => {
+          await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
+        });
+
+        it('leaves the email field empty', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
+        });
+      });
     });
   });
 
   describe('Direct navigation to /forgot-password', () => {
-    it('shows an empty email field when there is no location.state', () => {
-      // GIVEN the user navigates directly to /forgot-password (no state)
-      renderForgotPasswordWithState(null);
-
-      // THEN the email field is empty
-      const emailInput = screen.getByRole<HTMLInputElement>('textbox', {
-        name: 'forgotPasswordPage.emailLabel',
+    describe('Given there is no location.state', () => {
+      describe('When the Forgot Password page renders', () => {
+        it('shows an empty email field', () => {
+          renderForgotPasswordWithState(null);
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
+        });
       });
-      expect(emailInput.value).toBe('');
     });
 
-    it('pre-fills the email field when location.state carries an email', () => {
-      // GIVEN the user arrives at /forgot-password with an email in location.state
-      renderForgotPasswordWithState({ email: 'directo@stocka.com' });
-
-      // THEN the email field is pre-filled with that email
-      const emailInput = screen.getByRole<HTMLInputElement>('textbox', {
-        name: 'forgotPasswordPage.emailLabel',
+    describe('Given location.state carries an email', () => {
+      describe('When the Forgot Password page renders', () => {
+        it('pre-fills the email field with that email', () => {
+          renderForgotPasswordWithState({ email: 'directo@stocka.com' });
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('directo@stocka.com');
+        });
       });
-      expect(emailInput.value).toBe('directo@stocka.com');
     });
 
-    it('shows an empty email field when location.state exists but has no email property', () => {
-      // GIVEN the user arrives at /forgot-password with unrelated state
-      renderForgotPasswordWithState({ otherProp: 'something' });
-
-      // THEN the email field is empty
-      const emailInput = screen.getByRole<HTMLInputElement>('textbox', {
-        name: 'forgotPasswordPage.emailLabel',
+    describe('Given location.state exists but has no email property', () => {
+      describe('When the Forgot Password page renders', () => {
+        it('shows an empty email field', () => {
+          renderForgotPasswordWithState({ otherProp: 'something' });
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
+        });
       });
-      expect(emailInput.value).toBe('');
     });
   });
 });
