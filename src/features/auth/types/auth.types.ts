@@ -3,13 +3,11 @@
 // =============================================================================
 
 export type {
-  // Request types
+  // Request types — usar estos en lugar de LoginCredentials / RegisterCredentials
   SignInRequest,
   SignUpRequest,
   VerifyEmailRequest,
   ResendVerificationCodeRequest,
-  RefreshSessionRequest,
-  SignOutRequest,
   // Response types
   BackendUser,
   SignUpResponse,
@@ -47,29 +45,6 @@ export interface User {
   username: string;
   status: UserStatus;
   createdAt: string; // ISO 8601
-}
-
-// =============================================================================
-// LEGACY CREDENTIAL INTERFACES (para compatibilidad)
-// =============================================================================
-
-/**
- * Credenciales para login
- * @deprecated Usar SignInRequest de schemas
- */
-export interface LoginCredentials {
-  emailOrUsername: string;
-  password: string;
-}
-
-/**
- * Credenciales para registro
- * @deprecated Usar SignUpRequest de schemas
- */
-export interface RegisterCredentials {
-  email: string;
-  username: string;
-  password: string;
 }
 
 // =============================================================================
@@ -135,13 +110,14 @@ export interface BlockInfo {
  * Estado de autenticación para Zustand store
  */
 export interface AuthState {
-  // Usuario y tokens
+  // Usuario y access token (en memoria, no persistido)
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
+  // refreshToken eliminado — ahora lo gestiona el navegador via httpOnly cookie
 
   // Estados de UI
   isAuthenticated: boolean;
+  isInitializing: boolean; // true mientras el silent refresh on mount está en progreso
   isLoading: boolean;
   error: string | null;
   errorCode: AuthErrorCode | null;
@@ -167,8 +143,8 @@ export interface AuthResult {
  */
 export interface AuthActions {
   // Autenticación
-  login: (credentials: LoginCredentials) => Promise<AuthResult>;
-  register: (credentials: RegisterCredentials) => Promise<AuthResult>;
+  login: (credentials: SignInRequest) => Promise<AuthResult>;
+  register: (credentials: SignUpRequest) => Promise<AuthResult>;
   logout: () => Promise<void>;
 
   // Verificación de email
@@ -181,7 +157,7 @@ export interface AuthActions {
   }>;
 
   // OAuth
-  handleOAuthCallback: (tokens: { accessToken: string; refreshToken: string; user: User }) => void;
+  handleOAuthCallback: (tokens: { accessToken: string; user: User }) => void;
 
   // Utilidades
   setUser: (user: User | null) => void;
@@ -213,10 +189,10 @@ export type OAuthProvider = 'google' | 'facebook' | 'microsoft';
 
 /**
  * Parámetros de callback de OAuth
+ * El refreshToken ya no viaja en la URL — el BE lo setea como httpOnly cookie en el redirect
  */
 export interface OAuthCallbackParams {
   accessToken?: string;
-  refreshToken?: string;
   user?: string; // JSON stringified User
   error?: string;
   errorCode?: AuthErrorCode;

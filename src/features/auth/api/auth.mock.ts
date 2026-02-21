@@ -1,5 +1,9 @@
-import type { SignInResponse, SignUpResponse } from '../schemas/auth.schema';
-import type { LoginCredentials, RegisterCredentials } from '../types/auth.types';
+import type {
+  SignInRequest,
+  SignUpRequest,
+  SignInResponse,
+  SignUpResponse,
+} from '../schemas/auth.schema';
 
 // Simula delay de red (800-1500ms)
 const simulateNetworkDelay = () =>
@@ -7,17 +11,16 @@ const simulateNetworkDelay = () =>
 
 /**
  * Mock login - simula validación de credenciales
- * Retorna la estructura igual que el backend real: { data: { user, accessToken, refreshToken }, success: true }
+ * Retorna la estructura igual que el backend real: { data: { user, accessToken }, success: true }
+ * El refreshToken ya no viene en el body — el backend lo setea como httpOnly cookie
  */
-export async function mockLogin(credentials: LoginCredentials): Promise<SignInResponse> {
+export async function mockLogin(credentials: SignInRequest): Promise<SignInResponse> {
   await simulateNetworkDelay();
 
-  // Simula error para credenciales inválidas
   if (credentials.password.length < 8) {
     throw new Error('Invalid credentials');
   }
 
-  // Simula usuario demo (estructura igual al backend)
   const isEmail = credentials.emailOrUsername.includes('@');
 
   return {
@@ -29,8 +32,7 @@ export async function mockLogin(credentials: LoginCredentials): Promise<SignInRe
         createdAt: new Date().toISOString(),
       },
       accessToken: 'mock-jwt-token-' + Date.now(),
-      refreshToken: 'mock-refresh-token-' + Date.now(),
-      emailVerificationRequired: false, // Mock: usuario verificado
+      emailVerificationRequired: false,
     },
     success: true,
   };
@@ -38,17 +40,16 @@ export async function mockLogin(credentials: LoginCredentials): Promise<SignInRe
 
 /**
  * Mock register - simula creación de cuenta
- * Retorna la estructura igual que el backend real: { data: { user, accessToken, refreshToken }, success: true }
+ * Retorna la estructura igual que el backend real: { data: { user, accessToken }, success: true }
+ * El refreshToken ya no viene en el body — el backend lo setea como httpOnly cookie
  */
-export async function mockRegister(credentials: RegisterCredentials): Promise<SignUpResponse> {
+export async function mockRegister(credentials: SignUpRequest): Promise<SignUpResponse> {
   await simulateNetworkDelay();
 
-  // Simula error si email ya existe
   if (credentials.email === 'test@test.com') {
     throw new Error('Email already registered');
   }
 
-  // Simula error si username ya existe
   if (credentials.username === 'admin') {
     throw new Error('Username already taken');
   }
@@ -62,7 +63,6 @@ export async function mockRegister(credentials: RegisterCredentials): Promise<Si
         createdAt: new Date().toISOString(),
       },
       accessToken: 'mock-jwt-token-' + Date.now(),
-      refreshToken: 'mock-refresh-token-' + Date.now(),
     },
     success: true,
   };

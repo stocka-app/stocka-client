@@ -5,6 +5,7 @@ import type { TFunction } from 'i18next';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../store/auth.store';
 import { authService } from '../api/auth.service';
+import { setAccessToken } from '@/shared/lib/axios';
 import { Button } from '@/shared/components/ui/button';
 import type { User, OAuthProvider } from '../types/auth.types';
 
@@ -102,16 +103,18 @@ function OAuthCallbackPage() {
         }
 
         // Obtener tokens de la URL
+        // El refreshToken ya no viaja en la URL — el BE lo setea como httpOnly cookie en el redirect
         const accessToken = searchParams.get('accessToken');
-        const refreshToken = searchParams.get('refreshToken');
         const userParam = searchParams.get('user');
 
-        // Validar que los tokens estén presentes
-        if (!accessToken || !refreshToken) {
+        if (!accessToken) {
           setErrorInfo(resolveOAuthError('connection_error', t));
           setStatus('error');
           return;
         }
+
+        // Poner el accessToken en memoria antes de hacer cualquier llamada autenticada
+        setAccessToken(accessToken);
 
         let user: User | null = null;
         if (userParam) {
@@ -135,7 +138,6 @@ function OAuthCallbackPage() {
         // Procesar el callback en el store
         handleOAuthCallback({
           accessToken,
-          refreshToken,
           user: user as User,
         });
 

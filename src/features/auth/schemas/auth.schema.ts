@@ -90,18 +90,16 @@ export const ResendVerificationCodeRequestSchema = z.object({
 });
 
 /**
- * Contrato: POST /auth/refresh-session request
+ * Contrato: POST /auth/refresh request
+ * No body — el refresh_token viaja via httpOnly cookie automáticamente
  */
-export const RefreshSessionRequestSchema = z.object({
-  refreshToken: z.string(),
-});
+export const RefreshSessionRequestSchema = z.object({});
 
 /**
  * Contrato: POST /auth/sign-out request
+ * No body — el refresh_token viaja via httpOnly cookie automáticamente
  */
-export const SignOutRequestSchema = z.object({
-  refreshToken: z.string(),
-});
+export const SignOutRequestSchema = z.object({});
 
 // =============================================================================
 // RESPONSE CONTRACTS (API Responses)
@@ -119,38 +117,38 @@ export const BackendUserSchema = z.object({
 
 /**
  * Contrato: POST /auth/sign-up response
- * Estructura real del backend: { data: { user, accessToken, refreshToken }, success: true }
+ * Estructura real del backend: { data: { user, accessToken }, success: true }
+ * El refreshToken ya no viene en el body — viaja en httpOnly cookie
  */
 export const SignUpResponseSchema = z.object({
   data: z.object({
     user: BackendUserSchema,
     accessToken: z.string(),
-    refreshToken: z.string(),
   }),
   success: z.boolean(),
 });
 
 /**
  * Contrato: POST /auth/sign-in response
- * Estructura real del backend: { data: { user, accessToken, refreshToken, emailVerificationRequired }, success: true }
+ * Estructura real del backend: { data: { user, accessToken, emailVerificationRequired }, success: true }
+ * El refreshToken ya no viene en el body — viaja en httpOnly cookie
  */
 export const SignInResponseSchema = z.object({
   data: z.object({
     user: BackendUserSchema,
     accessToken: z.string(),
-    refreshToken: z.string(),
     emailVerificationRequired: z.boolean(),
   }),
   success: z.boolean(),
 });
 
 /**
- * Contrato: POST /auth/refresh-session response
+ * Contrato: POST /auth/refresh response
+ * El nuevo refreshToken se setea como httpOnly cookie en el response del BE
  */
 export const RefreshSessionResponseSchema = z.object({
   data: z.object({
     accessToken: z.string(),
-    refreshToken: z.string(),
   }),
   success: z.boolean(),
 });

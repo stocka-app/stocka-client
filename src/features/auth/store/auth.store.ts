@@ -2,11 +2,11 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { ZodError } from 'zod';
 import { authService } from '../api/auth.service';
+import { setAccessToken } from '@/shared/lib/axios';
+import type { SignInRequest, SignUpRequest } from '../schemas/auth.schema';
 import type {
   AuthStore,
   AuthState,
-  LoginCredentials,
-  RegisterCredentials,
   User,
   ApiError,
   AuthResult,
@@ -17,13 +17,14 @@ import type {
  * Estado inicial de autenticación
  */
 const initialState: AuthState = {
-  // Usuario y tokens
+  // Usuario y access token (en memoria — no persistido)
   user: null,
   accessToken: null,
-  refreshToken: null,
+  // refreshToken eliminado — gestionado por el navegador via httpOnly cookie
 
   // Estados de UI
   isAuthenticated: false,
+  isInitializing: true, // true hasta que el silent refresh on mount completa
   isLoading: false,
   error: null,
   errorCode: null,
@@ -44,8 +45,8 @@ const initialState: AuthState = {
  * - Login y registro con API real
  * - Verificación de email
  * - OAuth social
- * - Persistencia en localStorage
- * - Validación de respuestas con Zod
+ * - Persistencia parcial en localStorage (solo user + estado de verificación)
+ * - El accessToken vive solo en memoria; el refreshToken en httpOnly cookie
  */
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -56,21 +57,17 @@ export const useAuthStore = create<AuthStore>()(
        * Iniciar sesión
        * - Si el usuario no ha verificado su email, establece emailVerificationRequired
        */
-      login: async (credentials: LoginCredentials): Promise<AuthResult> => {
+      login: async (credentials: SignInRequest): Promise<AuthResult> => {
         set({ isLoading: true, error: null, errorCode: null, blockInfo: null });
         try {
-          // authService valida la respuesta con Zod automáticamente
           const response = await authService.signIn(credentials);
 
-          // Extraer datos de la estructura { data: { user, accessToken, refreshToken, emailVerificationRequired } }
           const {
             user: backendUser,
             accessToken,
-            refreshToken,
             emailVerificationRequired,
           } = response.data;
 
-          // Construir usuario con status basado en emailVerificationRequired
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
@@ -79,8 +76,10 @@ export const useAuthStore = create<AuthStore>()(
             createdAt: backendUser.createdAt,
           };
 
-          // Verificar si necesita verificación de email (no permitir acceso si está pendiente)
           const needsVerification = emailVerificationRequired === true;
+
+          // Siempre guardar el access token en memoria
+          setAccessToken(accessToken);
 
           if (needsVerification) {
             set({
@@ -88,18 +87,15 @@ export const useAuthStore = create<AuthStore>()(
               emailVerificationRequired: true,
               pendingVerificationEmail: user.email,
               accessToken,
-              refreshToken,
               user,
               isAuthenticated: false, // No autenticado hasta verificar
             });
             return { requiresVerification: true };
           }
 
-          // Login exitoso sin verificación pendiente
           set({
             user,
             accessToken,
-            refreshToken,
             isAuthenticated: true,
             isLoading: false,
             emailVerificationRequired: false,
@@ -109,11 +105,9 @@ export const useAuthStore = create<AuthStore>()(
           });
           return { requiresVerification: false };
         } catch (error) {
-          // Manejar diferentes tipos de errores
           let errorMessage = 'UNKNOWN_ERROR';
           let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';
 
-          // Error de validación Zod (respuesta inválida del servidor)
           if (error instanceof ZodError) {
             console.error('Invalid sign-in response structure:', error.issues);
             errorMessage = 'UNKNOWN_ERROR';
@@ -121,7 +115,6 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = error.message;
           }
 
-          // Si es un error de API con estructura conocida
           const apiError = error as ApiError;
           if (apiError?.error) {
             errorCode = apiError.error;
@@ -130,10 +123,8 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = apiError.message;
           }
 
-          // Manejar errores de rate limiting
           let blockInfo: BlockInfo | null = null;
 
-          // Cuenta bloqueada por intentos fallidos (Interceptor post-ejecución)
           if (errorCode === 'ACCOUNT_TEMPORARILY_LOCKED') {
             blockInfo = {
               isBlocked: true,
@@ -142,7 +133,6 @@ export const useAuthStore = create<AuthStore>()(
             };
           }
 
-          // Rate limit por IP o identifier (Guard pre-ejecución)
           if (errorCode === 'RATE_LIMIT_EXCEEDED') {
             blockInfo = {
               isBlocked: true,
@@ -150,7 +140,6 @@ export const useAuthStore = create<AuthStore>()(
             };
           }
 
-          // Throttle HTTP genérico (429 sin error code específico)
           if (apiError.statusCode === 429 && !blockInfo) {
             blockInfo = {
               isBlocked: true,
@@ -158,7 +147,6 @@ export const useAuthStore = create<AuthStore>()(
             };
           }
 
-          // Caso especial: EMAIL_NOT_VERIFIED - marcar que requiere verificación
           const requiresEmailVerification = errorCode === 'EMAIL_NOT_VERIFIED';
 
           set({
@@ -176,42 +164,38 @@ export const useAuthStore = create<AuthStore>()(
        * Registrar nuevo usuario
        * - Siempre requiere verificación de email para registro manual
        */
-      register: async (credentials: RegisterCredentials): Promise<AuthResult> => {
+      register: async (credentials: SignUpRequest): Promise<AuthResult> => {
         set({ isLoading: true, error: null, errorCode: null });
         try {
-          // authService valida la respuesta con Zod automáticamente
           const response = await authService.signUp(credentials);
 
-          // Extraer datos de la estructura { data: { user, accessToken, refreshToken } }
-          const { user: backendUser, accessToken, refreshToken } = response.data;
+          const { user: backendUser, accessToken } = response.data;
 
-          // Construir usuario con status pending_verification
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
             username: backendUser.username,
-            status: 'pending_verification', // Siempre pending para registro manual
+            status: 'pending_verification',
             createdAt: backendUser.createdAt,
           };
 
-          // Registro exitoso - siempre requiere verificación para registro manual
+          // Guardar el access token en memoria
+          setAccessToken(accessToken);
+
           set({
             isLoading: false,
-            emailVerificationRequired: true, // Siempre true para registro manual
+            emailVerificationRequired: true,
             pendingVerificationEmail: user.email,
-            verificationCodeSentAt: new Date().toISOString(), // Guardar cuando se envió el código
+            verificationCodeSentAt: new Date().toISOString(),
             accessToken,
-            refreshToken,
             user,
             isAuthenticated: false,
           });
           return { requiresVerification: true };
         } catch (error) {
-          // Manejar diferentes tipos de errores
           let errorMessage = 'UNKNOWN_ERROR';
           let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';
 
-          // Error de validación Zod (respuesta inválida del servidor)
           if (error instanceof ZodError) {
             console.error('Invalid sign-up response structure:', error.issues);
             errorMessage = 'UNKNOWN_ERROR';
@@ -219,7 +203,6 @@ export const useAuthStore = create<AuthStore>()(
             errorMessage = error.message;
           }
 
-          // Si es un error de API con estructura conocida
           const apiError = error as ApiError;
           if (apiError?.error) {
             errorCode = apiError.error;
@@ -253,7 +236,6 @@ export const useAuthStore = create<AuthStore>()(
             code,
           });
 
-          // Verificación exitosa - autenticar completamente
           const currentUser = get().user;
           set({
             isAuthenticated: true,
@@ -265,19 +247,16 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           const apiError = error as ApiError;
 
-          // Manejar información de bloqueo usando campos de metadata del backend
           let blockInfo: BlockInfo | null = null;
           if (apiError.error === 'VERIFICATION_BLOCKED') {
             blockInfo = {
               isBlocked: true,
               reason: 'attempts',
-              // Usar campos de metadata directamente del error
               blockedUntil: apiError.blockedUntil ? new Date(apiError.blockedUntil) : undefined,
             };
           } else if (apiError.error === 'TOO_MANY_VERIFICATION_ATTEMPTS') {
             blockInfo = {
               isBlocked: false,
-              // Usar attemptsRemaining directamente del error
               attemptsRemaining: apiError.attemptsRemaining,
             };
           }
@@ -306,12 +285,10 @@ export const useAuthStore = create<AuthStore>()(
           const response = await authService.resendVerificationCode({
             email: pendingVerificationEmail,
           });
-          // Actualizar timestamp cuando se reenvía el código
           set({
             isLoading: false,
             verificationCodeSentAt: new Date().toISOString(),
           });
-          // Extraer datos de la estructura { data: { success, message, ... } }
           return response.data;
         } catch (error) {
           const apiError = error as ApiError;
@@ -326,35 +303,31 @@ export const useAuthStore = create<AuthStore>()(
 
       /**
        * Cerrar sesión
-       * - Intenta invalidar el token en el servidor
+       * - La cookie refresh_token se invalida en el servidor automáticamente
        * - Siempre limpia el estado local
        */
       logout: async (): Promise<void> => {
-        const { refreshToken } = get();
         try {
-          if (refreshToken) {
-            await authService.signOut(refreshToken);
-          }
+          // La cookie se envía automáticamente — no necesitamos pasar el token
+          await authService.signOut();
         } catch {
-          // Ignorar errores de logout - siempre limpiar estado local
+          // Ignorar errores de logout — siempre limpiar estado local
         } finally {
-          set(initialState);
+          setAccessToken(null);
+          set({ ...initialState, isInitializing: false });
         }
       },
 
       /**
        * Manejar callback de OAuth
-       * - Establece el estado de autenticación desde los tokens recibidos
+       * - El refreshToken ya llegó como httpOnly cookie en el redirect del BE
+       * - Aquí solo procesamos el accessToken y el user
        */
-      handleOAuthCallback: (tokens: {
-        accessToken: string;
-        refreshToken: string;
-        user: User;
-      }): void => {
+      handleOAuthCallback: (tokens: { accessToken: string; user: User }): void => {
+        setAccessToken(tokens.accessToken);
         set({
           user: tokens.user,
           accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
           isAuthenticated: true,
           isLoading: false,
           emailVerificationRequired: false,
@@ -404,18 +377,18 @@ export const useAuthStore = create<AuthStore>()(
        * Resetear estado de autenticación
        */
       resetAuthState: (): void => {
-        set(initialState);
+        setAccessToken(null);
+        set({ ...initialState, isInitializing: false });
       },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        // Solo persistir estos campos
+        // Solo persistir el perfil del usuario y el estado de verificación de email.
+        // accessToken vive solo en memoria; refreshToken lo gestiona el navegador via cookie.
+        // isAuthenticated e isInitializing se re-establecen via silent refresh on mount.
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
         emailVerificationRequired: state.emailVerificationRequired,
         pendingVerificationEmail: state.pendingVerificationEmail,
         verificationCodeSentAt: state.verificationCodeSentAt,

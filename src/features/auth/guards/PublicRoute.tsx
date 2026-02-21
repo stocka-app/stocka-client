@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import { PageLoader } from '@/app/page-loader';
 
 interface PublicRouteProps {
   children: React.ReactNode;
@@ -7,9 +8,16 @@ interface PublicRouteProps {
 
 export function PublicRoute({ children }: PublicRouteProps) {
   const location = useLocation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitializing } = useAuthStore();
+
+  // Esperar a que el silent refresh on mount complete antes de decidir
+  if (isInitializing) {
+    return <PageLoader />;
+  }
+
   if (isAuthenticated) {
     return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
+
   return <>{children}</>;
 }

@@ -22,6 +22,7 @@ import {
   type ForgotPasswordResponse,
   type ResetPasswordResponse,
 } from '../schemas/auth.schema';
+
 import type { OAuthProvider } from '../types/auth.types';
 
 /**
@@ -61,20 +62,21 @@ export const authService = {
    * Cerrar sesión
    * POST /auth/sign-out
    *
-   * Invalida el refresh token en el servidor
+   * No requiere body — el refresh_token viaja via httpOnly cookie (withCredentials: true)
    */
-  async signOut(refreshToken: string): Promise<void> {
-    await api.post('/auth/sign-out', { refreshToken });
+  async signOut(): Promise<void> {
+    await api.post('/auth/sign-out');
   },
 
   /**
-   * Renovar sesión con refresh token
-   * POST /auth/refresh-session
+   * Renovar sesión
+   * POST /auth/refresh
    *
-   * @returns Nuevos tokens de acceso y refresh validados con Zod
+   * No requiere body — el refresh_token viaja via httpOnly cookie (withCredentials: true)
+   * @returns Nuevo access token validado con Zod
    */
-  async refreshSession(refreshToken: string): Promise<RefreshSessionResponse> {
-    const response = await api.post('/auth/refresh-session', { refreshToken });
+  async refreshSession(): Promise<RefreshSessionResponse> {
+    const response = await api.post('/auth/refresh');
     return RefreshSessionResponseSchema.parse(response.data);
   },
 
