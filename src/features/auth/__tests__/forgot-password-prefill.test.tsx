@@ -83,12 +83,10 @@ describe('Forgot Password email pre-fill', () => {
           await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
         });
 
-        describe('Then', () => {
-          it('the Forgot Password page shows the email pre-filled', () => {
-            expect(
-              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-            ).toBe('maria@stocka.com');
-          });
+        it('Then the Forgot Password page shows the email pre-filled', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('maria@stocka.com');
         });
       });
     });
@@ -104,12 +102,10 @@ describe('Forgot Password email pre-fill', () => {
           await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
         });
 
-        describe('Then', () => {
-          it('the Forgot Password page shows an empty email field', () => {
-            expect(
-              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-            ).toBe('');
-          });
+        it('Then the Forgot Password page shows an empty email field', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
         });
       });
     });
@@ -124,12 +120,10 @@ describe('Forgot Password email pre-fill', () => {
           await user.click(screen.getByRole('button', { name: 'forgotPassword' }));
         });
 
-        describe('Then', () => {
-          it('the Forgot Password page shows an empty email field', () => {
-            expect(
-              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-            ).toBe('');
-          });
+        it('Then the Forgot Password page shows an empty email field', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
         });
       });
     });
@@ -142,12 +136,10 @@ describe('Forgot Password email pre-fill', () => {
       });
 
       describe('When the page loads', () => {
-        describe('Then', () => {
-          it('shows an empty email field', () => {
-            expect(
-              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-            ).toBe('');
-          });
+        it('Then shows an empty email field', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
         });
       });
     });
@@ -158,12 +150,10 @@ describe('Forgot Password email pre-fill', () => {
       });
 
       describe('When the page loads', () => {
-        describe('Then', () => {
-          it('pre-fills the email field with that email', () => {
-            expect(
-              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-            ).toBe('directo@stocka.com');
-          });
+        it('Then pre-fills the email field with that email', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('directo@stocka.com');
         });
       });
     });
@@ -174,12 +164,10 @@ describe('Forgot Password email pre-fill', () => {
       });
 
       describe('When the page loads', () => {
-        describe('Then', () => {
-          it('shows an empty email field', () => {
-            expect(
-              screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
-            ).toBe('');
-          });
+        it('Then shows an empty email field', () => {
+          expect(
+            screen.getByRole<HTMLInputElement>('textbox', { name: 'forgotPasswordPage.emailLabel' }).value,
+          ).toBe('');
         });
       });
     });
