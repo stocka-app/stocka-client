@@ -8,56 +8,114 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // ── shadcn/ui bridge (maps to our CSS-var bridge in globals.css) ──
+        background:  "var(--background)",
+        foreground:  "var(--foreground)",
+        border:      "var(--border)",
+        input:       "var(--input)",
+        ring:        "var(--ring)",
         primary: {
-          DEFAULT: "#2563EB",
-          light: "#3B82F6",
-          dark: "#1D4ED8",
-          foreground: "#FFFFFF",
-        },
-        secondary: {
-          DEFAULT: "#F59E0B",
-          light: "#FBBF24",
-          foreground: "#FFFFFF",
-        },
-        destructive: {
-          DEFAULT: "#EF4444",
-          foreground: "#FFFFFF",
-        },
-        success: {
-          DEFAULT: "#10B981",
-          foreground: "#FFFFFF",
-        },
-        muted: {
-          DEFAULT: "#F9FAFB",
-          foreground: "#6B7280",
-        },
-        accent: {
-          DEFAULT: "#F9FAFB",
-          foreground: "#1F2937",
+          DEFAULT:    "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
         card: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#1F2937",
+          DEFAULT:    "var(--card)",
+          foreground: "var(--card-foreground)",
         },
         popover: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#1F2937",
+          DEFAULT:    "var(--popover)",
+          foreground: "var(--popover-foreground)",
         },
+        muted: {
+          DEFAULT:    "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT:    "var(--muted)",
+          foreground: "var(--foreground)",
+        },
+        destructive: {
+          DEFAULT:    "var(--destructive)",
+          foreground: "#ffffff",
+        },
+
+        // ── Stocka brand tokens ────────────────────────────────────────────
+        brand: {
+          DEFAULT: "var(--color-brand-primary)",
+          hover:   "var(--color-brand-primary-hover)",
+          light:   "var(--color-brand-primary-light)",
+        },
+
+        // ── Surface hierarchy ──────────────────────────────────────────────
+        surface: {
+          page:    "var(--color-surface-page)",
+          card:    "var(--color-surface-card)",
+          sidebar: "var(--color-surface-sidebar)",
+          header:  "var(--color-surface-header)",
+          raised:  "var(--color-surface-raised)",
+          overlay: "var(--color-surface-overlay)",
+        },
+
+        // ── Neutral scale ──────────────────────────────────────────────────
+        neutral: {
+          0:   "var(--color-neutral-0)",
+          50:  "var(--color-neutral-50)",
+          100: "var(--color-neutral-100)",
+          200: "var(--color-neutral-200)",
+          300: "var(--color-neutral-300)",
+          400: "var(--color-neutral-400)",
+          500: "var(--color-neutral-500)",
+          600: "var(--color-neutral-600)",
+          700: "var(--color-neutral-700)",
+          800: "var(--color-neutral-800)",
+          900: "var(--color-neutral-900)",
+        },
+
+        // ── Semantic ───────────────────────────────────────────────────────
+        success: {
+          DEFAULT: "var(--color-success)",
+          bg:      "var(--color-success-bg)",
+        },
+        warning: {
+          DEFAULT: "var(--color-warning)",
+          bg:      "var(--color-warning-bg)",
+        },
+        danger: {
+          DEFAULT: "var(--color-danger)",
+          bg:      "var(--color-danger-bg)",
+        },
+        info: {
+          DEFAULT: "var(--color-info)",
+          bg:      "var(--color-info-bg)",
+        },
+
+        // ── Third-party brand colors ───────────────────────────────────────
         facebook: "#1877F2",
       },
+
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        app:  ["var(--font-app)", "sans-serif"],
+        auth: ["var(--font-auth)", "sans-serif"],
+        sans: ["var(--font-app)", "sans-serif"],
       },
+
       borderRadius: {
-        lg: "0.5rem",
-        md: "calc(0.5rem - 2px)",
-        sm: "calc(0.5rem - 4px)",
+        sm:   "var(--radius-sm)",
+        md:   "var(--radius-md)",
+        lg:   "var(--radius-lg)",
+        xl:   "var(--radius-xl)",
+        "2xl": "var(--radius-2xl)",
+        full: "var(--radius-full)",
       },
+
+      boxShadow: {
+        card:         "var(--shadow-card)",
+        dropdown:     "var(--shadow-dropdown)",
+        "glow-brand":   "var(--glow-brand)",
+        "glow-success": "var(--glow-success)",
+        "glow-danger":  "var(--glow-danger)",
+      },
+
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
