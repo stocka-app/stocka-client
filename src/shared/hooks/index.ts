@@ -1,2 +1,1 @@
-// Shared hooks barrel export
-export {};
+export { useTheme } from './useTheme';
