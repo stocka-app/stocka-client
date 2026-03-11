@@ -31,11 +31,11 @@ export function IsometricCubesIllustration({
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <pattern id="auth-grid" patternUnits="userSpaceOnUse" width="40" height="40">
+        <pattern id="authentication-grid" patternUnits="userSpaceOnUse" width="40" height="40">
           <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" />
         </pattern>
         {!isLight && (
-          <filter id="auth-glow">
+          <filter id="authentication-glow">
             <feGaussianBlur result="coloredBlur" stdDeviation="2" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
@@ -46,7 +46,7 @@ export function IsometricCubesIllustration({
       </defs>
 
       <rect
-        fill="url(#auth-grid)"
+        fill="url(#authentication-grid)"
         height="100%"
         width="100%"
         style={{ color: gridColor, opacity: gridOpacity }}
@@ -98,7 +98,7 @@ export function IsometricCubesIllustration({
           x="-180"
           y="-180"
           transform="matrix(0.866 0.5 -0.866 0.5 0 0)"
-          {...(!isLight && { filter: 'url(#auth-glow)' })}
+          {...(!isLight && { filter: 'url(#authentication-glow)' })}
         />
         <rect
           fill={accentFill}
@@ -107,7 +107,7 @@ export function IsometricCubesIllustration({
           x="140"
           y="-200"
           transform="matrix(0.866 0.5 -0.866 0.5 0 0)"
-          {...(!isLight && { filter: 'url(#auth-glow)' })}
+          {...(!isLight && { filter: 'url(#authentication-glow)' })}
         />
         <rect
           fill={accentFill}
@@ -116,7 +116,7 @@ export function IsometricCubesIllustration({
           x="-80"
           y="20"
           transform="matrix(0.866 0.5 -0.866 0.5 0 0)"
-          {...(!isLight && { filter: 'url(#auth-glow)' })}
+          {...(!isLight && { filter: 'url(#authentication-glow)' })}
         />
 
         {/* Dashed orbital circles */}
