@@ -11,10 +11,12 @@ export function FormDivider({ className }: FormDividerProps) {
   return (
     <div className={cn('relative my-6', className)}>
       <div className="absolute inset-0 flex items-center">
-        <span className="w-full border-t border-gray-300" />
+        <span className="w-full border-t border-neutral-200 dark:border-neutral-700" />
       </div>
-      <div className="relative flex justify-center text-sm">
-        <span className="bg-white px-4 text-gray-500">{t('or')}</span>
+      <div className="relative flex justify-center text-xs">
+        <span className="bg-auth-surface dark:bg-auth-right-panel px-4 uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+          {t('orContinueWith', 'Or continue with')}
+        </span>
       </div>
     </div>
   );

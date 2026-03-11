@@ -1,14 +1,13 @@
 import * as React from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/lib/utils';
 
-export interface PasswordInputProps extends Omit<
+export type PasswordInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   'type'
-> {}
+>;
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {
@@ -17,9 +16,12 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 
     return (
       <div className="relative">
+        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+          lock
+        </span>
         <Input
           type={showPassword ? 'text' : 'password'}
-          className={cn('pr-10', className)}
+          className={cn('h-12 rounded-lg pl-10 pr-10 bg-white dark:bg-auth-input-bg border-slate-300 dark:border-auth-input-border', className)}
           ref={ref}
           {...props}
         />
@@ -31,11 +33,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           onClick={() => setShowPassword(!showPassword)}
           tabIndex={-1}
         >
-          {showPassword ? (
-            <EyeOff className="h-4 w-4 text-gray-500" aria-hidden="true" />
-          ) : (
-            <Eye className="h-4 w-4 text-gray-500" aria-hidden="true" />
-          )}
+          <span className="material-symbols-outlined text-lg text-neutral-400 dark:text-neutral-500" aria-hidden="true">
+            {showPassword ? 'visibility' : 'visibility_off'}
+          </span>
           <span className="sr-only">{showPassword ? t('hidePassword') : t('showPassword')}</span>
         </Button>
       </div>

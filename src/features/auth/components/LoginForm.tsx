@@ -14,6 +14,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
+import { Checkbox } from '@/shared/components/ui/checkbox';
 import { PasswordInput } from './PasswordInput';
 import { SocialButton } from './SocialButton';
 import { FormDivider } from './FormDivider';
@@ -44,6 +45,7 @@ export function LoginForm() {
   const { login, isLoading, error, errorCode, clearError, setPendingVerificationEmail, blockInfo } =
     useAuthStore();
   const [countdown, setCountdown] = useState<number>(0);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -124,39 +126,49 @@ export function LoginForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* ── Social Buttons (always enabled during password block) ── */}
+        <div className="flex justify-center gap-4">
+          <SocialButton provider="google" variant="icon" />
+          <SocialButton provider="facebook" variant="icon" />
+          <SocialButton provider="microsoft" variant="icon" />
+        </div>
+
+        <FormDivider />
+
+        {/* ── Error alerts ── */}
         {/* Bloqueo temporal por intentos fallidos */}
         {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && (
-          <div className="rounded-md bg-red-50 border border-red-200 p-4">
+          <div className="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 p-4">
             <div className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-red-500 flex-shrink-0" />
-              <p className="text-sm font-medium text-red-800">
+              <Lock className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0" />
+              <p className="text-sm font-medium text-red-800 dark:text-red-300">
                 {t('errors.accountTemporarilyLocked')}
               </p>
             </div>
             {countdown > 0 ? (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                 {t('errors.tryAgainIn', { time: formatCountdown(countdown) })}
               </p>
             ) : (
-              error && <p className="mt-1 text-sm text-red-600">{error}</p>
+              error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
             )}
           </div>
         )}
 
         {/* Rate limit genérico */}
         {blockInfo?.isBlocked && blockInfo.reason === 'rate_limit' && (
-          <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
-            <p className="text-sm text-amber-800">{t('errors.tooManyRequests')}</p>
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-4">
+            <p className="text-sm text-amber-800 dark:text-amber-300">{t('errors.tooManyRequests')}</p>
           </div>
         )}
 
-        {/* Cuenta vinculada a proveedor social — EC-002 Flexible Pendiente */}
+        {/* Cuenta vinculada a proveedor social */}
         {error && !blockInfo?.isBlocked && errorCode === 'SOCIAL_ACCOUNT_REQUIRED' && (
-          <div className="rounded-md bg-amber-50 border border-amber-200 p-4">
-            <p className="text-sm font-medium text-amber-800">
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-4">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
               {t('errors.SOCIAL_ACCOUNT_REQUIRED')}
             </p>
-            <p className="mt-1 text-sm text-amber-700">{t('errors.useAlternativeLogin')}</p>
+            <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">{t('errors.useAlternativeLogin')}</p>
           </div>
         )}
 
@@ -179,18 +191,25 @@ export function LoginForm() {
           </div>
         )}
 
+        {/* ── Form fields ── */}
         <FormField
           control={form.control}
           name="emailOrUsername"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('emailOrUsername')}</FormLabel>
+              <FormLabel className="text-neutral-700 dark:text-neutral-300">{t('emailOrUsername')}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder={t('emailOrUsernamePlaceholder')}
-                  disabled={isFormDisabled}
-                  {...field}
-                />
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                    mail
+                  </span>
+                  <Input
+                    placeholder={t('emailOrUsernamePlaceholder')}
+                    disabled={isFormDisabled}
+                    className="h-12 rounded-lg pl-10 bg-white dark:bg-auth-input-bg border-slate-300 dark:border-auth-input-border"
+                    {...field}
+                  />
+                </div>
               </FormControl>
               <FormMessage>
                 {form.formState.errors.emailOrUsername?.message &&
@@ -205,17 +224,7 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel>{t('password')}</FormLabel>
-                <button
-                  type="button"
-                  onClick={handleForgotPasswordClick}
-                  disabled={isFormDisabled}
-                  className="text-sm text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
-                >
-                  {t('forgotPassword')}
-                </button>
-              </div>
+              <FormLabel className="text-neutral-700 dark:text-neutral-300">{t('password')}</FormLabel>
               <FormControl>
                 <PasswordInput
                   placeholder={t('passwordPlaceholder')}
@@ -231,7 +240,42 @@ export function LoginForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" size="lg" disabled={isFormDisabled}>
+        {/* Remember me + Forgot password row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="remember-me"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+              disabled={isFormDisabled}
+            />
+            <label
+              htmlFor="remember-me"
+              className="text-sm text-neutral-600 dark:text-neutral-400 cursor-pointer select-none"
+            >
+              {t('rememberMe', 'Remember me')}
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={handleForgotPasswordClick}
+            disabled={isFormDisabled}
+            className="text-sm font-semibold text-auth-highlight hover:underline disabled:pointer-events-none disabled:opacity-50"
+          >
+            {t('forgotPassword')}
+          </button>
+        </div>
+
+        {/* ── Submit button ── */}
+        <Button
+          type="submit"
+          className={cn(
+            'w-full h-12 rounded-lg font-semibold text-base',
+            'bg-auth-btn hover:bg-auth-btn-hover text-white',
+          )}
+          size="lg"
+          disabled={isFormDisabled}
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -245,20 +289,6 @@ export function LoginForm() {
             t('signInButton')
           )}
         </Button>
-
-        <FormDivider />
-
-        {/* Social buttons - siempre habilitados durante bloqueo de password */}
-        <div className="flex gap-3">
-          <SocialButton
-            provider="google"
-            label={t('signInWithGoogle')}
-            variant="full"
-            className="flex-1"
-          />
-          <SocialButton provider="facebook" variant="icon" />
-          <SocialButton provider="microsoft" variant="icon" />
-        </div>
 
         {/* Mensaje de alternativa OAuth durante bloqueo */}
         {blockInfo?.isBlocked && blockInfo.reason === 'account_locked' && (

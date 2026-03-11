@@ -55,7 +55,8 @@ const providerIcons = {
 };
 
 // Estilo outline uniforme para todos los providers
-const buttonStyle = 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50';
+const buttonStyle =
+  'border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-auth-input-bg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800';
 
 export function SocialButton({
   provider,
@@ -85,7 +86,7 @@ export function SocialButton({
       className={cn(
         'font-medium transition-colors',
         buttonStyle,
-        isIconOnly ? 'h-12 w-12 rounded-full p-0' : 'h-12 w-full gap-3',
+        isIconOnly ? 'h-12 w-12 rounded-full p-0' : 'h-12 w-full gap-3 rounded-lg',
         className,
       )}
     >

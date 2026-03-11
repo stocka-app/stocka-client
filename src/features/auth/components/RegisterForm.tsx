@@ -18,6 +18,7 @@ import { SocialButton } from './SocialButton';
 import { FormDivider } from './FormDivider';
 import { registerSchema, type RegisterFormData } from '../schemas/auth.schema';
 import { useAuth } from '../hooks/useAuth';
+import { cn } from '@/shared/lib/utils';
 
 export function RegisterForm() {
   const { t } = useTranslation('auth');
@@ -27,18 +28,21 @@ export function RegisterForm() {
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      fullName: '',
       email: '',
       username: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       clearError();
-      const result = await register(data);
+      // Strip fullName and confirmPassword — not in API contract yet
+      const { email, username, password } = data;
+      const result = await register({ email, username, password });
 
-      // Registro siempre requiere verificación de email
       if (result?.requiresVerification) {
         navigate('/auth/verify-email');
       } else {
@@ -51,7 +55,17 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        {/* ── Social Buttons ── */}
+        <div className="flex justify-center gap-4">
+          <SocialButton provider="google" variant="icon" />
+          <SocialButton provider="facebook" variant="icon" />
+          <SocialButton provider="microsoft" variant="icon" />
+        </div>
+
+        <FormDivider />
+
+        {/* ── Error alert ── */}
         {error && (
           <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
             <span>{t(`errors.${errorCode}`, { defaultValue: error })}</span>
@@ -70,19 +84,89 @@ export function RegisterForm() {
           </div>
         )}
 
+        {/* ── Full Name + Username (2 col grid) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                  {t('fullName', 'Full Name')}
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                      person
+                    </span>
+                    <Input
+                      placeholder={t('fullNamePlaceholder', 'John Doe')}
+                      disabled={isLoading}
+                      className="h-12 rounded-lg pl-10 bg-white dark:bg-auth-input-bg border-slate-300 dark:border-auth-input-border"
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage>
+                  {form.formState.errors.fullName?.message &&
+                    t(form.formState.errors.fullName.message)}
+                </FormMessage>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                  {t('username')}
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                      badge
+                    </span>
+                    <Input
+                      placeholder={t('usernamePlaceholder')}
+                      disabled={isLoading}
+                      className="h-12 rounded-lg pl-10 bg-white dark:bg-auth-input-bg border-slate-300 dark:border-auth-input-border"
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage>
+                  {form.formState.errors.username?.message &&
+                    t(form.formState.errors.username.message)}
+                </FormMessage>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* ── Email ── */}
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('email')}</FormLabel>
+              <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                {t('email')}
+              </FormLabel>
               <FormControl>
-                <Input
-                  type="email"
-                  placeholder={t('emailPlaceholder')}
-                  disabled={isLoading}
-                  {...field}
-                />
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                    mail
+                  </span>
+                  <Input
+                    type="email"
+                    placeholder={t('emailPlaceholder')}
+                    disabled={isLoading}
+                    className="h-12 rounded-lg pl-10 bg-white dark:bg-auth-input-bg border-slate-300 dark:border-auth-input-border"
+                    {...field}
+                  />
+                </div>
               </FormControl>
               <FormMessage>
                 {form.formState.errors.email?.message && t(form.formState.errors.email.message)}
@@ -91,45 +175,65 @@ export function RegisterForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('username')}</FormLabel>
-              <FormControl>
-                <Input placeholder={t('usernamePlaceholder')} disabled={isLoading} {...field} />
-              </FormControl>
-              <FormMessage>
-                {form.formState.errors.username?.message &&
-                  t(form.formState.errors.username.message)}
-              </FormMessage>
-            </FormItem>
-          )}
-        />
+        {/* ── Password + Confirm Password (2 col grid) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                  {t('password')}
+                </FormLabel>
+                <FormControl>
+                  <PasswordInput
+                    placeholder={t('passwordPlaceholder')}
+                    disabled={isLoading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage>
+                  {form.formState.errors.password?.message &&
+                    t(form.formState.errors.password.message)}
+                </FormMessage>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('password')}</FormLabel>
-              <FormControl>
-                <PasswordInput
-                  placeholder={t('passwordPlaceholder')}
-                  disabled={isLoading}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage>
-                {form.formState.errors.password?.message &&
-                  t(form.formState.errors.password.message)}
-              </FormMessage>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                  {t('confirmPassword', 'Confirm Password')}
+                </FormLabel>
+                <FormControl>
+                  <PasswordInput
+                    placeholder={t('confirmPasswordPlaceholder', 'Confirm your password')}
+                    disabled={isLoading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage>
+                  {form.formState.errors.confirmPassword?.message &&
+                    t(form.formState.errors.confirmPassword.message)}
+                </FormMessage>
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+        {/* ── Submit button ── */}
+        <Button
+          type="submit"
+          className={cn(
+            'w-full h-12 rounded-lg font-semibold text-base',
+            'bg-auth-btn hover:bg-auth-btn-hover text-white',
+          )}
+          size="lg"
+          disabled={isLoading}
+        >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -139,19 +243,6 @@ export function RegisterForm() {
             t('signUpButton')
           )}
         </Button>
-
-        <FormDivider />
-
-        <div className="flex gap-3">
-          <SocialButton
-            provider="google"
-            label={t('signUpWithGoogle')}
-            variant="full"
-            className="flex-1"
-          />
-          <SocialButton provider="facebook" variant="icon" />
-          <SocialButton provider="microsoft" variant="icon" />
-        </div>
       </form>
     </Form>
   );

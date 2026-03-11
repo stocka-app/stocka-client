@@ -91,6 +91,22 @@ export default {
 
         // ── Third-party brand colors ───────────────────────────────────────
         facebook: "#1877F2",
+
+        // ── Auth-specific tokens ───────────────────────────────────────────
+        auth: {
+          body:        "var(--color-auth-body)",
+          "left-panel": "var(--color-auth-left-panel)",
+          surface:     "var(--color-auth-surface)",
+          border:      "var(--color-auth-border)",
+          highlight:   "var(--color-auth-highlight)",
+          btn:         "var(--color-auth-btn)",
+          "btn-hover": "var(--color-auth-btn-hover)",
+          action:      "var(--color-auth-action)",
+          "action-hover": "var(--color-auth-action-hover)",
+          "right-panel": "var(--color-auth-right-panel, var(--color-auth-surface))",
+          "input-bg":  "var(--color-auth-input-bg, transparent)",
+          "input-border": "var(--color-auth-input-border, var(--color-auth-border))",
+        },
       },
 
       fontFamily: {
