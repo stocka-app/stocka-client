@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
-import type { ApiError, AuthErrorCode } from '@/features/auth/types/auth.types';
+import type { ApiError, AuthenticationErrorCode } from '@/features/authentication/types/authentication.types';
 import { env } from './env';
 import i18n from './i18n';
 
@@ -11,7 +11,7 @@ let inMemoryAccessToken: string | null = null;
 
 /**
  * Updates the in-memory access token.
- * Called by the auth store whenever the token changes.
+ * Called by the authentication store whenever the token changes.
  */
 export function setAccessToken(token: string | null): void {
   inMemoryAccessToken = token;
@@ -25,7 +25,7 @@ export function getAccessToken(): string | null {
 }
 
 // Nombre de la clave de persistencia de Zustand
-const AUTH_STORAGE_KEY = 'auth-storage';
+const AUTH_STORAGE_KEY = 'authentication-storage';
 
 /**
  * Cliente HTTP configurado para el backend de Stocka
@@ -70,7 +70,7 @@ api.interceptors.request.use(
  * Rutas de autenticación que NO deben manejar 401 automáticamente
  * (el 401 en estas rutas es un error de credenciales, no de token expirado)
  */
-const AUTH_ROUTES = ['/auth/sign-in', '/auth/sign-up', '/auth/verify-email'];
+const AUTH_ROUTES = ['/authentication/sign-in', '/authentication/sign-up', '/authentication/verify-email'];
 
 /**
  * Verifica si la URL es una ruta de autenticación
@@ -82,9 +82,9 @@ function isAuthRoute(url?: string): boolean {
 
 /**
  * Response interceptor
- * - Maneja refresh de tokens automático en 401 (excepto en rutas de auth)
+ * - Maneja refresh de tokens automático en 401 (excepto en rutas de authentication)
  * - La cookie refresh_token se envía automáticamente gracias a withCredentials: true
- * - La llamada a /auth/refresh NO lleva Authorization header (es un endpoint público)
+ * - La llamada a /authentication/refresh NO lleva Authorization header (es un endpoint público)
  * - Transforma errores al formato ApiError
  */
 api.interceptors.response.use(
@@ -95,7 +95,7 @@ api.interceptors.response.use(
     };
 
     // NO hacer refresh automático en rutas de autenticación
-    // El 401 en /auth/sign-in es "credenciales inválidas", no "token expirado"
+    // El 401 en /authentication/sign-in es "credenciales inválidas", no "token expirado"
     if (isAuthRoute(originalRequest?.url)) {
       const backendError = (error.response?.data ?? {}) as Partial<ApiError>;
       const apiError: ApiError = {
@@ -107,7 +107,7 @@ api.interceptors.response.use(
         error:
           typeof backendError.error === 'string'
             ? backendError.error
-            : ('UNKNOWN_ERROR' as AuthErrorCode),
+            : ('UNKNOWN_ERROR' as AuthenticationErrorCode),
         ...backendError,
       };
       return Promise.reject(apiError);
@@ -121,7 +121,7 @@ api.interceptors.response.use(
         // La cookie refresh_token se envía automáticamente por el navegador.
         // No incluir Authorization header — este endpoint es público.
         const response = await axios.post(
-          `${API_URL}/auth/refresh`,
+          `${API_URL}/authentication/refresh`,
           {},
           { withCredentials: true },
         );
@@ -139,7 +139,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh falló (cookie expirada o inválida) → limpiar estado y redirigir a login
         clearAuthStorage();
-        window.location.href = '/auth/login';
+        window.location.href = '/authentication/login';
         return Promise.reject(refreshError);
       }
     }
@@ -155,7 +155,7 @@ api.interceptors.response.use(
       error:
         typeof backendError.error === 'string'
           ? backendError.error
-          : ('UNKNOWN_ERROR' as AuthErrorCode),
+          : ('UNKNOWN_ERROR' as AuthenticationErrorCode),
       ...backendError,
     };
 

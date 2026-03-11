@@ -4,18 +4,18 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translations
 import enCommon from '@/locales/en/common.json';
-import enAuth from '@/locales/en/auth.json';
+import enAuthentication from '@/locales/en/authentication.json';
 import esCommon from '@/locales/es/common.json';
-import esAuth from '@/locales/es/auth.json';
+import esAuthentication from '@/locales/es/authentication.json';
 
 const resources = {
   en: {
     common: enCommon,
-    auth: enAuth,
+    authentication: enAuthentication,
   },
   es: {
     common: esCommon,
-    auth: esAuth,
+    authentication: esAuthentication,
   },
 };
 
@@ -26,7 +26,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'auth'],
+    ns: ['common', 'authentication'],
     interpolation: {
       escapeValue: false,
     },

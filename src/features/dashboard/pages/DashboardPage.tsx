@@ -3,17 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { LogOut, Package } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { useAuth } from '@/features/auth';
+import { useAuthentication } from '@/features/authentication';
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
 
 function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthentication();
 
   const handleLogout = () => {
     logout();
-    navigate('/auth/login');
+    navigate('/authentication/login');
   };
 
   return (
@@ -40,7 +40,7 @@ function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {t('common:success')}! {t('auth:welcome')} {user?.username || 'Usuario'}
+              {t('common:success')}! {t('authentication:welcome')} {user?.username || 'Usuario'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

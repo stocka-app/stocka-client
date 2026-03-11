@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
 
 interface LogoProps {
   className?: string;
@@ -24,10 +24,10 @@ const iconSizes = {
 };
 
 export function Logo({ className, size = 'md', showIcon = true, disableLink = false }: LogoProps) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuthenticationStore();
 
   // Determinar destino según estado de autenticación
-  const destination = isAuthenticated ? '/dashboard' : '/auth/login';
+  const destination = isAuthenticated ? '/dashboard' : '/authentication/login';
 
   const logoContent = (
     <div className={cn('flex items-center gap-2', className)}>

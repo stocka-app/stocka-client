@@ -1,16 +1,16 @@
 import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/components';
-import { AuthLayout } from '@/shared/layouts';
-import { PublicRoute, ProtectedRoute, VerificationRoute } from '@/features/auth/guards';
+import { AuthenticationLayout } from '@/shared/layouts';
+import { PublicRoute, ProtectedRoute, VerificationRoute } from '@/features/authentication/guards';
 import { PageLoader } from '@/app/page-loader';
 
-const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
-const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
-const VerifyEmailPage = lazy(() => import('@/features/auth/pages/VerifyEmailPage'));
-const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
-const OAuthCallbackPage = lazy(() => import('@/features/auth/pages/OAuthCallbackPage'));
+const LoginPage = lazy(() => import('@/features/authentication/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/features/authentication/pages/RegisterPage'));
+const VerifyEmailPage = lazy(() => import('@/features/authentication/pages/VerifyEmailPage'));
+const ForgotPasswordPage = lazy(() => import('@/features/authentication/pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/features/authentication/pages/ResetPasswordPage'));
+const OAuthCallbackPage = lazy(() => import('@/features/authentication/pages/OAuthCallbackPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 
 export const router = createBrowserRouter([
@@ -18,16 +18,16 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <ErrorBoundary>
-        <Navigate to="/auth/login" replace />
+        <Navigate to="/authentication/login" replace />
       </ErrorBoundary>
     ),
   },
   {
-    path: '/auth',
+    path: '/authentication',
     element: (
       <ErrorBoundary>
         <PublicRoute>
-          <AuthLayout />
+          <AuthenticationLayout />
         </PublicRoute>
       </ErrorBoundary>
     ),
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
         index: true,
         element: (
           <ErrorBoundary>
-            <Navigate to="/auth/login" replace />
+            <Navigate to="/authentication/login" replace />
           </ErrorBoundary>
         ),
       },
@@ -123,7 +123,7 @@ export const router = createBrowserRouter([
         <div className="flex min-h-screen flex-col items-center justify-center">
           <h1 className="text-4xl font-bold text-gray-900">404</h1>
           <p className="mt-2 text-gray-600">Page not found</p>
-          <a href="/auth/login" className="mt-4 text-primary hover:underline">
+          <a href="/authentication/login" className="mt-4 text-primary hover:underline">
             Go to login
           </a>
         </div>
