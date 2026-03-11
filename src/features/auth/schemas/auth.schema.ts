@@ -15,19 +15,26 @@ export const loginSchema = z.object({
 /**
  * Schema de registro para validación de formulario
  */
-export const registerSchema = z.object({
-  email: z.string().min(1, 'errors.emailRequired').email('errors.emailInvalid'),
-  username: z
-    .string()
-    .min(1, 'errors.usernameRequired')
-    .min(3, 'errors.usernameMinLength')
-    .regex(/^[a-zA-Z0-9_]+$/, 'errors.usernamePattern'),
-  password: z
-    .string()
-    .min(1, 'errors.passwordRequired')
-    .min(8, 'errors.passwordMinLength')
-    .regex(/^(?=.*[A-Z])(?=.*[0-9])/, 'errors.passwordPattern'),
-});
+export const registerSchema = z
+  .object({
+    fullName: z.string().min(1, 'errors.fullNameRequired'),
+    email: z.string().min(1, 'errors.emailRequired').email('errors.emailInvalid'),
+    username: z
+      .string()
+      .min(1, 'errors.usernameRequired')
+      .min(3, 'errors.usernameMinLength')
+      .regex(/^[a-zA-Z0-9_]+$/, 'errors.usernamePattern'),
+    password: z
+      .string()
+      .min(1, 'errors.passwordRequired')
+      .min(8, 'errors.passwordMinLength')
+      .regex(/^(?=.*[A-Z])(?=.*[0-9])/, 'errors.passwordPattern'),
+    confirmPassword: z.string().min(1, 'errors.confirmPasswordRequired'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'errors.passwordsDoNotMatch',
+    path: ['confirmPassword'],
+  });
 
 /**
  * Schema de forgot password para validación de formulario

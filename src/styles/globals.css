@@ -17,6 +17,11 @@
   --color-auth-action-hover:    #26A69A;
   --color-auth-surface:         #FFFFFF;
   --color-auth-border:          #e5e7eb;
+  --color-auth-body:            #E0F2F1;
+  --color-auth-left-panel:      #B2DFDB;
+  --color-auth-highlight:       #00897B;
+  --color-auth-btn:             #4DB6AC;
+  --color-auth-btn-hover:       #26A69A;
 
   /* Neutral scale */
   --color-neutral-0:    #FFFFFF;
@@ -85,6 +90,14 @@
   --color-auth-action-hover:    #14b8a6;
   --color-auth-surface:         #0B0F19;
   --color-auth-border:          #1e293b;
+  --color-auth-body:            #020617;
+  --color-auth-left-panel:      #1E293B;
+  --color-auth-highlight:       #2dd4bf;
+  --color-auth-btn:             #2dd4bf;
+  --color-auth-btn-hover:       #14b8a6;
+  --color-auth-right-panel:     #0F172A;
+  --color-auth-input-bg:        #1e293b;
+  --color-auth-input-border:    #334155;
 
   /* Surfaces (6-layer hierarchy) */
   --color-surface-page:     #020617;

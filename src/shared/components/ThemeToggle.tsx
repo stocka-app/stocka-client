@@ -9,10 +9,10 @@ export function ThemeToggle() {
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className="
         flex items-center justify-center w-9 h-9 rounded-lg
-        text-neutral-500 hover:text-neutral-900
+        text-neutral-600 hover:text-neutral-900
         hover:bg-neutral-100
-        dark:text-neutral-400 dark:hover:text-neutral-100
-        dark:hover:bg-surface-raised
+        dark:text-neutral-600 dark:hover:text-neutral-600
+        dark:hover:bg-white/10
         transition-colors duration-200
       "
     >
