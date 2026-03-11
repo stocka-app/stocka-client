@@ -93,25 +93,25 @@ export default {
         facebook: "#1877F2",
 
         // ── Auth-specific tokens ───────────────────────────────────────────
-        auth: {
-          body:        "var(--color-auth-body)",
-          "left-panel": "var(--color-auth-left-panel)",
-          surface:     "var(--color-auth-surface)",
-          border:      "var(--color-auth-border)",
-          highlight:   "var(--color-auth-highlight)",
-          btn:         "var(--color-auth-btn)",
-          "btn-hover": "var(--color-auth-btn-hover)",
-          action:      "var(--color-auth-action)",
-          "action-hover": "var(--color-auth-action-hover)",
-          "right-panel": "var(--color-auth-right-panel, var(--color-auth-surface))",
-          "input-bg":  "var(--color-auth-input-bg, transparent)",
-          "input-border": "var(--color-auth-input-border, var(--color-auth-border))",
+        authentication: {
+          body:        "var(--color-authentication-body)",
+          "left-panel": "var(--color-authentication-left-panel)",
+          surface:     "var(--color-authentication-surface)",
+          border:      "var(--color-authentication-border)",
+          highlight:   "var(--color-authentication-highlight)",
+          btn:         "var(--color-authentication-btn)",
+          "btn-hover": "var(--color-authentication-btn-hover)",
+          action:      "var(--color-authentication-action)",
+          "action-hover": "var(--color-authentication-action-hover)",
+          "right-panel": "var(--color-authentication-right-panel, var(--color-authentication-surface))",
+          "input-bg":  "var(--color-authentication-input-bg, transparent)",
+          "input-border": "var(--color-authentication-input-border, var(--color-authentication-border))",
         },
       },
 
       fontFamily: {
         app:  ["var(--font-app)", "sans-serif"],
-        auth: ["var(--font-auth)", "sans-serif"],
+        authentication: ["var(--font-authentication)", "sans-serif"],
         sans: ["var(--font-app)", "sans-serif"],
       },
 

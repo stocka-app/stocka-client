@@ -13,15 +13,15 @@
   --color-brand-primary-light:  #eff6ff;
 
   /* Auth */
-  --color-auth-action:          #00897B;
-  --color-auth-action-hover:    #26A69A;
-  --color-auth-surface:         #FFFFFF;
-  --color-auth-border:          #e5e7eb;
-  --color-auth-body:            #E0F2F1;
-  --color-auth-left-panel:      #B2DFDB;
-  --color-auth-highlight:       #00897B;
-  --color-auth-btn:             #4DB6AC;
-  --color-auth-btn-hover:       #26A69A;
+  --color-authentication-action:          #00897B;
+  --color-authentication-action-hover:    #26A69A;
+  --color-authentication-surface:         #FFFFFF;
+  --color-authentication-border:          #e5e7eb;
+  --color-authentication-body:            #E0F2F1;
+  --color-authentication-left-panel:      #B2DFDB;
+  --color-authentication-highlight:       #00897B;
+  --color-authentication-btn:             #4DB6AC;
+  --color-authentication-btn-hover:       #26A69A;
 
   /* Neutral scale */
   --color-neutral-0:    #FFFFFF;
@@ -63,7 +63,7 @@
 
   /* Typography */
   --font-app:  'Plus Jakarta Sans', sans-serif;
-  --font-auth: 'Manrope', sans-serif;
+  --font-authentication: 'Manrope', sans-serif;
 
   /* Radius */
   --radius-sm:   4px;
@@ -86,18 +86,18 @@
   --color-brand-primary-light:  #0d3330;
 
   /* Auth */
-  --color-auth-action:          #2dd4bf;
-  --color-auth-action-hover:    #14b8a6;
-  --color-auth-surface:         #0B0F19;
-  --color-auth-border:          #1e293b;
-  --color-auth-body:            #020617;
-  --color-auth-left-panel:      #1E293B;
-  --color-auth-highlight:       #2dd4bf;
-  --color-auth-btn:             #2dd4bf;
-  --color-auth-btn-hover:       #14b8a6;
-  --color-auth-right-panel:     #0F172A;
-  --color-auth-input-bg:        #1e293b;
-  --color-auth-input-border:    #334155;
+  --color-authentication-action:          #2dd4bf;
+  --color-authentication-action-hover:    #14b8a6;
+  --color-authentication-surface:         #0B0F19;
+  --color-authentication-border:          #1e293b;
+  --color-authentication-body:            #020617;
+  --color-authentication-left-panel:      #1E293B;
+  --color-authentication-highlight:       #2dd4bf;
+  --color-authentication-btn:             #2dd4bf;
+  --color-authentication-btn-hover:       #14b8a6;
+  --color-authentication-right-panel:     #0F172A;
+  --color-authentication-input-bg:        #1e293b;
+  --color-authentication-input-border:    #334155;
 
   /* Surfaces (6-layer hierarchy) */
   --color-surface-page:     #020617;
