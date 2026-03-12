@@ -33,6 +33,7 @@ const initialState: AuthState = {
   emailVerificationRequired: false,
   pendingVerificationEmail: null,
   verificationCodeSentAt: null,
+  verificationEmailSent: null,
 
   // Información de bloqueo
   blockInfo: null,
@@ -169,7 +170,7 @@ export const useAuthenticationStore = create<AuthStore>()(
         try {
           const response = await authenticationService.signUp(credentials);
 
-          const { user: backendUser, accessToken } = response.data;
+          const { user: backendUser, accessToken, emailSent } = response.data;
 
           const user: User = {
             id: backendUser.id,
@@ -186,7 +187,9 @@ export const useAuthenticationStore = create<AuthStore>()(
             isLoading: false,
             emailVerificationRequired: true,
             pendingVerificationEmail: user.email,
-            verificationCodeSentAt: new Date().toISOString(),
+            // Solo marcar el timestamp si el email se envió — si no, null evita el cooldown falso
+            verificationCodeSentAt: emailSent ? new Date().toISOString() : null,
+            verificationEmailSent: emailSent,
             accessToken,
             user,
             isAuthenticated: false,
@@ -288,6 +291,7 @@ export const useAuthenticationStore = create<AuthStore>()(
           set({
             isLoading: false,
             verificationCodeSentAt: new Date().toISOString(),
+            verificationEmailSent: true,
           });
           return response.data;
         } catch (error) {

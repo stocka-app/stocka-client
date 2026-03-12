@@ -131,6 +131,7 @@ export const SignUpResponseSchema = z.object({
   data: z.object({
     user: BackendUserSchema,
     accessToken: z.string(),
+    emailSent: z.boolean(),
   }),
   success: z.boolean(),
 });

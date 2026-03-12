@@ -126,6 +126,7 @@ export interface AuthState {
   emailVerificationRequired: boolean;
   pendingVerificationEmail: string | null;
   verificationCodeSentAt: string | null; // ISO timestamp de cuando se envió el código
+  verificationEmailSent: boolean | null; // null=desconocido, true=enviado, false=falló al enviar
 
   // Información de bloqueo
   blockInfo: BlockInfo | null;

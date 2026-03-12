@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
-import { Mail } from 'lucide-react';
+import { Mail, AlertTriangle } from 'lucide-react';
 import { useAuthenticationStore } from '../store/authentication.store';
 import { VerifyEmailForm } from '../components/VerifyEmailForm';
 import { Logo } from '@/shared/components/Logo';
@@ -17,8 +17,13 @@ import { Logo } from '@/shared/components/Logo';
  */
 function VerifyEmailPage() {
   const { t } = useTranslation('authentication');
-  const { emailVerificationRequired, pendingVerificationEmail, isAuthenticated, clearError } =
-    useAuthenticationStore();
+  const {
+    emailVerificationRequired,
+    pendingVerificationEmail,
+    isAuthenticated,
+    verificationEmailSent,
+    clearError,
+  } = useAuthenticationStore();
 
   // Limpiar errores al montar el componente
   useEffect(() => {
@@ -57,6 +62,19 @@ function VerifyEmailPage() {
         <p className="text-gray-600">{t('verifyEmail.subtitle', 'We sent a 6-digit code to')}</p>
         <p className="font-medium text-primary text-lg">{pendingVerificationEmail}</p>
       </div>
+
+      {/* Aviso: email no entregado */}
+      {verificationEmailSent === false && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            {t(
+              'verifyEmail.emailNotDelivered',
+              'We could not deliver the verification code. Use the resend button below to try again.',
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Formulario de verificación */}
       <VerifyEmailForm email={pendingVerificationEmail} />
