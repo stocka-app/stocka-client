@@ -53,6 +53,19 @@ describe('ThemeStore', () => {
     });
   });
 
+  describe('Given localStorage is unavailable during rehydration', () => {
+    it('Then onRehydrateStorage receives undefined state and does not crash', async () => {
+      // When getItem throws, Zustand calls the onRehydrateStorage callback with
+      // undefined state — covering the false branch of "if (state?.theme)"
+      const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementationOnce(() => {
+        throw new Error('Storage unavailable');
+      });
+      await useThemeStore.persist.rehydrate();
+      spy.mockRestore();
+      expect(document.documentElement.classList.contains('dark')).toBe(false);
+    });
+  });
+
   describe('Given the current theme is dark', () => {
     beforeEach(() => {
       useThemeStore.setState({ theme: 'dark' });
