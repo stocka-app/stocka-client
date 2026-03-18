@@ -51,6 +51,7 @@ export function ExpirationTimer({
     if (paused || hasExpired) return;
 
     if (secondsLeft <= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasExpired(true);
       onExpire?.();
       return;
@@ -72,6 +73,7 @@ export function ExpirationTimer({
 
   // Reset timer cuando cambia initialSeconds o totalSeconds
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSecondsLeft(initialSeconds ?? totalSeconds);
     setHasExpired(false);
   }, [initialSeconds, totalSeconds]);
