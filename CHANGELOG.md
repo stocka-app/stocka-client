@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 
 
+## [0.3.0](https://github.com/stocka-app/stocka-client/compare/v0.2.0...v0.3.0) (2026-03-18)
+
+### ✨ Features
+
+* **e2e:** [STOC-281](https://austins-industries.atlassian.net/browse/STOC-281) — setup Playwright e2e framework for stocka-client ([7f2c158](https://github.com/stocka-app/stocka-client/commit/7f2c15818ff29bcb2d30e646e8a14b8c8d249c11))
+
+### 📚 Documentation
+
+* **changelog:** [skip ci] | Sprint 1 | add semantic context blockquotes to v0.1.0 and v0.2.0 releases ([8dd28a7](https://github.com/stocka-app/stocka-client/commit/8dd28a73f7ba233e7a557438b0b8c00d01754197))
+
 ## [0.2.0](https://github.com/stocka-app/stocka-client/compare/v0.1.0...v0.2.0) (2026-03-18)
 
 > **📝 Nota:** Release de mantenimiento menor. Bootstrapping del sistema de changelog local — configuración de `release-it` con `.release-it.cjs` (necesario por `"type": "module"` en package.json) + hooks `post-merge`/`post-commit` para generación automática en main. A partir de aquí el changelog se auto-actualiza al igual que el backend.
