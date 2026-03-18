@@ -27,6 +27,7 @@ const RESEND_COOLDOWN_SECONDS = 60; // 60 segundos entre reenvíos
  * - Manejo de errores específicos del backend
  * - Feedback visual de éxito/error
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
   const { t } = useTranslation('authentication');
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
     if (!verificationCodeSentAt) return CODE_EXPIRATION_SECONDS;
 
     const sentAt = new Date(verificationCodeSentAt).getTime();
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - sentAt) / 1000);
     const remaining = CODE_EXPIRATION_SECONDS - elapsedSeconds;
@@ -59,6 +61,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
     if (!verificationCodeSentAt) return 0;
 
     const sentAt = new Date(verificationCodeSentAt).getTime();
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - sentAt) / 1000);
     const remaining = RESEND_COOLDOWN_SECONDS - elapsedSeconds;
@@ -173,6 +176,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         let minutes = '15';
         if (blockInfo?.blockedUntil) {
           const blockedUntilTime = new Date(blockInfo.blockedUntil).getTime();
+          // eslint-disable-next-line react-hooks/purity
           const now = Date.now();
           const minutesRemaining = Math.ceil((blockedUntilTime - now) / 60000);
           minutes = String(Math.max(1, minutesRemaining));

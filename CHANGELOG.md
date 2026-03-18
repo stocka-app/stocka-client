@@ -3,7 +3,60 @@
 All notable changes to this project are documented here.
 
 
+## [0.2.0](https://github.com/stocka-app/stocka-client/compare/v0.1.0...v0.2.0) (2026-03-18)
+
+> **📝 Nota:** Release de mantenimiento menor. Bootstrapping del sistema de changelog local — configuración de `release-it` con `.release-it.cjs` (necesario por `"type": "module"` en package.json) + hooks `post-merge`/`post-commit` para generación automática en main. A partir de aquí el changelog se auto-actualiza al igual que el backend.
+
+### ✨ Features
+
+* add release-it configuration for automated versioning and changelog generation ([ac55c1f](https://github.com/stocka-app/stocka-client/commit/ac55c1f80820cdb295ba893f5c1aff9b77d4ce41))
+
+### 🧹 Chores
+
+* add .githooks/post-merge to .gitignore ([29fa20c](https://github.com/stocka-app/stocka-client/commit/29fa20c5bbee4e0884bbddda5a49edd8b0c9e756))
+* update .gitignore to include all githooks ([db0ccd5](https://github.com/stocka-app/stocka-client/commit/db0ccd5744682b3eb8daf01d7de51e57db1282c2))
+
 ## 0.1.0 (2026-03-18)
+
+> **🚀 Sprint 1 — Fundamentos: La interfaz base de Stocka**
+>
+> Release fundacional del frontend. Establece la arquitectura de la aplicación y cubre todo el flujo de autenticación de extremo a extremo, conectado al backend real.
+>
+> **Arquitectura y setup:**
+> - React 19 + Vite 7, feature-based architecture con alias `@/`
+> - Zustand con persistencia en `localStorage` para auth state y theme
+> - Axios con interceptores para token refresh silencioso — el usuario nunca ve un 401
+> - Validación de env vars con Zod al startup — fail-fast antes de montar la app (STOC-198)
+> - i18n EN/ES desde el primer día con `react-i18next`, 100% de strings traducidas incluyendo accesibilidad (STOC-174)
+> - Design tokens DS-004 integrados en `globals.css` + Tailwind — modo oscuro funcional
+>
+> **Auth — Flujo completo:**
+> - Sign-in / Sign-up con validación Zod + `react-hook-form`
+> - Verificación de email: código de 6 dígitos, timer de reenvío, estado persistido entre recargas
+> - Forgot/Reset password con pre-fill de email desde Sign In (STOC-181)
+> - OAuth: Google, Facebook, Microsoft — `OAuthCallbackPage` con manejo de estados de error bilingüe (STOC-170)
+> - Apple removido del frontend en sincronía con el backend (ADR-001)
+> - Refresh token migrado a cookie httpOnly (STOC-216) — el interceptor de Axios ya no maneja tokens en memoria
+> - Rate limiting UI en Login: banner de bloqueo con countdown cuando el backend retorna 429
+> - Banner de cuenta social cuando el backend retorna `SOCIAL_ACCOUNT_REQUIRED` (STOC-222)
+>
+> **UX / UI:**
+> - Layout split-panel para Sign In y Sign Up — diseño basado en spec DS-003/DS-004
+> - `AuthLayout` reutilizable con ilustración SVG en panel derecho
+> - `PageLoader` con skeleton para transiciones de ruta
+> - `ErrorBoundary` wrapeando todas las rutas — errores de render no rompen la app entera
+> - Animación shake en formularios para feedback de error sin texto redundante
+>
+> **Guards de ruta:**
+> - `ProtectedRoute` — redirige a Login si no autenticado
+> - `PublicRoute` — redirige al Dashboard si ya autenticado
+> - `VerificationRoute` / `EmailVerifiedGuard` — gate de verificación de email entre Sign Up y Dashboard
+>
+> **Testing:**
+> - Primer test FE: forgot password email prefill (STOC-181)
+> - Suite completa con Vitest + @testing-library/react, estructura BDD Given/When/Then
+> - Mocks centralizados en `src/test/mocks/` — `auth.mock.ts`, `i18n.mock.ts`
+> - **100% de coverage con Vitest v8** ([STOC-268](https://austins-industries.atlassian.net/browse/STOC-268)) — statements / branches / functions / lines
 
 ### ✨ Features
 

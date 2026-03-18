@@ -7,7 +7,17 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import eslintConfigPrettier from 'eslint-config-prettier'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    'playwright-report',
+    'test-results',
+    'e2e',
+    // shadcn/ui generated components — not modified manually (see CLAUDE.md)
+    'src/shared/components/ui/**',
+    // Legacy auth feature superseded by features/authentication (see CLAUDE.md)
+    'src/features/auth/**',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

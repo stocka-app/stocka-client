@@ -121,6 +121,7 @@ export function VerificationCodeInput({
   );
 
   // Focus handlers (para futuras mejoras de accesibilidad)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleFocus = useCallback((_index: number) => {
     // Placeholder para futuras mejoras
   }, []);

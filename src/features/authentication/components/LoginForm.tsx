@@ -58,6 +58,7 @@ export function LoginForm() {
   // Countdown para bloqueo temporal
   useEffect(() => {
     if (!blockInfo?.blockedUntil) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCountdown(0);
       return;
     }

@@ -11,7 +11,11 @@ interface ThemeState {
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  theme === 'dark' ? root.classList.add('dark') : root.classList.remove('dark');
+  if (theme === 'dark') {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
 }
 
 export const useThemeStore = create<ThemeState>()(
