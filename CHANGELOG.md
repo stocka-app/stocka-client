@@ -3,6 +3,17 @@
 All notable changes to this project are documented here.
 
 
+## [0.2.0](https://github.com/stocka-app/stocka-client/compare/v0.1.0...v0.2.0) (2026-03-18)
+
+### ✨ Features
+
+* add release-it configuration for automated versioning and changelog generation ([ac55c1f](https://github.com/stocka-app/stocka-client/commit/ac55c1f80820cdb295ba893f5c1aff9b77d4ce41))
+
+### 🧹 Chores
+
+* add .githooks/post-merge to .gitignore ([29fa20c](https://github.com/stocka-app/stocka-client/commit/29fa20c5bbee4e0884bbddda5a49edd8b0c9e756))
+* update .gitignore to include all githooks ([db0ccd5](https://github.com/stocka-app/stocka-client/commit/db0ccd5744682b3eb8daf01d7de51e57db1282c2))
+
 ## 0.1.0 (2026-03-18)
 
 ### ✨ Features
