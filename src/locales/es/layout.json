@@ -1,0 +1,20 @@
+{
+  "sidebar": {
+    "ariaLabel": "Navegación principal",
+    "nav": "Menú de navegación",
+    "myBusiness": "Mi Negocio",
+    "collapse": "Contraer barra lateral",
+    "expand": "Expandir barra lateral",
+    "open": "Abrir navegación",
+    "close": "Cerrar navegación",
+    "logout": "Cerrar sesión"
+  },
+  "nav": {
+    "dashboard": "Inicio",
+    "categories": "Categorías",
+    "warehouse": "Almacén",
+    "products": "Productos",
+    "suppliers": "Proveedores",
+    "settings": "Configuración"
+  }
+}

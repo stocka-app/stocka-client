@@ -1,0 +1,20 @@
+{
+  "sidebar": {
+    "ariaLabel": "Main navigation",
+    "nav": "Navigation menu",
+    "myBusiness": "My Business",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "open": "Open navigation",
+    "close": "Close navigation",
+    "logout": "Log out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "categories": "Categories",
+    "warehouse": "Warehouse",
+    "products": "Products",
+    "suppliers": "Suppliers",
+    "settings": "Settings"
+  }
+}
