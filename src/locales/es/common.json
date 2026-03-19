@@ -24,5 +24,13 @@
     "description": "Ocurrió un error inesperado. Puedes recargar la página o volver al inicio.",
     "reload": "Recargar página",
     "goHome": "Ir al inicio"
+  },
+  "upgradeModal": {
+    "title": "Actualiza tu plan",
+    "reasonLimitReached": "Has alcanzado el límite de tu plan actual.",
+    "reasonNotInTier": "Esta función no está disponible en tu plan actual.",
+    "currentTier": "Plan actual",
+    "cta": "Ver planes",
+    "close": "Cerrar"
   }
 }

@@ -65,6 +65,10 @@ export default defineConfig({
         'src/features/team/api/team.service.ts',
         'src/features/team/api/team.mock.ts',
         'src/features/team/pages/**',
+        // Spaces: HTTP service + mock + pages (integration scope)
+        'src/features/spaces/api/spaces.service.ts',
+        'src/features/spaces/api/spaces.mock.ts',
+        'src/features/spaces/pages/**',
         // Placeholder feature with no real logic
         'src/features/dashboard/**',
         // Complex stateful form components — integration / e2e scope

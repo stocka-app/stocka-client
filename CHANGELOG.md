@@ -3,6 +3,19 @@
 All notable changes to this project are documented here.
 
 
+## [0.6.0](https://github.com/stocka-app/stocka-client/compare/v0.5.0...v0.6.0) (2026-03-19)
+
+### ✨ Features
+
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add all team management UI components with permission gates ([8e67c9c](https://github.com/stocka-app/stocka-client/commit/8e67c9cd70f5d842bb108b90c07c4efee4e03a60))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add global RBAC Zustand store with permission evaluation cascade ([0368714](https://github.com/stocka-app/stocka-client/commit/03687148519962bdac571c30acfad5d72231b5d2))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add i18n strings and test mock for team/RBAC feature ([2245253](https://github.com/stocka-app/stocka-client/commit/22452538a1254ca008d4a873f6918259df0cdf2e))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add team API service with Zod-validated responses ([7ca194c](https://github.com/stocka-app/stocka-client/commit/7ca194c908b4ad9434fc51f6e3fec1a58ae64c63))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add TeamSettingsPage (3 tabs) and barrel export ([6cb7121](https://github.com/stocka-app/stocka-client/commit/6cb7121c5f2c6e3d0da0902a15c6bf89a2c9e61d))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add useTeam hook and usePermission hook with full test coverage ([189acc5](https://github.com/stocka-app/stocka-client/commit/189acc525e599d12458895ca11518cbc0aed0428))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — add Zod schemas and TypeScript types for team management ([1ef6bbf](https://github.com/stocka-app/stocka-client/commit/1ef6bbf8aa93421243c99c46a8659a370be9dc74))
+* **team:** [STOC-262](https://austins-industries.atlassian.net/browse/STOC-262) — wire /settings/team route, team i18n namespace, and coverage config ([581b9ef](https://github.com/stocka-app/stocka-client/commit/581b9ef0bb503af1d17614dba53b0c87bb3ea139))
+
 ## [0.5.0](https://github.com/stocka-app/stocka-client/compare/v0.4.0...v0.5.0) (2026-03-19)
 
 ### ✨ Features

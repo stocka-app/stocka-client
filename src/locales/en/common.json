@@ -24,5 +24,13 @@
     "description": "An unexpected error occurred. You can reload the page or return to the home page.",
     "reload": "Reload page",
     "goHome": "Go to home"
+  },
+  "upgradeModal": {
+    "title": "Upgrade your plan",
+    "reasonLimitReached": "You've reached the limit for your current plan.",
+    "reasonNotInTier": "This feature is not available on your current plan.",
+    "currentTier": "Current plan",
+    "cta": "Learn about plans",
+    "close": "Close"
   }
 }

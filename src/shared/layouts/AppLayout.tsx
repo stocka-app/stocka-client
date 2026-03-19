@@ -19,6 +19,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
+import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
 
 interface NavItem {
@@ -284,6 +285,9 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Global upgrade modal — mounted once, driven by upgrade-modal store */}
+      <UpgradeModal />
     </div>
   );
 }
