@@ -7,10 +7,12 @@ import enCommon from '@/locales/en/common.json';
 import enAuthentication from '@/locales/en/authentication.json';
 import enLayout from '@/locales/en/layout.json';
 import enOnboarding from '@/locales/en/onboarding.json';
+import enTeam from '@/locales/en/team.json';
 import esCommon from '@/locales/es/common.json';
 import esAuthentication from '@/locales/es/authentication.json';
 import esLayout from '@/locales/es/layout.json';
 import esOnboarding from '@/locales/es/onboarding.json';
+import esTeam from '@/locales/es/team.json';
 
 const resources = {
   en: {
@@ -18,12 +20,14 @@ const resources = {
     authentication: enAuthentication,
     layout: enLayout,
     onboarding: enOnboarding,
+    team: enTeam,
   },
   es: {
     common: esCommon,
     authentication: esAuthentication,
     layout: esLayout,
     onboarding: esOnboarding,
+    team: esTeam,
   },
 };
 
@@ -34,7 +38,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'authentication', 'layout', 'onboarding'],
+    ns: ['common', 'authentication', 'layout', 'onboarding', 'team'],
     interpolation: {
       escapeValue: false,
     },
