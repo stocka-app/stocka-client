@@ -3,6 +3,19 @@
 All notable changes to this project are documented here.
 
 
+## [0.5.0](https://github.com/stocka-app/stocka-client/compare/v0.4.0...v0.5.0) (2026-03-19)
+
+### ✨ Features
+
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add all 7-step wizard components + invitation sub-flow ([822c139](https://github.com/stocka-app/stocka-client/commit/822c1397c3fe12c49afc4a07d711bba5f4dd05fa))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add i18n strings and test mock for onboarding wizard ([54b2547](https://github.com/stocka-app/stocka-client/commit/54b254744b1b2b1eae9c7ac5d4c2601253fe7834))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add onboarding API service with Zod-validated responses ([f7c3759](https://github.com/stocka-app/stocka-client/commit/f7c3759ecf7b54729574ffc38cb71b46d7850e00))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add OnboardingPage, OnboardingGuard, and barrel export ([40d5e46](https://github.com/stocka-app/stocka-client/commit/40d5e46b40298a6b13bb0dae98f658429186a526))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add useOnboarding hook orchestrating store and API calls ([955f03e](https://github.com/stocka-app/stocka-client/commit/955f03e8d7d5a348f666a9db560ca6f704506c51))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add Zod schemas and TypeScript types for onboarding wizard ([e2ded38](https://github.com/stocka-app/stocka-client/commit/e2ded382c1c15e44a2c5a61b3eadbe29ae1e657f))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — add Zustand store with localStorage persistence for wizard state ([9703a70](https://github.com/stocka-app/stocka-client/commit/9703a703dc7b453752a3ea5572fea70b1cffcf59))
+* **onboarding:** [STOC-261](https://austins-industries.atlassian.net/browse/STOC-261) — wire onboarding route, i18n namespace, and coverage config ([50bff2e](https://github.com/stocka-app/stocka-client/commit/50bff2e1137aaec9d49bd45d51694eecf0750997))
+
 ## [0.4.0](https://github.com/stocka-app/stocka-client/compare/v0.3.0...v0.4.0) (2026-03-19)
 
 ### ✨ Features
