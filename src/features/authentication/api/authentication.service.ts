@@ -76,7 +76,7 @@ export const authenticationService = {
    * @returns Nuevo access token validado con Zod
    */
   async refreshSession(): Promise<RefreshSessionResponse> {
-    const response = await api.post('/authentication/refresh');
+    const response = await api.post('/authentication/refresh-session');
     return RefreshSessionResponseSchema.parse(response.data);
   },
 
