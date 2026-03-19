@@ -24,6 +24,7 @@ import {
 } from '../schemas/authentication.schema';
 
 import type { OAuthProvider } from '../types/authentication.types';
+import { openOAuthPopup } from './oauth-popup.helper';
 
 /**
  * Servicio de autenticación
@@ -150,14 +151,17 @@ export const authenticationService = {
   },
 
   /**
-   * Iniciar flujo de OAuth
-   * Redirige al usuario al proveedor seleccionado
+   * Iniciar flujo de OAuth via popup
    *
-   * @param provider - 'google' | 'facebook' | 'microsoft'
+   * Opens a centered popup window for the OAuth flow.
+   * If the browser blocks the popup, falls back to a full-page redirect.
+   *
+   * @param provider - 'google' | 'microsoft'
+   * @returns The popup Window reference, or null when the popup was blocked.
    */
-  initiateOAuth(provider: OAuthProvider): void {
-    const url = this.getOAuthUrl(provider);
-    window.location.href = url;
+  initiateOAuth(provider: OAuthProvider): Window | null {
+    const url = `${this.getOAuthUrl(provider)}?mode=popup`;
+    return openOAuthPopup(url);
   },
 };
 
