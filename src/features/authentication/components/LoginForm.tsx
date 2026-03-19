@@ -128,10 +128,9 @@ export function LoginForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* ── Social Buttons (always enabled during password block) ── */}
-        <div className="flex justify-center gap-4">
-          <SocialButton provider="google" variant="icon" />
-          <SocialButton provider="facebook" variant="icon" />
-          <SocialButton provider="microsoft" variant="icon" />
+        <div className="grid grid-cols-2 gap-3">
+          <SocialButton provider="google" variant="full" label={t('signInWithGoogle')} />
+          <SocialButton provider="microsoft" variant="full" label={t('signInWithMicrosoft')} />
         </div>
 
         <FormDivider />
@@ -199,19 +198,19 @@ export function LoginForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-neutral-700 dark:text-neutral-300">{t('emailOrUsername')}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
-                    mail
-                  </span>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                  mail
+                </span>
+                <FormControl>
                   <Input
                     placeholder={t('emailOrUsernamePlaceholder')}
                     disabled={isFormDisabled}
                     className="h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
                     {...field}
                   />
-                </div>
-              </FormControl>
+                </FormControl>
+              </div>
               <FormMessage>
                 {form.formState.errors.emailOrUsername?.message &&
                   t(form.formState.errors.emailOrUsername.message)}

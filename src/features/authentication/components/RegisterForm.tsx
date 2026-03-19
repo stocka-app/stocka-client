@@ -57,10 +57,9 @@ export function RegisterForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {/* ── Social Buttons ── */}
-        <div className="flex justify-center gap-4">
-          <SocialButton provider="google" variant="icon" />
-          <SocialButton provider="facebook" variant="icon" />
-          <SocialButton provider="microsoft" variant="icon" />
+        <div className="grid grid-cols-2 gap-3">
+          <SocialButton provider="google" variant="full" label={t('signUpWithGoogle')} />
+          <SocialButton provider="microsoft" variant="full" label={t('signUpWithMicrosoft')} />
         </div>
 
         <FormDivider />
@@ -94,19 +93,19 @@ export function RegisterForm() {
                 <FormLabel className="text-neutral-700 dark:text-neutral-300">
                   {t('fullName', 'Full Name')}
                 </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
-                      person
-                    </span>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                    person
+                  </span>
+                  <FormControl>
                     <Input
                       placeholder={t('fullNamePlaceholder', 'John Doe')}
                       disabled={isLoading}
                       className="h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
                       {...field}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage>
                   {form.formState.errors.fullName?.message &&
                     t(form.formState.errors.fullName.message)}
@@ -123,19 +122,19 @@ export function RegisterForm() {
                 <FormLabel className="text-neutral-700 dark:text-neutral-300">
                   {t('username')}
                 </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
-                      badge
-                    </span>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                    badge
+                  </span>
+                  <FormControl>
                     <Input
                       placeholder={t('usernamePlaceholder')}
                       disabled={isLoading}
                       className="h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
                       {...field}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage>
                   {form.formState.errors.username?.message &&
                     t(form.formState.errors.username.message)}
@@ -154,11 +153,11 @@ export function RegisterForm() {
               <FormLabel className="text-neutral-700 dark:text-neutral-300">
                 {t('email')}
               </FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
-                    mail
-                  </span>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                  mail
+                </span>
+                <FormControl>
                   <Input
                     type="email"
                     placeholder={t('emailPlaceholder')}
@@ -166,8 +165,8 @@ export function RegisterForm() {
                     className="h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
                     {...field}
                   />
-                </div>
-              </FormControl>
+                </FormControl>
+              </div>
               <FormMessage>
                 {form.formState.errors.email?.message && t(form.formState.errors.email.message)}
               </FormMessage>
