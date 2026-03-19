@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/components';
-import { AuthenticationLayout } from '@/shared/layouts';
+import { AuthenticationLayout, AppLayout } from '@/shared/layouts';
 import { PublicRoute, ProtectedRoute, VerificationRoute } from '@/features/authentication/guards';
 import { PageLoader } from '@/app/page-loader';
 
@@ -104,17 +104,27 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  // ── Authenticated shell: all post-login routes nested under AppLayout ──
   {
-    path: '/dashboard',
     element: (
       <ErrorBoundary>
         <ProtectedRoute>
-          <Suspense fallback={<PageLoader />}>
-            <DashboardPage />
-          </Suspense>
+          <AppLayout />
         </ProtectedRoute>
       </ErrorBoundary>
     ),
+    children: [
+      {
+        path: '/dashboard',
+        element: (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <DashboardPage />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+    ],
   },
   {
     path: '*',
