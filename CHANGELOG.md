@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.8.1](https://github.com/stocka-app/stocka-client/compare/v0.8.0...v0.8.1) (2026-03-19)
+
+### 🐛 Bug Fixes
+
+* **auth:** [STOC-192](https://austins-industries.atlassian.net/browse/STOC-192) — align postMessage type with backend ('oauth-success' lowercase) ([448d52f](https://github.com/stocka-app/stocka-client/commit/448d52f8be8099d174417be539b4004f6bf41dab))
+
 ## [0.8.0](https://github.com/stocka-app/stocka-client/compare/v0.7.0...v0.8.0) (2026-03-19)
 
 ### ✨ Features
