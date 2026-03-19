@@ -1,0 +1,69 @@
+{
+  "page": {
+    "title": "Espacios",
+    "subtitle": "Gestiona tus ubicaciones de almacenamiento"
+  },
+  "tabs": {
+    "active": "Activos",
+    "archived": "Archivados"
+  },
+  "table": {
+    "name": "Nombre",
+    "type": "Tipo",
+    "address": "Dirección",
+    "actions": "Acciones",
+    "empty": "No hay espacios",
+    "emptyArchived": "No hay espacios archivados"
+  },
+  "types": {
+    "CUSTOM_ROOM": "Cuarto personalizado",
+    "STORE_ROOM": "Cuarto de almacén",
+    "WAREHOUSE": "Bodega"
+  },
+  "limits": {
+    "title": "Límites de espacios",
+    "used": "{{used}} de {{max}}",
+    "unlimited": "Ilimitado",
+    "warehouseProBadge": "STARTER+"
+  },
+  "actions": {
+    "create": "Nuevo espacio",
+    "edit": "Editar",
+    "archive": "Archivar",
+    "restore": "Restaurar"
+  },
+  "createModal": {
+    "titleCreate": "Nuevo espacio",
+    "titleEdit": "Editar espacio",
+    "name": "Nombre",
+    "namePlaceholder": "p. ej. Bodega Principal",
+    "type": "Tipo",
+    "address": "Dirección",
+    "addressPlaceholder": "Calle, Ciudad, CP",
+    "addressRequired": "Requerida para Bodega",
+    "warehouseDisabled": "Disponible en STARTER o superior",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "archiveModal": {
+    "title": "Archivar espacio",
+    "description": "¿Deseas archivar {{name}}? Dejará de aparecer en las vistas activas.",
+    "lastActiveWarning": "Este es el último espacio activo de tipo {{type}}. No puedes archivarlo.",
+    "confirm": "Archivar",
+    "cancel": "Cancelar"
+  },
+  "restoreModal": {
+    "title": "Restaurar espacio",
+    "description": "¿Restaurar {{name}} a estado activo?",
+    "tierLimitWarning": "Restaurar este espacio excedería el límite de tu plan para {{type}}.",
+    "confirm": "Restaurar",
+    "cancel": "Cancelar"
+  },
+  "errors": {
+    "nameTaken": "Ya existe un espacio con ese nombre",
+    "loadFailed": "Error al cargar los espacios",
+    "saveFailed": "Error al guardar el espacio",
+    "archiveFailed": "Error al archivar el espacio",
+    "restoreFailed": "Error al restaurar el espacio"
+  }
+}
