@@ -29,7 +29,8 @@ export type RBACAction =
   | 'VIEW_SPACES'
   | 'CREATE_EDIT_SPACE'
   | 'VIEW_REPORTS'
-  | 'EXPORT_REPORTS';
+  | 'EXPORT_REPORTS'
+  | 'VIEW_AUDIT_LOG';
 
 export interface TenantMember {
   id: string;

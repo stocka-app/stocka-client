@@ -22,6 +22,7 @@ const ROLE_PERMISSIONS: Record<TenantRole, RBACAction[]> = {
     'CREATE_EDIT_SPACE',
     'VIEW_REPORTS',
     'EXPORT_REPORTS',
+    'VIEW_AUDIT_LOG',
   ],
   PARTNER: [
     'VIEW_ORG_CONFIG',
@@ -36,6 +37,7 @@ const ROLE_PERMISSIONS: Record<TenantRole, RBACAction[]> = {
     'CREATE_EDIT_SPACE',
     'VIEW_REPORTS',
     'EXPORT_REPORTS',
+    'VIEW_AUDIT_LOG',
   ],
   MANAGER: [
     'VIEW_ORG_CONFIG',

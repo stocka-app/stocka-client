@@ -61,6 +61,11 @@ describe('Given the RBAC store manages permissions', () => {
       expect(canDo('VIEW_SPACES')).toBe(true);
       expect(canDo('VIEW_REPORTS')).toBe(true);
     });
+
+    it('Then the OWNER can view the audit log', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('VIEW_AUDIT_LOG')).toBe(true);
+    });
   });
 
   // ─── MANAGER / FREE tier ──────────────────────────────────────────────────
@@ -89,6 +94,11 @@ describe('Given the RBAC store manages permissions', () => {
       expect(canDo('VIEW_REPORTS')).toBe(true);
       expect(canDo('VIEW_ORG_CONFIG')).toBe(true);
     });
+
+    it('Then the MANAGER cannot view the audit log', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('VIEW_AUDIT_LOG')).toBe(false);
+    });
   });
 
   // ─── VIEWER / FREE tier ───────────────────────────────────────────────────
@@ -104,6 +114,11 @@ describe('Given the RBAC store manages permissions', () => {
       expect(canDo('VIEW_PRODUCTS')).toBe(true);
       expect(canDo('INVITE_MEMBERS')).toBe(false);
       expect(canDo('CREATE_PRODUCT')).toBe(false);
+    });
+
+    it('Then the VIEWER cannot view the audit log', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('VIEW_AUDIT_LOG')).toBe(false);
     });
   });
 
@@ -390,6 +405,11 @@ describe('Given the RBAC store manages permissions', () => {
       const { canDo } = useRBACStore.getState();
       expect(canDo('VIEW_ORG_CONFIG')).toBe(true);
       expect(canDo('EDIT_ORG_CONFIG')).toBe(false);
+    });
+
+    it('Then the PARTNER can view the audit log', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('VIEW_AUDIT_LOG')).toBe(true);
     });
   });
 
