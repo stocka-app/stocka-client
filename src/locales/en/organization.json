@@ -1,0 +1,141 @@
+{
+  "pageTitle": "Organization",
+
+  "tabs": {
+    "profile": "Profile",
+    "limits": "Limits",
+    "audit": "Audit Log"
+  },
+
+  "profile": {
+    "title": "Organization profile",
+    "editButton": "Edit",
+    "saveButton": "Save changes",
+    "saving": "Saving...",
+    "cancelButton": "Cancel",
+
+    "fields": {
+      "name": "Business Name",
+      "namePlaceholder": "e.g. Central Hardware Store",
+      "slug": "URL / Slug",
+      "businessType": "Business Type",
+      "businessTypePlaceholder": "Select a type",
+      "rfc": "RFC",
+      "rfcPlaceholder": "e.g. ABC123456789",
+      "logo": "Logo",
+      "logoUpload": "Upload image",
+      "logoChange": "Change image",
+      "logoPreviewAlt": "Organization logo",
+      "status": "Status",
+      "createdAt": "Created On",
+      "tier": "Plan"
+    },
+
+    "businessTypes": {
+      "RETAIL": "Retail / Store",
+      "RESTAURANT": "Restaurant / Food",
+      "WORKSHOP": "Workshop / Manufacturing",
+      "SERVICES": "Services",
+      "HEALTH": "Health / Wellness",
+      "EDUCATION": "Education / Training",
+      "EVENTS": "Events / Entertainment",
+      "AGRICULTURE": "Agriculture / Farming",
+      "OTHER": "Other"
+    },
+
+    "status": {
+      "ACTIVE": "Active",
+      "SUSPENDED": "Suspended",
+      "CANCELLED": "Cancelled"
+    },
+
+    "tiers": {
+      "FREE": "Free",
+      "STARTER": "Starter",
+      "GROWTH": "Growth",
+      "ENTERPRISE": "Enterprise"
+    }
+  },
+
+  "validation": {
+    "nameRequired": "Business name is required",
+    "nameTooShort": "Name must be at least 2 characters",
+    "nameTooLong": "Name cannot exceed 100 characters",
+    "businessTypeRequired": "Business type is required",
+    "rfcTooLong": "RFC cannot exceed 20 characters",
+    "newOwnerRequired": "Select a new owner",
+    "confirmNameRequired": "Type the business name to confirm",
+    "confirmNameMismatch": "Name does not match. Type it exactly as shown."
+  },
+
+  "nameCheck": {
+    "checking": "Checking availability...",
+    "available": "Available",
+    "unavailable": "Not available"
+  },
+
+  "banners": {
+    "suspended": "Your organization is suspended. Some features are limited.",
+    "cancelled": "Your organization has been cancelled. Your data will be kept for 90 days."
+  },
+
+  "limits": {
+    "title": "Quotas and limits",
+    "tier": "Current plan",
+    "unlimited": "Unlimited",
+    "warehouses": "Warehouses",
+    "members": "Team members",
+    "products": "Products"
+  },
+
+  "dangerZone": {
+    "title": "Danger zone",
+
+    "transferOwnership": {
+      "triggerButton": "Transfer ownership",
+      "modalTitle": "Transfer ownership",
+      "selectLabel": "New owner",
+      "selectPlaceholder": "Select a member",
+      "confirmTitle": "Confirm transfer?",
+      "confirmMessage": "Are you sure you want to transfer ownership to {{name}}? You will be downgraded to PARTNER.",
+      "confirmButton": "Transfer",
+      "cancelButton": "Cancel",
+      "note": "The new owner will receive a confirmation email."
+    },
+
+    "cancelOrg": {
+      "triggerButton": "Cancel organization",
+      "modalTitle": "Cancel organization",
+      "warning": "This action cannot be undone. Your data will be kept for 90 days.",
+      "confirmLabel": "Type your business name to confirm",
+      "confirmPlaceholder": "Business name",
+      "confirmButton": "Cancel organization",
+      "cancelButton": "Go back",
+      "confirmNote": "Type exactly: {{name}}"
+    }
+  },
+
+  "audit": {
+    "title": "Audit log",
+    "noPermission": "You do not have permission to view the audit log.",
+    "empty": "No events recorded yet.",
+    "loadMore": "Load more",
+    "loading": "Loading...",
+    "columns": {
+      "datetime": "Date / Time",
+      "actor": "Actor",
+      "action": "Action",
+      "details": "Details"
+    }
+  },
+
+  "errors": {
+    "fetchProfileFailed": "Could not load the organization profile.",
+    "updateProfileFailed": "Could not update the profile. Please try again.",
+    "uploadLogoFailed": "Could not upload the logo. Please try again.",
+    "fetchQuotasFailed": "Could not load quotas.",
+    "fetchAuditFailed": "Could not load the audit log.",
+    "transferOwnershipFailed": "Could not transfer ownership. Please try again.",
+    "cancelOrgFailed": "Could not cancel the organization. Please try again."
+  }
+}

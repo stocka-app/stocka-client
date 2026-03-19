@@ -1,0 +1,141 @@
+{
+  "pageTitle": "Organización",
+
+  "tabs": {
+    "profile": "Perfil",
+    "limits": "Límites",
+    "audit": "Auditoría"
+  },
+
+  "profile": {
+    "title": "Perfil de la organización",
+    "editButton": "Editar",
+    "saveButton": "Guardar cambios",
+    "saving": "Guardando...",
+    "cancelButton": "Cancelar",
+
+    "fields": {
+      "name": "Nombre del Negocio",
+      "namePlaceholder": "Ej. Ferretería El Tornillo",
+      "slug": "URL / Slug",
+      "businessType": "Tipo de Negocio",
+      "businessTypePlaceholder": "Selecciona un tipo",
+      "rfc": "RFC",
+      "rfcPlaceholder": "Ej. ABC123456789",
+      "logo": "Logotipo",
+      "logoUpload": "Subir imagen",
+      "logoChange": "Cambiar imagen",
+      "logoPreviewAlt": "Logotipo de la organización",
+      "status": "Estado",
+      "createdAt": "Fecha de Creación",
+      "tier": "Plan"
+    },
+
+    "businessTypes": {
+      "RETAIL": "Comercio / Tienda",
+      "RESTAURANT": "Restaurante / Alimentos",
+      "WORKSHOP": "Taller / Manufactura",
+      "SERVICES": "Servicios",
+      "HEALTH": "Salud / Bienestar",
+      "EDUCATION": "Educación / Capacitación",
+      "EVENTS": "Eventos / Entretenimiento",
+      "AGRICULTURE": "Agricultura / Campo",
+      "OTHER": "Otro"
+    },
+
+    "status": {
+      "ACTIVE": "Activa",
+      "SUSPENDED": "Suspendida",
+      "CANCELLED": "Cancelada"
+    },
+
+    "tiers": {
+      "FREE": "Free",
+      "STARTER": "Starter",
+      "GROWTH": "Growth",
+      "ENTERPRISE": "Enterprise"
+    }
+  },
+
+  "validation": {
+    "nameRequired": "El nombre del negocio es requerido",
+    "nameTooShort": "El nombre debe tener al menos 2 caracteres",
+    "nameTooLong": "El nombre no puede tener más de 100 caracteres",
+    "businessTypeRequired": "El tipo de negocio es requerido",
+    "rfcTooLong": "El RFC no puede tener más de 20 caracteres",
+    "newOwnerRequired": "Selecciona un nuevo propietario",
+    "confirmNameRequired": "Escribe el nombre del negocio para confirmar",
+    "confirmNameMismatch": "El nombre no coincide. Escríbelo exactamente como aparece."
+  },
+
+  "nameCheck": {
+    "checking": "Verificando disponibilidad...",
+    "available": "Disponible",
+    "unavailable": "No disponible"
+  },
+
+  "banners": {
+    "suspended": "Tu organización está suspendida. Algunas funciones están limitadas.",
+    "cancelled": "Tu organización ha sido cancelada. Tus datos se conservarán por 90 días."
+  },
+
+  "limits": {
+    "title": "Cuotas y límites",
+    "tier": "Plan actual",
+    "unlimited": "Ilimitado",
+    "warehouses": "Bodegas",
+    "members": "Miembros del equipo",
+    "products": "Productos"
+  },
+
+  "dangerZone": {
+    "title": "Zona de peligro",
+
+    "transferOwnership": {
+      "triggerButton": "Transferir propiedad",
+      "modalTitle": "Transferir propiedad",
+      "selectLabel": "Nuevo propietario",
+      "selectPlaceholder": "Selecciona un miembro",
+      "confirmTitle": "¿Confirmar transferencia?",
+      "confirmMessage": "¿Estás seguro de transferir la propiedad a {{name}}? Serás degradado a PARTNER.",
+      "confirmButton": "Transferir",
+      "cancelButton": "Cancelar",
+      "note": "El nuevo owner recibirá un email de confirmación."
+    },
+
+    "cancelOrg": {
+      "triggerButton": "Cancelar organización",
+      "modalTitle": "Cancelar organización",
+      "warning": "Esta acción no se puede deshacer. Los datos se conservarán por 90 días.",
+      "confirmLabel": "Escribe el nombre de tu negocio para confirmar",
+      "confirmPlaceholder": "Nombre del negocio",
+      "confirmButton": "Cancelar organización",
+      "cancelButton": "Volver",
+      "confirmNote": "Escribe exactamente: {{name}}"
+    }
+  },
+
+  "audit": {
+    "title": "Registro de auditoría",
+    "noPermission": "No tienes permiso para ver el registro de auditoría.",
+    "empty": "No hay eventos registrados todavía.",
+    "loadMore": "Ver más",
+    "loading": "Cargando...",
+    "columns": {
+      "datetime": "Fecha / Hora",
+      "actor": "Actor",
+      "action": "Acción",
+      "details": "Detalles"
+    }
+  },
+
+  "errors": {
+    "fetchProfileFailed": "No se pudo cargar el perfil de la organización.",
+    "updateProfileFailed": "No se pudo actualizar el perfil. Intenta de nuevo.",
+    "uploadLogoFailed": "No se pudo subir el logotipo. Intenta de nuevo.",
+    "fetchQuotasFailed": "No se pudieron cargar las cuotas.",
+    "fetchAuditFailed": "No se pudo cargar el registro de auditoría.",
+    "transferOwnershipFailed": "No se pudo transferir la propiedad. Intenta de nuevo.",
+    "cancelOrgFailed": "No se pudo cancelar la organización. Intenta de nuevo."
+  }
+}
