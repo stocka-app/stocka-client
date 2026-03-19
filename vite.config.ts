@@ -51,6 +51,10 @@ export default defineConfig({
         'src/features/authentication/api/authentication.mock.ts',
         // HTTP service — integration scope (calls real API)
         'src/features/authentication/api/authentication.service.ts',
+        // Onboarding: HTTP service + mock + pages (integration scope)
+        'src/features/onboarding/api/onboarding.service.ts',
+        'src/features/onboarding/api/onboarding.mock.ts',
+        'src/features/onboarding/pages/**',
         // Placeholder feature with no real logic
         'src/features/dashboard/**',
         // Complex stateful form components — integration / e2e scope
