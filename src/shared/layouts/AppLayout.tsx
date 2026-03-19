@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'warehouse', path: '/warehouse', icon: Warehouse },
   { key: 'products', path: '/products', icon: Package },
   { key: 'suppliers', path: '/suppliers', icon: Truck },
-  { key: 'settings', path: '/settings', icon: Settings },
+  { key: 'settings', path: '/settings/organization', icon: Settings },
 ];
 
 export function AppLayout() {

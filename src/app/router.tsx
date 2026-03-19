@@ -14,6 +14,9 @@ const ResetPasswordPage = lazy(() => import('@/features/authentication/pages/Res
 const OAuthCallbackPage = lazy(() => import('@/features/authentication/pages/OAuthCallbackPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const OnboardingPage = lazy(() => import('@/features/onboarding/pages/OnboardingPage'));
+const OrganizationSettingsPage = lazy(
+  () => import('@/features/organization/pages/OrganizationSettingsPage'),
+);
 const TeamSettingsPage = lazy(() => import('@/features/team/pages/TeamSettingsPage'));
 
 export const router = createBrowserRouter([
@@ -138,6 +141,24 @@ export const router = createBrowserRouter([
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <DashboardPage />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: '/settings',
+        element: (
+          <ErrorBoundary>
+            <Navigate to="/settings/organization" replace />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: '/settings/organization',
+        element: (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <OrganizationSettingsPage />
             </Suspense>
           </ErrorBoundary>
         ),
