@@ -3,6 +3,24 @@
 All notable changes to this project are documented here.
 
 
+## [0.8.0](https://github.com/stocka-app/stocka-client/compare/v0.7.0...v0.8.0) (2026-03-19)
+
+### ✨ Features
+
+* **auth:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — remove Facebook OAuth provider ([5ab583b](https://github.com/stocka-app/stocka-client/commit/5ab583bcdba51520f98423ab761eb73658e09f21))
+* **auth:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — upgrade social buttons from icon-only to full-width labeled layout ([f5da3ab](https://github.com/stocka-app/stocka-client/commit/f5da3aba61952b09588e120c2266afb4033b1554))
+* **auth:** [STOC-285](https://austins-industries.atlassian.net/browse/STOC-285) — add openOAuthPopup() utility with centered position and fallback ([346a81d](https://github.com/stocka-app/stocka-client/commit/346a81de52bbc28ac0b5c791bdcadd8caacd7de6))
+* **auth:** [STOC-286](https://austins-industries.atlassian.net/browse/STOC-286) — add useOAuthPopup hook with window.message listener for popup token ([b950453](https://github.com/stocka-app/stocka-client/commit/b950453f5ac2eb78a90cba90c3870c24465f07f3))
+* **auth:** [STOC-287](https://austins-industries.atlassian.net/browse/STOC-287) — update initiateOAuth() to use popup instead of redirect ([1cf9888](https://github.com/stocka-app/stocka-client/commit/1cf9888036533f3ac2c26ebf06925a65c86e6c77))
+
+### 🐛 Bug Fixes
+
+* **e2e:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — fix e2e test infrastructure for full-width social buttons ([38b732d](https://github.com/stocka-app/stocka-client/commit/38b732d953e94b64e23be878b8b6776f17b4c801))
+
+### ✅ Tests
+
+* **auth:** [STOC-288](https://austins-industries.atlassian.net/browse/STOC-288) — add tests for OAuth popup flow ([ef3893d](https://github.com/stocka-app/stocka-client/commit/ef3893de895af884633b56d122c0c30126af7ba0))
+
 ## [0.7.0](https://github.com/stocka-app/stocka-client/compare/v0.6.0...v0.7.0) (2026-03-19)
 
 ### ✨ Features
