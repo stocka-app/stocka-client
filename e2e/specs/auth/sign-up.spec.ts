@@ -53,7 +53,7 @@ test.describe('Given a new user on the Sign Up page', () => {
       await expect(verifyEmailPage.emailDisplay).toContainText(email);
     });
 
-    test('Then the user record is created in the database with pending_verification status', async () => {
+    test('Then the user record is created in the database with pending_verification status', async ({ page }) => {
       const ts = unique();
       const email = `test_${ts}@stocka.test`;
 
@@ -63,6 +63,8 @@ test.describe('Given a new user on the Sign Up page', () => {
         username: `testuser_${ts}`,
         password: 'TestPass1',
       });
+
+      await page.waitForURL('**/verify-email');
 
       const account = await findAccountByEmail(pool, email);
       expect(account).not.toBeNull();

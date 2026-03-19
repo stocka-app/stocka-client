@@ -31,12 +31,11 @@ describe('SocialButton', () => {
     });
   });
 
-  describe('Given provider="facebook" and variant="icon"', () => {
-    it('Then it renders the Facebook icon button without a text label', () => {
-      render(<SocialButton provider="facebook" variant="icon" />);
+  describe('Given variant="icon" is used', () => {
+    it('Then it renders a compact icon-only button without a text label', () => {
+      render(<SocialButton provider="google" variant="icon" />);
       const button = screen.getByRole('button');
       expect(button).toBeInTheDocument();
-      // In icon variant, no label is passed — button contains only the SVG
       expect(button.querySelector('svg')).toBeInTheDocument();
     });
   });

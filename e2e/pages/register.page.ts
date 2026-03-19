@@ -29,7 +29,7 @@ export class RegisterPage {
     this.passwordInput = page.getByLabel(/^Enter your Password$/);
     this.confirmPasswordInput = page.getByLabel('Confirm Password');
 
-    this.signUpButton = page.getByRole('button', { name: 'Sign up' });
+    this.signUpButton = page.getByRole('button', { name: 'Sign up', exact: true });
     this.signInLink = page.getByRole('link', { name: 'Sign in' });
 
     this.errorAlert = page.locator('.bg-destructive\\/10');

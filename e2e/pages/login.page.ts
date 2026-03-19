@@ -29,7 +29,7 @@ export class LoginPage {
     this.emailOrUsernameInput = page.getByLabel('Enter your username or email address');
     this.passwordInput = page.getByLabel('Enter your Password');
 
-    this.signInButton = page.getByRole('button', { name: 'Sign in' });
+    this.signInButton = page.getByRole('button', { name: 'Sign in', exact: true });
     this.forgotPasswordLink = page.getByRole('button', { name: 'Forgot Password?' });
     this.createAccountLink = page.getByRole('link', { name: 'Create an account' });
 

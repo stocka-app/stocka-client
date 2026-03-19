@@ -64,7 +64,7 @@ export const test = base.extend<AuthFixtures>({
 
     await page.getByLabel('Enter your username or email address').fill(verifiedUser.email);
     await page.getByLabel('Enter your Password').fill(verifiedUser.password);
-    await page.getByRole('button', { name: 'Sign in' }).click();
+    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
 
     await page.waitForURL('**/dashboard');
 

@@ -21,10 +21,8 @@
   "orContinueWith": "O continuar con",
   "or": "O",
   "signInWithGoogle": "Continuar con Google",
-  "signInWithFacebook": "Continuar con Facebook",
   "signInWithMicrosoft": "Continuar con Microsoft",
   "signUpWithGoogle": "Registrarse con Google",
-  "signUpWithFacebook": "Registrarse con Facebook",
   "signUpWithMicrosoft": "Registrarse con Microsoft",
   "email": "Correo electrónico",
   "emailPlaceholder": "tu@correo.com",
@@ -162,6 +160,6 @@
     "tryAgainIn": "Demasiados intentos fallidos. Intenta de nuevo en {{time}}.",
     "tooManyRequests": "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
     "lockedCountdown": "Bloqueado ({{time}})",
-    "useAlternativeLogin": "Puedes iniciar sesión con Google, Facebook o Microsoft."
+    "useAlternativeLogin": "Puedes iniciar sesión con Google o Microsoft."
   }
 }
