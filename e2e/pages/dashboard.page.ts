@@ -15,7 +15,7 @@ export class DashboardPage {
     this.page = page;
 
     this.stockaLogo = page.getByRole('banner').getByText('Stocka');
-    this.logoutButton = page.getByRole('button', { name: 'Logout' });
+    this.logoutButton = page.getByRole('button', { name: 'Log out' });
     this.userEmailText = page.locator('dd').filter({ hasText: /@/ }).first();
     this.userUsernameText = page.locator('dl').locator('dd').nth(1);
   }

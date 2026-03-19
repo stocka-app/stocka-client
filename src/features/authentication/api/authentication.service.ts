@@ -70,13 +70,13 @@ export const authenticationService = {
 
   /**
    * Renovar sesión
-   * POST /authentication/refresh
+   * POST /authentication/refresh-session
    *
    * No requiere body — el refresh_token viaja via httpOnly cookie (withCredentials: true)
    * @returns Nuevo access token validado con Zod
    */
   async refreshSession(): Promise<RefreshSessionResponse> {
-    const response = await api.post('/authentication/refresh');
+    const response = await api.post('/authentication/refresh-session');
     return RefreshSessionResponseSchema.parse(response.data);
   },
 

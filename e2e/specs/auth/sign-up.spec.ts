@@ -64,6 +64,9 @@ test.describe('Given a new user on the Sign Up page', () => {
         password: 'TestPass1',
       });
 
+      // Wait for API response to complete (redirect to verify-email confirms the user was created)
+      await registerPage.page.waitForURL('**/verify-email');
+
       const account = await findAccountByEmail(pool, email);
       expect(account).not.toBeNull();
       expect(account!.status).toBe('pending_verification');

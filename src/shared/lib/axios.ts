@@ -70,7 +70,12 @@ api.interceptors.request.use(
  * Rutas de autenticación que NO deben manejar 401 automáticamente
  * (el 401 en estas rutas es un error de credenciales, no de token expirado)
  */
-const AUTH_ROUTES = ['/authentication/sign-in', '/authentication/sign-up', '/authentication/verify-email'];
+const AUTH_ROUTES = [
+  '/authentication/sign-in',
+  '/authentication/sign-up',
+  '/authentication/verify-email',
+  '/authentication/refresh-session',
+];
 
 /**
  * Verifica si la URL es una ruta de autenticación
@@ -121,7 +126,7 @@ api.interceptors.response.use(
         // La cookie refresh_token se envía automáticamente por el navegador.
         // No incluir Authorization header — este endpoint es público.
         const response = await axios.post(
-          `${API_URL}/authentication/refresh`,
+          `${API_URL}/authentication/refresh-session`,
           {},
           { withCredentials: true },
         );
