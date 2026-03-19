@@ -1,0 +1,111 @@
+export type {
+  BusinessType,
+  OnboardingPath,
+  Language,
+  Currency,
+  Theme,
+  Tier,
+  TeamSize,
+  MonthlyRevenue,
+  InvitationErrorCode,
+  InvitationDetails,
+  ConsentFormData,
+  PreferencesFormData,
+  BusinessProfileFormData,
+  InvitationCodeFormData,
+  ContextFormData,
+} from '../schemas/onboarding.schema';
+
+// =============================================================================
+// ONBOARDING STEPS
+// =============================================================================
+
+/**
+ * Step 0: path selection (no progress bar)
+ * Steps 1-7: main onboarding flow (with progress bar)
+ * The invitation sub-flow replaces steps 1-7 when path === 'invitation'
+ */
+export type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export type InvitationSubStep = 'code-entry' | 'confirmation';
+
+// =============================================================================
+// PERSISTED STATE
+// =============================================================================
+
+export interface OnboardingConsents {
+  terms: boolean;
+  marketing: boolean;
+}
+
+export interface OnboardingPreferences {
+  language: 'es' | 'en';
+  currency: 'MXN' | 'USD' | 'EUR';
+  theme: 'light' | 'dark';
+}
+
+export interface OnboardingBusinessProfile {
+  businessName: string;
+  businessType: string;
+  state: string;
+}
+
+export interface OnboardingContext {
+  teamSize?: string;
+  monthlyRevenue?: string;
+}
+
+// =============================================================================
+// STORE STATE
+// =============================================================================
+
+/**
+ * Persisted portion of the onboarding store
+ * Survives page refresh via localStorage
+ */
+export interface OnboardingPersistedState {
+  step: OnboardingStep;
+  path: 'create' | 'invitation' | null;
+  consents: OnboardingConsents | null;
+  preferences: OnboardingPreferences | null;
+  businessProfile: OnboardingBusinessProfile | null;
+  invitationCode: string | null;
+  context: OnboardingContext | null;
+  completedAt: string | null;
+}
+
+/**
+ * Ephemeral portion — NOT persisted
+ */
+export interface OnboardingEphemeralState {
+  isLoading: boolean;
+  error: string | null;
+  invitationDetails: import('../schemas/onboarding.schema').InvitationDetails | null;
+  invitationSubStep: InvitationSubStep;
+}
+
+export type OnboardingState = OnboardingPersistedState & OnboardingEphemeralState;
+
+// =============================================================================
+// STORE ACTIONS
+// =============================================================================
+
+export interface OnboardingActions {
+  setStep: (step: OnboardingStep) => void;
+  setPath: (path: 'create' | 'invitation') => void;
+  setConsents: (consents: OnboardingConsents) => void;
+  setPreferences: (preferences: OnboardingPreferences) => void;
+  setBusinessProfile: (profile: OnboardingBusinessProfile) => void;
+  setInvitationCode: (code: string) => void;
+  setContext: (context: OnboardingContext) => void;
+  setCompletedAt: (completedAt: string) => void;
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
+  setInvitationDetails: (
+    details: import('../schemas/onboarding.schema').InvitationDetails | null,
+  ) => void;
+  setInvitationSubStep: (subStep: InvitationSubStep) => void;
+  reset: () => void;
+}
+
+export type OnboardingStore = OnboardingState & OnboardingActions;

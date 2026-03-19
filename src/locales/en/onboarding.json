@@ -1,0 +1,169 @@
+{
+  "stepOf": "Step {{current}} of {{total}}",
+
+  "step0": {
+    "title": "How do you want to get started?",
+    "subtitle": "Choose the option that best describes your situation",
+    "createBusiness": "Create my business",
+    "createBusinessDescription": "Set up your account and start managing your inventory",
+    "haveInvitationCode": "I have an invitation code",
+    "haveInvitationCodeDescription": "Join an existing business team"
+  },
+
+  "step1": {
+    "title": "Welcome to Stocka!",
+    "subtitle": "Before we begin, we need your acceptance",
+    "termsLabel": "I accept the <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>",
+    "termsRequired": "You must accept the terms to continue",
+    "marketingLabel": "I want to receive news, tips, and offers from Stocka by email",
+    "ctaButton": "Get started",
+    "starting": "Starting..."
+  },
+
+  "step2": {
+    "title": "Your preferences",
+    "subtitle": "Customize your Stocka experience",
+    "languageLabel": "Language",
+    "languagePlaceholder": "Select a language",
+    "languageEs": "Español",
+    "languageEn": "English",
+    "currencyLabel": "Currency",
+    "currencyPlaceholder": "Select a currency",
+    "currencyMXN": "MXN — Mexican Peso",
+    "currencyUSD": "USD — US Dollar",
+    "currencyEUR": "EUR — Euro",
+    "themeLabel": "Visual theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "ctaButton": "Continue",
+    "saving": "Saving..."
+  },
+
+  "step3": {
+    "title": "Tell us about your business",
+    "subtitle": "This information helps us personalize Stocka for you",
+    "businessNameLabel": "Business name",
+    "businessNamePlaceholder": "e.g. The Hardware Store",
+    "businessNameTooShort": "Name must be at least 2 characters",
+    "businessNameTooLong": "Name cannot exceed 100 characters",
+    "businessNameRequired": "Business name is required",
+    "businessTypeLabel": "Business type",
+    "businessTypeRequired": "Select your business type",
+    "stateLabel": "State (Mexico)",
+    "statePlaceholder": "Select your state",
+    "stateRequired": "Select your state",
+    "ctaButton": "Continue",
+    "saving": "Saving...",
+    "businessTypes": {
+      "RETAIL": "Retail / Store",
+      "RESTAURANT": "Restaurant / Food",
+      "WORKSHOP": "Workshop / Manufacturing",
+      "SERVICES": "Services",
+      "HEALTH": "Health / Pharmacy",
+      "EDUCATION": "Education",
+      "EVENTS": "Events",
+      "AGRICULTURE": "Agriculture / Farm",
+      "OTHER": "Other"
+    }
+  },
+
+  "step4": {
+    "title": "Storage spaces",
+    "subtitle": "Organize your inventory by physical locations",
+    "warehouseCardTitle": "Main Warehouse",
+    "warehouseCardDescription": "Your first space to organize your inventory",
+    "createSpaceButton": "Create space",
+    "skipLink": "Skip for now",
+    "ctaButton": "Continue",
+    "proBadge": "Pro",
+    "lockedMessage": "Available on paid plans",
+    "lockedDescription": "Upgrade your plan to create and manage multiple storage spaces",
+    "freeTierNote": "On the free plan you can manage your inventory without physical spaces"
+  },
+
+  "step5": {
+    "title": "Tell us a little more",
+    "subtitle": "This information helps us give you better recommendations (optional)",
+    "teamSizeLabel": "How many people work in your business?",
+    "teamSizeSolo": "Just me",
+    "teamSize2to5": "2 to 5",
+    "teamSize6to20": "6 to 20",
+    "teamSize21to50": "21 to 50",
+    "teamSize50plus": "More than 50",
+    "revenueLabel": "What is your approximate monthly revenue?",
+    "revenueLess50k": "Less than $50k MXN",
+    "revenue50to200k": "$50k – $200k MXN",
+    "revenue200kTo1M": "$200k – $1M MXN",
+    "revenueMore1M": "More than $1M MXN",
+    "skipLink": "Skip",
+    "ctaButton": "Continue",
+    "saving": "Saving..."
+  },
+
+  "step6": {
+    "title": "Quick start",
+    "subtitle": "Here is what you can do right away in Stocka",
+    "checklistTitle": "Your getting started checklist",
+    "item1": "Add your first product to inventory",
+    "item2": "Invite your team to collaborate",
+    "item3": "Set up your first storage space",
+    "item4": "Explore reports and metrics",
+    "ctaButton": "Go to dashboard",
+    "skipLink": "Skip"
+  },
+
+  "step7": {
+    "title": "Your business is ready!",
+    "subtitle": "You have completed the initial Stocka setup",
+    "successMessage": "You can now start managing your inventory",
+    "ctaButton": "Go to dashboard →"
+  },
+
+  "invitation": {
+    "codeEntry": {
+      "title": "Invitation code",
+      "subtitle": "Enter the code your team administrator shared with you",
+      "codePlaceholder": "e.g. ABC12345",
+      "codeLabel": "Invitation code",
+      "codeInvalid": "Code must be exactly 8 alphanumeric characters",
+      "codeRequired": "Invitation code is required",
+      "ctaButton": "Validate code",
+      "validating": "Validating...",
+      "backLink": "← Back",
+      "errors": {
+        "INVALID_CODE": "This code is not valid. Please check that you typed it correctly.",
+        "EXPIRED_CODE": "This invitation code has expired. Ask the administrator for a new one.",
+        "ALREADY_USED": "This code has already been used.",
+        "UNKNOWN": "An error occurred while validating the code. Please try again."
+      }
+    },
+    "confirmation": {
+      "title": "Confirm your invitation",
+      "subtitle": "You have been invited to join this team",
+      "businessLabel": "Business",
+      "invitedByLabel": "Invited by",
+      "roleLabel": "Your role",
+      "ctaButton": "Join the team",
+      "joining": "Joining...",
+      "cancelLink": "Cancel"
+    }
+  },
+
+  "common": {
+    "back": "← Back",
+    "skip": "Skip",
+    "continue": "Continue",
+    "loading": "Loading...",
+    "errorTitle": "Something went wrong",
+    "tryAgain": "Try again",
+    "stockaLogo": "Stocka logo"
+  },
+
+  "errors": {
+    "preferencesUpdateFailed": "Could not save your preferences. Please try again.",
+    "profileUpdateFailed": "Could not save the business profile. Please try again.",
+    "onboardingCompleteFailed": "Could not complete onboarding. Please try again.",
+    "invitationValidateFailed": "Could not validate the code. Please try again.",
+    "invitationAcceptFailed": "Could not process the invitation. Please try again."
+  }
+}

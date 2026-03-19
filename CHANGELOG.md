@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.4.0](https://github.com/stocka-app/stocka-client/compare/v0.3.0...v0.4.0) (2026-03-19)
+
+### ✨ Features
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — implement AppLayout shell with collapsible sidebar and route nesting ([a56dfad](https://github.com/stocka-app/stocka-client/commit/a56dfad70c1fe368165164c0c1f38e07e1c4bcba))
+
 ## [0.3.0](https://github.com/stocka-app/stocka-client/compare/v0.2.0...v0.3.0) (2026-03-18)
 
 ### ✨ Features

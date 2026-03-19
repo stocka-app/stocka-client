@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/components';
 import { AuthenticationLayout, AppLayout } from '@/shared/layouts';
 import { PublicRoute, ProtectedRoute, VerificationRoute } from '@/features/authentication/guards';
+import { OnboardingGuard } from '@/features/onboarding';
 import { PageLoader } from '@/app/page-loader';
 
 const LoginPage = lazy(() => import('@/features/authentication/pages/LoginPage'));
@@ -12,6 +13,7 @@ const ForgotPasswordPage = lazy(() => import('@/features/authentication/pages/Fo
 const ResetPasswordPage = lazy(() => import('@/features/authentication/pages/ResetPasswordPage'));
 const OAuthCallbackPage = lazy(() => import('@/features/authentication/pages/OAuthCallbackPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
+const OnboardingPage = lazy(() => import('@/features/onboarding/pages/OnboardingPage'));
 
 export const router = createBrowserRouter([
   {
@@ -103,6 +105,21 @@ export const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  // ── Onboarding — protected but outside AppLayout ──
+  {
+    path: '/onboarding',
+    element: (
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <OnboardingGuard>
+            <Suspense fallback={<PageLoader />}>
+              <OnboardingPage />
+            </Suspense>
+          </OnboardingGuard>
+        </ProtectedRoute>
+      </ErrorBoundary>
+    ),
   },
   // ── Authenticated shell: all post-login routes nested under AppLayout ──
   {
