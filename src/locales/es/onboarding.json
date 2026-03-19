@@ -1,0 +1,169 @@
+{
+  "stepOf": "Paso {{current}} de {{total}}",
+
+  "step0": {
+    "title": "¿Cómo quieres comenzar?",
+    "subtitle": "Elige la opción que mejor describe tu situación",
+    "createBusiness": "Crear mi negocio",
+    "createBusinessDescription": "Configura tu cuenta y empieza a gestionar tu inventario",
+    "haveInvitationCode": "Tengo un código de invitación",
+    "haveInvitationCodeDescription": "Únete al equipo de un negocio existente"
+  },
+
+  "step1": {
+    "title": "¡Bienvenido a Stocka!",
+    "subtitle": "Antes de comenzar, necesitamos tu aceptación",
+    "termsLabel": "Acepto los <termsLink>Términos de Servicio</termsLink> y la <privacyLink>Política de Privacidad</privacyLink>",
+    "termsRequired": "Debes aceptar los términos para continuar",
+    "marketingLabel": "Quiero recibir novedades, consejos y ofertas de Stocka por correo",
+    "ctaButton": "Comenzar",
+    "starting": "Comenzando..."
+  },
+
+  "step2": {
+    "title": "Tus preferencias",
+    "subtitle": "Personaliza tu experiencia en Stocka",
+    "languageLabel": "Idioma",
+    "languagePlaceholder": "Selecciona un idioma",
+    "languageEs": "Español",
+    "languageEn": "English",
+    "currencyLabel": "Moneda",
+    "currencyPlaceholder": "Selecciona una moneda",
+    "currencyMXN": "MXN — Peso mexicano",
+    "currencyUSD": "USD — Dólar estadounidense",
+    "currencyEUR": "EUR — Euro",
+    "themeLabel": "Tema visual",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "ctaButton": "Continuar",
+    "saving": "Guardando..."
+  },
+
+  "step3": {
+    "title": "Cuéntanos sobre tu negocio",
+    "subtitle": "Esta información nos ayuda a personalizar Stocka para ti",
+    "businessNameLabel": "Nombre del negocio",
+    "businessNamePlaceholder": "Ej. Ferretería El Tornillo",
+    "businessNameTooShort": "El nombre debe tener al menos 2 caracteres",
+    "businessNameTooLong": "El nombre no puede tener más de 100 caracteres",
+    "businessNameRequired": "El nombre del negocio es requerido",
+    "businessTypeLabel": "Tipo de negocio",
+    "businessTypeRequired": "Selecciona el tipo de negocio",
+    "stateLabel": "Estado (México)",
+    "statePlaceholder": "Selecciona tu estado",
+    "stateRequired": "Selecciona tu estado",
+    "ctaButton": "Continuar",
+    "saving": "Guardando...",
+    "businessTypes": {
+      "RETAIL": "Tienda / Retail",
+      "RESTAURANT": "Restaurante / Alimentos",
+      "WORKSHOP": "Taller / Manufactura",
+      "SERVICES": "Servicios",
+      "HEALTH": "Salud / Farmacia",
+      "EDUCATION": "Educación",
+      "EVENTS": "Eventos",
+      "AGRICULTURE": "Agricultura / Campo",
+      "OTHER": "Otro"
+    }
+  },
+
+  "step4": {
+    "title": "Espacios de almacenamiento",
+    "subtitle": "Organiza tu inventario por ubicaciones físicas",
+    "warehouseCardTitle": "Almacén Principal",
+    "warehouseCardDescription": "Tu primer espacio para organizar tu inventario",
+    "createSpaceButton": "Crear espacio",
+    "skipLink": "Omitir por ahora",
+    "ctaButton": "Continuar",
+    "proBadge": "Pro",
+    "lockedMessage": "Disponible en planes de pago",
+    "lockedDescription": "Actualiza tu plan para crear y gestionar múltiples espacios de almacenamiento",
+    "freeTierNote": "En el plan gratuito puedes gestionar tu inventario sin espacios físicos"
+  },
+
+  "step5": {
+    "title": "Cuéntanos un poco más",
+    "subtitle": "Esta información nos ayuda a darte mejores recomendaciones (opcional)",
+    "teamSizeLabel": "¿Cuántas personas trabajan en tu negocio?",
+    "teamSizeSolo": "Solo yo",
+    "teamSize2to5": "2 a 5",
+    "teamSize6to20": "6 a 20",
+    "teamSize21to50": "21 a 50",
+    "teamSize50plus": "Más de 50",
+    "revenueLabel": "¿Cuánto facturas aproximadamente al mes?",
+    "revenueLess50k": "Menos de $50k MXN",
+    "revenue50to200k": "$50k – $200k MXN",
+    "revenue200kTo1M": "$200k – $1M MXN",
+    "revenueMore1M": "Más de $1M MXN",
+    "skipLink": "Omitir",
+    "ctaButton": "Continuar",
+    "saving": "Guardando..."
+  },
+
+  "step6": {
+    "title": "Primeros pasos",
+    "subtitle": "Aquí tienes lo que puedes hacer de inmediato en Stocka",
+    "checklistTitle": "Tu checklist de inicio",
+    "item1": "Agrega tu primer producto al inventario",
+    "item2": "Invita a tu equipo para colaborar",
+    "item3": "Configura tu primer espacio de almacenamiento",
+    "item4": "Explora los reportes y métricas",
+    "ctaButton": "Ir al dashboard",
+    "skipLink": "Omitir"
+  },
+
+  "step7": {
+    "title": "¡Tu negocio está listo!",
+    "subtitle": "Has completado la configuración inicial de Stocka",
+    "successMessage": "Ahora puedes empezar a gestionar tu inventario",
+    "ctaButton": "Ir al dashboard →"
+  },
+
+  "invitation": {
+    "codeEntry": {
+      "title": "Código de invitación",
+      "subtitle": "Ingresa el código que te compartió el administrador de tu equipo",
+      "codePlaceholder": "Ej. ABC12345",
+      "codeLabel": "Código de invitación",
+      "codeInvalid": "El código debe tener exactamente 8 caracteres alfanuméricos",
+      "codeRequired": "El código de invitación es requerido",
+      "ctaButton": "Validar código",
+      "validating": "Validando...",
+      "backLink": "← Volver",
+      "errors": {
+        "INVALID_CODE": "El código no es válido. Verifica que lo hayas escrito correctamente.",
+        "EXPIRED_CODE": "Este código de invitación ha expirado. Pide uno nuevo al administrador.",
+        "ALREADY_USED": "Este código ya fue utilizado.",
+        "UNKNOWN": "Ocurrió un error al validar el código. Intenta de nuevo."
+      }
+    },
+    "confirmation": {
+      "title": "Confirma tu invitación",
+      "subtitle": "Te han invitado a unirte a este equipo",
+      "businessLabel": "Negocio",
+      "invitedByLabel": "Invitado por",
+      "roleLabel": "Tu rol",
+      "ctaButton": "Unirme al equipo",
+      "joining": "Uniéndome...",
+      "cancelLink": "Cancelar"
+    }
+  },
+
+  "common": {
+    "back": "← Atrás",
+    "skip": "Omitir",
+    "continue": "Continuar",
+    "loading": "Cargando...",
+    "errorTitle": "Algo salió mal",
+    "tryAgain": "Intentar de nuevo",
+    "stockaLogo": "Logo de Stocka"
+  },
+
+  "errors": {
+    "preferencesUpdateFailed": "No se pudieron guardar tus preferencias. Intenta de nuevo.",
+    "profileUpdateFailed": "No se pudo guardar el perfil del negocio. Intenta de nuevo.",
+    "onboardingCompleteFailed": "No se pudo completar el onboarding. Intenta de nuevo.",
+    "invitationValidateFailed": "No se pudo validar el código. Intenta de nuevo.",
+    "invitationAcceptFailed": "No se pudo procesar la invitación. Intenta de nuevo."
+  }
+}
