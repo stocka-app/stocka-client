@@ -3,6 +3,27 @@
 All notable changes to this project are documented here.
 
 
+## [0.7.0](https://github.com/stocka-app/stocka-client/compare/v0.6.0...v0.7.0) (2026-03-19)
+
+### ✨ Features
+
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add i18n strings and test mock for org settings feature ([52dcc42](https://github.com/stocka-app/stocka-client/commit/52dcc420c8bd68843f0afca24d2c09ce9caa4aa7))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add org settings UI components with permission gates ([ec6ec20](https://github.com/stocka-app/stocka-client/commit/ec6ec2058c381f19031f79254e90e9bd15f7da2d))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add organization API service with Zod-validated responses ([e099465](https://github.com/stocka-app/stocka-client/commit/e099465f33b319dbf87c48ac941e4522a444c601))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add organization Zustand store (no persist — server data) ([ce5bd59](https://github.com/stocka-app/stocka-client/commit/ce5bd59fc460adfff78dc2306f1733e4603b1fdb))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add OrganizationSettingsPage (3 tabs) and barrel export ([cb56825](https://github.com/stocka-app/stocka-client/commit/cb5682500f3685587bec6571fe17d5ced3cd40ad))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add team feature stubs (usePermission, PermissionGate) ([6c4b2ae](https://github.com/stocka-app/stocka-client/commit/6c4b2aeee5e8a5aaf450d2a7ff08e75b139fbdc6))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add useOrganization hook with debounced name check ([f949882](https://github.com/stocka-app/stocka-client/commit/f949882b57d86207fe614567745a813721711f48))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — add Zod schemas and TypeScript types for org settings ([84f6839](https://github.com/stocka-app/stocka-client/commit/84f6839c91e9282d41b4a957d43d89297b44a659))
+* **organization:** [STOC-263](https://austins-industries.atlassian.net/browse/STOC-263) — wire /settings/organization route, i18n namespace, and coverage config ([428fe78](https://github.com/stocka-app/stocka-client/commit/428fe7851335654994525c17a4a476fcc4486cae))
+* **spaces:** [STOC-264](https://austins-industries.atlassian.net/browse/STOC-264) — add spaces API service with Zod-validated responses ([492e614](https://github.com/stocka-app/stocka-client/commit/492e614b7358422fec2124ff9b3b1736881cd17a))
+* **spaces:** [STOC-264](https://austins-industries.atlassian.net/browse/STOC-264) — add spaces UI components (table, modals, limits) ([2d97b51](https://github.com/stocka-app/stocka-client/commit/2d97b519e9c55e326faf2db48e26602503fddb00))
+* **spaces:** [STOC-264](https://austins-industries.atlassian.net/browse/STOC-264) — add useSpaces hook ([2b36dcc](https://github.com/stocka-app/stocka-client/commit/2b36dcc3118f54546fac690cdaf9a4378365b1f2))
+* **spaces:** [STOC-264](https://austins-industries.atlassian.net/browse/STOC-264) — add Zod schemas, types, and Zustand store for spaces ([7753859](https://github.com/stocka-app/stocka-client/commit/7753859eb85aaeda896aacef4be497d6f335d712))
+* **spaces:** [STOC-264](https://austins-industries.atlassian.net/browse/STOC-264) — wire /warehouse route, spaces i18n namespace, and coverage config ([4823530](https://github.com/stocka-app/stocka-client/commit/48235301b744288ebeb1dcc737b96ad4d3126b52))
+* **upgrade-modal:** [STOC-280](https://austins-industries.atlassian.net/browse/STOC-280) — add TierGate and UpgradeModal components ([986d5e2](https://github.com/stocka-app/stocka-client/commit/986d5e2c9d30d38cf51c729c1589206f1bc6d689))
+* **upgrade-modal:** [STOC-280](https://austins-industries.atlassian.net/browse/STOC-280) — add upgrade-modal store and useTierGate hook ([8c1ed7c](https://github.com/stocka-app/stocka-client/commit/8c1ed7c545cbe3296087d4df9bcef9b7316534b8))
+
 ## [0.6.0](https://github.com/stocka-app/stocka-client/compare/v0.5.0...v0.6.0) (2026-03-19)
 
 ### ✨ Features
