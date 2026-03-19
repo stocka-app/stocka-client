@@ -17,6 +17,7 @@ const OnboardingPage = lazy(() => import('@/features/onboarding/pages/Onboarding
 const OrganizationSettingsPage = lazy(
   () => import('@/features/organization/pages/OrganizationSettingsPage'),
 );
+const TeamSettingsPage = lazy(() => import('@/features/team/pages/TeamSettingsPage'));
 
 export const router = createBrowserRouter([
   {
@@ -158,6 +159,16 @@ export const router = createBrowserRouter([
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <OrganizationSettingsPage />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: '/settings/team',
+        element: (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TeamSettingsPage />
             </Suspense>
           </ErrorBoundary>
         ),

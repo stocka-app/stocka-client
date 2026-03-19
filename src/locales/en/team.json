@@ -1,0 +1,183 @@
+{
+  "page": {
+    "title": "Team",
+    "description": "Manage your team members, invitations and roles."
+  },
+  "tabs": {
+    "members": "Members",
+    "invitations": "Invitations",
+    "roles": "Roles"
+  },
+  "members": {
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions",
+      "joined": "Joined"
+    },
+    "empty": "No team members yet.",
+    "inviteButton": "Invite member"
+  },
+  "invitations": {
+    "table": {
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "sent": "Sent",
+      "expires": "Expires",
+      "actions": "Actions"
+    },
+    "empty": "No pending invitations.",
+    "resend": "Resend",
+    "cancel": "Cancel invitation",
+    "resendSuccess": "Invitation resent successfully.",
+    "cancelSuccess": "Invitation cancelled successfully.",
+    "resendError": "Failed to resend invitation. Please try again.",
+    "cancelError": "Failed to cancel invitation. Please try again."
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "SUSPENDED": "Suspended",
+    "PENDING": "Pending",
+    "ACCEPTED": "Accepted",
+    "EXPIRED": "Expired",
+    "CANCELLED": "Cancelled"
+  },
+  "roles": {
+    "OWNER": "Owner",
+    "PARTNER": "Partner",
+    "MANAGER": "Manager",
+    "BUYER": "Buyer",
+    "WAREHOUSE_KEEPER": "Warehouse Keeper",
+    "SALES_REP": "Sales Rep",
+    "VIEWER": "Viewer",
+    "descriptions": {
+      "OWNER": "Full business control. Unique per organization.",
+      "PARTNER": "Operational management of inventory, warehouses and reports.",
+      "MANAGER": "Full inventory, warehouse and category management. Can invite lower roles.",
+      "BUYER": "Purchase orders and product reception.",
+      "WAREHOUSE_KEEPER": "Movements and reception in warehouses.",
+      "SALES_REP": "Point of sale. Access to products for sale.",
+      "VIEWER": "Read-only. No ability to create or modify."
+    },
+    "hierarchy": {
+      "OWNER": "Level 7",
+      "PARTNER": "Level 6",
+      "MANAGER": "Level 5",
+      "BUYER": "Level 4",
+      "WAREHOUSE_KEEPER": "Level 4",
+      "SALES_REP": "Level 4",
+      "VIEWER": "Level 1"
+    },
+    "permissions": {
+      "OWNER": [
+        "Full access and editing",
+        "Manage members and roles",
+        "Organization configuration"
+      ],
+      "PARTNER": [
+        "Inventory, warehouses and reports",
+        "Invite and change lower roles",
+        "No access to configuration"
+      ],
+      "MANAGER": [
+        "Inventory, categories and warehouses",
+        "Can invite lower roles",
+        "No member removal"
+      ],
+      "BUYER": [
+        "View inventory and spaces",
+        "View reports",
+        "No write permissions"
+      ],
+      "WAREHOUSE_KEEPER": [
+        "Edit products in warehouses",
+        "Export reports",
+        "No team management"
+      ],
+      "SALES_REP": [
+        "Access to products for sale",
+        "View reports",
+        "No write permissions"
+      ],
+      "VIEWER": [
+        "Read-only",
+        "No ability to create or modify",
+        "No team management"
+      ]
+    }
+  },
+  "actions": {
+    "suspend": "Suspend",
+    "reactivate": "Reactivate",
+    "remove": "Remove from team",
+    "changeRole": "Change role",
+    "addGrant": "Add permission",
+    "removeGrant": "Remove permission"
+  },
+  "invite": {
+    "title": "Invite member",
+    "email": "Email address",
+    "emailPlaceholder": "name@company.com",
+    "role": "Role",
+    "rolePlaceholder": "Select a role",
+    "message": "Message (optional)",
+    "messagePlaceholder": "Write a personalized message...",
+    "messageMaxChars": "Maximum 200 characters",
+    "submit": "Send invitation",
+    "cancel": "Cancel",
+    "success": "Invitation sent successfully.",
+    "error": "Failed to send invitation. Please try again.",
+    "validation": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "roleRequired": "Select a role to continue."
+    }
+  },
+  "changeRole": {
+    "title": "Change role",
+    "confirmMessage": "Change {{name}}'s role from {{oldRole}} to {{newRole}}?",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "success": "Role updated successfully.",
+    "error": "Failed to update role. Please try again."
+  },
+  "removeMember": {
+    "title": "Remove member",
+    "confirmMessage": "Remove {{name}} from the team? This action is permanent.",
+    "confirm": "Remove",
+    "cancel": "Cancel",
+    "success": "Member removed from team.",
+    "error": "Failed to remove member. Please try again."
+  },
+  "suspendMember": {
+    "success": "Member suspended successfully.",
+    "error": "Failed to suspend member. Please try again."
+  },
+  "reactivateMember": {
+    "success": "Member reactivated successfully.",
+    "error": "Failed to reactivate member. Please try again."
+  },
+  "grants": {
+    "title": "Individual permissions",
+    "description": "Add additional permissions for this member.",
+    "empty": "No additional permissions.",
+    "add": "Add",
+    "remove": "Remove",
+    "addSuccess": "Permission added successfully.",
+    "removeSuccess": "Permission removed successfully.",
+    "addError": "Failed to add permission.",
+    "removeError": "Failed to remove permission."
+  },
+  "freeTierBanner": {
+    "message": "Only the owner can make changes. Upgrade your plan to grant permissions to your team.",
+    "cta": "See plans"
+  },
+  "errors": {
+    "fetchMembers": "Failed to load team members.",
+    "fetchInvitations": "Failed to load invitations.",
+    "generic": "An unexpected error occurred. Please try again."
+  }
+}

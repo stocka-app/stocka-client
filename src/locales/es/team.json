@@ -1,0 +1,183 @@
+{
+  "page": {
+    "title": "Equipo",
+    "description": "Gestiona los miembros de tu equipo, invitaciones y roles."
+  },
+  "tabs": {
+    "members": "Miembros",
+    "invitations": "Invitaciones",
+    "roles": "Roles"
+  },
+  "members": {
+    "table": {
+      "name": "Nombre",
+      "email": "Correo",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones",
+      "joined": "Ingresó"
+    },
+    "empty": "No hay miembros en el equipo todavía.",
+    "inviteButton": "Invitar miembro"
+  },
+  "invitations": {
+    "table": {
+      "email": "Correo",
+      "role": "Rol",
+      "status": "Estado",
+      "sent": "Enviado",
+      "expires": "Expira",
+      "actions": "Acciones"
+    },
+    "empty": "No hay invitaciones pendientes.",
+    "resend": "Reenviar",
+    "cancel": "Cancelar invitación",
+    "resendSuccess": "Invitación reenviada correctamente.",
+    "cancelSuccess": "Invitación cancelada correctamente.",
+    "resendError": "No se pudo reenviar la invitación. Intenta de nuevo.",
+    "cancelError": "No se pudo cancelar la invitación. Intenta de nuevo."
+  },
+  "status": {
+    "ACTIVE": "Activo",
+    "SUSPENDED": "Suspendido",
+    "PENDING": "Pendiente",
+    "ACCEPTED": "Aceptada",
+    "EXPIRED": "Expirada",
+    "CANCELLED": "Cancelada"
+  },
+  "roles": {
+    "OWNER": "Propietario",
+    "PARTNER": "Socio",
+    "MANAGER": "Gerente",
+    "BUYER": "Comprador",
+    "WAREHOUSE_KEEPER": "Almacenista",
+    "SALES_REP": "Vendedor",
+    "VIEWER": "Visitante",
+    "descriptions": {
+      "OWNER": "Control total del negocio. Único por organización.",
+      "PARTNER": "Gestión operativa de inventario, bodegas y reportes.",
+      "MANAGER": "Gestión completa de inventario, bodegas y categorías. Puede invitar roles menores.",
+      "BUYER": "Órdenes de compra y recepción de productos.",
+      "WAREHOUSE_KEEPER": "Movimientos y recepción en bodegas.",
+      "SALES_REP": "Punto de venta. Acceso a productos para venta.",
+      "VIEWER": "Solo lectura. Sin capacidad de crear ni modificar."
+    },
+    "hierarchy": {
+      "OWNER": "Nivel 7",
+      "PARTNER": "Nivel 6",
+      "MANAGER": "Nivel 5",
+      "BUYER": "Nivel 4",
+      "WAREHOUSE_KEEPER": "Nivel 4",
+      "SALES_REP": "Nivel 4",
+      "VIEWER": "Nivel 1"
+    },
+    "permissions": {
+      "OWNER": [
+        "Acceso y edición total",
+        "Gestión de miembros y roles",
+        "Configuración de organización"
+      ],
+      "PARTNER": [
+        "Inventario, bodegas y reportes",
+        "Invitar y cambiar roles menores",
+        "Sin acceso a configuración"
+      ],
+      "MANAGER": [
+        "Inventario, categorías y bodegas",
+        "Puede invitar roles menores",
+        "Sin eliminación de miembros"
+      ],
+      "BUYER": [
+        "Ver inventario y espacios",
+        "Ver reportes",
+        "Sin permisos de escritura"
+      ],
+      "WAREHOUSE_KEEPER": [
+        "Editar productos en bodegas",
+        "Exportar reportes",
+        "Sin gestión de equipo"
+      ],
+      "SALES_REP": [
+        "Acceso a productos para venta",
+        "Ver reportes",
+        "Sin permisos de escritura"
+      ],
+      "VIEWER": [
+        "Solo lectura",
+        "Sin capacidad de crear ni modificar",
+        "Sin invitar ni gestionar equipo"
+      ]
+    }
+  },
+  "actions": {
+    "suspend": "Suspender",
+    "reactivate": "Reactivar",
+    "remove": "Remover del equipo",
+    "changeRole": "Cambiar rol",
+    "addGrant": "Agregar permiso",
+    "removeGrant": "Remover permiso"
+  },
+  "invite": {
+    "title": "Invitar miembro",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "nombre@empresa.com",
+    "role": "Rol",
+    "rolePlaceholder": "Selecciona un rol",
+    "message": "Mensaje (opcional)",
+    "messagePlaceholder": "Escribe un mensaje personalizado...",
+    "messageMaxChars": "Máximo 200 caracteres",
+    "submit": "Enviar invitación",
+    "cancel": "Cancelar",
+    "success": "Invitación enviada correctamente.",
+    "error": "No se pudo enviar la invitación. Intenta de nuevo.",
+    "validation": {
+      "emailRequired": "El correo es obligatorio.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "roleRequired": "Selecciona un rol para continuar."
+    }
+  },
+  "changeRole": {
+    "title": "Cambiar rol",
+    "confirmMessage": "¿Cambiar el rol de {{name}} de {{oldRole}} a {{newRole}}?",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "success": "Rol actualizado correctamente.",
+    "error": "No se pudo actualizar el rol. Intenta de nuevo."
+  },
+  "removeMember": {
+    "title": "Remover miembro",
+    "confirmMessage": "¿Remover a {{name}} del equipo? Esta acción es permanente.",
+    "confirm": "Remover",
+    "cancel": "Cancelar",
+    "success": "Miembro removido del equipo.",
+    "error": "No se pudo remover al miembro. Intenta de nuevo."
+  },
+  "suspendMember": {
+    "success": "Miembro suspendido correctamente.",
+    "error": "No se pudo suspender al miembro. Intenta de nuevo."
+  },
+  "reactivateMember": {
+    "success": "Miembro reactivado correctamente.",
+    "error": "No se pudo reactivar al miembro. Intenta de nuevo."
+  },
+  "grants": {
+    "title": "Permisos individuales",
+    "description": "Agrega permisos adicionales para este miembro.",
+    "empty": "Sin permisos adicionales.",
+    "add": "Agregar",
+    "remove": "Remover",
+    "addSuccess": "Permiso agregado correctamente.",
+    "removeSuccess": "Permiso removido correctamente.",
+    "addError": "No se pudo agregar el permiso.",
+    "removeError": "No se pudo remover el permiso."
+  },
+  "freeTierBanner": {
+    "message": "Solo el propietario puede realizar cambios. Actualiza tu plan para dar permisos a tu equipo.",
+    "cta": "Ver planes"
+  },
+  "errors": {
+    "fetchMembers": "No se pudieron cargar los miembros del equipo.",
+    "fetchInvitations": "No se pudieron cargar las invitaciones.",
+    "generic": "Ocurrió un error inesperado. Intenta de nuevo."
+  }
+}

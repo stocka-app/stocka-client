@@ -61,8 +61,10 @@ export default defineConfig({
         'src/features/organization/pages/**',
         // Complex stateful form component with file upload — integration scope
         'src/features/organization/components/OrgEditForm.tsx',
-        // Team: RBAC stubs (will be covered when STOC-256 RBAC is implemented)
-        'src/features/team/**',
+        // Team: HTTP service + mock + pages (integration scope)
+        'src/features/team/api/team.service.ts',
+        'src/features/team/api/team.mock.ts',
+        'src/features/team/pages/**',
         // Placeholder feature with no real logic
         'src/features/dashboard/**',
         // Complex stateful form components — integration / e2e scope
