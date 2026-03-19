@@ -181,12 +181,11 @@ export type AuthStore = AuthState & AuthActions;
 /**
  * Proveedores de OAuth soportados
  * - Google: OAuth 2.0
- * - Facebook: OAuth
  * - Microsoft: Azure AD OAuth
  *
- * Nota: Apple está deshabilitado en el backend
+ * Nota: Apple está deshabilitado en el backend (requiere Apple Developer Program)
  */
-export type OAuthProvider = 'google' | 'facebook' | 'microsoft';
+export type OAuthProvider = 'google' | 'microsoft';
 
 /**
  * Parámetros de callback de OAuth
