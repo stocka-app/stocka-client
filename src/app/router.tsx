@@ -15,6 +15,7 @@ const OAuthCallbackPage = lazy(() => import('@/features/authentication/pages/OAu
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const OnboardingPage = lazy(() => import('@/features/onboarding/pages/OnboardingPage'));
 const TeamSettingsPage = lazy(() => import('@/features/team/pages/TeamSettingsPage'));
+const SpacesPage = lazy(() => import('@/features/spaces/pages/SpacesPage'));
 
 export const router = createBrowserRouter([
   {
@@ -148,6 +149,16 @@ export const router = createBrowserRouter([
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <TeamSettingsPage />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: '/warehouse',
+        element: (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <SpacesPage />
             </Suspense>
           </ErrorBoundary>
         ),
