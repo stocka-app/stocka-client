@@ -145,7 +145,7 @@ describe('useOAuthPopup', () => {
       });
     });
 
-    describe('When a valid OAUTH_SUCCESS message arrives from the correct origin', () => {
+    describe('When a valid oauth-success message arrives from the correct origin', () => {
       it('Then it sets the access token in memory', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -157,7 +157,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent(BACKEND_ORIGIN, {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
         });
@@ -176,7 +176,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent(BACKEND_ORIGIN, {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
         });
@@ -195,7 +195,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent(BACKEND_ORIGIN, {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
         });
@@ -216,7 +216,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent(BACKEND_ORIGIN, {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
         });
@@ -235,7 +235,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent(BACKEND_ORIGIN, {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
         });
@@ -254,7 +254,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent(BACKEND_ORIGIN, {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
         });
@@ -275,7 +275,7 @@ describe('useOAuthPopup', () => {
 
         await act(async () => {
           listener(buildMessageEvent('https://evil-site.com', {
-            type: 'OAUTH_SUCCESS',
+            type: 'oauth-success',
             accessToken: 'stolen-token',
           }));
         });

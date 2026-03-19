@@ -16,7 +16,7 @@ function getExpectedOrigin(): string {
 }
 
 interface OAuthSuccessMessage {
-  type: 'OAUTH_SUCCESS';
+  type: 'oauth-success';
   accessToken: string;
 }
 
@@ -24,7 +24,7 @@ function isOAuthSuccessMessage(data: unknown): data is OAuthSuccessMessage {
   return (
     typeof data === 'object' &&
     data !== null &&
-    (data as Record<string, unknown>)['type'] === 'OAUTH_SUCCESS' &&
+    (data as Record<string, unknown>)['type'] === 'oauth-success' &&
     typeof (data as Record<string, unknown>)['accessToken'] === 'string'
   );
 }
