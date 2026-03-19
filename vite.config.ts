@@ -55,6 +55,14 @@ export default defineConfig({
         'src/features/onboarding/api/onboarding.service.ts',
         'src/features/onboarding/api/onboarding.mock.ts',
         'src/features/onboarding/pages/**',
+        // Organization: HTTP service + mock + pages (integration scope)
+        'src/features/organization/api/organization.service.ts',
+        'src/features/organization/api/organization.mock.ts',
+        'src/features/organization/pages/**',
+        // Complex stateful form component with file upload — integration scope
+        'src/features/organization/components/OrgEditForm.tsx',
+        // Team: RBAC stubs (will be covered when STOC-256 RBAC is implemented)
+        'src/features/team/**',
         // Placeholder feature with no real logic
         'src/features/dashboard/**',
         // Complex stateful form components — integration / e2e scope
