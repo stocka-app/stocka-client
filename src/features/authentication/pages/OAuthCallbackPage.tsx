@@ -113,18 +113,16 @@ function OAuthCallbackPage() {
           return;
         }
 
-        // Popup mode: postMessage to the opener (which is same-origin) and close
+        // Popup mode: broadcast token to the parent window via BroadcastChannel
+        // (BroadcastChannel works same-origin regardless of window.opener status —
+        //  cross-origin navigation through OAuth providers can break window.opener)
         const popupMode = searchParams.get('popup') === 'true';
         if (popupMode) {
-          if (window.opener && !window.opener.closed) {
-            window.opener.postMessage(
-              { type: 'oauth-success', accessToken },
-              window.location.origin,
-            );
-            window.close();
-            return;
-          }
-          // Opener unavailable — fall through to normal redirect processing
+          const channel = new BroadcastChannel('stocka-oauth');
+          channel.postMessage({ type: 'oauth-success', accessToken });
+          channel.close();
+          window.close();
+          return;
         }
 
         // Poner el accessToken en memoria antes de hacer cualquier llamada autenticada

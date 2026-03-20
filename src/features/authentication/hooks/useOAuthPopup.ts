@@ -6,9 +6,7 @@ import { openOAuthPopup } from '../api/oauth-popup.helper';
 import { useAuthenticationStore } from '../store/authentication.store';
 import type { OAuthProvider, User } from '../types/authentication.types';
 
-function getExpectedOrigin(): string {
-  return window.location.origin;
-}
+const OAUTH_BROADCAST_CHANNEL = 'stocka-oauth';
 
 interface OAuthSuccessMessage {
   type: 'oauth-success';
@@ -33,24 +31,25 @@ export interface UseOAuthPopupReturn {
  *
  * Responsibilities:
  * - Opens a centered popup via openOAuthPopup
- * - Listens for window.postMessage from the backend callback page
- * - Validates the message origin and type
+ * - Listens for BroadcastChannel messages from the OAuth callback page
+ * - BroadcastChannel is same-origin only and unaffected by window.opener
+ *   being nulled by cross-origin navigation through OAuth providers
  * - On OAUTH_SUCCESS: persists the token, loads the user, navigates to dashboard
  * - Polls popup.closed to clean up if the user closes the popup manually
- * - Cleans up listeners and intervals on unmount
+ * - Cleans up channel and interval on unmount
  */
 export function useOAuthPopup(): UseOAuthPopupReturn {
   const navigate = useNavigate();
   const { handleOAuthCallback } = useAuthenticationStore();
 
   const popupRef = useRef<Window | null>(null);
-  const listenerRef = useRef<((event: MessageEvent) => void) | null>(null);
+  const channelRef = useRef<BroadcastChannel | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const cleanup = useCallback((): void => {
-    if (listenerRef.current) {
-      window.removeEventListener('message', listenerRef.current);
-      listenerRef.current = null;
+    if (channelRef.current) {
+      channelRef.current.close();
+      channelRef.current = null;
     }
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
@@ -75,13 +74,10 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
 
       popupRef.current = popup;
 
-      const expectedOrigin = getExpectedOrigin();
+      const channel = new BroadcastChannel(OAUTH_BROADCAST_CHANNEL);
+      channelRef.current = channel;
 
       const handleMessage = async (event: MessageEvent): Promise<void> => {
-        if (event.origin !== expectedOrigin) {
-          return;
-        }
-
         if (!isOAuthSuccessMessage(event.data)) {
           return;
         }
@@ -104,8 +100,7 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
         navigate('/dashboard', { replace: true });
       };
 
-      listenerRef.current = handleMessage as (event: MessageEvent) => void;
-      window.addEventListener('message', listenerRef.current);
+      channel.onmessage = handleMessage as (event: MessageEvent) => void;
 
       // Poll popup.closed to clean up when the user dismisses the popup manually
       intervalRef.current = setInterval((): void => {

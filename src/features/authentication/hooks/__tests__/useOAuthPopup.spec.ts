@@ -31,22 +31,41 @@ vi.mock('@/shared/lib/axios', () => ({
 }));
 
 // ---------------------------------------------------------------------------
+// BroadcastChannel mock
+// ---------------------------------------------------------------------------
+
+interface MockChannelInstance {
+  onmessage: ((event: MessageEvent) => void) | null;
+  close: ReturnType<typeof vi.fn>;
+  name: string;
+}
+
+let capturedChannel: MockChannelInstance | null = null;
+const mockChannelClose = vi.fn();
+
+class MockBroadcastChannel {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  close = mockChannelClose;
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+    capturedChannel = this;
+  }
+}
+
+vi.stubGlobal('BroadcastChannel', MockBroadcastChannel);
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Build a fake MessageEvent as postMessage would produce. */
-function buildMessageEvent(origin: string, data: unknown): MessageEvent {
-  return new MessageEvent('message', { origin, data });
+function dispatchChannelMessage(data: unknown): void {
+  if (capturedChannel?.onmessage) {
+    capturedChannel.onmessage(new MessageEvent('message', { data }));
+  }
 }
 
-/** Retrieve the last registered listener for a given event type. */
-function getLastEventListener(type: string): EventListener {
-  const calls = (window.addEventListener as ReturnType<typeof vi.fn>).mock.calls;
-  const matching = calls.filter((c: unknown[]) => c[0] === type);
-  return matching[matching.length - 1][1] as EventListener;
-}
-
-const FRONTEND_ORIGIN = 'http://localhost:3000';
 const OAUTH_URL = 'http://localhost:3001/api/authentication/google';
 
 // ---------------------------------------------------------------------------
@@ -54,17 +73,14 @@ const OAUTH_URL = 'http://localhost:3001/api/authentication/google';
 // ---------------------------------------------------------------------------
 
 describe('useOAuthPopup', () => {
-  let addEventListenerSpy: ReturnType<typeof vi.spyOn>;
-  let removeEventListenerSpy: ReturnType<typeof vi.spyOn>;
   let clearIntervalSpy: ReturnType<typeof vi.spyOn>;
   let setIntervalSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    capturedChannel = null;
 
-    addEventListenerSpy = vi.spyOn(window, 'addEventListener');
-    removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
     clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
     setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
 
@@ -124,14 +140,15 @@ describe('useOAuthPopup', () => {
         expect(openOAuthPopup).toHaveBeenCalledWith(`${OAUTH_URL}?mode=popup`);
       });
 
-      it('Then it registers a message event listener on the window', () => {
+      it('Then it creates a BroadcastChannel named stocka-oauth', () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
           result.current.initiateOAuthPopup('google');
         });
 
-        expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
+        expect(capturedChannel).not.toBeNull();
+        expect(capturedChannel?.name).toBe('stocka-oauth');
       });
 
       it('Then it starts polling the popup closed state', () => {
@@ -145,7 +162,7 @@ describe('useOAuthPopup', () => {
       });
     });
 
-    describe('When a valid oauth-success message arrives from the correct origin', () => {
+    describe('When a valid oauth-success message arrives on the BroadcastChannel', () => {
       it('Then it sets the access token in memory', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -153,13 +170,8 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'oauth-success',
-            accessToken: 'oauth-access-token',
-          }));
+          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
         });
 
         expect(setAccessToken).toHaveBeenCalledWith('oauth-access-token');
@@ -172,13 +184,8 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'oauth-success',
-            accessToken: 'oauth-access-token',
-          }));
+          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
         });
 
         expect(authenticationService.getMe).toHaveBeenCalledTimes(1);
@@ -191,13 +198,8 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'oauth-success',
-            accessToken: 'oauth-access-token',
-          }));
+          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
         });
 
         const storeState = useAuthenticationStore.getState();
@@ -212,35 +214,25 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'oauth-success',
-            accessToken: 'oauth-access-token',
-          }));
+          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
         });
 
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
       });
 
-      it('Then it removes the message listener after success', async () => {
+      it('Then it closes the BroadcastChannel after success', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'oauth-success',
-            accessToken: 'oauth-access-token',
-          }));
+          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
         });
 
-        expect(removeEventListenerSpy).toHaveBeenCalledWith('message', listener);
+        expect(mockChannelClose).toHaveBeenCalled();
       });
 
       it('Then it clears the polling interval after success', async () => {
@@ -250,20 +242,15 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'oauth-success',
-            accessToken: 'oauth-access-token',
-          }));
+          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
         });
 
         expect(clearIntervalSpy).toHaveBeenCalled();
       });
     });
 
-    describe('When a message arrives from an unknown origin', () => {
+    describe('When a message with an unknown type arrives on the BroadcastChannel', () => {
       it('Then it ignores the message and does not set the access token', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -271,35 +258,8 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        const listener = getLastEventListener('message');
-
         await act(async () => {
-          listener(buildMessageEvent('https://evil-site.com', {
-            type: 'oauth-success',
-            accessToken: 'stolen-token',
-          }));
-        });
-
-        expect(setAccessToken).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('When a message with an unknown type arrives from the correct origin', () => {
-      it('Then it ignores the message', async () => {
-        const { result } = renderHook(() => useOAuthPopup());
-
-        act(() => {
-          result.current.initiateOAuthPopup('google');
-        });
-
-        const listener = getLastEventListener('message');
-
-        await act(async () => {
-          listener(buildMessageEvent(FRONTEND_ORIGIN, {
-            type: 'SOME_OTHER_TYPE',
-            accessToken: 'some-token',
-          }));
+          dispatchChannelMessage({ type: 'SOME_OTHER_TYPE', accessToken: 'some-token' });
         });
 
         expect(setAccessToken).not.toHaveBeenCalled();
@@ -315,16 +275,14 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        // Simulate popup being closed by the user
         fakePopup.closed = true;
 
-        // Advance timers to trigger polling interval
         act(() => {
           vi.advanceTimersByTime(600);
         });
 
         expect(clearIntervalSpy).toHaveBeenCalled();
-        expect(removeEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
+        expect(mockChannelClose).toHaveBeenCalled();
       });
 
       it('Then the polling interval does nothing while the popup is still open', () => {
@@ -334,17 +292,14 @@ describe('useOAuthPopup', () => {
           result.current.initiateOAuthPopup('google');
         });
 
-        // Popup is still open (closed = false)
         fakePopup.closed = false;
 
         const clearIntervalCallsBefore = clearIntervalSpy.mock.calls.length;
 
-        // Advance timers — interval fires but popup is not closed yet
         act(() => {
           vi.advanceTimersByTime(600);
         });
 
-        // clearInterval should not have been called by the polling callback
         expect(clearIntervalSpy.mock.calls.length).toBe(clearIntervalCallsBefore);
       });
     });
@@ -356,19 +311,18 @@ describe('useOAuthPopup', () => {
 
   describe('Given the browser blocks the popup', () => {
     beforeEach(() => {
-      // openOAuthPopup falls back to redirect and returns null
       vi.mocked(openOAuthPopup).mockReturnValue(null);
     });
 
     describe('When initiateOAuthPopup is called', () => {
-      it('Then it does not register a message listener', () => {
+      it('Then it does not create a BroadcastChannel', () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
           result.current.initiateOAuthPopup('google');
         });
 
-        expect(addEventListenerSpy).not.toHaveBeenCalledWith('message', expect.any(Function));
+        expect(capturedChannel).toBeNull();
       });
 
       it('Then it does not start polling', () => {
@@ -393,7 +347,7 @@ describe('useOAuthPopup', () => {
     });
 
     describe('When the hook unmounts before the OAuth flow completes', () => {
-      it('Then it removes the message listener', () => {
+      it('Then it closes the BroadcastChannel', () => {
         const { result, unmount } = renderHook(() => useOAuthPopup());
 
         act(() => {
@@ -402,7 +356,7 @@ describe('useOAuthPopup', () => {
 
         unmount();
 
-        expect(removeEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
+        expect(mockChannelClose).toHaveBeenCalled();
       });
 
       it('Then it clears the polling interval', () => {
