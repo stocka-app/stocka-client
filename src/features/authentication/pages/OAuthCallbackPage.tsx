@@ -113,6 +113,20 @@ function OAuthCallbackPage() {
           return;
         }
 
+        // Popup mode: postMessage to the opener (which is same-origin) and close
+        const popupMode = searchParams.get('popup') === 'true';
+        if (popupMode) {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(
+              { type: 'oauth-success', accessToken },
+              window.location.origin,
+            );
+            window.close();
+            return;
+          }
+          // Opener unavailable — fall through to normal redirect processing
+        }
+
         // Poner el accessToken en memoria antes de hacer cualquier llamada autenticada
         setAccessToken(accessToken);
 

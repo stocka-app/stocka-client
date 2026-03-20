@@ -46,7 +46,7 @@ function getLastEventListener(type: string): EventListener {
   return matching[matching.length - 1][1] as EventListener;
 }
 
-const BACKEND_ORIGIN = 'http://localhost:3001';
+const FRONTEND_ORIGIN = 'http://localhost:3000';
 const OAUTH_URL = 'http://localhost:3001/api/authentication/google';
 
 // ---------------------------------------------------------------------------
@@ -156,7 +156,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
@@ -175,7 +175,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
@@ -194,7 +194,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
@@ -215,7 +215,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
@@ -234,7 +234,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
@@ -253,7 +253,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'oauth-success',
             accessToken: 'oauth-access-token',
           }));
@@ -296,7 +296,7 @@ describe('useOAuthPopup', () => {
         const listener = getLastEventListener('message');
 
         await act(async () => {
-          listener(buildMessageEvent(BACKEND_ORIGIN, {
+          listener(buildMessageEvent(FRONTEND_ORIGIN, {
             type: 'SOME_OTHER_TYPE',
             accessToken: 'some-token',
           }));

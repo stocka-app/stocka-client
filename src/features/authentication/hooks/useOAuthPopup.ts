@@ -1,18 +1,13 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { env } from '@/shared/lib/env';
 import { setAccessToken } from '@/shared/lib/axios';
 import { authenticationService } from '../api/authentication.service';
 import { openOAuthPopup } from '../api/oauth-popup.helper';
 import { useAuthenticationStore } from '../store/authentication.store';
 import type { OAuthProvider, User } from '../types/authentication.types';
 
-/**
- * Derives the expected origin from the API URL env var.
- * e.g. "http://localhost:3001/api" → "http://localhost:3001"
- */
 function getExpectedOrigin(): string {
-  return new URL(env.VITE_API_URL).origin;
+  return window.location.origin;
 }
 
 interface OAuthSuccessMessage {
