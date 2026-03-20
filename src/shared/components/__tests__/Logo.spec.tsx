@@ -25,7 +25,7 @@ describe('Logo', () => {
     it('Then it renders a link pointing to the login page', () => {
       renderLogo();
       const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/authentication/login');
+      expect(link).toHaveAttribute('href', '/authentication/sign-in');
     });
   });
 

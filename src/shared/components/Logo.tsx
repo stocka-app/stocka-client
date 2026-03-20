@@ -27,7 +27,7 @@ export function Logo({ className, size = 'md', showIcon = true, disableLink = fa
   const { isAuthenticated } = useAuthenticationStore();
 
   // Determinar destino según estado de autenticación
-  const destination = isAuthenticated ? '/dashboard' : '/authentication/login';
+  const destination = isAuthenticated ? '/dashboard' : '/authentication/sign-in';
 
   const logoContent = (
     <div className={cn('flex items-center gap-2', className)}>

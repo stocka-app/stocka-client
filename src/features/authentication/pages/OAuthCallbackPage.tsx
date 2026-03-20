@@ -118,9 +118,10 @@ function OAuthCallbackPage() {
         //  cross-origin navigation through OAuth providers can break window.opener)
         const popupMode = searchParams.get('popup') === 'true';
         if (popupMode) {
-          const channel = new BroadcastChannel('stocka-oauth');
-          channel.postMessage({ type: 'oauth-success', accessToken });
-          channel.close();
+          // Signal the parent window via localStorage. The parent listens for
+          // the 'storage' event which fires reliably across same-origin windows,
+          // even when the writing window is closing immediately after.
+          localStorage.setItem('stocka-oauth-result', JSON.stringify({ accessToken }));
           window.close();
           return;
         }
@@ -175,7 +176,7 @@ function OAuthCallbackPage() {
       sessionStorage.setItem('lastOAuthProvider', lastProvider);
       authenticationService.initiateOAuth(lastProvider);
     } else {
-      navigate('/authentication/login', { replace: true });
+      navigate('/authentication/sign-in', { replace: true });
     }
   };
 
@@ -221,7 +222,7 @@ function OAuthCallbackPage() {
 
         <div className="flex flex-col gap-3">
           {/* Siempre visible: volver al login */}
-          <Button onClick={() => navigate('/authentication/login', { replace: true })} className="w-full">
+          <Button onClick={() => navigate('/authentication/sign-in', { replace: true })} className="w-full">
             {t('oauthCallback.backToLogin')}
           </Button>
 
@@ -238,7 +239,7 @@ function OAuthCallbackPage() {
           {errorInfo?.showDifferentMethod && (
             <Button
               variant="outline"
-              onClick={() => navigate('/authentication/login', { replace: true })}
+              onClick={() => navigate('/authentication/sign-in', { replace: true })}
               className="w-full"
             >
               {t('oauthCallback.tryDifferentMethod')}

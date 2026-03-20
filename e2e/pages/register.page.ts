@@ -1,7 +1,7 @@
 import { type Page, type Locator } from '@playwright/test';
 
 /**
- * Page Object Model for the Sign Up page (/authentication/register).
+ * Page Object Model for the Sign Up page (/authentication/sign-up).
  */
 export class RegisterPage {
   readonly page: Page;
@@ -36,7 +36,7 @@ export class RegisterPage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/authentication/register');
+    await this.page.goto('/authentication/sign-up');
   }
 
   async fillForm(data: {

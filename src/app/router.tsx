@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <ErrorBoundary>
-        <Navigate to="/authentication/login" replace />
+        <Navigate to="/authentication/sign-in" replace />
       </ErrorBoundary>
     ),
   },
@@ -43,12 +43,12 @@ export const router = createBrowserRouter([
         index: true,
         element: (
           <ErrorBoundary>
-            <Navigate to="/authentication/login" replace />
+            <Navigate to="/authentication/sign-in" replace />
           </ErrorBoundary>
         ),
       },
       {
-        path: 'login',
+        path: 'sign-in',
         element: (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
@@ -58,7 +58,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'register',
+        path: 'sign-up',
         element: (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
@@ -99,17 +99,21 @@ export const router = createBrowserRouter([
           </ErrorBoundary>
         ),
       },
-      {
-        path: 'callback',
-        element: (
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <OAuthCallbackPage />
-            </Suspense>
-          </ErrorBoundary>
-        ),
-      },
     ],
+  },
+  // ── OAuth callback — outside PublicRoute to avoid redirect race ──
+  // The popup already has a refresh cookie set by the backend, so PublicRoute
+  // would detect isAuthenticated=true and redirect to /dashboard before
+  // OAuthCallbackPage can broadcast the token and close the popup.
+  {
+    path: '/authentication/callback',
+    element: (
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <OAuthCallbackPage />
+        </Suspense>
+      </ErrorBoundary>
+    ),
   },
   // ── Onboarding — protected but outside AppLayout ──
   {
@@ -193,7 +197,7 @@ export const router = createBrowserRouter([
         <div className="flex min-h-screen flex-col items-center justify-center">
           <h1 className="text-4xl font-bold text-gray-900">404</h1>
           <p className="mt-2 text-gray-600">Page not found</p>
-          <a href="/authentication/login" className="mt-4 text-primary hover:underline">
+          <a href="/authentication/sign-in" className="mt-4 text-primary hover:underline">
             Go to login
           </a>
         </div>

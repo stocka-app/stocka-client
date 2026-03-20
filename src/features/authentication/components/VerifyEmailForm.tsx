@@ -296,7 +296,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
           {t('verifyEmail.wrongEmail', 'Wrong email?')}{' '}
           <button
             type="button"
-            onClick={() => navigate('/authentication/register')}
+            onClick={() => navigate('/authentication/sign-up')}
             className="text-primary hover:underline font-medium"
           >
             {t('verifyEmail.changeEmail', 'Change email')}

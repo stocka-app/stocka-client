@@ -66,7 +66,7 @@ test.describe('Given a verified user on the Sign In page', () => {
     test('Then they are navigated to the Register page', async ({ page }) => {
       await loginPage.createAccountLink.click();
 
-      await expect(page).toHaveURL(/\/authentication\/register/);
+      await expect(page).toHaveURL(/\/authentication\/sign-up/);
     });
   });
 });
@@ -75,7 +75,7 @@ test.describe('Given a user who is already signed in', () => {
   test('When they try to access the login page, Then they are redirected to the dashboard', async ({
     authenticatedPage,
   }) => {
-    await authenticatedPage.goto('/authentication/login');
+    await authenticatedPage.goto('/authentication/sign-in');
     await authenticatedPage.waitForURL('**/dashboard');
 
     const dashboardPage = new DashboardPage(authenticatedPage);

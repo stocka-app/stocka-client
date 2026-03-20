@@ -60,7 +60,7 @@ function renderWithRouter(ui: React.ReactElement, initialPath = '/') {
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
         <Route path="*" element={ui} />
-        <Route path="/authentication/login" element={<div>Login Page</div>} />
+        <Route path="/authentication/sign-in" element={<div>Login Page</div>} />
         <Route path="/dashboard" element={<div>Dashboard</div>} />
         <Route path="/authentication/verify-email" element={<div>Verify Email Page</div>} />
       </Routes>

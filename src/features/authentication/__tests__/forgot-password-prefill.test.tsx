@@ -41,9 +41,9 @@ vi.mock('../components/SocialButton', async () => {
 
 function renderLoginToForgotFlow() {
   return render(
-    <MemoryRouter initialEntries={['/authentication/login']}>
+    <MemoryRouter initialEntries={['/authentication/sign-in']}>
       <Routes>
-        <Route path="/authentication/login" element={<LoginForm />} />
+        <Route path="/authentication/sign-in" element={<LoginForm />} />
         <Route path="/authentication/forgot-password" element={<ForgotPasswordPage />} />
       </Routes>
     </MemoryRouter>,

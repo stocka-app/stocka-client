@@ -31,42 +31,23 @@ vi.mock('@/shared/lib/axios', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// BroadcastChannel mock
-// ---------------------------------------------------------------------------
-
-interface MockChannelInstance {
-  onmessage: ((event: MessageEvent) => void) | null;
-  close: ReturnType<typeof vi.fn>;
-  name: string;
-}
-
-let capturedChannel: MockChannelInstance | null = null;
-const mockChannelClose = vi.fn();
-
-class MockBroadcastChannel {
-  onmessage: ((event: MessageEvent) => void) | null = null;
-  close = mockChannelClose;
-  name: string;
-
-  constructor(name: string) {
-    this.name = name;
-    capturedChannel = this;
-  }
-}
-
-vi.stubGlobal('BroadcastChannel', MockBroadcastChannel);
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function dispatchChannelMessage(data: unknown): void {
-  if (capturedChannel?.onmessage) {
-    capturedChannel.onmessage(new MessageEvent('message', { data }));
-  }
-}
-
 const OAUTH_URL = 'http://localhost:3001/api/authentication/google';
+const STORAGE_KEY = 'stocka-oauth-result';
+
+function dispatchStorageEvent(accessToken: string): void {
+  const value = JSON.stringify({ accessToken });
+  localStorage.setItem(STORAGE_KEY, value);
+  window.dispatchEvent(
+    new StorageEvent('storage', {
+      key: STORAGE_KEY,
+      newValue: value,
+      storageArea: localStorage,
+    }),
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -79,7 +60,7 @@ describe('useOAuthPopup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    capturedChannel = null;
+    localStorage.removeItem(STORAGE_KEY);
 
     clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
     setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
@@ -115,6 +96,7 @@ describe('useOAuthPopup', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    localStorage.removeItem(STORAGE_KEY);
   });
 
   // =========================================================================
@@ -140,15 +122,16 @@ describe('useOAuthPopup', () => {
         expect(openOAuthPopup).toHaveBeenCalledWith(`${OAUTH_URL}?mode=popup`);
       });
 
-      it('Then it creates a BroadcastChannel named stocka-oauth', () => {
+      it('Then it clears any stale OAuth token from localStorage', () => {
+        localStorage.setItem(STORAGE_KEY, 'stale');
+
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
           result.current.initiateOAuthPopup('google');
         });
 
-        expect(capturedChannel).not.toBeNull();
-        expect(capturedChannel?.name).toBe('stocka-oauth');
+        expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
       });
 
       it('Then it starts polling the popup closed state', () => {
@@ -162,7 +145,7 @@ describe('useOAuthPopup', () => {
       });
     });
 
-    describe('When a valid oauth-success message arrives on the BroadcastChannel', () => {
+    describe('When the popup writes the OAuth token to localStorage', () => {
       it('Then it sets the access token in memory', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -171,7 +154,7 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
+          dispatchStorageEvent('oauth-access-token');
         });
 
         expect(setAccessToken).toHaveBeenCalledWith('oauth-access-token');
@@ -185,7 +168,7 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
+          dispatchStorageEvent('oauth-access-token');
         });
 
         expect(authenticationService.getMe).toHaveBeenCalledTimes(1);
@@ -199,7 +182,7 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
+          dispatchStorageEvent('oauth-access-token');
         });
 
         const storeState = useAuthenticationStore.getState();
@@ -215,13 +198,13 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
+          dispatchStorageEvent('oauth-access-token');
         });
 
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
       });
 
-      it('Then it closes the BroadcastChannel after success', async () => {
+      it('Then it removes the token from localStorage after processing', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
@@ -229,10 +212,10 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
+          dispatchStorageEvent('oauth-access-token');
         });
 
-        expect(mockChannelClose).toHaveBeenCalled();
+        expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
       });
 
       it('Then it clears the polling interval after success', async () => {
@@ -243,15 +226,15 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'oauth-success', accessToken: 'oauth-access-token' });
+          dispatchStorageEvent('oauth-access-token');
         });
 
         expect(clearIntervalSpy).toHaveBeenCalled();
       });
     });
 
-    describe('When a message with an unknown type arrives on the BroadcastChannel', () => {
-      it('Then it ignores the message and does not set the access token', async () => {
+    describe('When a storage event with an unrelated key fires', () => {
+      it('Then it ignores the event and does not set the access token', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
@@ -259,7 +242,12 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchChannelMessage({ type: 'SOME_OTHER_TYPE', accessToken: 'some-token' });
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key: 'some-other-key',
+              newValue: JSON.stringify({ accessToken: 'some-token' }),
+            }),
+          );
         });
 
         expect(setAccessToken).not.toHaveBeenCalled();
@@ -282,7 +270,6 @@ describe('useOAuthPopup', () => {
         });
 
         expect(clearIntervalSpy).toHaveBeenCalled();
-        expect(mockChannelClose).toHaveBeenCalled();
       });
 
       it('Then the polling interval does nothing while the popup is still open', () => {
@@ -303,6 +290,27 @@ describe('useOAuthPopup', () => {
         expect(clearIntervalSpy.mock.calls.length).toBe(clearIntervalCallsBefore);
       });
     });
+
+    describe('When the popup closes but a token was written to localStorage', () => {
+      it('Then the polling interval picks up the token and processes it', async () => {
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        // Simulate: popup wrote token and closed, but storage event was missed
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ accessToken: 'fallback-token' }));
+        fakePopup.closed = true;
+
+        await act(async () => {
+          vi.advanceTimersByTime(600);
+        });
+
+        expect(setAccessToken).toHaveBeenCalledWith('fallback-token');
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+      });
+    });
   });
 
   // =========================================================================
@@ -315,16 +323,6 @@ describe('useOAuthPopup', () => {
     });
 
     describe('When initiateOAuthPopup is called', () => {
-      it('Then it does not create a BroadcastChannel', () => {
-        const { result } = renderHook(() => useOAuthPopup());
-
-        act(() => {
-          result.current.initiateOAuthPopup('google');
-        });
-
-        expect(capturedChannel).toBeNull();
-      });
-
       it('Then it does not start polling', () => {
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -347,18 +345,6 @@ describe('useOAuthPopup', () => {
     });
 
     describe('When the hook unmounts before the OAuth flow completes', () => {
-      it('Then it closes the BroadcastChannel', () => {
-        const { result, unmount } = renderHook(() => useOAuthPopup());
-
-        act(() => {
-          result.current.initiateOAuthPopup('google');
-        });
-
-        unmount();
-
-        expect(mockChannelClose).toHaveBeenCalled();
-      });
-
       it('Then it clears the polling interval', () => {
         const { result, unmount } = renderHook(() => useOAuthPopup());
 

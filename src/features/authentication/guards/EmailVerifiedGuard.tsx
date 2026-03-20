@@ -9,7 +9,7 @@ interface EmailVerifiedGuardProps {
  * Guard que protege rutas que requieren email verificado
  *
  * Comportamiento:
- * - Si el usuario no está autenticado → redirige a /authentication/login
+ * - Si el usuario no está autenticado → redirige a /authentication/sign-in
  * - Si el usuario necesita verificar email → redirige a /authentication/verify-email
  * - Si el usuario está completamente autenticado → renderiza children
  */
@@ -19,7 +19,7 @@ export function EmailVerifiedGuard({ children }: EmailVerifiedGuardProps) {
 
   // Si no está autenticado y no tiene verificación pendiente, redirigir a login
   if (!isAuthenticated && !emailVerificationRequired) {
-    return <Navigate to="/authentication/login" state={{ from: location }} replace />;
+    return <Navigate to="/authentication/sign-in" state={{ from: location }} replace />;
   }
 
   // Si requiere verificación de email, redirigir a la página de verificación

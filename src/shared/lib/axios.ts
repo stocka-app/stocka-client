@@ -139,7 +139,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh falló (cookie expirada o inválida) → limpiar estado y redirigir a login
         clearAuthStorage();
-        window.location.href = '/authentication/login';
+        window.location.href = '/authentication/sign-in';
         return Promise.reject(refreshError);
       }
     }

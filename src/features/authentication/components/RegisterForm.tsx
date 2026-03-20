@@ -74,7 +74,7 @@ export function RegisterForm() {
               <>
                 {' '}
                 <Link
-                  to="/authentication/login"
+                  to="/authentication/sign-in"
                   className="font-medium underline hover:no-underline"
                   onClick={clearError}
                 >

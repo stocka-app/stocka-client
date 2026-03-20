@@ -112,7 +112,7 @@ function ForgotPasswordPage() {
 
         <div>
           <Link
-            to="/authentication/login"
+            to="/authentication/sign-in"
             className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -182,7 +182,7 @@ function ForgotPasswordPage() {
       {/* Back to login */}
       <div className="text-center">
         <Link
-          to="/authentication/login"
+          to="/authentication/sign-in"
           className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />

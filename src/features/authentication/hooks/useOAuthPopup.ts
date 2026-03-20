@@ -6,21 +6,7 @@ import { openOAuthPopup } from '../api/oauth-popup.helper';
 import { useAuthenticationStore } from '../store/authentication.store';
 import type { OAuthProvider, User } from '../types/authentication.types';
 
-const OAUTH_BROADCAST_CHANNEL = 'stocka-oauth';
-
-interface OAuthSuccessMessage {
-  type: 'oauth-success';
-  accessToken: string;
-}
-
-function isOAuthSuccessMessage(data: unknown): data is OAuthSuccessMessage {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    (data as Record<string, unknown>)['type'] === 'oauth-success' &&
-    typeof (data as Record<string, unknown>)['accessToken'] === 'string'
-  );
-}
+const OAUTH_STORAGE_KEY = 'stocka-oauth-result';
 
 export interface UseOAuthPopupReturn {
   initiateOAuthPopup: (provider: OAuthProvider) => void;
@@ -29,28 +15,19 @@ export interface UseOAuthPopupReturn {
 /**
  * Hook that manages the OAuth popup flow.
  *
- * Responsibilities:
- * - Opens a centered popup via openOAuthPopup
- * - Listens for BroadcastChannel messages from the OAuth callback page
- * - BroadcastChannel is same-origin only and unaffected by window.opener
- *   being nulled by cross-origin navigation through OAuth providers
- * - On OAUTH_SUCCESS: persists the token, loads the user, navigates to dashboard
- * - Polls popup.closed to clean up if the user closes the popup manually
- * - Cleans up channel and interval on unmount
+ * Communication: the popup writes the access token to localStorage.
+ * The parent window listens for the 'storage' event, which fires reliably
+ * across same-origin windows — even when the popup closes immediately after writing.
  */
 export function useOAuthPopup(): UseOAuthPopupReturn {
   const navigate = useNavigate();
   const { handleOAuthCallback } = useAuthenticationStore();
 
   const popupRef = useRef<Window | null>(null);
-  const channelRef = useRef<BroadcastChannel | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const processingRef = useRef(false);
 
   const cleanup = useCallback((): void => {
-    if (channelRef.current) {
-      channelRef.current.close();
-      channelRef.current = null;
-    }
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -58,58 +35,85 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
     popupRef.current = null;
   }, []);
 
+  const processToken = useCallback(
+    async (accessToken: string): Promise<void> => {
+      if (processingRef.current) return;
+      processingRef.current = true;
+
+      cleanup();
+      localStorage.removeItem(OAUTH_STORAGE_KEY);
+
+      setAccessToken(accessToken);
+
+      let user: User | null = null;
+      try {
+        const response = await authenticationService.getMe();
+        user = response.data as unknown as User;
+      } catch {
+        // Non-fatal — store can operate without user object initially
+      }
+
+      handleOAuthCallback({ accessToken, user: user as User });
+      navigate('/dashboard', { replace: true });
+    },
+    [cleanup, handleOAuthCallback, navigate],
+  );
+
   useEffect(() => {
-    return cleanup;
-  }, [cleanup]);
+    const handleStorage = (event: StorageEvent): void => {
+      if (event.key !== OAUTH_STORAGE_KEY || !event.newValue) return;
+
+      try {
+        const data = JSON.parse(event.newValue) as { accessToken?: string };
+        if (data.accessToken) {
+          processToken(data.accessToken);
+        }
+      } catch {
+        // Malformed data — ignore
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      cleanup();
+    };
+  }, [cleanup, processToken]);
 
   const initiateOAuthPopup = useCallback(
     (provider: OAuthProvider): void => {
+      // Clean any stale token from a previous attempt
+      localStorage.removeItem(OAUTH_STORAGE_KEY);
+      processingRef.current = false;
+
       const url = `${authenticationService.getOAuthUrl(provider)}?mode=popup`;
       const popup = openOAuthPopup(url);
 
-      if (!popup) {
-        // Popup was blocked — openOAuthPopup already triggered a full-page redirect
-        return;
-      }
+      if (!popup) return;
 
       popupRef.current = popup;
 
-      const channel = new BroadcastChannel(OAUTH_BROADCAST_CHANNEL);
-      channelRef.current = channel;
-
-      const handleMessage = async (event: MessageEvent): Promise<void> => {
-        if (!isOAuthSuccessMessage(event.data)) {
-          return;
-        }
-
-        const { accessToken } = event.data;
-
-        cleanup();
-
-        setAccessToken(accessToken);
-
-        let user: User | null = null;
-        try {
-          const response = await authenticationService.getMe();
-          user = response.data as unknown as User;
-        } catch {
-          // Non-fatal — store can operate without user object initially
-        }
-
-        handleOAuthCallback({ accessToken, user: user as User });
-        navigate('/dashboard', { replace: true });
-      };
-
-      channel.onmessage = handleMessage as (event: MessageEvent) => void;
-
       // Poll popup.closed to clean up when the user dismisses the popup manually
       intervalRef.current = setInterval((): void => {
-        if (popupRef.current?.closed) {
+        if (popupRef.current?.closed && !processingRef.current) {
+          // Check if a token arrived while we were polling (race window)
+          const stored = localStorage.getItem(OAUTH_STORAGE_KEY);
+          if (stored) {
+            try {
+              const data = JSON.parse(stored) as { accessToken?: string };
+              if (data.accessToken) {
+                processToken(data.accessToken);
+                return;
+              }
+            } catch {
+              // ignore
+            }
+          }
           cleanup();
         }
       }, 500);
     },
-    [cleanup, handleOAuthCallback, navigate],
+    [cleanup, processToken],
   );
 
   return { initiateOAuthPopup };

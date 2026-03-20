@@ -37,7 +37,7 @@ function VerifyEmailPage() {
 
   // Si no hay email pendiente de verificar, ir a login
   if (!pendingVerificationEmail) {
-    return <Navigate to="/authentication/login" replace />;
+    return <Navigate to="/authentication/sign-in" replace />;
   }
 
   return (

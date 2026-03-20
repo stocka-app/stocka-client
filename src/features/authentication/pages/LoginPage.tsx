@@ -23,7 +23,7 @@ function LoginPage() {
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {t('noAccount')}{' '}
           <Link
-            to="/authentication/register"
+            to="/authentication/sign-up"
             className={cn(
               'font-semibold text-authentication-highlight hover:underline',
               isLoading && 'pointer-events-none opacity-50',

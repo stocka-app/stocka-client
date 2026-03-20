@@ -23,6 +23,13 @@ import '@/shared/lib/i18n';
 function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
   useEffect(() => {
     const hydrateAuth = async () => {
+      // Skip silent refresh on the OAuth callback page — the callback handles
+      // its own token flow and must run before any auth state changes.
+      if (window.location.pathname === '/authentication/callback') {
+        useAuthenticationStore.setState({ isInitializing: false });
+        return;
+      }
+
       const { emailVerificationRequired } = useAuthenticationStore.getState();
 
       try {

@@ -29,7 +29,7 @@ interface AuthFixtures {
  *   2. Directly updates the DB to mark the email as verified
  *   This avoids needing a real email inbox during testing.
  *
- * The authenticatedPage fixture navigates to /authentication/login and completes
+ * The authenticatedPage fixture navigates to /authentication/sign-in and completes
  * the sign-in flow so the page has a valid session (cookies + localStorage state).
  */
 export const test = base.extend<AuthFixtures>({
@@ -60,7 +60,7 @@ export const test = base.extend<AuthFixtures>({
   },
 
   authenticatedPage: async ({ page, verifiedUser }, use) => {
-    await page.goto('/authentication/login');
+    await page.goto('/authentication/sign-in');
 
     await page.getByLabel('Enter your username or email address').fill(verifiedUser.email);
     await page.getByLabel('Enter your Password').fill(verifiedUser.password);

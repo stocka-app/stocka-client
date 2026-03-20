@@ -1,7 +1,7 @@
 import { type Page, type Locator } from '@playwright/test';
 
 /**
- * Page Object Model for the Sign In page (/authentication/login).
+ * Page Object Model for the Sign In page (/authentication/sign-in).
  *
  * Selector priority: getByRole > getByLabel > getByPlaceholder > getByTestId
  * Labels are the EN translation values (tests run with locale: 'en-US').
@@ -39,7 +39,7 @@ export class LoginPage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/authentication/login');
+    await this.page.goto('/authentication/sign-in');
   }
 
   async fillCredentials(emailOrUsername: string, password: string): Promise<void> {

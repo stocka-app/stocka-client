@@ -82,7 +82,7 @@ function ResetPasswordPage() {
         <Button
           className="w-full"
           size="lg"
-          onClick={() => navigate('/authentication/login', { replace: true })}
+          onClick={() => navigate('/authentication/sign-in', { replace: true })}
         >
           {t('resetPassword.goToLogin')}
         </Button>
@@ -118,7 +118,7 @@ function ResetPasswordPage() {
 
         <div>
           <Link
-            to="/authentication/login"
+            to="/authentication/sign-in"
             className="text-sm text-gray-600 hover:text-primary hover:underline"
           >
             {t('forgotPasswordPage.backToLogin')}

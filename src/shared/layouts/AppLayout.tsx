@@ -48,7 +48,7 @@ export function AppLayout() {
 
   const handleLogout = useCallback(async () => {
     await logout();
-    navigate('/authentication/login');
+    navigate('/authentication/sign-in');
   }, [logout, navigate]);
 
   const userInitials = user ? user.username.slice(0, 2).toUpperCase() : '?';
