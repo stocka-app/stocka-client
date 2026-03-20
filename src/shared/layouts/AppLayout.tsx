@@ -10,10 +10,11 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Menu,
   X,
   LogOut,
-  Building2,
+  Bell,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
@@ -42,9 +43,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuthentication();
 
-  // Desktop only: user-controlled collapse (tablet is always compact via CSS)
   const [isCollapsed, setIsCollapsed] = useState(false);
-  // Mobile: drawer visibility
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleLogout = useCallback(async () => {
@@ -54,28 +53,16 @@ export function AppLayout() {
 
   const userInitials = user ? user.username.slice(0, 2).toUpperCase() : '?';
 
-  // Sidebar width:
-  //   mobile: w-64 (full-width drawer)
-  //   tablet (md): always compact = w-16
-  //   desktop (lg): w-64 expanded | w-16 collapsed
-  const sidebarWidthClass = cn(
-    'w-64',
-    'md:w-16',
-    isCollapsed ? 'lg:w-16' : 'lg:w-64',
-  );
-
-  // Sidebar translation (slide in/out on mobile, always visible on md+):
+  // Sidebar width: mobile=w-64, tablet=w-16, desktop=w-64|w-16
+  const sidebarWidthClass = cn('w-64', 'md:w-16', isCollapsed ? 'lg:w-16' : 'lg:w-64');
   const sidebarTranslateClass = cn(
     isMobileOpen ? 'translate-x-0' : '-translate-x-full',
     'md:translate-x-0',
   );
+  const mainMarginClass = cn('ml-0', 'md:ml-16', isCollapsed ? 'lg:ml-16' : 'lg:ml-64');
 
-  // Main content left margin to offset the fixed sidebar (mobile: overlay = no margin):
-  const mainMarginClass = cn(
-    'ml-0',
-    'md:ml-16',
-    isCollapsed ? 'lg:ml-16' : 'lg:ml-64',
-  );
+  // Classes for elements that should only show when sidebar has label space
+  const labelVisible = cn('block md:hidden', !isCollapsed && 'lg:block');
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-page font-app antialiased">
@@ -92,7 +79,7 @@ export function AppLayout() {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex flex-col',
-          'bg-surface-sidebar border-r border-neutral-200 dark:border-neutral-800',
+          'bg-surface-sidebar border-r border-border',
           'transition-[width,transform] duration-300 ease-in-out',
           sidebarWidthClass,
           sidebarTranslateClass,
@@ -100,17 +87,16 @@ export function AppLayout() {
         aria-label={t('sidebar.ariaLabel')}
       >
         {/* Logo + collapse toggle */}
-        <div className="flex h-16 items-center justify-between border-b border-neutral-200 dark:border-neutral-800 px-3 flex-shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="h-8 w-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="flex h-16 items-center justify-between border-b border-border px-4 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-8 w-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0 dark:shadow-glow-brand">
               <span className="material-symbols-outlined text-white leading-none" style={{ fontSize: 18 }}>
                 inventory_2
               </span>
             </div>
-            {/* Logo text: mobile drawer + desktop expanded */}
             <span
               className={cn(
-                'text-lg font-bold text-neutral-900 dark:text-neutral-100 truncate',
+                'text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 truncate',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -121,7 +107,7 @@ export function AppLayout() {
 
           {/* Mobile: close drawer */}
           <button
-            className="md:hidden h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="md:hidden h-7 w-7 flex-shrink-0 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
             onClick={() => setIsMobileOpen(false)}
             aria-label={t('sidebar.close')}
           >
@@ -132,7 +118,7 @@ export function AppLayout() {
           <button
             className={cn(
               'hidden lg:flex flex-shrink-0 h-7 w-7 items-center justify-center rounded-md',
-              'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
+              'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors',
             )}
             onClick={() => setIsCollapsed((prev) => !prev)}
             aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
@@ -141,31 +127,42 @@ export function AppLayout() {
           </button>
         </div>
 
-        {/* Space selector placeholder (v1) */}
-        <div className="border-b border-neutral-200 dark:border-neutral-800 p-2 flex-shrink-0">
+        {/* Warehouse / Business selector */}
+        <div className="border-b border-border px-3 py-3 flex-shrink-0">
+          {/* Label: visible on mobile and desktop-expanded, hidden on tablet/collapsed */}
+          <p className={cn('text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2 px-1', labelVisible)}>
+            {t('sidebar.selectBusiness')}
+          </p>
           <button
-            className="w-full flex items-center gap-2 rounded-lg px-2 py-2 text-sm bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+            className={cn(
+              'w-full flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 text-sm',
+              'hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors',
+            )}
             aria-label={t('sidebar.myBusiness')}
             type="button"
           >
-            <Building2 className="h-4 w-4 text-brand flex-shrink-0" />
+            <Warehouse className="h-4 w-4 text-brand flex-shrink-0" />
             <span
               className={cn(
-                'text-neutral-700 dark:text-neutral-300 font-medium truncate',
+                'text-neutral-700 dark:text-neutral-300 font-semibold truncate flex-1 text-left',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
             >
               {t('sidebar.myBusiness')}
             </span>
+            <ChevronDown
+              className={cn(
+                'h-3.5 w-3.5 text-neutral-400 flex-shrink-0',
+                'md:hidden',
+                !isCollapsed && 'lg:block',
+              )}
+            />
           </button>
         </div>
 
-        {/* Navigation items */}
-        <nav
-          className="flex-1 overflow-y-auto py-2 space-y-0.5 px-2"
-          aria-label={t('sidebar.nav')}
-        >
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-3" aria-label={t('sidebar.nav')}>
           {NAV_ITEMS.map(({ key, path, icon: Icon }) => (
             <NavLink
               key={key}
@@ -173,73 +170,86 @@ export function AppLayout() {
               title={isCollapsed ? t(`nav.${key}`) : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-brand/10 text-brand dark:bg-brand/20'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100',
+                    ? 'bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-neutral-100'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-neutral-100',
                 )
               }
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
-              <span
-                className={cn(
-                  'truncate',
-                  'md:hidden',
-                  !isCollapsed && 'lg:inline',
-                )}
-              >
+              <span className={cn('truncate', 'md:hidden', !isCollapsed && 'lg:inline')}>
                 {t(`nav.${key}`)}
               </span>
             </NavLink>
           ))}
         </nav>
 
-        {/* ── Compact bottom (tablet + desktop-collapsed): stacked icons ── */}
-        {/*   mobile: hidden | tablet: flex-col | desktop-collapsed: flex-col   */}
+        {/* ── Compact bottom (tablet + desktop-collapsed) ── */}
         <div
           className={cn(
-            'hidden border-t border-neutral-200 dark:border-neutral-800 p-2 flex-shrink-0 flex-col items-center gap-1',
+            'hidden border-t border-border py-3 flex-shrink-0 flex-col items-center gap-2',
             'md:flex lg:hidden',
             isCollapsed && 'lg:flex',
           )}
         >
-          <ThemeToggle />
+          <button
+            type="button"
+            aria-label={t('sidebar.notifications')}
+            title={t('sidebar.notifications')}
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+          >
+            <Bell className="h-4 w-4" />
+          </button>
           <LanguageSwitcher />
+          <ThemeToggle />
           <button
             type="button"
             onClick={handleLogout}
             title={t('sidebar.logout')}
-            className="h-8 w-8 rounded-full bg-brand/20 text-brand flex items-center justify-center text-xs font-semibold hover:ring-2 hover:ring-brand/50 transition-all"
+            className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all"
             aria-label={t('sidebar.logout')}
           >
             {userInitials}
           </button>
         </div>
 
-        {/* ── Expanded bottom (mobile drawer + desktop-expanded): full row ── */}
-        {/*   mobile: flex | tablet: hidden | desktop-expanded: flex           */}
+        {/* ── Expanded bottom (mobile drawer + desktop-expanded) ── */}
         <div
           className={cn(
-            'flex flex-col gap-1 border-t border-neutral-200 dark:border-neutral-800 p-2 flex-shrink-0',
+            'flex flex-col border-t border-border flex-shrink-0',
             'md:hidden',
             !isCollapsed && 'lg:flex',
           )}
         >
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
+          {/* Icon row: notifications, language, theme */}
+          <div className="flex items-center justify-around py-3 border-b border-border">
+            <button
+              type="button"
+              aria-label={t('sidebar.notifications')}
+              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <Bell className="h-5 w-5" />
+            </button>
             <LanguageSwitcher />
+            <ThemeToggle />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-brand/20 text-brand flex items-center justify-center text-xs font-semibold flex-shrink-0">
+
+          {/* User row */}
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0">
               {userInitials}
             </div>
-            <span className="flex-1 text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
-              {user?.username ?? '—'}
-            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate leading-tight">
+                {user?.username ?? '—'}
+              </p>
+              <p className="text-xs text-neutral-500 truncate leading-tight">{user?.email ?? ''}</p>
+            </div>
             <button
               type="button"
               onClick={handleLogout}
-              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
               aria-label={t('sidebar.logout')}
             >
               <LogOut className="h-4 w-4" />
@@ -249,22 +259,22 @@ export function AppLayout() {
       </aside>
 
       {/* ── Mobile top bar (< 768px) ── */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 bg-surface-sidebar border-b border-neutral-200 dark:border-neutral-800">
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 bg-surface-sidebar border-b border-border">
         <button
           type="button"
-          className="h-8 w-8 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="h-8 w-8 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
           onClick={() => setIsMobileOpen(true)}
           aria-label={t('sidebar.open')}
         >
           <Menu className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 bg-brand rounded-lg flex items-center justify-center">
+          <div className="h-7 w-7 bg-brand rounded-lg flex items-center justify-center dark:shadow-glow-brand">
             <span className="material-symbols-outlined text-white leading-none" style={{ fontSize: 16 }}>
               inventory_2
             </span>
           </div>
-          <span className="font-bold text-neutral-900 dark:text-neutral-100">Stocka</span>
+          <span className="font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Stocka</span>
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
@@ -286,7 +296,7 @@ export function AppLayout() {
         </main>
       </div>
 
-      {/* Global upgrade modal — mounted once, driven by upgrade-modal store */}
+      {/* Global upgrade modal */}
       <UpgradeModal />
     </div>
   );

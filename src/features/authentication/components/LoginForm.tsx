@@ -20,6 +20,7 @@ import { SocialButton } from './SocialButton';
 import { FormDivider } from './FormDivider';
 import { loginSchema, type LoginFormData } from '../schemas/authentication.schema';
 import { useAuthenticationStore } from '../store/authentication.store';
+import { useOAuthPopup } from '../hooks/useOAuthPopup';
 import { cn } from '@/shared/lib/utils';
 
 /**
@@ -44,6 +45,7 @@ export function LoginForm() {
   const navigate = useNavigate();
   const { login, isLoading, error, errorCode, clearError, setPendingVerificationEmail, blockInfo } =
     useAuthenticationStore();
+  const { initiateOAuthPopup } = useOAuthPopup();
   const [countdown, setCountdown] = useState<number>(0);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -129,8 +131,8 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* ── Social Buttons (always enabled during password block) ── */}
         <div className="grid grid-cols-2 gap-3">
-          <SocialButton provider="google" variant="full" label={t('signInWithGoogle')} />
-          <SocialButton provider="microsoft" variant="full" label={t('signInWithMicrosoft')} />
+          <SocialButton provider="google" variant="full" label={t('signInWithGoogle')} onClick={() => initiateOAuthPopup('google')} />
+          <SocialButton provider="microsoft" variant="full" label={t('signInWithMicrosoft')} onClick={() => initiateOAuthPopup('microsoft')} />
         </div>
 
         <FormDivider />

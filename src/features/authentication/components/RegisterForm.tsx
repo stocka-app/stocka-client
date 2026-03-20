@@ -18,12 +18,14 @@ import { SocialButton } from './SocialButton';
 import { FormDivider } from './FormDivider';
 import { registerSchema, type RegisterFormData } from '../schemas/authentication.schema';
 import { useAuthentication } from '../hooks/useAuthentication';
+import { useOAuthPopup } from '../hooks/useOAuthPopup';
 import { cn } from '@/shared/lib/utils';
 
 export function RegisterForm() {
   const { t } = useTranslation('authentication');
   const navigate = useNavigate();
   const { register, isLoading, error, errorCode, clearError } = useAuthentication();
+  const { initiateOAuthPopup } = useOAuthPopup();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -58,8 +60,8 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {/* ── Social Buttons ── */}
         <div className="grid grid-cols-2 gap-3">
-          <SocialButton provider="google" variant="full" label={t('signUpWithGoogle')} />
-          <SocialButton provider="microsoft" variant="full" label={t('signUpWithMicrosoft')} />
+          <SocialButton provider="google" variant="full" label={t('signUpWithGoogle')} onClick={() => initiateOAuthPopup('google')} />
+          <SocialButton provider="microsoft" variant="full" label={t('signUpWithMicrosoft')} onClick={() => initiateOAuthPopup('microsoft')} />
         </div>
 
         <FormDivider />

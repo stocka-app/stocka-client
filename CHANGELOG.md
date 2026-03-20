@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.8.2](https://github.com/stocka-app/stocka-client/compare/v0.8.1...v0.8.2) (2026-03-20)
+
+### 🐛 Bug Fixes
+
+* **auth:** [STOC-192](https://austins-industries.atlassian.net/browse/STOC-192) — fix OAuth popup frontend: same-origin postMessage from callback page ([84564b3](https://github.com/stocka-app/stocka-client/commit/84564b3484b1f14daaeb86abdb83f2a202e6db5a))
+
 ## [0.8.1](https://github.com/stocka-app/stocka-client/compare/v0.8.0...v0.8.1) (2026-03-19)
 
 ### 🐛 Bug Fixes

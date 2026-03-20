@@ -99,13 +99,13 @@
   --color-authentication-input-bg:        #1e293b;
   --color-authentication-input-border:    #334155;
 
-  /* Surfaces (6-layer hierarchy) */
-  --color-surface-page:     #020617;
-  --color-surface-card:     #0f172a;
-  --color-surface-sidebar:  #0B0F19;
-  --color-surface-header:   #0f172a;
-  --color-surface-raised:   #1e293b;
-  --color-surface-overlay:  #334155;
+  /* Surfaces (6-layer hierarchy — DS-003) */
+  --color-surface-page:     #0f172a;
+  --color-surface-card:     #1e293b;
+  --color-surface-sidebar:  #1e293b;
+  --color-surface-header:   #1e293b;
+  --color-surface-raised:   #334155;
+  --color-surface-overlay:  #475569;
 
   /* Borders */
   --color-border:        #1e293b;
