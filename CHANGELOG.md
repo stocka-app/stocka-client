@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.8.3](https://github.com/stocka-app/stocka-client/compare/v0.8.2...v0.8.3) (2026-03-20)
+
+### 🐛 Bug Fixes
+
+* **auth:** [STOC-192](https://austins-industries.atlassian.net/browse/STOC-192) — fix OAuth popup: use BroadcastChannel instead of window.opener ([1e0e32c](https://github.com/stocka-app/stocka-client/commit/1e0e32cb62b0ade11365b5b26d8cdb8d6ca6da50))
+
 ## [0.8.2](https://github.com/stocka-app/stocka-client/compare/v0.8.1...v0.8.2) (2026-03-20)
 
 ### 🐛 Bug Fixes
