@@ -11,4 +11,5 @@ export const i18nMock = {
       return key;
     },
   }),
+  initReactI18next: { type: '3rdParty', init: () => {} },
 };
