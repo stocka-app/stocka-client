@@ -1,5 +1,6 @@
 {
   "stepOf": "Paso {{current}} de {{total}}",
+  "exitOnboarding": "Salir y continuar después",
 
   "step0": {
     "title": "¿Cómo quieres comenzar?",
@@ -15,26 +16,25 @@
     "subtitle": "Antes de comenzar, necesitamos tu aceptación",
     "termsLabel": "Acepto los <termsLink>Términos de Servicio</termsLink> y la <privacyLink>Política de Privacidad</privacyLink>",
     "termsRequired": "Debes aceptar los términos para continuar",
-    "marketingLabel": "Quiero recibir novedades, consejos y ofertas de Stocka por correo",
+    "marketingLabel": "Acepto recibir comunicaciones de producto de Stocka",
+    "marketingHint": "Opcional — puedes cambiar esto después",
+    "analyticsLabel": "Ayudar a mejorar Stocka compartiendo datos de uso anónimos",
+    "analyticsHint": "Puedes desactivar esto en Privacidad",
     "ctaButton": "Comenzar",
     "starting": "Comenzando..."
   },
 
   "step2": {
-    "title": "Tus preferencias",
-    "subtitle": "Personaliza tu experiencia en Stocka",
-    "languageLabel": "Idioma",
-    "languagePlaceholder": "Selecciona un idioma",
-    "languageEs": "Español",
-    "languageEn": "English",
+    "title": "Tu moneda",
+    "subtitle": "Elige la moneda principal para tu inventario y precios",
     "currencyLabel": "Moneda",
-    "currencyPlaceholder": "Selecciona una moneda",
-    "currencyMXN": "MXN — Peso mexicano",
-    "currencyUSD": "USD — Dólar estadounidense",
-    "currencyEUR": "EUR — Euro",
-    "themeLabel": "Tema visual",
-    "themeLight": "Claro",
-    "themeDark": "Oscuro",
+    "currencyMXN": "MXN",
+    "currencyMXNName": "Peso mexicano",
+    "currencyUSD": "USD",
+    "currencyUSDName": "Dólar estadounidense",
+    "currencyEUR": "EUR",
+    "currencyEURName": "Euro",
+    "currencyHint": "Podrás cambiarla después en la configuración",
     "ctaButton": "Continuar",
     "saving": "Guardando..."
   },
@@ -49,9 +49,13 @@
     "businessNameRequired": "El nombre del negocio es requerido",
     "businessTypeLabel": "Tipo de negocio",
     "businessTypeRequired": "Selecciona el tipo de negocio",
-    "stateLabel": "Estado (México)",
-    "statePlaceholder": "Selecciona tu estado",
-    "stateRequired": "Selecciona tu estado",
+    "otherBusinessTypeLabel": "Especifica tu tipo de negocio",
+    "otherBusinessTypePlaceholder": "Ej. Veterinaria, Gimnasio, Imprenta",
+    "countryLabel": "País",
+    "countryRequired": "Selecciona tu país",
+    "cityRegionLabel": "Ciudad / Región",
+    "cityRegionPlaceholder": "Ej. Guadalajara, CDMX",
+    "cityRegionHint": "Opcional",
     "ctaButton": "Continuar",
     "saving": "Guardando...",
     "businessTypes": {
@@ -69,16 +73,62 @@
 
   "step4": {
     "title": "Espacios de almacenamiento",
-    "subtitle": "Organiza tu inventario por ubicaciones físicas",
-    "warehouseCardTitle": "Almacén Principal",
-    "warehouseCardDescription": "Tu primer espacio para organizar tu inventario",
-    "createSpaceButton": "Crear espacio",
-    "skipLink": "Omitir por ahora",
+    "subtitle": "Configura dónde almacenas y gestionas tu inventario",
+    "configureButton": "Configurar mis espacios",
+    "skipButton": "Omitir — configurar después",
+    "escapeHint": "Si tu negocio tiene varios espacios o una estructura compleja, puedes configurarlos más tarde desde el módulo de Almacenes.",
+    "customRoom": {
+      "title": "Espacio Personalizado",
+      "description": "Tu espacio operacional principal",
+      "roomTypeLabel": "Categoría del espacio",
+      "roomTypePlaceholder": "Selecciona o escribe una categoría",
+      "nameLabel": "Nombre del espacio",
+      "namePlaceholderDefault": "Ej. Nombre de tu espacio",
+      "addressLabel": "Dirección",
+      "addressPlaceholder": "Opcional",
+      "nameRequired": "El nombre del espacio es requerido",
+      "roomTypeRequired": "Selecciona una categoría para tu espacio",
+      "suggestions": {
+        "retail": ["Tienda", "Piso de venta"],
+        "food": ["Comedor", "Cocina", "Salón"],
+        "services": ["Consultorio", "Taller", "Oficina"],
+        "manufacturing": ["Área de producción", "Taller"],
+        "healthcare": ["Consultorio", "Sala de espera"],
+        "education": ["Salón de clases", "Aula", "Laboratorio"],
+        "tech": ["Oficina", "Lab"],
+        "wholesale": ["Almacén mayorista", "Área de despacho"]
+      },
+      "namePlaceholders": {
+        "Tienda": "Ej. Mi Tienda, Sucursal Centro",
+        "Salón de clases": "Ej. Salón 2-A",
+        "Consultorio": "Ej. Consultorio 3, piso 2",
+        "Comedor": "Ej. Mi Local, Comedor Principal",
+        "Oficina": "Ej. Oficina Principal"
+      }
+    },
+    "storeRoom": {
+      "title": "Bodega",
+      "description": "Reserva cercana — fondo del local, casa",
+      "nameLabel": "Nombre de la bodega",
+      "namePlaceholder": "Ej. Mi Bodega, Fondo del local",
+      "addressLabel": "Dirección",
+      "addressPlaceholder": "Opcional — ej. fondo de la tienda, mi casa",
+      "nameRequired": "El nombre de la bodega es requerido"
+    },
+    "warehouse": {
+      "title": "Almacén",
+      "description": "Instalación dedicada de almacenamiento a granel",
+      "nameLabel": "Nombre del almacén",
+      "namePlaceholder": "Ej. Almacén Norte",
+      "addressLabel": "Dirección",
+      "addressPlaceholder": "Requerida — dirección formal",
+      "nameRequired": "El nombre del almacén es requerido",
+      "addressRequired": "La dirección es requerida para almacenes",
+      "lockedBadge": "Básico+",
+      "lockedMessage": "Disponible en el plan Básico y superiores"
+    },
     "ctaButton": "Continuar",
-    "proBadge": "Pro",
-    "lockedMessage": "Disponible en planes de pago",
-    "lockedDescription": "Actualiza tu plan para crear y gestionar múltiples espacios de almacenamiento",
-    "freeTierNote": "En el plan gratuito puedes gestionar tu inventario sin espacios físicos"
+    "saving": "Guardando..."
   },
 
   "step5": {
@@ -101,21 +151,14 @@
   },
 
   "step6": {
-    "title": "Primeros pasos",
-    "subtitle": "Aquí tienes lo que puedes hacer de inmediato en Stocka",
+    "title": "¡Tu negocio está listo!",
+    "subtitle": "Has completado la configuración inicial de Stocka",
+    "successMessage": "Ahora puedes empezar a gestionar tu inventario",
     "checklistTitle": "Tu checklist de inicio",
     "item1": "Agrega tu primer producto al inventario",
     "item2": "Invita a tu equipo para colaborar",
     "item3": "Configura tu primer espacio de almacenamiento",
     "item4": "Explora los reportes y métricas",
-    "ctaButton": "Ir al dashboard",
-    "skipLink": "Omitir"
-  },
-
-  "step7": {
-    "title": "¡Tu negocio está listo!",
-    "subtitle": "Has completado la configuración inicial de Stocka",
-    "successMessage": "Ahora puedes empezar a gestionar tu inventario",
     "ctaButton": "Ir al dashboard →"
   },
 
@@ -160,10 +203,12 @@
   },
 
   "errors": {
+    "consentsRecordFailed": "No se pudieron registrar tus consentimientos. Intenta de nuevo.",
     "preferencesUpdateFailed": "No se pudieron guardar tus preferencias. Intenta de nuevo.",
     "profileUpdateFailed": "No se pudo guardar el perfil del negocio. Intenta de nuevo.",
     "onboardingCompleteFailed": "No se pudo completar el onboarding. Intenta de nuevo.",
     "invitationValidateFailed": "No se pudo validar el código. Intenta de nuevo.",
-    "invitationAcceptFailed": "No se pudo procesar la invitación. Intenta de nuevo."
+    "invitationAcceptFailed": "No se pudo procesar la invitación. Intenta de nuevo.",
+    "networkError": "No se pudo conectar al servidor. Revisa tu conexión a internet."
   }
 }

@@ -14,6 +14,7 @@ export type {
   BusinessProfileFormData,
   InvitationCodeFormData,
   ContextFormData,
+  OnboardingStatusResponse,
 } from '../schemas/onboarding.schema';
 
 // =============================================================================
@@ -22,8 +23,9 @@ export type {
 
 /**
  * Step 0: path selection (no progress bar)
- * Steps 1-7: main onboarding flow (with progress bar)
- * The invitation sub-flow replaces steps 1-7 when path === 'invitation'
+ * Steps 1-6: main onboarding flow (with progress bar)
+ * Step 7: internal "completed" state (auto-redirects to dashboard)
+ * The invitation sub-flow replaces steps 1-6 when path === 'invitation'
  */
 export type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
@@ -36,6 +38,7 @@ export type InvitationSubStep = 'code-entry' | 'confirmation';
 export interface OnboardingConsents {
   terms: boolean;
   marketing: boolean;
+  analytics: boolean;
 }
 
 export interface OnboardingPreferences {
@@ -47,7 +50,9 @@ export interface OnboardingPreferences {
 export interface OnboardingBusinessProfile {
   businessName: string;
   businessType: string;
-  state: string;
+  otherBusinessType?: string;
+  country: string;
+  cityRegion?: string;
 }
 
 export interface OnboardingContext {
@@ -78,6 +83,7 @@ export interface OnboardingPersistedState {
  * Ephemeral portion — NOT persisted
  */
 export interface OnboardingEphemeralState {
+  isHydrated: boolean;
   isLoading: boolean;
   error: string | null;
   invitationDetails: import('../schemas/onboarding.schema').InvitationDetails | null;
@@ -92,19 +98,21 @@ export type OnboardingState = OnboardingPersistedState & OnboardingEphemeralStat
 
 export interface OnboardingActions {
   setStep: (step: OnboardingStep) => void;
-  setPath: (path: 'create' | 'invitation') => void;
+  setPath: (path: 'create' | 'invitation' | null) => void;
   setConsents: (consents: OnboardingConsents) => void;
   setPreferences: (preferences: OnboardingPreferences) => void;
   setBusinessProfile: (profile: OnboardingBusinessProfile) => void;
   setInvitationCode: (code: string) => void;
   setContext: (context: OnboardingContext) => void;
   setCompletedAt: (completedAt: string) => void;
+  setHydrated: (isHydrated: boolean) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setInvitationDetails: (
     details: import('../schemas/onboarding.schema').InvitationDetails | null,
   ) => void;
   setInvitationSubStep: (subStep: InvitationSubStep) => void;
+  hydrateFromBackend: (data: OnboardingStatusResponse['data']) => void;
   reset: () => void;
 }
 

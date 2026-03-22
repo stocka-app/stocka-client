@@ -1,5 +1,6 @@
 {
   "stepOf": "Step {{current}} of {{total}}",
+  "exitOnboarding": "Exit and continue later",
 
   "step0": {
     "title": "How do you want to get started?",
@@ -15,26 +16,25 @@
     "subtitle": "Before we begin, we need your acceptance",
     "termsLabel": "I accept the <termsLink>Terms of Service</termsLink> and <privacyLink>Privacy Policy</privacyLink>",
     "termsRequired": "You must accept the terms to continue",
-    "marketingLabel": "I want to receive news, tips, and offers from Stocka by email",
+    "marketingLabel": "I agree to receive product communications from Stocka",
+    "marketingHint": "Optional — you can change this later",
+    "analyticsLabel": "Help improve Stocka by sharing anonymous usage data",
+    "analyticsHint": "You can disable this in Privacy settings",
     "ctaButton": "Get started",
     "starting": "Starting..."
   },
 
   "step2": {
-    "title": "Your preferences",
-    "subtitle": "Customize your Stocka experience",
-    "languageLabel": "Language",
-    "languagePlaceholder": "Select a language",
-    "languageEs": "Español",
-    "languageEn": "English",
+    "title": "Your currency",
+    "subtitle": "Choose the main currency for your inventory and pricing",
     "currencyLabel": "Currency",
-    "currencyPlaceholder": "Select a currency",
-    "currencyMXN": "MXN — Mexican Peso",
-    "currencyUSD": "USD — US Dollar",
-    "currencyEUR": "EUR — Euro",
-    "themeLabel": "Visual theme",
-    "themeLight": "Light",
-    "themeDark": "Dark",
+    "currencyMXN": "MXN",
+    "currencyMXNName": "Mexican Peso",
+    "currencyUSD": "USD",
+    "currencyUSDName": "US Dollar",
+    "currencyEUR": "EUR",
+    "currencyEURName": "Euro",
+    "currencyHint": "You can change this later in settings",
     "ctaButton": "Continue",
     "saving": "Saving..."
   },
@@ -49,9 +49,13 @@
     "businessNameRequired": "Business name is required",
     "businessTypeLabel": "Business type",
     "businessTypeRequired": "Select your business type",
-    "stateLabel": "State (Mexico)",
-    "statePlaceholder": "Select your state",
-    "stateRequired": "Select your state",
+    "otherBusinessTypeLabel": "Specify your business type",
+    "otherBusinessTypePlaceholder": "e.g. Pet shop, Gym, Printing",
+    "countryLabel": "Country",
+    "countryRequired": "Select your country",
+    "cityRegionLabel": "City / Region",
+    "cityRegionPlaceholder": "e.g. Guadalajara, CDMX",
+    "cityRegionHint": "Optional",
     "ctaButton": "Continue",
     "saving": "Saving...",
     "businessTypes": {
@@ -69,16 +73,62 @@
 
   "step4": {
     "title": "Storage spaces",
-    "subtitle": "Organize your inventory by physical locations",
-    "warehouseCardTitle": "Main Warehouse",
-    "warehouseCardDescription": "Your first space to organize your inventory",
-    "createSpaceButton": "Create space",
-    "skipLink": "Skip for now",
+    "subtitle": "Set up where you store and manage your inventory",
+    "configureButton": "Set up my spaces",
+    "skipButton": "Skip — set up later",
+    "escapeHint": "If your business has multiple spaces or a complex structure, you can set them up later from the Warehouses module.",
+    "customRoom": {
+      "title": "Custom Space",
+      "description": "Your main operational space",
+      "roomTypeLabel": "Space category",
+      "roomTypePlaceholder": "Select or type a category",
+      "nameLabel": "Space name",
+      "namePlaceholderDefault": "e.g. Name of your space",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Optional",
+      "nameRequired": "Space name is required",
+      "roomTypeRequired": "Select a category for your space",
+      "suggestions": {
+        "retail": ["Store", "Sales floor"],
+        "food": ["Dining area", "Kitchen", "Lounge"],
+        "services": ["Office", "Workshop", "Consultation room"],
+        "manufacturing": ["Production area", "Workshop"],
+        "healthcare": ["Consultation room", "Waiting room"],
+        "education": ["Classroom", "Lecture hall", "Lab"],
+        "tech": ["Office", "Lab"],
+        "wholesale": ["Wholesale warehouse", "Dispatch area"]
+      },
+      "namePlaceholders": {
+        "Store": "e.g. My Store, Downtown Branch",
+        "Classroom": "e.g. Room 2-A",
+        "Consultation room": "e.g. Office 3, floor 2",
+        "Dining area": "e.g. My Restaurant, Main Hall",
+        "Office": "e.g. Main Office"
+      }
+    },
+    "storeRoom": {
+      "title": "Store Room",
+      "description": "Nearby reserve stock — back of store, home",
+      "nameLabel": "Store room name",
+      "namePlaceholder": "e.g. My Store Room, Back of store",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Optional — e.g. back of the store, my house",
+      "nameRequired": "Store room name is required"
+    },
+    "warehouse": {
+      "title": "Warehouse",
+      "description": "Dedicated bulk storage facility",
+      "nameLabel": "Warehouse name",
+      "namePlaceholder": "e.g. Warehouse North",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Required — formal address",
+      "nameRequired": "Warehouse name is required",
+      "addressRequired": "Address is required for warehouses",
+      "lockedBadge": "Starter+",
+      "lockedMessage": "Available on Starter plan and above"
+    },
     "ctaButton": "Continue",
-    "proBadge": "Pro",
-    "lockedMessage": "Available on paid plans",
-    "lockedDescription": "Upgrade your plan to create and manage multiple storage spaces",
-    "freeTierNote": "On the free plan you can manage your inventory without physical spaces"
+    "saving": "Saving..."
   },
 
   "step5": {
@@ -101,21 +151,14 @@
   },
 
   "step6": {
-    "title": "Quick start",
-    "subtitle": "Here is what you can do right away in Stocka",
+    "title": "Your business is ready!",
+    "subtitle": "You have completed the initial Stocka setup",
+    "successMessage": "You can now start managing your inventory",
     "checklistTitle": "Your getting started checklist",
     "item1": "Add your first product to inventory",
     "item2": "Invite your team to collaborate",
     "item3": "Set up your first storage space",
     "item4": "Explore reports and metrics",
-    "ctaButton": "Go to dashboard",
-    "skipLink": "Skip"
-  },
-
-  "step7": {
-    "title": "Your business is ready!",
-    "subtitle": "You have completed the initial Stocka setup",
-    "successMessage": "You can now start managing your inventory",
     "ctaButton": "Go to dashboard →"
   },
 
@@ -160,10 +203,12 @@
   },
 
   "errors": {
+    "consentsRecordFailed": "Could not record your consents. Please try again.",
     "preferencesUpdateFailed": "Could not save your preferences. Please try again.",
     "profileUpdateFailed": "Could not save the business profile. Please try again.",
     "onboardingCompleteFailed": "Could not complete onboarding. Please try again.",
     "invitationValidateFailed": "Could not validate the code. Please try again.",
-    "invitationAcceptFailed": "Could not process the invitation. Please try again."
+    "invitationAcceptFailed": "Could not process the invitation. Please try again.",
+    "networkError": "Could not connect to the server. Check your internet connection."
   }
 }

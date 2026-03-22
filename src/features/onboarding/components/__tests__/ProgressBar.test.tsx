@@ -2,12 +2,12 @@ import { render } from '@testing-library/react';
 import { ProgressBar } from '@/features/onboarding/components/ProgressBar';
 
 describe('ProgressBar', () => {
-  describe('Given the onboarding wizard has 7 steps', () => {
+  describe('Given the onboarding wizard has 6 steps', () => {
     describe('When the user is on step 1', () => {
       it('Then only the first segment is active (blue)', () => {
         const { container } = render(<ProgressBar currentStep={1} />);
         const segments = container.querySelectorAll('[aria-label^="Step"]');
-        expect(segments).toHaveLength(7);
+        expect(segments).toHaveLength(6);
       });
 
       it('Then the progress bar has the correct aria attributes', () => {
@@ -15,7 +15,7 @@ describe('ProgressBar', () => {
         const progressBar = container.querySelector('[role="progressbar"]');
         expect(progressBar).toHaveAttribute('aria-valuenow', '1');
         expect(progressBar).toHaveAttribute('aria-valuemin', '1');
-        expect(progressBar).toHaveAttribute('aria-valuemax', '7');
+        expect(progressBar).toHaveAttribute('aria-valuemax', '6');
       });
     });
 
@@ -27,17 +27,17 @@ describe('ProgressBar', () => {
       });
     });
 
-    describe('When the user is on step 7 (final step)', () => {
-      it('Then all 7 segments are rendered', () => {
-        const { container } = render(<ProgressBar currentStep={7} />);
+    describe('When the user is on step 6 (final visible step)', () => {
+      it('Then all 6 segments are rendered', () => {
+        const { container } = render(<ProgressBar currentStep={6} />);
         const segments = container.querySelectorAll('[aria-label^="Step"]');
-        expect(segments).toHaveLength(7);
+        expect(segments).toHaveLength(6);
       });
 
-      it('Then the progress bar shows step 7', () => {
-        const { container } = render(<ProgressBar currentStep={7} />);
+      it('Then the progress bar shows step 6', () => {
+        const { container } = render(<ProgressBar currentStep={6} />);
         const progressBar = container.querySelector('[role="progressbar"]');
-        expect(progressBar).toHaveAttribute('aria-valuenow', '7');
+        expect(progressBar).toHaveAttribute('aria-valuenow', '6');
       });
     });
   });

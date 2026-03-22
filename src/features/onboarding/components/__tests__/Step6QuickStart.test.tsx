@@ -11,23 +11,25 @@ vi.mock('react-i18next', async () => {
 describe('Step6QuickStart', () => {
   let user: ReturnType<typeof userEvent.setup>;
   const onComplete = vi.fn().mockResolvedValue(undefined);
-  const onSkip = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     user = userEvent.setup();
     vi.clearAllMocks();
   });
 
-  describe('Given the user is on the quick start checklist step', () => {
+  describe('Given the user is on the completion step', () => {
     beforeEach(() => {
       render(
         <Step6QuickStart
           onComplete={onComplete}
-          onSkip={onSkip}
           isLoading={false}
           error={null}
         />,
       );
+    });
+
+    it('Then the success illustration is shown', () => {
+      expect(screen.getByText('step6.successMessage')).toBeInTheDocument();
     });
 
     it('Then all 4 checklist items are shown', () => {
@@ -41,10 +43,6 @@ describe('Step6QuickStart', () => {
       expect(screen.getByRole('button', { name: /step6.ctaButton/i })).toBeInTheDocument();
     });
 
-    it('Then the skip link is visible', () => {
-      expect(screen.getByRole('button', { name: /step6.skipLink/i })).toBeInTheDocument();
-    });
-
     describe('When the user clicks go to dashboard', () => {
       beforeEach(async () => {
         await user.click(screen.getByRole('button', { name: /step6.ctaButton/i }));
@@ -54,16 +52,6 @@ describe('Step6QuickStart', () => {
         expect(onComplete).toHaveBeenCalledOnce();
       });
     });
-
-    describe('When the user clicks skip', () => {
-      beforeEach(async () => {
-        await user.click(screen.getByRole('button', { name: /step6.skipLink/i }));
-      });
-
-      it('Then onSkip is called', () => {
-        expect(onSkip).toHaveBeenCalledOnce();
-      });
-    });
   });
 
   describe('Given an API error occurred', () => {
@@ -71,7 +59,6 @@ describe('Step6QuickStart', () => {
       render(
         <Step6QuickStart
           onComplete={onComplete}
-          onSkip={onSkip}
           isLoading={false}
           error="errors.onboardingCompleteFailed"
         />,
@@ -88,7 +75,6 @@ describe('Step6QuickStart', () => {
       render(
         <Step6QuickStart
           onComplete={onComplete}
-          onSkip={onSkip}
           isLoading={true}
           error={null}
         />,
@@ -97,10 +83,6 @@ describe('Step6QuickStart', () => {
 
     it('Then the CTA button is disabled', () => {
       expect(screen.getByRole('button', { name: /step6.ctaButton/i })).toBeDisabled();
-    });
-
-    it('Then the skip button is disabled', () => {
-      expect(screen.getByRole('button', { name: /step6.skipLink/i })).toBeDisabled();
     });
   });
 });

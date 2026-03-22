@@ -60,7 +60,7 @@ describe('OnboardingCard', () => {
     });
   });
 
-  describe('Given the user is on step 7 (the final step)', () => {
+  describe('Given the user is on step 7 (completed state, not rendered)', () => {
     beforeEach(() => {
       render(
         <OnboardingCard step={7} title="Success!">
@@ -69,8 +69,40 @@ describe('OnboardingCard', () => {
       );
     });
 
-    it('Then the progress bar is shown on step 7', () => {
-      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    it('Then the progress bar is NOT shown on step 7', () => {
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given a card is rendered with a footerAction', () => {
+    beforeEach(() => {
+      render(
+        <OnboardingCard step={2} title="Step Title" footerAction={<a href="/exit">Exit onboarding</a>}>
+          <div>Content</div>
+        </OnboardingCard>,
+      );
+    });
+
+    it('Then the footer action is rendered', () => {
+      expect(screen.getByText('Exit onboarding')).toBeInTheDocument();
+    });
+
+    it('Then the footer link is clickable', () => {
+      expect(screen.getByRole('link', { name: 'Exit onboarding' })).toHaveAttribute('href', '/exit');
+    });
+  });
+
+  describe('Given a card is rendered without a footerAction', () => {
+    beforeEach(() => {
+      render(
+        <OnboardingCard step={2} title="No Footer">
+          <div>Content</div>
+        </OnboardingCard>,
+      );
+    });
+
+    it('Then no footer section is rendered', () => {
+      expect(screen.queryByText('Exit onboarding')).not.toBeInTheDocument();
     });
   });
 

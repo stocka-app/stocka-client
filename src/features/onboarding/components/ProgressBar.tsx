@@ -4,7 +4,7 @@ interface ProgressBarProps {
   currentStep: number;
 }
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 6;
 
 export function ProgressBar({ currentStep }: ProgressBarProps): React.ReactElement {
   return (
@@ -18,7 +18,9 @@ export function ProgressBar({ currentStep }: ProgressBarProps): React.ReactEleme
             key={stepNumber}
             className={cn(
               'h-1.5 flex-1 rounded-full transition-colors duration-300',
-              isActive ? 'bg-[#3b82f6]' : 'bg-[#e5e7eb]',
+              isActive
+                ? 'bg-brand'
+                : 'bg-neutral-200 dark:bg-white/[0.08]',
             )}
             aria-label={`Step ${stepNumber}`}
           />
