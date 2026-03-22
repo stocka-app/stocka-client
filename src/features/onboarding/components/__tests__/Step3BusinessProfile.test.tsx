@@ -41,8 +41,8 @@ describe('Step3BusinessProfile', () => {
       expect(typeButtons.length).toBeGreaterThanOrEqual(9);
     });
 
-    it('Then the state dropdown is visible', () => {
-      expect(screen.getByRole('combobox', { name: /step3.stateLabel/i })).toBeInTheDocument();
+    it('Then the country dropdown is visible', () => {
+      expect(screen.getByRole('combobox', { name: /step3.countryLabel/i })).toBeInTheDocument();
     });
 
     describe('When the user tries to submit without filling required fields', () => {
@@ -75,8 +75,8 @@ describe('Step3BusinessProfile', () => {
         );
         await user.click(screen.getByRole('button', { name: /step3.businessTypes.RETAIL/i }));
         await user.selectOptions(
-          screen.getByRole('combobox', { name: /step3.stateLabel/i }),
-          'Jalisco',
+          screen.getByRole('combobox', { name: /step3.countryLabel/i }),
+          'MX',
         );
         await user.click(screen.getByRole('button', { name: /step3.ctaButton/i }));
       });
@@ -86,7 +86,7 @@ describe('Step3BusinessProfile', () => {
           expect.objectContaining({
             businessName: 'Mi Negocio',
             businessType: 'RETAIL',
-            state: 'Jalisco',
+            country: 'MX',
           }),
         );
       });
@@ -100,6 +100,76 @@ describe('Step3BusinessProfile', () => {
       it('Then onBack is called', () => {
         expect(onBack).toHaveBeenCalledOnce();
       });
+    });
+  });
+
+  describe('Given the user selects OTHER as business type', () => {
+    beforeEach(() => {
+      render(
+        <Step3BusinessProfile
+          onSubmit={onSubmit}
+          onBack={onBack}
+          isLoading={false}
+          error={null}
+        />,
+      );
+    });
+
+    describe('When the user clicks the OTHER business type button', () => {
+      beforeEach(async () => {
+        await user.click(screen.getByRole('button', { name: /step3.businessTypes.OTHER/i }));
+      });
+
+      it('Then the otherBusinessType text input appears', () => {
+        expect(
+          screen.getByRole('textbox', { name: /step3.otherBusinessTypeLabel/i }),
+        ).toBeInTheDocument();
+      });
+
+      it('Then the user can type into the otherBusinessType input and submit', async () => {
+        await user.type(
+          screen.getByRole('textbox', { name: /step3.businessNameLabel/i }),
+          'Mi Tienda Custom',
+        );
+        await user.type(
+          screen.getByRole('textbox', { name: /step3.otherBusinessTypeLabel/i }),
+          'Artesanias',
+        );
+        await user.click(screen.getByRole('button', { name: /step3.ctaButton/i }));
+
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            businessName: 'Mi Tienda Custom',
+            businessType: 'OTHER',
+            otherBusinessType: 'Artesanias',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('Given the component is rendered with defaultValues including OTHER type', () => {
+    beforeEach(() => {
+      render(
+        <Step3BusinessProfile
+          onSubmit={onSubmit}
+          onBack={onBack}
+          isLoading={false}
+          error={null}
+          defaultValues={{
+            businessName: 'Custom Biz',
+            businessType: 'OTHER',
+            otherBusinessType: 'Artesanias',
+            country: 'MX',
+          }}
+        />,
+      );
+    });
+
+    it('Then the otherBusinessType input is visible with the default value', () => {
+      const input = screen.getByRole('textbox', { name: /step3.otherBusinessTypeLabel/i });
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveValue('Artesanias');
     });
   });
 
@@ -117,6 +187,34 @@ describe('Step3BusinessProfile', () => {
 
     it('Then the error alert is shown', () => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+  });
+
+  describe('Given the country field has an invalid value', () => {
+    beforeEach(() => {
+      render(
+        <Step3BusinessProfile
+          onSubmit={onSubmit}
+          onBack={onBack}
+          isLoading={false}
+          error={null}
+          defaultValues={{
+            businessName: 'Test',
+            businessType: 'RETAIL',
+            country: '',
+          }}
+        />,
+      );
+    });
+
+    describe('When the user submits with an empty country', () => {
+      beforeEach(async () => {
+        await user.click(screen.getByRole('button', { name: /step3.ctaButton/i }));
+      });
+
+      it('Then onSubmit is NOT called due to validation failure', () => {
+        expect(onSubmit).not.toHaveBeenCalled();
+      });
     });
   });
 

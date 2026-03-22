@@ -1,0 +1,32 @@
+{
+  "pageTitle": "Privacidad",
+  "pageDescription": "Controla cómo se usan y comparten tus datos",
+  "sections": {
+    "consents": "Tus preferencias",
+    "legal": "Documentos legales"
+  },
+  "marketing": {
+    "label": "Comunicaciones de producto",
+    "description": "Recibe actualizaciones sobre nuevas funciones y mejoras de Stocka"
+  },
+  "analytics": {
+    "label": "Datos de uso anónimos",
+    "description": "Ayuda a mejorar Stocka compartiendo datos de uso anónimos"
+  },
+  "terms": {
+    "label": "Términos de Servicio",
+    "acceptedOn": "Aceptado el {{date}}",
+    "viewDocument": "Ver documento"
+  },
+  "privacy": {
+    "label": "Política de Privacidad",
+    "acceptedOn": "Aceptada el {{date}}",
+    "viewDocument": "Ver documento"
+  },
+  "saving": "Guardando...",
+  "saved": "Preferencia guardada",
+  "errors": {
+    "fetchFailed": "No se pudieron cargar tus preferencias de privacidad",
+    "updateFailed": "No se pudo actualizar tu preferencia. Intenta de nuevo."
+  }
+}
