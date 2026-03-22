@@ -23,13 +23,13 @@ export class VerifyEmailPage {
     this.page = page;
 
     this.title = page.getByRole('heading', { name: 'Verify your email' });
-    this.emailDisplay = page.locator('.text-primary.text-lg');
+    this.emailDisplay = page.locator('p.font-medium.text-primary');
 
     this.codeInput = page.getByLabel('Enter verification code');
     this.verifyButton = page.getByRole('button', { name: 'Verify Email' });
     this.resendButton = page.getByRole('button', { name: /Resend code|Resend in/ });
 
-    this.errorAlert = page.locator('.bg-destructive\\/10');
+    this.errorAlert = page.locator('[class*="bg-destructive"]').first();
     this.emailNotDeliveredWarning = page.locator('[class*="amber"]').first();
   }
 

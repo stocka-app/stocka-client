@@ -32,7 +32,7 @@ export class RegisterPage {
     this.signUpButton = page.getByRole('button', { name: 'Sign up', exact: true });
     this.signInLink = page.getByRole('link', { name: 'Sign in' });
 
-    this.errorAlert = page.locator('.bg-destructive\\/10');
+    this.errorAlert = page.locator('[class*="bg-destructive"]').first();
   }
 
   async goto(): Promise<void> {

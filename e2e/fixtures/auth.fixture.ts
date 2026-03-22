@@ -1,6 +1,6 @@
 import { test as base, type Page } from '@playwright/test';
 import { Pool } from 'pg';
-import { apiSignUp } from '../helpers/api.helper';
+import { apiSignUp, apiCompleteOnboarding } from '../helpers/api.helper';
 import { verifyUserEmail } from '../helpers/db.helper';
 
 const DB_URL =
@@ -15,9 +15,9 @@ export interface TestUser {
 }
 
 interface AuthFixtures {
-  /** A pre-created, email-verified user. Use for authenticated-session tests. */
+  /** A pre-created, email-verified user with a tenant. Ready for sign-in to /dashboard. */
   verifiedUser: TestUser;
-  /** A page already authenticated as verifiedUser (storageState pre-loaded). */
+  /** A page already authenticated as verifiedUser (storageState pre-loaded at /dashboard). */
   authenticatedPage: Page;
 }
 
@@ -27,7 +27,9 @@ interface AuthFixtures {
  * The verifiedUser fixture:
  *   1. Calls POST /authentication/sign-up to create the user
  *   2. Directly updates the DB to mark the email as verified
- *   This avoids needing a real email inbox during testing.
+ *   3. Creates a tenant + membership so the JWT includes a tenantId
+ *   This avoids needing a real email inbox during testing and ensures sign-in
+ *   redirects to /dashboard (not /onboarding).
  *
  * The authenticatedPage fixture navigates to /authentication/sign-in and completes
  * the sign-in flow so the page has a valid session (cookies + localStorage state).
@@ -43,6 +45,8 @@ export const test = base.extend<AuthFixtures>({
       userId: '',
     };
 
+    let accessToken = '';
+
     try {
       const result = await apiSignUp({
         email: user.email,
@@ -50,16 +54,28 @@ export const test = base.extend<AuthFixtures>({
         password: user.password,
       });
       user.userId = result.userId;
+      accessToken = result.accessToken;
 
+      // Small delay to ensure the backend has fully committed the sign-up transaction
+      await new Promise((r) => setTimeout(r, 500));
       await verifyUserEmail(pool, user.email);
     } finally {
       await pool.end();
     }
 
+    // Brief pause to avoid hitting the backend's per-second throttle
+    // (the sign-up request already consumed 1 of 3 allowed requests per second).
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // Complete onboarding via the API to create a tenant.
+    // This uses the sign-up access token (the user is verified now).
+    await apiCompleteOnboarding(accessToken);
+
     await use(user);
   },
 
   authenticatedPage: async ({ page, verifiedUser }, use) => {
+    // verifiedUser fixture already created a tenant for this user
     await page.goto('/authentication/sign-in');
 
     await page.getByLabel('Enter your username or email address').fill(verifiedUser.email);

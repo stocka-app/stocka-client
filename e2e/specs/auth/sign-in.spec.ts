@@ -44,7 +44,7 @@ test.describe('Given a verified user on the Sign In page', () => {
       await loginPage.signIn(verifiedUser.email, 'WrongPass99');
 
       await expect(loginPage.errorAlert).toBeVisible();
-      await expect(page).toHaveURL(/\/authentication\/login/);
+      await expect(page).toHaveURL(/\/authentication\/sign-in/);
     });
   });
 

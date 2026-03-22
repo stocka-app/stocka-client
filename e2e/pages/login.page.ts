@@ -33,7 +33,7 @@ export class LoginPage {
     this.forgotPasswordLink = page.getByRole('button', { name: 'Forgot Password?' });
     this.createAccountLink = page.getByRole('link', { name: 'Create an account' });
 
-    this.errorAlert = page.locator('.bg-destructive\\/10');
+    this.errorAlert = page.locator('[class*="bg-destructive"]').first();
     this.rateLimitBanner = page.locator('.bg-amber-50, .bg-amber-950\\/30').first();
     this.socialAccountRequiredBanner = page.locator('[class*="amber"]').first();
   }
@@ -52,7 +52,27 @@ export class LoginPage {
   }
 
   async signIn(emailOrUsername: string, password: string): Promise<void> {
-    await this.fillCredentials(emailOrUsername, password);
-    await this.submit();
+    const maxAttempts = 4;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await this.fillCredentials(emailOrUsername, password);
+      await this.submit();
+
+      // Wait a moment for the response to arrive
+      await this.page.waitForTimeout(500);
+
+      // Check if we were rate-limited
+      const wasRateLimited = await this.rateLimitBanner
+        .isVisible({ timeout: 1000 })
+        .catch(() => false);
+
+      if (!wasRateLimited) return;
+
+      if (attempt < maxAttempts) {
+        // Reload the page to clear the disabled form state, then retry
+        await this.page.waitForTimeout(2000);
+        await this.goto();
+      }
+    }
   }
 }
