@@ -125,8 +125,8 @@ export function ResendButton({
         disabled={isDisabled}
         className={cn(
           'text-primary hover:text-primary/80 hover:bg-primary/5',
-          isOnCooldown && 'text-gray-400',
-          noResendsLeft && 'text-gray-400 cursor-not-allowed',
+          isOnCooldown && 'text-neutral-400',
+          noResendsLeft && 'text-neutral-400 cursor-not-allowed',
         )}
       >
         {isLoading ? (
@@ -144,7 +144,7 @@ export function ResendButton({
 
       {/* Mostrar reenvíos restantes */}
       {remainingResends !== undefined && remainingResends > 0 && (
-        <span className="text-xs text-gray-500">{getResendsText()}</span>
+        <span className="text-xs text-neutral-500">{getResendsText()}</span>
       )}
     </div>
   );

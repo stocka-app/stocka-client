@@ -22,6 +22,10 @@ vi.mock('@/shared/lib/axios', () => ({
   setAccessToken: vi.fn(),
 }));
 
+vi.mock('@/shared/lib/jwt', () => ({
+  extractTenantContext: vi.fn(() => ({ tenantId: null, role: null })),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -82,7 +86,7 @@ describe('useAuthenticationStore', () => {
         it('Then it sets the user and marks the session as authenticated', async () => {
           const { result } = renderHook(() => useAuthenticationStore());
 
-          let loginResult: { requiresVerification: boolean } | undefined;
+          let loginResult: { requiresVerification: boolean; requiresOnboarding: boolean } | undefined;
           await act(async () => {
             loginResult = await result.current.login({
               emailOrUsername: 'user@test.com',
@@ -90,7 +94,7 @@ describe('useAuthenticationStore', () => {
             });
           });
 
-          expect(loginResult).toEqual({ requiresVerification: false });
+          expect(loginResult).toEqual({ requiresVerification: false, requiresOnboarding: true });
           expect(result.current.isAuthenticated).toBe(true);
           expect(result.current.user?.email).toBe('user@test.com');
           expect(result.current.isLoading).toBe(false);
@@ -142,7 +146,7 @@ describe('useAuthenticationStore', () => {
         it('Then it returns requiresVerification: true', async () => {
           const { result } = renderHook(() => useAuthenticationStore());
 
-          let loginResult: { requiresVerification: boolean } | undefined;
+          let loginResult: { requiresVerification: boolean; requiresOnboarding: boolean } | undefined;
           await act(async () => {
             loginResult = await result.current.login({
               emailOrUsername: 'user@test.com',
@@ -150,7 +154,7 @@ describe('useAuthenticationStore', () => {
             });
           });
 
-          expect(loginResult).toEqual({ requiresVerification: true });
+          expect(loginResult).toEqual({ requiresVerification: true, requiresOnboarding: false });
         });
 
         it('Then it sets emailVerificationRequired and is NOT authenticated', async () => {
@@ -411,7 +415,7 @@ describe('useAuthenticationStore', () => {
         it('Then it returns requiresVerification: true', async () => {
           const { result } = renderHook(() => useAuthenticationStore());
 
-          let registerResult: { requiresVerification: boolean } | undefined;
+          let registerResult: { requiresVerification: boolean; requiresOnboarding: boolean } | undefined;
           await act(async () => {
             registerResult = await result.current.register({
               email: 'user@test.com',
@@ -420,7 +424,7 @@ describe('useAuthenticationStore', () => {
             });
           });
 
-          expect(registerResult).toEqual({ requiresVerification: true });
+          expect(registerResult).toEqual({ requiresVerification: true, requiresOnboarding: false });
         });
       });
     });
@@ -941,11 +945,12 @@ describe('useAuthenticationStore', () => {
           act(() => {
             result.current.handleOAuthCallback({
               accessToken: 'oauth-token-abc',
-              user: oauthUser,
+              user: { ...oauthUser, tenantId: null, role: null },
             });
           });
 
-          expect(result.current.user).toEqual(oauthUser);
+          // handleOAuthCallback enriches user with tenantId/role from JWT
+          expect(result.current.user).toEqual({ ...oauthUser, tenantId: null, role: null });
           expect(result.current.isAuthenticated).toBe(true);
           expect(result.current.error).toBeNull();
           expect(result.current.blockInfo).toBeNull();
@@ -963,6 +968,8 @@ describe('useAuthenticationStore', () => {
                 username: 'oauthuser',
                 status: 'email_verified_by_provider',
                 createdAt: '2024-01-01T00:00:00.000Z',
+                tenantId: null,
+                role: null,
               },
             });
           });

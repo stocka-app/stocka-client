@@ -116,9 +116,8 @@ export function LoginForm() {
       clearError();
       const result = await login(data);
 
-      // Solo redirigir a dashboard si login exitoso (usuario verificado)
       if (!result?.requiresVerification) {
-        navigate('/dashboard');
+        navigate(result?.requiresOnboarding ? '/onboarding' : '/dashboard');
       }
       // Si requiresVerification es true, el error se mostrará con el link
     } catch {
@@ -128,7 +127,7 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-6">
         {/* ── Social Buttons (always enabled during password block) ── */}
         <div className="grid grid-cols-2 gap-3">
           <SocialButton provider="google" variant="full" label={t('signInWithGoogle')} onClick={() => initiateOAuthPopup('google')} />
@@ -199,16 +198,16 @@ export function LoginForm() {
           name="emailOrUsername"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-neutral-700 dark:text-neutral-300">{t('emailOrUsername')}</FormLabel>
+              <FormLabel className="text-neutral-700">{t('emailOrUsername')}</FormLabel>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none">
                   mail
                 </span>
                 <FormControl>
                   <Input
                     placeholder={t('emailOrUsernamePlaceholder')}
                     disabled={isFormDisabled}
-                    className="h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
+                    className="h-10 sm:h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
                     {...field}
                   />
                 </FormControl>
@@ -226,7 +225,7 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-neutral-700 dark:text-neutral-300">{t('password')}</FormLabel>
+              <FormLabel className="text-neutral-700">{t('password')}</FormLabel>
               <FormControl>
                 <PasswordInput
                   placeholder={t('passwordPlaceholder')}
@@ -253,7 +252,7 @@ export function LoginForm() {
             />
             <label
               htmlFor="remember-me"
-              className="text-sm text-neutral-600 dark:text-neutral-400 cursor-pointer select-none"
+              className="text-sm text-neutral-600 cursor-pointer select-none"
             >
               {t('rememberMe', 'Remember me')}
             </label>
@@ -272,7 +271,7 @@ export function LoginForm() {
         <Button
           type="submit"
           className={cn(
-            'w-full h-12 rounded-lg font-semibold text-base',
+            'w-full h-10 sm:h-12 rounded-lg font-semibold text-sm sm:text-base',
             'bg-authentication-btn hover:bg-authentication-btn-hover text-white',
           )}
           size="lg"

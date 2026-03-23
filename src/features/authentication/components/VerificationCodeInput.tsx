@@ -151,23 +151,23 @@ export function VerificationCodeInput({
           disabled={disabled}
           aria-label={t('digitOf', { index: index + 1, length })}
           className={cn(
-            'w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-semibold',
+            'w-9 h-11 sm:w-12 sm:h-14 text-center text-lg sm:text-2xl font-semibold',
             'border rounded-lg transition-all duration-200',
             'focus:outline-none focus:ring-2 focus:ring-offset-1',
             // Estados normales
             !error &&
               !disabled && [
-                'border-gray-300 bg-white text-gray-900',
-                'hover:border-gray-400',
+                'border-neutral-300 dark:border-neutral-600 bg-white dark:bg-authentication-input-bg text-neutral-900',
+                'hover:border-neutral-400 dark:hover:border-neutral-500',
                 'focus:border-primary focus:ring-primary/30',
               ],
             // Estado de error
             error && [
-              'border-red-500 bg-red-50 text-red-900',
+              'border-red-500 bg-red-50 dark:bg-red-950/30 text-red-900 dark:text-red-300',
               'focus:border-red-500 focus:ring-red-500/30',
             ],
             // Estado deshabilitado
-            disabled && ['border-gray-200 bg-gray-100 text-gray-400', 'cursor-not-allowed'],
+            disabled && ['border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-neutral-400', 'cursor-not-allowed'],
             // Animación de shake en error
             error && 'animate-shake',
           )}

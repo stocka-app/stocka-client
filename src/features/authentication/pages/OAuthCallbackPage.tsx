@@ -6,6 +6,7 @@ import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuthenticationStore } from '../store/authentication.store';
 import { authenticationService } from '../api/authentication.service';
 import { setAccessToken } from '@/shared/lib/axios';
+import { decodeJwtPayload, type StockaJwtPayload } from '@/shared/lib/jwt';
 import { Button } from '@/shared/components/ui/button';
 import type { User, OAuthProvider } from '../types/authentication.types';
 
@@ -129,6 +130,7 @@ function OAuthCallbackPage() {
         // Poner el accessToken en memoria antes de hacer cualquier llamada autenticada
         setAccessToken(accessToken);
 
+        // Build user from URL params or JWT — no extra API call needed
         let user: User | null = null;
         if (userParam) {
           try {
@@ -138,21 +140,20 @@ function OAuthCallbackPage() {
           }
         }
 
-        // Si no viene el usuario en la URL, intentar obtenerlo con el token
         if (!user) {
-          try {
-            const me = await authenticationService.getMe();
-            user = me.data as unknown as User;
-          } catch {
-            // No es fatal — el store puede funcionar sin el objeto user inicialmente
-          }
+          const payload = decodeJwtPayload<StockaJwtPayload>(accessToken);
+          user = {
+            id: payload.sub,
+            email: payload.email,
+            username: payload.email.split('@')[0],
+            status: 'active',
+            createdAt: new Date().toISOString(),
+            tenantId: payload.tenantId ?? null,
+            role: payload.role ?? null,
+          };
         }
 
-        // Procesar el callback en el store
-        handleOAuthCallback({
-          accessToken,
-          user: user as User,
-        });
+        handleOAuthCallback({ accessToken, user });
 
         // Limpiar el provider almacenado al completar exitosamente
         sessionStorage.removeItem('lastOAuthProvider');
@@ -185,7 +186,7 @@ function OAuthCallbackPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-lg text-gray-600">{t('oauthCallback.loading')}</p>
+        <p className="mt-4 text-lg text-neutral-500">{t('oauthCallback.loading')}</p>
       </div>
     );
   }
@@ -194,11 +195,11 @@ function OAuthCallbackPage() {
   if (status === 'success') {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
           <CheckCircle2 className="w-10 h-10 text-green-600" />
         </div>
-        <h2 className="mt-4 text-xl font-semibold text-gray-900">{t('oauthCallback.success')}</h2>
-        <p className="mt-2 text-gray-600">{t('common.redirecting', 'Redirecting...')}</p>
+        <h2 className="mt-4 text-xl font-semibold text-neutral-900">{t('oauthCallback.success')}</h2>
+        <p className="mt-2 text-neutral-500">{t('common.redirecting', 'Redirecting...')}</p>
       </div>
     );
   }
@@ -209,15 +210,15 @@ function OAuthCallbackPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6 text-center">
-        <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
           <AlertCircle className="w-10 h-10 text-red-600" />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-neutral-900">
             {errorInfo?.title ?? t('oauthCallback.error')}
           </h2>
-          {errorInfo?.detail && <p className="text-sm text-gray-600">{errorInfo.detail}</p>}
+          {errorInfo?.detail && <p className="text-sm text-neutral-500">{errorInfo.detail}</p>}
         </div>
 
         <div className="flex flex-col gap-3">

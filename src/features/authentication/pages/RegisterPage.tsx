@@ -14,13 +14,13 @@ function RegisterPage() {
   }, [clearError]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
           {t('createYourAccount', 'Create your account')}
         </h1>
-        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 sm:mt-2 text-sm text-neutral-500">
           {t('haveAccount')}{' '}
           <Link
             to="/authentication/sign-in"

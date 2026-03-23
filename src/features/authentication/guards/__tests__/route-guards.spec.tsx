@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/features/authentication/guards/ProtectedRoute'
 import { PublicRoute } from '@/features/authentication/guards/PublicRoute';
 import { EmailVerifiedGuard } from '@/features/authentication/guards/EmailVerifiedGuard';
 import { VerificationRoute } from '@/features/authentication/guards/VerificationRoute';
+import { RequiresTenantRoute } from '@/features/authentication/guards/RequiresTenantRoute';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -63,6 +64,7 @@ function renderWithRouter(ui: React.ReactElement, initialPath = '/') {
         <Route path="/authentication/sign-in" element={<div>Login Page</div>} />
         <Route path="/dashboard" element={<div>Dashboard</div>} />
         <Route path="/authentication/verify-email" element={<div>Verify Email Page</div>} />
+        <Route path="/onboarding" element={<div>Onboarding Page</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -348,6 +350,101 @@ describe('VerificationRoute', () => {
         </VerificationRoute>,
       );
       expect(screen.getByText('Verification Content')).toBeInTheDocument();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RequiresTenantRoute
+// ---------------------------------------------------------------------------
+
+describe('RequiresTenantRoute', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Given the user is authenticated but has no tenant (tenantId is null)', () => {
+    beforeEach(() => {
+      vi.mocked(useAuthenticationStore).mockReturnValue(
+        buildStoreState({
+          isAuthenticated: true,
+          user: {
+            id: '00000000-0000-0000-0000-000000000001',
+            email: 'test@example.com',
+            username: 'test',
+            status: 'active',
+            createdAt: '2024-01-01T00:00:00Z',
+            tenantId: null,
+            role: null,
+          },
+        }),
+      );
+    });
+
+    it('Then it redirects to the onboarding page', () => {
+      renderWithRouter(
+        <RequiresTenantRoute>
+          <div>Tenant Content</div>
+        </RequiresTenantRoute>,
+      );
+      expect(screen.getByText('Onboarding Page')).toBeInTheDocument();
+    });
+
+    it('Then it does not render the protected children', () => {
+      renderWithRouter(
+        <RequiresTenantRoute>
+          <div>Tenant Content</div>
+        </RequiresTenantRoute>,
+      );
+      expect(screen.queryByText('Tenant Content')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given the user is authenticated and has a tenant', () => {
+    beforeEach(() => {
+      vi.mocked(useAuthenticationStore).mockReturnValue(
+        buildStoreState({
+          isAuthenticated: true,
+          user: {
+            id: '00000000-0000-0000-0000-000000000001',
+            email: 'test@example.com',
+            username: 'test',
+            status: 'active',
+            createdAt: '2024-01-01T00:00:00Z',
+            tenantId: '00000000-0000-0000-0000-000000000002',
+            role: 'owner',
+          },
+        }),
+      );
+    });
+
+    it('Then it renders the protected children', () => {
+      renderWithRouter(
+        <RequiresTenantRoute>
+          <div>Tenant Content</div>
+        </RequiresTenantRoute>,
+      );
+      expect(screen.getByText('Tenant Content')).toBeInTheDocument();
+    });
+  });
+
+  describe('Given the user is not authenticated', () => {
+    beforeEach(() => {
+      vi.mocked(useAuthenticationStore).mockReturnValue(
+        buildStoreState({
+          isAuthenticated: false,
+          user: null,
+        }),
+      );
+    });
+
+    it('Then it renders the children (auth check is handled by ProtectedRoute)', () => {
+      renderWithRouter(
+        <RequiresTenantRoute>
+          <div>Tenant Content</div>
+        </RequiresTenantRoute>,
+      );
+      expect(screen.getByText('Tenant Content')).toBeInTheDocument();
     });
   });
 });

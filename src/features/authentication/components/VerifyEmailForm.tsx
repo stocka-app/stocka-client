@@ -200,23 +200,23 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
   // Estado de éxito
   if (isSuccess) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 space-y-4">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-          <CheckCircle2 className="w-10 h-10 text-green-600" />
+      <div className="flex flex-col items-center justify-center py-4 sm:py-8 space-y-3 sm:space-y-4">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-green-600 dark:text-green-400" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">
           {t('verifyEmail.verificationSuccess', 'Email verified successfully!')}
         </h2>
-        <p className="text-gray-600">{t('common.redirecting', 'Redirecting...')}</p>
+        <p className="text-neutral-600">{t('common.redirecting', 'Redirecting...')}</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-6">
       {/* Input de código */}
-      <div className="space-y-4">
-        <label className="block text-sm font-medium text-gray-700 text-center">
+      <div className="space-y-2 sm:space-y-4">
+        <label className="block text-xs sm:text-sm font-medium text-neutral-700 text-center">
           {t('verifyEmail.enterCode', 'Enter verification code')}
         </label>
 
@@ -232,8 +232,8 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
         {error && (
           <div
             className={cn(
-              'flex items-center justify-center gap-2 text-sm',
-              'text-red-600 bg-red-50 rounded-lg p-3',
+              'flex items-center justify-center gap-2 text-xs sm:text-sm',
+              'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-2.5 sm:p-3',
             )}
           >
             <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -243,13 +243,13 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
 
         {/* Intentos restantes (si hay bloqueo parcial) */}
         {blockInfo?.attemptsRemaining !== undefined && !error && (
-          <p className="text-center text-sm text-amber-600">
+          <p className="text-center text-xs sm:text-sm text-amber-600 dark:text-amber-400">
             {t('verifyEmail.attemptsRemaining', { count: blockInfo.attemptsRemaining })}
           </p>
         )}
       </div>
 
-      {/* Timer de expiración - usa key para forzar reinicio cuando se reenvía el código */}
+      {/* Timer de expiración */}
       <ExpirationTimer
         key={verificationCodeSentAt || 'initial'}
         totalSeconds={CODE_EXPIRATION_SECONDS}
@@ -261,7 +261,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
       {/* Botón de verificar */}
       <Button
         type="submit"
-        className="w-full"
+        className="w-full h-10 sm:h-11"
         size="lg"
         disabled={code.length !== 6 || isLoading || isCodeExpired}
       >
@@ -276,8 +276,8 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
       </Button>
 
       {/* Sección de reenvío */}
-      <div className="pt-4 border-t border-gray-200">
-        <p className="text-center text-sm text-gray-600 mb-3">
+      <div className="pt-3 sm:pt-4 border-t border-neutral-200 dark:border-neutral-700">
+        <p className="text-center text-xs sm:text-sm text-neutral-600 mb-2 sm:mb-3">
           {t('verifyEmail.didntReceiveCode', "Didn't receive the code?")}
         </p>
 
@@ -292,7 +292,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
 
       {/* Link para cambiar email */}
       <div className="text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-xs sm:text-sm text-neutral-500">
           {t('verifyEmail.wrongEmail', 'Wrong email?')}{' '}
           <button
             type="button"

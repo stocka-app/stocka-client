@@ -78,16 +78,16 @@ function ForgotPasswordPage() {
     return (
       <div className="space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
             {t('forgotPasswordPage.success')}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-neutral-500">
             {t('forgotPasswordPage.successDetail', { email: submittedEmail })}
           </p>
         </div>
@@ -113,7 +113,7 @@ function ForgotPasswordPage() {
         <div>
           <Link
             to="/authentication/sign-in"
-            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-primary hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
             {t('forgotPasswordPage.backToLogin')}
@@ -127,13 +127,13 @@ function ForgotPasswordPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-neutral-500">
           {t('welcome')} <span className="font-semibold text-primary">Stocka</span>
         </p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">
+        <h1 className="mt-1 text-2xl font-bold text-neutral-900 sm:text-3xl">
           {t('forgotPasswordPage.title')}
         </h1>
-        <p className="mt-2 text-sm text-gray-600">{t('forgotPasswordPage.subtitle')}</p>
+        <p className="mt-2 text-sm text-neutral-500">{t('forgotPasswordPage.subtitle')}</p>
       </div>
 
       {/* Form */}
@@ -183,7 +183,7 @@ function ForgotPasswordPage() {
       <div className="text-center">
         <Link
           to="/authentication/sign-in"
-          className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-primary hover:underline"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           {t('forgotPasswordPage.backToLogin')}

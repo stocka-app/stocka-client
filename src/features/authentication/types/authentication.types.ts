@@ -45,6 +45,8 @@ export interface User {
   username: string;
   status: UserStatus;
   createdAt: string; // ISO 8601
+  tenantId: string | null; // from JWT — null = onboarding not completed
+  role: string | null; // from JWT — null = no tenant membership
 }
 
 // =============================================================================
@@ -72,6 +74,11 @@ export type AuthenticationErrorCode =
   | 'TOKEN_EXPIRED'
   | 'INVALID_TOKEN'
   | 'TOKEN_ALREADY_USED'
+  | 'NETWORK_ERROR'
+  | 'REQUEST_TIMEOUT'
+  | 'INTERNAL_SERVER_ERROR'
+  | 'VALIDATION_ERROR'
+  | 'TOO_MANY_REQUESTS'
   | 'UNKNOWN_ERROR';
 
 /**
@@ -137,6 +144,7 @@ export interface AuthState {
  */
 export interface AuthResult {
   requiresVerification: boolean;
+  requiresOnboarding: boolean;
 }
 
 /**

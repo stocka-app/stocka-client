@@ -23,7 +23,7 @@ type InvalidReason = 'expired' | 'invalid' | 'missing';
 
 function PasswordHint({ met, label }: { met: boolean; label: string }) {
   return (
-    <p className={`flex items-center gap-1.5 text-xs ${met ? 'text-green-600' : 'text-gray-400'}`}>
+    <p className={`flex items-center gap-1.5 text-xs ${met ? 'text-green-600' : 'text-neutral-400'}`}>
       <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
       {label}
     </p>
@@ -67,16 +67,16 @@ function ResetPasswordPage() {
     return (
       <div className="space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
             {t('resetPassword.success')}
           </h1>
-          <p className="text-gray-600">{t('resetPassword.successDetail')}</p>
+          <p className="text-neutral-500">{t('resetPassword.successDetail')}</p>
         </div>
 
         <Button
@@ -100,16 +100,16 @@ function ResetPasswordPage() {
     return (
       <div className="space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
             <AlertTriangle className="w-10 h-10 text-amber-600" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold text-neutral-900 sm:text-3xl">
             {t('resetPassword.title')}
           </h1>
-          <p className="text-gray-600">{message}</p>
+          <p className="text-neutral-500">{message}</p>
         </div>
 
         <Button className="w-full" size="lg" onClick={() => navigate('/authentication/forgot-password')}>
@@ -119,7 +119,7 @@ function ResetPasswordPage() {
         <div>
           <Link
             to="/authentication/sign-in"
-            className="text-sm text-gray-600 hover:text-primary hover:underline"
+            className="text-sm text-neutral-500 hover:text-primary hover:underline"
           >
             {t('forgotPasswordPage.backToLogin')}
           </Link>
@@ -133,10 +133,10 @@ function ResetPasswordPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-neutral-500">
           {t('welcome')} <span className="font-semibold text-primary">Stocka</span>
         </p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">
+        <h1 className="mt-1 text-2xl font-bold text-neutral-900 sm:text-3xl">
           {t('resetPassword.title')}
         </h1>
       </div>

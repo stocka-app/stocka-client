@@ -22,7 +22,6 @@ vi.mock('@/features/authentication/api/oauth-popup.helper', () => ({
 vi.mock('@/features/authentication/api/authentication.service', () => ({
   authenticationService: {
     getOAuthUrl: vi.fn(),
-    getMe: vi.fn(),
   },
 }));
 
@@ -36,6 +35,22 @@ vi.mock('@/shared/lib/axios', () => ({
 
 const OAUTH_URL = 'http://localhost:3001/api/authentication/google';
 const STORAGE_KEY = 'stocka-oauth-result';
+
+// Build a fake JWT that decodeJwtPayload can decode
+function buildFakeJwt(payload: Record<string, unknown>): string {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const body = btoa(JSON.stringify(payload));
+  return `${header}.${body}.fake-signature`;
+}
+
+const FAKE_JWT = buildFakeJwt({
+  sub: '00000000-0000-0000-0000-000000000001',
+  email: 'oauth@test.com',
+  tenantId: null,
+  role: null,
+  iat: 1700000000,
+  exp: 1700003600,
+});
 
 function dispatchStorageEvent(accessToken: string): void {
   const value = JSON.stringify({ accessToken });
@@ -66,16 +81,6 @@ describe('useOAuthPopup', () => {
     setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
 
     vi.mocked(authenticationService.getOAuthUrl).mockReturnValue(OAUTH_URL);
-    vi.mocked(authenticationService.getMe).mockResolvedValue({
-      data: {
-        id: '00000000-0000-0000-0000-000000000001',
-        email: 'oauth@test.com',
-        username: 'oauthuser',
-        status: 'email_verified_by_provider',
-        createdAt: '2024-01-01T00:00:00.000Z',
-      },
-      success: true,
-    });
 
     // Reset auth store to clean state
     useAuthenticationStore.setState({
@@ -154,13 +159,13 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchStorageEvent('oauth-access-token');
+          dispatchStorageEvent(FAKE_JWT);
         });
 
-        expect(setAccessToken).toHaveBeenCalledWith('oauth-access-token');
+        expect(setAccessToken).toHaveBeenCalledWith(FAKE_JWT);
       });
 
-      it('Then it calls getMe to load the user profile', async () => {
+      it('Then it builds the user from the JWT payload without calling getMe', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
@@ -168,10 +173,13 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchStorageEvent('oauth-access-token');
+          dispatchStorageEvent(FAKE_JWT);
         });
 
-        expect(authenticationService.getMe).toHaveBeenCalledTimes(1);
+        const storeState = useAuthenticationStore.getState();
+        expect(storeState.user).toBeTruthy();
+        expect(storeState.user!.id).toBe('00000000-0000-0000-0000-000000000001');
+        expect(storeState.user!.email).toBe('oauth@test.com');
       });
 
       it('Then it marks the user as authenticated in the store', async () => {
@@ -182,12 +190,12 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchStorageEvent('oauth-access-token');
+          dispatchStorageEvent(FAKE_JWT);
         });
 
         const storeState = useAuthenticationStore.getState();
         expect(storeState.isAuthenticated).toBe(true);
-        expect(storeState.accessToken).toBe('oauth-access-token');
+        expect(storeState.accessToken).toBe(FAKE_JWT);
       });
 
       it('Then it navigates to the dashboard', async () => {
@@ -198,7 +206,7 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchStorageEvent('oauth-access-token');
+          dispatchStorageEvent(FAKE_JWT);
         });
 
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
@@ -212,7 +220,7 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchStorageEvent('oauth-access-token');
+          dispatchStorageEvent(FAKE_JWT);
         });
 
         expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
@@ -226,7 +234,7 @@ describe('useOAuthPopup', () => {
         });
 
         await act(async () => {
-          dispatchStorageEvent('oauth-access-token');
+          dispatchStorageEvent(FAKE_JWT);
         });
 
         expect(clearIntervalSpy).toHaveBeenCalled();
@@ -300,16 +308,150 @@ describe('useOAuthPopup', () => {
         });
 
         // Simulate: popup wrote token and closed, but storage event was missed
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ accessToken: 'fallback-token' }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ accessToken: FAKE_JWT }));
         fakePopup.closed = true;
 
         await act(async () => {
           vi.advanceTimersByTime(600);
         });
 
-        expect(setAccessToken).toHaveBeenCalledWith('fallback-token');
+        expect(setAccessToken).toHaveBeenCalledWith(FAKE_JWT);
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
       });
+    });
+  });
+
+  // =========================================================================
+  // Storage event with missing accessToken (line 73)
+  // =========================================================================
+
+  describe('Given a storage event with correct key but no accessToken in data', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+    });
+
+    it('Then it ignores the event and does not process', async () => {
+      const { result } = renderHook(() => useOAuthPopup());
+
+      act(() => {
+        result.current.initiateOAuthPopup('google');
+      });
+
+      await act(async () => {
+        const value = JSON.stringify({ someOtherField: 'value' });
+        localStorage.setItem(STORAGE_KEY, value);
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: STORAGE_KEY,
+            newValue: value,
+            storageArea: localStorage,
+          }),
+        );
+      });
+
+      expect(setAccessToken).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // Storage event with malformed JSON (catch block in storage handler)
+  // =========================================================================
+
+  describe('Given a storage event with malformed JSON', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+    });
+
+    it('Then it catches the parse error and does not crash', async () => {
+      const { result } = renderHook(() => useOAuthPopup());
+
+      act(() => {
+        result.current.initiateOAuthPopup('google');
+      });
+
+      await act(async () => {
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: STORAGE_KEY,
+            newValue: 'not-valid-json{{{',
+            storageArea: localStorage,
+          }),
+        );
+      });
+
+      expect(setAccessToken).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // Polling picks up stored data with no accessToken (line 109)
+  // =========================================================================
+
+  describe('Given the popup closes and localStorage has data without accessToken', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+    });
+
+    it('Then the polling cleans up without processing a token', async () => {
+      const { result } = renderHook(() => useOAuthPopup());
+
+      act(() => {
+        result.current.initiateOAuthPopup('google');
+      });
+
+      // Store data without accessToken, then close popup
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ error: 'denied' }));
+      fakePopup.closed = true;
+
+      await act(async () => {
+        vi.advanceTimersByTime(600);
+      });
+
+      expect(setAccessToken).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(clearIntervalSpy).toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // Polling picks up malformed JSON in localStorage (catch block in polling)
+  // =========================================================================
+
+  describe('Given the popup closes and localStorage has malformed JSON', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+    });
+
+    it('Then the polling catches the error and cleans up', async () => {
+      const { result } = renderHook(() => useOAuthPopup());
+
+      act(() => {
+        result.current.initiateOAuthPopup('google');
+      });
+
+      localStorage.setItem(STORAGE_KEY, 'broken-json{{{');
+      fakePopup.closed = true;
+
+      await act(async () => {
+        vi.advanceTimersByTime(600);
+      });
+
+      expect(setAccessToken).not.toHaveBeenCalled();
+      expect(clearIntervalSpy).toHaveBeenCalled();
     });
   });
 

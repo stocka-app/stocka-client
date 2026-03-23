@@ -99,7 +99,7 @@ export function ExpirationTimer({
       className={cn(
         'flex items-center justify-center gap-2 transition-colors duration-300',
         // Color basado en tiempo restante
-        !isWarning && !isCritical && 'text-gray-600',
+        !isWarning && !isCritical && 'text-neutral-500',
         isWarning && 'text-amber-600',
         isCritical && 'text-red-600 animate-pulse',
         className,

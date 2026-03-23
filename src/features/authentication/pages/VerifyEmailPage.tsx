@@ -4,7 +4,6 @@ import { Navigate } from 'react-router-dom';
 import { Mail, AlertTriangle } from 'lucide-react';
 import { useAuthenticationStore } from '../store/authentication.store';
 import { VerifyEmailForm } from '../components/VerifyEmailForm';
-import { Logo } from '@/shared/components/Logo';
 
 /**
  * Página de verificación de email
@@ -41,31 +40,26 @@ function VerifyEmailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Logo para móvil */}
-      <div className="lg:hidden flex justify-center">
-        <Logo />
-      </div>
-
+    <div className="space-y-3 sm:space-y-6">
       {/* Icono de email */}
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-          <Mail className="w-8 h-8 text-primary" />
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
         </div>
       </div>
 
       {/* Título y subtítulo */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+      <div className="text-center space-y-1 sm:space-y-2">
+        <h1 className="text-xl sm:text-3xl font-bold text-neutral-900">
           {t('verifyEmail.title', 'Verify your email')}
         </h1>
-        <p className="text-gray-600">{t('verifyEmail.subtitle', 'We sent a 6-digit code to')}</p>
-        <p className="font-medium text-primary text-lg">{pendingVerificationEmail}</p>
+        <p className="text-sm sm:text-base text-neutral-600">{t('verifyEmail.subtitle', 'We sent a 6-digit code to')}</p>
+        <p className="font-medium text-primary text-base sm:text-lg">{pendingVerificationEmail}</p>
       </div>
 
       {/* Aviso: email no entregado */}
       {verificationEmailSent === false && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <div className="flex items-start gap-2 sm:gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
             {t(
@@ -80,7 +74,7 @@ function VerifyEmailPage() {
       <VerifyEmailForm email={pendingVerificationEmail} />
 
       {/* Nota sobre spam */}
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-xs sm:text-sm text-neutral-500">
         {t('verifyEmail.checkSpam', "Check your spam folder if you don't see it")}
       </p>
     </div>

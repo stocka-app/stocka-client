@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
+import { StockaIcon } from '@/shared/components/StockaIcon';
 import { IsometricCubesIllustration } from '@/shared/components/illustrations';
 import { useTheme } from '@/shared/hooks/useTheme';
 
@@ -10,7 +11,7 @@ export function AuthLayout() {
   const { isDark } = useTheme();
 
   return (
-    <div className="min-h-screen w-full bg-auth-body font-auth text-neutral-800 dark:text-neutral-800 antialiased flex items-center justify-center p-2 lg:p-[1.5vw]">
+    <div className="min-h-screen w-full bg-auth-body font-auth text-neutral-800 antialiased flex items-center justify-center p-2 lg:p-[1.5vw]">
       <div className="bg-auth-surface dark:bg-auth-right-panel rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden w-full max-w-[96vw] min-h-[500px] lg:h-[85vh] flex flex-col lg:flex-row relative ring-1 ring-black/5 dark:ring-white/10">
         {/* ── Left Panel (hidden on mobile) ── */}
         <div className="hidden lg:flex lg:w-5/12 relative bg-auth-left-panel items-center justify-center overflow-hidden">
@@ -25,9 +26,7 @@ export function AuthLayout() {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-white/20 dark:bg-white/5 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 dark:border-white/10 dark:shadow-lg dark:shadow-teal-500/10">
-                <span className="material-symbols-outlined text-white dark:text-teal-400 text-2xl">
-                  inventory_2
-                </span>
+                <StockaIcon className="h-6 w-6 text-white dark:text-teal-400" />
               </div>
               <span className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">
                 Stocka
@@ -55,9 +54,9 @@ export function AuthLayout() {
           <div className="lg:hidden p-6 flex justify-between items-center bg-neutral-50 dark:bg-auth-right-panel border-b border-neutral-100 dark:border-white/5">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-auth-btn dark:bg-auth-btn/20 dark:border dark:border-auth-btn/30 rounded-lg flex items-center justify-center text-white dark:text-auth-btn">
-                <span className="material-symbols-outlined text-lg">inventory_2</span>
+                <StockaIcon className="h-5 w-5" />
               </div>
-              <span className="text-xl font-bold text-neutral-900 dark:text-white">Stocka</span>
+              <span className="text-xl font-bold text-neutral-900">Stocka</span>
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />
@@ -77,13 +76,13 @@ export function AuthLayout() {
           </div>
 
           {/* Footer */}
-          <div className="p-4 text-center text-xs text-neutral-400 dark:text-neutral-600">
+          <div className="p-4 text-center text-xs text-neutral-400">
             <span>{t('layout.termsPrefix', 'By clicking continue, you agree to our ')} </span>
-            <a className="hover:text-neutral-600 dark:hover:text-neutral-400 transition-colors underline" href="#">
+            <a className="hover:text-neutral-600 transition-colors underline" href="#">
               {t('layout.termsOfService', 'Terms of Service')}
             </a>
             <span> {t('layout.and', 'and')} </span>
-            <a className="hover:text-neutral-600 dark:hover:text-neutral-400 transition-colors underline" href="#">
+            <a className="hover:text-neutral-600 transition-colors underline" href="#">
               {t('layout.privacyPolicy', 'Privacy Policy')}
             </a>
             .

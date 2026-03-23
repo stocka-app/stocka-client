@@ -91,12 +91,12 @@ export function RegisterForm() {
             name="fullName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                <FormLabel className="text-neutral-700">
                   {t('fullName', 'Full Name')}
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none">
                       person
                     </span>
                     <Input
@@ -120,12 +120,12 @@ export function RegisterForm() {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                <FormLabel className="text-neutral-700">
                   {t('username')}
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none">
                       badge
                     </span>
                     <Input
@@ -151,12 +151,12 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-neutral-700 dark:text-neutral-300">
+              <FormLabel className="text-neutral-700">
                 {t('email')}
               </FormLabel>
               <FormControl>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none">
                     mail
                   </span>
                   <Input
@@ -182,7 +182,7 @@ export function RegisterForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                <FormLabel className="text-neutral-700">
                   {t('password')}
                 </FormLabel>
                 <FormControl>
@@ -205,7 +205,7 @@ export function RegisterForm() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-700 dark:text-neutral-300">
+                <FormLabel className="text-neutral-700">
                   {t('confirmPassword', 'Confirm Password')}
                 </FormLabel>
                 <FormControl>

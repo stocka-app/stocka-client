@@ -16,12 +16,12 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 
     return (
       <div className="relative">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 dark:text-neutral-500 pointer-events-none">
+        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg text-neutral-400 pointer-events-none">
           lock
         </span>
         <Input
           type={showPassword ? 'text' : 'password'}
-          className={cn('h-12 rounded-lg pl-10 pr-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border', className)}
+          className={cn('h-10 sm:h-12 rounded-lg pl-10 pr-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border', className)}
           ref={ref}
           {...props}
         />
@@ -33,7 +33,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           onClick={() => setShowPassword(!showPassword)}
           tabIndex={-1}
         >
-          <span className="material-symbols-outlined text-lg text-neutral-400 dark:text-neutral-500" aria-hidden="true">
+          <span className="material-symbols-outlined text-lg text-neutral-400" aria-hidden="true">
             {showPassword ? 'visibility' : 'visibility_off'}
           </span>
           <span className="sr-only">{showPassword ? t('hidePassword') : t('showPassword')}</span>

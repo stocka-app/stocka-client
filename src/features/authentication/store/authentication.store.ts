@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { ZodError } from 'zod';
 import { authenticationService } from '../api/authentication.service';
 import { setAccessToken } from '@/shared/lib/axios';
+import { extractTenantContext } from '@/shared/lib/jwt';
 import type { SignInRequest, SignUpRequest } from '../schemas/authentication.schema';
 import type {
   AuthStore,
@@ -69,12 +70,17 @@ export const useAuthenticationStore = create<AuthStore>()(
             emailVerificationRequired,
           } = response.data;
 
+          // Extract tenant context from JWT
+          const { tenantId, role } = extractTenantContext(accessToken);
+
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
             username: backendUser.username,
             status: emailVerificationRequired ? 'pending_verification' : 'active',
             createdAt: backendUser.createdAt,
+            tenantId,
+            role,
           };
 
           const needsVerification = emailVerificationRequired === true;
@@ -91,7 +97,7 @@ export const useAuthenticationStore = create<AuthStore>()(
               user,
               isAuthenticated: false, // No autenticado hasta verificar
             });
-            return { requiresVerification: true };
+            return { requiresVerification: true, requiresOnboarding: false };
           }
 
           set({
@@ -104,7 +110,7 @@ export const useAuthenticationStore = create<AuthStore>()(
             error: null,
             errorCode: null,
           });
-          return { requiresVerification: false };
+          return { requiresVerification: false, requiresOnboarding: tenantId === null };
         } catch (error) {
           let errorMessage = 'UNKNOWN_ERROR';
           let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';
@@ -172,12 +178,17 @@ export const useAuthenticationStore = create<AuthStore>()(
 
           const { user: backendUser, accessToken, emailSent } = response.data;
 
+          // Extract tenant context from JWT (will be null for new registrations)
+          const { tenantId, role } = extractTenantContext(accessToken);
+
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
             username: backendUser.username,
             status: 'pending_verification',
             createdAt: backendUser.createdAt,
+            tenantId,
+            role,
           };
 
           // Guardar el access token en memoria
@@ -194,24 +205,22 @@ export const useAuthenticationStore = create<AuthStore>()(
             user,
             isAuthenticated: false,
           });
-          return { requiresVerification: true };
+          return { requiresVerification: true, requiresOnboarding: false };
         } catch (error) {
           let errorMessage = 'UNKNOWN_ERROR';
           let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';
 
           if (error instanceof ZodError) {
-            console.error('Invalid sign-up response structure:', error.issues);
-            errorMessage = 'UNKNOWN_ERROR';
-          } else if (error instanceof Error) {
-            errorMessage = error.message;
-          }
-
-          const apiError = error as ApiError;
-          if (apiError?.error) {
-            errorCode = apiError.error;
-          }
-          if (apiError?.message) {
-            errorMessage = apiError.message;
+            console.error('[Stocka] Sign-up response parse error:', error.issues);
+          } else {
+            const apiError = error as ApiError;
+            if (apiError?.error) {
+              errorCode = apiError.error;
+            }
+            if (apiError?.message) {
+              errorMessage = apiError.message;
+            }
+            console.error('[Stocka] Sign-up failed:', { errorCode, errorMessage, statusCode: apiError?.statusCode });
           }
 
           set({
@@ -329,8 +338,13 @@ export const useAuthenticationStore = create<AuthStore>()(
        */
       handleOAuthCallback: (tokens: { accessToken: string; user: User }): void => {
         setAccessToken(tokens.accessToken);
+
+        // Enrich user with tenant context from JWT
+        const { tenantId, role } = extractTenantContext(tokens.accessToken);
+        const enrichedUser: User = { ...tokens.user, tenantId, role };
+
         set({
-          user: tokens.user,
+          user: enrichedUser,
           accessToken: tokens.accessToken,
           isAuthenticated: true,
           isLoading: false,

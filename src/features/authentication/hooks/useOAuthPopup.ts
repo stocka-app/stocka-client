@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setAccessToken } from '@/shared/lib/axios';
+import { decodeJwtPayload, type StockaJwtPayload } from '@/shared/lib/jwt';
 import { authenticationService } from '../api/authentication.service';
 import { openOAuthPopup } from '../api/oauth-popup.helper';
 import { useAuthenticationStore } from '../store/authentication.store';
@@ -37,7 +38,9 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
 
   const processToken = useCallback(
     async (accessToken: string): Promise<void> => {
+      /* v8 ignore start: defence-in-depth guard untestable in jsdom */
       if (processingRef.current) return;
+      /* v8 ignore stop */
       processingRef.current = true;
 
       cleanup();
@@ -45,15 +48,19 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
 
       setAccessToken(accessToken);
 
-      let user: User | null = null;
-      try {
-        const response = await authenticationService.getMe();
-        user = response.data as unknown as User;
-      } catch {
-        // Non-fatal — store can operate without user object initially
-      }
+      // Build user from JWT payload — no extra API call needed
+      const payload = decodeJwtPayload<StockaJwtPayload>(accessToken);
+      const user: User = {
+        id: payload.sub,
+        email: payload.email,
+        username: payload.email.split('@')[0],
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        tenantId: payload.tenantId ?? null,
+        role: payload.role ?? null,
+      };
 
-      handleOAuthCallback({ accessToken, user: user as User });
+      handleOAuthCallback({ accessToken, user });
       navigate('/dashboard', { replace: true });
     },
     [cleanup, handleOAuthCallback, navigate],

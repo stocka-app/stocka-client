@@ -6,6 +6,11 @@ import type { OAuthProvider } from '../types/authentication.types';
 
 type SocialProvider = OAuthProvider;
 
+const providerNames: Record<SocialProvider, string> = {
+  google: 'Google',
+  microsoft: 'Microsoft',
+};
+
 interface SocialButtonProps {
   provider: SocialProvider;
   onClick?: () => void;
@@ -14,10 +19,10 @@ interface SocialButtonProps {
   variant?: 'full' | 'icon';
 }
 
-// Íconos con colores de marca
+// Íconos con colores de marca — shrink-0 prevents flex compression on small screens
 const providerIcons = {
   google: (
-    <svg className="h-5 w-5" viewBox="0 0 24 24">
+    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 24 24">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"
@@ -37,7 +42,7 @@ const providerIcons = {
     </svg>
   ),
   microsoft: (
-    <svg className="h-5 w-5" viewBox="0 0 24 24">
+    <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" viewBox="0 0 24 24">
       <path fill="#F25022" d="M1 1h10v10H1z" />
       <path fill="#00A4EF" d="M1 13h10v10H1z" />
       <path fill="#7FBA00" d="M13 1h10v10H13z" />
@@ -48,7 +53,7 @@ const providerIcons = {
 
 // Estilo outline uniforme para todos los providers
 const buttonStyle =
-  'border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-authentication-input-bg text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800';
+  'border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-authentication-input-bg text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800';
 
 export function SocialButton({
   provider,
@@ -78,12 +83,17 @@ export function SocialButton({
       className={cn(
         'font-medium transition-colors',
         buttonStyle,
-        isIconOnly ? 'h-12 w-12 rounded-full p-0' : 'h-12 w-full gap-3 rounded-lg',
+        isIconOnly ? 'h-10 sm:h-12 w-10 sm:w-12 rounded-full p-0' : 'h-10 sm:h-12 w-full gap-2 sm:gap-3 rounded-lg text-sm sm:text-base',
         className,
       )}
     >
       {providerIcons[provider]}
-      {!isIconOnly && label}
+      {!isIconOnly && (
+        <>
+          <span className="hidden sm:inline">{label}</span>
+          <span className="sm:hidden">{providerNames[provider]}</span>
+        </>
+      )}
     </Button>
   );
 }

@@ -17,10 +17,10 @@ function LoginPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
+        <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900">
           {t('signIn')}
         </h1>
-        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-2 text-sm text-neutral-500">
           {t('noAccount')}{' '}
           <Link
             to="/auth/register"
