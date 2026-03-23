@@ -26,54 +26,54 @@ export function InvitationConfirmation({
       {error && (
         <div
           role="alert"
-          className="rounded-lg bg-[#fef2f2] border border-[#ef4444]/30 p-3 text-sm text-[#ef4444]"
+          className="rounded-lg bg-danger-bg border border-danger/30 p-3 text-sm text-danger"
         >
           {t(error)}
         </div>
       )}
 
       {/* Invitation details card */}
-      <div className="rounded-xl border border-[#e5e7eb] bg-[#F9FAFB] p-5 space-y-4">
+      <div className="rounded-xl border border-neutral-200 dark:border-white/[0.08] bg-neutral-50 dark:bg-white/[0.03] p-5 space-y-4">
         {/* Business */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-4 h-4 text-[#3b82f6]" aria-hidden="true" />
+          <div className="w-9 h-9 bg-brand-light rounded-lg flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-brand" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-xs text-[#6b7280] font-medium">
+            <p className="text-xs text-neutral-500 font-medium">
               {t('invitation.confirmation.businessLabel')}
             </p>
-            <p className="text-sm font-semibold text-[#111827]">
-              {invitationDetails.businessName}
+            <p className="text-sm font-semibold text-neutral-900">
+              {invitationDetails.tenantName}
             </p>
           </div>
         </div>
 
         {/* Inviter */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-            <User className="w-4 h-4 text-[#3b82f6]" aria-hidden="true" />
+          <div className="w-9 h-9 bg-brand-light rounded-lg flex items-center justify-center flex-shrink-0">
+            <User className="w-4 h-4 text-brand" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-xs text-[#6b7280] font-medium">
+            <p className="text-xs text-neutral-500 font-medium">
               {t('invitation.confirmation.invitedByLabel')}
             </p>
-            <p className="text-sm font-semibold text-[#111827]">
-              {invitationDetails.inviterName}
+            <p className="text-sm font-semibold text-neutral-900">
+              {invitationDetails.email}
             </p>
           </div>
         </div>
 
         {/* Role */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Shield className="w-4 h-4 text-[#3b82f6]" aria-hidden="true" />
+          <div className="w-9 h-9 bg-brand-light rounded-lg flex items-center justify-center flex-shrink-0">
+            <Shield className="w-4 h-4 text-brand" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-xs text-[#6b7280] font-medium">
+            <p className="text-xs text-neutral-500 font-medium">
               {t('invitation.confirmation.roleLabel')}
             </p>
-            <p className="text-sm font-semibold text-[#111827]">{invitationDetails.role}</p>
+            <p className="text-sm font-semibold text-neutral-900">{invitationDetails.role}</p>
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function InvitationConfirmation({
         onClick={onAccept}
         disabled={isLoading}
         aria-label={t('invitation.confirmation.ctaButton')}
-        className="w-full h-12 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold text-base"
+        className="w-full h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold text-base"
       >
         {isLoading ? (
           <>
@@ -103,7 +103,7 @@ export function InvitationConfirmation({
           onClick={onCancel}
           disabled={isLoading}
           aria-label={t('invitation.confirmation.cancelLink')}
-          className="text-sm text-[#6b7280] hover:text-[#3b82f6] hover:underline transition-colors disabled:pointer-events-none"
+          className="text-sm text-neutral-500 hover:text-brand hover:underline transition-colors disabled:pointer-events-none"
         >
           {t('invitation.confirmation.cancelLink')}
         </button>

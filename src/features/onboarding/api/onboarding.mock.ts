@@ -10,17 +10,31 @@ import type { onboardingService } from './onboarding.service';
  *   });
  */
 export const mockOnboardingService: typeof onboardingService = {
-  updatePreferences: vi.fn().mockResolvedValue({
-    data: { language: 'es', currency: 'MXN', theme: 'light' },
-    success: true,
+  startOnboarding: vi.fn().mockResolvedValue({
+    status: 'IN_PROGRESS',
+    currentStep: 0,
+    path: null,
   }),
-  updateBusinessProfile: vi.fn().mockResolvedValue({
-    data: { businessName: 'Test Business', businessType: 'RETAIL', state: 'Jalisco' },
+  getOnboardingStatus: vi.fn().mockResolvedValue({
+    status: null,
+    currentStep: null,
+    path: null,
+    stepData: null,
+  }),
+  saveProgress: vi.fn().mockResolvedValue({
+    status: 'IN_PROGRESS',
+    currentStep: 0,
+    path: null,
+  }),
+  recordConsents: vi.fn().mockResolvedValue({
+    data: { recorded: true },
     success: true,
   }),
   completeOnboarding: vi.fn().mockResolvedValue({
-    data: { completedAt: '2026-01-01T00:00:00.000Z' },
-    success: true,
+    path: 'CREATE',
+    tenantId: 'tenant-uuid-001',
+    tenantName: 'Test Business',
+    role: 'OWNER',
   }),
   validateInvitation: vi.fn().mockResolvedValue({
     data: {

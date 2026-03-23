@@ -58,7 +58,7 @@ export function Step5Context({
       {error && (
         <div
           role="alert"
-          className="rounded-lg bg-[#fef2f2] border border-[#ef4444]/30 p-3 text-sm text-[#ef4444]"
+          className="rounded-lg bg-danger-bg border border-danger/30 p-3 text-sm text-danger"
         >
           {t(error)}
         </div>
@@ -66,7 +66,7 @@ export function Step5Context({
 
       {/* Team size chips */}
       <div>
-        <p className="text-sm font-medium text-[#111827] mb-3">{t('step5.teamSizeLabel')}</p>
+        <p className="text-sm font-medium text-neutral-900 mb-3">{t('step5.teamSizeLabel')}</p>
         <div className="flex flex-wrap gap-2" role="group" aria-label={t('step5.teamSizeLabel')}>
           {TEAM_SIZE_OPTIONS.map((option) => (
             <button
@@ -81,8 +81,8 @@ export function Step5Context({
               className={cn(
                 'px-4 py-2 rounded-full border-2 text-sm font-medium transition-colors',
                 selectedTeamSize === option.value
-                  ? 'border-[#3b82f6] bg-blue-50 text-[#3b82f6]'
-                  : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#3b82f6]',
+                  ? 'border-brand bg-brand-light text-brand'
+                  : 'border-neutral-200 dark:border-white/[0.08] text-neutral-500 hover:border-brand/50 dark:hover:border-brand/30',
               )}
             >
               {t(option.labelKey)}
@@ -93,7 +93,7 @@ export function Step5Context({
 
       {/* Revenue chips */}
       <div>
-        <p className="text-sm font-medium text-[#111827] mb-3">{t('step5.revenueLabel')}</p>
+        <p className="text-sm font-medium text-neutral-900 mb-3">{t('step5.revenueLabel')}</p>
         <div className="flex flex-wrap gap-2" role="group" aria-label={t('step5.revenueLabel')}>
           {REVENUE_OPTIONS.map((option) => (
             <button
@@ -108,8 +108,8 @@ export function Step5Context({
               className={cn(
                 'px-4 py-2 rounded-full border-2 text-sm font-medium transition-colors',
                 selectedRevenue === option.value
-                  ? 'border-[#3b82f6] bg-blue-50 text-[#3b82f6]'
-                  : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#3b82f6]',
+                  ? 'border-brand bg-brand-light text-brand'
+                  : 'border-neutral-200 dark:border-white/[0.08] text-neutral-500 hover:border-brand/50 dark:hover:border-brand/30',
               )}
             >
               {t(option.labelKey)}
@@ -126,7 +126,7 @@ export function Step5Context({
           onClick={onBack}
           disabled={isLoading}
           aria-label={t('common.back')}
-          className="flex-1 h-12 rounded-xl border-[#e5e7eb] text-[#6b7280]"
+          className="flex-1 h-12 rounded-xl border-neutral-200 dark:border-white/[0.08] text-neutral-500"
         >
           {t('common.back')}
         </Button>
@@ -135,7 +135,7 @@ export function Step5Context({
           onClick={handleSubmit}
           disabled={isLoading}
           aria-label={t('step5.ctaButton')}
-          className="flex-1 h-12 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold"
+          className="flex-1 h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold"
         >
           {isLoading ? (
             <>
@@ -155,7 +155,7 @@ export function Step5Context({
           onClick={onSkip}
           disabled={isLoading}
           aria-label={t('step5.skipLink')}
-          className="text-sm text-[#6b7280] hover:text-[#3b82f6] hover:underline transition-colors disabled:pointer-events-none"
+          className="text-sm text-neutral-500 hover:text-brand hover:underline transition-colors disabled:pointer-events-none"
         >
           {t('step5.skipLink')}
         </button>

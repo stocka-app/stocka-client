@@ -20,39 +20,19 @@ import {
 } from '../../schemas/onboarding.schema';
 import type { OnboardingBusinessProfile } from '../../types/onboarding.types';
 
-const MEXICAN_STATES = [
-  'Aguascalientes',
-  'Baja California',
-  'Baja California Sur',
-  'Campeche',
-  'Chiapas',
-  'Chihuahua',
-  'Ciudad de México',
-  'Coahuila',
-  'Colima',
-  'Durango',
-  'Guanajuato',
-  'Guerrero',
-  'Hidalgo',
-  'Jalisco',
-  'Estado de México',
-  'Michoacán',
-  'Morelos',
-  'Nayarit',
-  'Nuevo León',
-  'Oaxaca',
-  'Puebla',
-  'Querétaro',
-  'Quintana Roo',
-  'San Luis Potosí',
-  'Sinaloa',
-  'Sonora',
-  'Tabasco',
-  'Tamaulipas',
-  'Tlaxcala',
-  'Veracruz',
-  'Yucatán',
-  'Zacatecas',
+const COUNTRIES = [
+  { code: 'MX', nameKey: 'Mexico' },
+  { code: 'US', nameKey: 'United States' },
+  { code: 'CO', nameKey: 'Colombia' },
+  { code: 'AR', nameKey: 'Argentina' },
+  { code: 'CL', nameKey: 'Chile' },
+  { code: 'PE', nameKey: 'Peru' },
+  { code: 'EC', nameKey: 'Ecuador' },
+  { code: 'GT', nameKey: 'Guatemala' },
+  { code: 'CR', nameKey: 'Costa Rica' },
+  { code: 'PA', nameKey: 'Panama' },
+  { code: 'ES', nameKey: 'Spain' },
+  { code: 'OTHER', nameKey: 'Other' },
 ];
 
 interface Step3BusinessProfileProps {
@@ -77,7 +57,9 @@ export function Step3BusinessProfile({
     defaultValues: {
       businessName: defaultValues?.businessName ?? '',
       businessType: (defaultValues?.businessType as BusinessProfileFormData['businessType']) ?? undefined,
-      state: defaultValues?.state ?? '',
+      otherBusinessType: defaultValues?.otherBusinessType ?? '',
+      country: defaultValues?.country ?? 'MX',
+      cityRegion: defaultValues?.cityRegion ?? '',
     },
   });
 
@@ -85,7 +67,13 @@ export function Step3BusinessProfile({
   const businessTypes = BusinessTypeSchema.options;
 
   const handleSubmit = async (data: BusinessProfileFormData): Promise<void> => {
-    await onSubmit(data);
+    await onSubmit({
+      businessName: data.businessName,
+      businessType: data.businessType,
+      otherBusinessType: data.businessType === 'OTHER' ? data.otherBusinessType : undefined,
+      country: data.country,
+      cityRegion: data.cityRegion || undefined,
+    });
   };
 
   return (
@@ -95,7 +83,7 @@ export function Step3BusinessProfile({
         {error && (
           <div
             role="alert"
-            className="rounded-lg bg-[#fef2f2] border border-[#ef4444]/30 p-3 text-sm text-[#ef4444]"
+            className="rounded-lg bg-danger-bg border border-danger/30 p-3 text-sm text-danger"
           >
             {t(error)}
           </div>
@@ -107,14 +95,14 @@ export function Step3BusinessProfile({
           name="businessName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium text-[#111827]">
+              <FormLabel className="text-sm font-medium text-neutral-900">
                 {t('step3.businessNameLabel')}
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder={t('step3.businessNamePlaceholder')}
                   disabled={isLoading}
-                  className="h-12 rounded-xl border-[#e5e7eb]"
+                  className="h-12 rounded-xl border-neutral-200 dark:border-white/[0.08]"
                   aria-label={t('step3.businessNameLabel')}
                   {...field}
                 />
@@ -133,7 +121,7 @@ export function Step3BusinessProfile({
           name="businessType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium text-[#111827]">
+              <FormLabel className="text-sm font-medium text-neutral-900">
                 {t('step3.businessTypeLabel')}
               </FormLabel>
               <FormControl>
@@ -151,10 +139,10 @@ export function Step3BusinessProfile({
                       aria-pressed={selectedType === type}
                       aria-label={t(`step3.businessTypes.${type}`)}
                       className={cn(
-                        'p-3 rounded-xl border-2 text-xs font-medium transition-colors text-center',
+                        'p-3 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer',
                         selectedType === type
-                          ? 'border-[#3b82f6] bg-blue-50 text-[#3b82f6]'
-                          : 'border-[#e5e7eb] text-[#6b7280] hover:border-[#3b82f6]',
+                          ? 'border-brand bg-brand-light text-brand'
+                          : 'border-neutral-200 dark:border-white/[0.08] text-neutral-500 hover:border-brand/50 dark:hover:border-brand/30 dark:hover:bg-white/[0.03]',
                       )}
                     >
                       {t(`step3.businessTypes.${type}`)}
@@ -170,33 +158,79 @@ export function Step3BusinessProfile({
           )}
         />
 
-        {/* State dropdown */}
+        {/* Other business type — text input, visible only when OTHER is selected */}
+        {selectedType === 'OTHER' && (
+          <FormField
+            control={form.control}
+            name="otherBusinessType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-neutral-900">
+                  {t('step3.otherBusinessTypeLabel')}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('step3.otherBusinessTypePlaceholder')}
+                    disabled={isLoading}
+                    className="h-12 rounded-xl border-neutral-200 dark:border-white/[0.08]"
+                    aria-label={t('step3.otherBusinessTypeLabel')}
+                    {...field}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Country */}
         <FormField
           control={form.control}
-          name="state"
+          name="country"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium text-[#111827]">
-                {t('step3.stateLabel')}
+              <FormLabel className="text-sm font-medium text-neutral-900">
+                {t('step3.countryLabel')}
               </FormLabel>
               <FormControl>
                 <select
                   {...field}
                   disabled={isLoading}
-                  aria-label={t('step3.stateLabel')}
-                  className="w-full h-12 rounded-xl border border-[#e5e7eb] bg-white px-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] disabled:opacity-50"
+                  aria-label={t('step3.countryLabel')}
+                  className="w-full h-12 rounded-xl border border-neutral-200 dark:border-white/[0.08] bg-surface-card px-3 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-50"
                 >
-                  <option value="">{t('step3.statePlaceholder')}</option>
-                  {MEXICAN_STATES.map((state) => (
-                    <option key={state} value={state}>
-                      {state}
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.nameKey}
                     </option>
                   ))}
                 </select>
               </FormControl>
               <FormMessage>
-                {form.formState.errors.state?.message && t(form.formState.errors.state.message)}
+                {form.formState.errors.country?.message && t(form.formState.errors.country.message)}
               </FormMessage>
+            </FormItem>
+          )}
+        />
+
+        {/* City / Region — optional free text */}
+        <FormField
+          control={form.control}
+          name="cityRegion"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium text-neutral-900">
+                {t('step3.cityRegionLabel')}
+                <span className="text-neutral-400 font-normal ml-1">— {t('step3.cityRegionHint')}</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={t('step3.cityRegionPlaceholder')}
+                  disabled={isLoading}
+                  className="h-12 rounded-xl border-neutral-200 dark:border-white/[0.08]"
+                  aria-label={t('step3.cityRegionLabel')}
+                  {...field}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
@@ -209,7 +243,7 @@ export function Step3BusinessProfile({
             onClick={onBack}
             disabled={isLoading}
             aria-label={t('common.back')}
-            className="flex-1 h-12 rounded-xl border-[#e5e7eb] text-[#6b7280]"
+            className="flex-1 h-12 rounded-xl border-neutral-200 dark:border-white/[0.08] text-neutral-500"
           >
             {t('common.back')}
           </Button>
@@ -217,7 +251,7 @@ export function Step3BusinessProfile({
             type="submit"
             disabled={isLoading}
             aria-label={t('step3.ctaButton')}
-            className="flex-1 h-12 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold"
+            className="flex-1 h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold"
           >
             {isLoading ? (
               <>

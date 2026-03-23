@@ -48,8 +48,8 @@ export function InvitationCodeEntry({
   };
 
   const isExpiredError = error === 'invitation.codeEntry.errors.EXPIRED_CODE';
-  const errorColor = isExpiredError ? 'text-[#f97316]' : 'text-[#ef4444]';
-  const errorBg = isExpiredError ? 'bg-[#fff7ed] border-[#f97316]/30' : 'bg-[#fef2f2] border-[#ef4444]/30';
+  const errorColor = isExpiredError ? 'text-warning' : 'text-danger';
+  const errorBg = isExpiredError ? 'bg-warning-bg border-warning/30' : 'bg-danger-bg border-danger/30';
 
   return (
     <Form {...form}>
@@ -70,14 +70,14 @@ export function InvitationCodeEntry({
           name="code"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium text-[#111827]">
+              <FormLabel className="text-sm font-medium text-neutral-900">
                 {t('invitation.codeEntry.codeLabel')}
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder={t('invitation.codeEntry.codePlaceholder')}
                   disabled={isLoading}
-                  className="h-14 rounded-xl border-[#e5e7eb] text-center text-2xl font-mono tracking-widest uppercase"
+                  className="h-14 rounded-xl border-neutral-200 dark:border-white/[0.08] text-center text-2xl font-mono tracking-widest uppercase"
                   maxLength={8}
                   aria-label={t('invitation.codeEntry.codeLabel')}
                   {...field}
@@ -96,7 +96,7 @@ export function InvitationCodeEntry({
           type="submit"
           disabled={isLoading}
           aria-label={t('invitation.codeEntry.ctaButton')}
-          className="w-full h-12 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold text-base"
+          className="w-full h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold text-base"
         >
           {isLoading ? (
             <>
@@ -115,7 +115,7 @@ export function InvitationCodeEntry({
             onClick={onBack}
             disabled={isLoading}
             aria-label={t('invitation.codeEntry.backLink')}
-            className="text-sm text-[#6b7280] hover:text-[#3b82f6] hover:underline transition-colors disabled:pointer-events-none"
+            className="text-sm text-neutral-500 hover:text-brand hover:underline transition-colors disabled:pointer-events-none"
           >
             {t('invitation.codeEntry.backLink')}
           </button>

@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import {
   Form,
@@ -21,6 +21,8 @@ interface Step1WelcomeProps {
   defaultValues?: OnboardingConsents;
 }
 
+const linkClass = 'text-brand hover:text-brand-hover underline underline-offset-2 font-medium transition-colors';
+
 export function Step1Welcome({
   onSubmit,
   isLoading,
@@ -33,12 +35,13 @@ export function Step1Welcome({
     resolver: zodResolver(consentSchema),
     defaultValues: {
       terms: defaultValues?.terms ?? false,
-      marketing: defaultValues?.marketing ?? false,
+      marketing: defaultValues?.marketing ?? true,
+      analytics: defaultValues?.analytics ?? true,
     },
   });
 
   const handleSubmit = async (data: ConsentFormData): Promise<void> => {
-    await onSubmit({ terms: data.terms as true, marketing: data.marketing });
+    await onSubmit({ terms: data.terms as true, marketing: data.marketing, analytics: data.analytics });
   };
 
   return (
@@ -48,7 +51,7 @@ export function Step1Welcome({
         {error && (
           <div
             role="alert"
-            className="rounded-lg bg-[#fef2f2] border border-[#ef4444]/30 p-3 text-sm text-[#ef4444]"
+            className="rounded-lg bg-danger-bg border border-danger/30 p-3 text-sm text-danger"
           >
             {t(error)}
           </div>
@@ -72,13 +75,32 @@ export function Step1Welcome({
               <div className="space-y-1 leading-none">
                 <label
                   htmlFor="terms"
-                  className="text-sm text-[#111827] cursor-pointer leading-relaxed"
+                  className="text-sm text-neutral-900 cursor-pointer leading-relaxed"
                 >
-                  {t('step1.termsLabel')
-                    .replace('<termsLink>', '')
-                    .replace('</termsLink>', '')
-                    .replace('<privacyLink>', '')
-                    .replace('</privacyLink>', '')}
+                  <Trans
+                    i18nKey="step1.termsLabel"
+                    ns="onboarding"
+                    components={{
+                      termsLink: (
+                        <a
+                          href="/legal/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkClass}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ),
+                      privacyLink: (
+                        <a
+                          href="/legal/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkClass}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ),
+                    }}
+                  />
                 </label>
                 <FormMessage>
                   {form.formState.errors.terms?.message && t(form.formState.errors.terms.message)}
@@ -106,10 +128,39 @@ export function Step1Welcome({
               <div className="space-y-1 leading-none">
                 <label
                   htmlFor="marketing"
-                  className="text-sm text-[#6b7280] cursor-pointer leading-relaxed"
+                  className="text-sm text-neutral-500 cursor-pointer leading-relaxed"
                 >
                   {t('step1.marketingLabel')}
                 </label>
+                <p className="text-xs text-neutral-400">{t('step1.marketingHint')}</p>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Analytics checkbox */}
+        <FormField
+          control={form.control}
+          name="analytics"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  id="analytics"
+                  checked={field.value}
+                  onCheckedChange={(checked) => field.onChange(checked === true)}
+                  aria-label={t('step1.analyticsLabel')}
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <label
+                  htmlFor="analytics"
+                  className="text-sm text-neutral-500 cursor-pointer leading-relaxed"
+                >
+                  {t('step1.analyticsLabel')}
+                </label>
+                <p className="text-xs text-neutral-400">{t('step1.analyticsHint')}</p>
               </div>
             </FormItem>
           )}
@@ -119,7 +170,7 @@ export function Step1Welcome({
           type="submit"
           disabled={isLoading}
           aria-label={t('step1.ctaButton')}
-          className="w-full h-12 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold text-base"
+          className="w-full h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold text-base"
         >
           {isLoading ? (
             <>

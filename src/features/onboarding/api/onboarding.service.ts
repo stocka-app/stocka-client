@@ -1,14 +1,17 @@
 import { api } from '@/shared/lib/axios';
 import {
-  UpdatePreferencesResponseSchema,
-  UpdateBusinessProfileResponseSchema,
+  RecordConsentsResponseSchema,
+  StartOnboardingResponseSchema,
+  OnboardingStatusResponseSchema,
+  SaveStepResponseSchema,
   CompleteOnboardingResponseSchema,
   ValidateInvitationResponseSchema,
   AcceptInvitationResponseSchema,
-  type PreferencesFormData,
-  type BusinessProfileFormData,
-  type UpdatePreferencesResponse,
-  type UpdateBusinessProfileResponse,
+  type ConsentFormData,
+  type RecordConsentsResponse,
+  type StartOnboardingResponse,
+  type OnboardingStatusResponse,
+  type SaveStepResponse,
   type CompleteOnboardingResponse,
   type ValidateInvitationResponse,
   type AcceptInvitationResponse,
@@ -23,49 +26,65 @@ import {
  */
 export const onboardingService = {
   /**
-   * Update user language, currency and theme preferences
-   * PATCH /api/users/me/preferences
+   * Start or resume an onboarding session (idempotent)
+   * POST /api/onboarding/start
    */
-  async updatePreferences(preferences: PreferencesFormData): Promise<UpdatePreferencesResponse> {
-    const response = await api.patch('/users/me/preferences', preferences);
-    return UpdatePreferencesResponseSchema.parse(response.data);
+  async startOnboarding(): Promise<StartOnboardingResponse> {
+    const response = await api.post('/onboarding/start');
+    return StartOnboardingResponseSchema.parse(response.data);
   },
 
   /**
-   * Update tenant business profile (name, type, state)
-   * PATCH /api/tenants/me/profile
+   * Get current onboarding status with all step data
+   * GET /api/onboarding/status
    */
-  async updateBusinessProfile(
-    profile: BusinessProfileFormData,
-  ): Promise<UpdateBusinessProfileResponse> {
-    const response = await api.patch('/tenants/me/profile', profile);
-    return UpdateBusinessProfileResponseSchema.parse(response.data);
+  async getOnboardingStatus(): Promise<OnboardingStatusResponse> {
+    const response = await api.get('/onboarding/status');
+    return OnboardingStatusResponseSchema.parse(response.data);
   },
 
   /**
-   * Mark onboarding as complete
-   * POST /api/tenant/onboarding/complete
+   * Save progress for an onboarding section
+   * PATCH /api/onboarding/progress
+   */
+  async saveProgress(section: string, data: Record<string, unknown>, currentStep?: number): Promise<SaveStepResponse> {
+    const response = await api.patch('/onboarding/progress', { section, data, currentStep });
+    return SaveStepResponseSchema.parse(response.data);
+  },
+
+  /**
+   * Record user consent preferences (terms, marketing, analytics)
+   * POST /api/users/me/consents
+   */
+  async recordConsents(consents: ConsentFormData): Promise<RecordConsentsResponse> {
+    const response = await api.post('/users/me/consents', consents);
+    return RecordConsentsResponseSchema.parse(response.data);
+  },
+
+  /**
+   * Complete onboarding — creates tenant + default storage or joins via invitation
+   * POST /api/onboarding/complete
    */
   async completeOnboarding(): Promise<CompleteOnboardingResponse> {
-    const response = await api.post('/tenant/onboarding/complete');
+    const response = await api.post('/onboarding/complete');
     return CompleteOnboardingResponseSchema.parse(response.data);
   },
 
   /**
-   * Validate an invitation code
-   * POST /api/invitations/validate
+   * Validate an invitation by token (public endpoint)
+   * GET /api/tenant/invitations/:token
    */
   async validateInvitation(code: string): Promise<ValidateInvitationResponse> {
-    const response = await api.post('/invitations/validate', { code });
+    const response = await api.get(`/tenant/invitations/${encodeURIComponent(code)}`);
     return ValidateInvitationResponseSchema.parse(response.data);
   },
 
   /**
-   * Accept a validated invitation
-   * POST /api/invitations/accept
+   * Accept an invitation by token (requires auth)
+   * POST /api/tenant/invitations/:token/accept
    */
   async acceptInvitation(code: string): Promise<AcceptInvitationResponse> {
-    const response = await api.post('/invitations/accept', { code });
+    const response = await api.post(`/tenant/invitations/${encodeURIComponent(code)}/accept`);
     return AcceptInvitationResponseSchema.parse(response.data);
   },
 };

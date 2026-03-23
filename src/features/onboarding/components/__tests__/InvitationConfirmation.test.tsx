@@ -9,9 +9,9 @@ vi.mock('react-i18next', async () => {
 });
 
 const validInvitationDetails = {
-  code: 'ABC12345',
-  businessName: 'Tech Solutions SA',
-  inviterName: 'María González',
+  id: 'inv-001',
+  tenantName: 'Tech Solutions SA',
+  email: 'maria@techsolutions.com',
   role: 'EMPLOYEE',
   expiresAt: '2026-12-31T00:00:00.000Z',
 };
@@ -44,7 +44,7 @@ describe('InvitationConfirmation', () => {
     });
 
     it('Then the inviter name is displayed', () => {
-      expect(screen.getByText('María González')).toBeInTheDocument();
+      expect(screen.getByText('maria@techsolutions.com')).toBeInTheDocument();
     });
 
     it('Then the role is displayed', () => {

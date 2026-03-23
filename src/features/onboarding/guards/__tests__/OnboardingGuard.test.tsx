@@ -1,49 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { useOnboardingStore } from '@/features/onboarding/store/onboarding.store';
 import { OnboardingGuard } from '@/features/onboarding/guards/OnboardingGuard';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('@/features/onboarding/store/onboarding.store');
+const mockInitializeOnboarding = vi.fn();
+
+let mockHookReturn: Record<string, unknown> = {};
+
+vi.mock('@/features/onboarding/hooks/useOnboarding', () => ({
+  useOnboarding: () => mockHookReturn,
+}));
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-type StoreState = ReturnType<typeof useOnboardingStore>;
-
-function buildStoreState(overrides: Partial<StoreState> = {}): StoreState {
+function buildHookReturn(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
-    step: 0,
-    path: null,
-    consents: null,
-    preferences: null,
-    businessProfile: null,
-    invitationCode: null,
-    context: null,
     completedAt: null,
-    isLoading: false,
-    error: null,
-    invitationDetails: null,
-    invitationSubStep: 'code-entry',
-    setStep: vi.fn(),
-    setPath: vi.fn(),
-    setConsents: vi.fn(),
-    setPreferences: vi.fn(),
-    setBusinessProfile: vi.fn(),
-    setInvitationCode: vi.fn(),
-    setContext: vi.fn(),
-    setCompletedAt: vi.fn(),
-    setLoading: vi.fn(),
-    setError: vi.fn(),
-    setInvitationDetails: vi.fn(),
-    setInvitationSubStep: vi.fn(),
-    reset: vi.fn(),
+    isHydrated: true,
+    initializeOnboarding: mockInitializeOnboarding,
     ...overrides,
-  } as StoreState;
+  };
 }
 
 function renderWithRouter(ui: React.ReactElement): ReturnType<typeof render> {
@@ -66,11 +47,36 @@ describe('OnboardingGuard', () => {
     vi.clearAllMocks();
   });
 
+  describe('Given the store has not been hydrated yet', () => {
+    beforeEach(() => {
+      mockHookReturn = buildHookReturn({ isHydrated: false });
+    });
+
+    describe('When the guard renders', () => {
+      it('Then a loading spinner is shown', () => {
+        renderWithRouter(
+          <OnboardingGuard>
+            <div>Onboarding Content</div>
+          </OnboardingGuard>,
+        );
+        expect(screen.queryByText('Onboarding Content')).not.toBeInTheDocument();
+        expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
+      });
+
+      it('Then initializeOnboarding is called', () => {
+        renderWithRouter(
+          <OnboardingGuard>
+            <div>Onboarding Content</div>
+          </OnboardingGuard>,
+        );
+        expect(mockInitializeOnboarding).toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('Given the user has not completed onboarding yet', () => {
     beforeEach(() => {
-      vi.mocked(useOnboardingStore).mockReturnValue(
-        buildStoreState({ completedAt: null }),
-      );
+      mockHookReturn = buildHookReturn({ isHydrated: true, completedAt: null });
     });
 
     describe('When they navigate to the onboarding route', () => {
@@ -96,9 +102,10 @@ describe('OnboardingGuard', () => {
 
   describe('Given the user has already completed onboarding', () => {
     beforeEach(() => {
-      vi.mocked(useOnboardingStore).mockReturnValue(
-        buildStoreState({ completedAt: '2026-01-01T00:00:00.000Z' }),
-      );
+      mockHookReturn = buildHookReturn({
+        isHydrated: true,
+        completedAt: '2026-01-01T00:00:00.000Z',
+      });
     });
 
     describe('When they try to access the onboarding route again', () => {

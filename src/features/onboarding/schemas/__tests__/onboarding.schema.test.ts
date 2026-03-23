@@ -17,11 +17,12 @@ describe('consentSchema', () => {
         expect(result.success).toBe(true);
       });
 
-      it('Then marketing defaults to false when omitted', () => {
+      it('Then marketing and analytics default to true when omitted', () => {
         const result = consentSchema.safeParse({ terms: true });
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(result.data.marketing).toBe(false);
+          expect(result.data.marketing).toBe(true);
+          expect(result.data.analytics).toBe(true);
         }
       });
     });
@@ -145,7 +146,7 @@ describe('businessProfileSchema', () => {
         const result = businessProfileSchema.safeParse({
           businessName: 'Ferretería Central',
           businessType: 'RETAIL',
-          state: 'Jalisco',
+          country: 'MX',
         });
         expect(result.success).toBe(true);
       });
@@ -158,7 +159,7 @@ describe('businessProfileSchema', () => {
         const result = businessProfileSchema.safeParse({
           businessName: 'A',
           businessType: 'RETAIL',
-          state: 'Jalisco',
+          country: 'MX',
         });
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -173,7 +174,7 @@ describe('businessProfileSchema', () => {
         const result = businessProfileSchema.safeParse({
           businessName: '',
           businessType: 'RETAIL',
-          state: 'Jalisco',
+          country: 'MX',
         });
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -191,7 +192,7 @@ describe('businessProfileSchema', () => {
         const result = businessProfileSchema.safeParse({
           businessName: longName,
           businessType: 'RETAIL',
-          state: 'Jalisco',
+          country: 'MX',
         });
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -207,20 +208,20 @@ describe('businessProfileSchema', () => {
       it('Then the schema rejects it', () => {
         const result = businessProfileSchema.safeParse({
           businessName: 'Mi Negocio',
-          state: 'Jalisco',
+          country: 'MX',
         });
         expect(result.success).toBe(false);
       });
     });
   });
 
-  describe('Given the user omits the state', () => {
-    describe('When state is empty', () => {
+  describe('Given the user omits the country', () => {
+    describe('When country is empty', () => {
       it('Then the schema rejects it', () => {
         const result = businessProfileSchema.safeParse({
           businessName: 'Mi Negocio',
           businessType: 'SERVICES',
-          state: '',
+          country: '',
         });
         expect(result.success).toBe(false);
       });
@@ -245,7 +246,7 @@ describe('businessProfileSchema', () => {
         const result = businessProfileSchema.safeParse({
           businessName: 'Mi Negocio',
           businessType: type,
-          state: 'Jalisco',
+          country: 'MX',
         });
         expect(result.success).toBe(true);
       });

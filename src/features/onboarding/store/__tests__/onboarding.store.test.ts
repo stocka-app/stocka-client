@@ -15,6 +15,7 @@ function resetStore(): void {
     invitationCode: null,
     context: null,
     completedAt: null,
+    isHydrated: false,
     isLoading: false,
     error: null,
     invitationDetails: null,
@@ -124,6 +125,19 @@ describe('useOnboardingStore', () => {
         expect(useOnboardingStore.getState().path).toBe('invitation');
       });
     });
+
+    describe('When setPath is called with null (clearing the path)', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().setPath('create');
+          useOnboardingStore.getState().setPath(null);
+        });
+      });
+
+      it('Then the path resets to null', () => {
+        expect(useOnboardingStore.getState().path).toBeNull();
+      });
+    });
   });
 
   // =========================================================================
@@ -186,7 +200,7 @@ describe('useOnboardingStore', () => {
 
   describe('setBusinessProfile action', () => {
     describe('When the user submits their business profile', () => {
-      const profile = { businessName: 'Tienda Central', businessType: 'RETAIL', state: 'Jalisco' };
+      const profile = { businessName: 'Tienda Central', businessType: 'RETAIL', country: 'MX' };
 
       beforeEach(() => {
         act(() => {
@@ -335,9 +349,9 @@ describe('useOnboardingStore', () => {
   describe('setInvitationDetails action', () => {
     describe('When a valid invitation is received from the API', () => {
       const details = {
-        code: 'ABC12345',
-        businessName: 'Tech Corp',
-        inviterName: 'Maria Lopez',
+        id: 'inv-001',
+        tenantName: 'Tech Corp',
+        email: 'maria@techcorp.com',
         role: 'EMPLOYEE',
         expiresAt: '2026-12-31T00:00:00.000Z',
       };
@@ -393,7 +407,7 @@ describe('useOnboardingStore', () => {
           useOnboardingStore.getState().setBusinessProfile({
             businessName: 'Test',
             businessType: 'RETAIL',
-            state: 'Jalisco',
+            country: 'MX',
           });
           useOnboardingStore.getState().reset();
         });
@@ -426,48 +440,311 @@ describe('useOnboardingStore', () => {
   });
 
   // =========================================================================
-  // Persistence partialize contract
+  // hydrateFromBackend
   // =========================================================================
 
-  describe('Persistence partialize contract', () => {
-    describe('Given the store has mixed persisted and ephemeral data', () => {
-      it('Then completedAt is included in the partialize output', () => {
-        const state = useOnboardingStore.getState();
-        // The partialize function should include completedAt
-        // We verify by checking that setCompletedAt changes the field
+  describe('hydrateFromBackend action', () => {
+    describe('Given the backend returns a session at step 3 with step data', () => {
+      beforeEach(() => {
         act(() => {
-          state.setCompletedAt('2026-01-01T00:00:00.000Z');
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 3,
+            path: 'CREATE',
+            stepData: {
+              'consents': { terms: true, marketing: false, analytics: true },
+              'path': { path: 'CREATE' },
+              'preferences': { language: 'en', currency: 'USD', theme: 'dark' },
+              'businessProfile': { name: 'Mi Tienda', businessType: 'RETAIL', country: 'Jalisco' },
+            },
+          });
         });
-        expect(useOnboardingStore.getState().completedAt).toBe('2026-01-01T00:00:00.000Z');
       });
 
-      it('Then isLoading is NOT a persisted field (it resets on rehydration)', () => {
-        act(() => {
-          useOnboardingStore.getState().setLoading(true);
-        });
-        // After a reset (simulating rehydration from scratch), isLoading returns to false
-        act(() => {
-          useOnboardingStore.setState({ isLoading: false });
-        });
-        expect(useOnboardingStore.getState().isLoading).toBe(false);
+      it('Then step is set to 3', () => {
+        expect(useOnboardingStore.getState().step).toBe(3);
       });
 
-      it('Then invitationDetails is NOT a persisted field (ephemeral)', () => {
-        const details = {
-          code: 'XYZ99999',
-          businessName: 'Business',
-          inviterName: 'User',
-          role: 'ADMIN',
-          expiresAt: '2027-01-01T00:00:00.000Z',
-        };
-        act(() => {
-          useOnboardingStore.getState().setInvitationDetails(details);
+      it('Then path is mapped from CREATE to create', () => {
+        expect(useOnboardingStore.getState().path).toBe('create');
+      });
+
+      it('Then consents are hydrated from consents section data', () => {
+        expect(useOnboardingStore.getState().consents).toEqual({
+          terms: true,
+          marketing: false,
+          analytics: true,
         });
-        // Simulating rehydration: reset to initial
-        act(() => {
-          useOnboardingStore.setState({ invitationDetails: null });
+      });
+
+      it('Then preferences are hydrated from preferences section data', () => {
+        expect(useOnboardingStore.getState().preferences).toEqual({
+          language: 'en',
+          currency: 'USD',
+          theme: 'dark',
         });
-        expect(useOnboardingStore.getState().invitationDetails).toBeNull();
+      });
+
+      it('Then businessProfile is hydrated with mapped field names', () => {
+        expect(useOnboardingStore.getState().businessProfile).toEqual({
+          businessName: 'Mi Tienda',
+          businessType: 'RETAIL',
+          otherBusinessType: undefined,
+          country: 'Jalisco',
+          cityRegion: undefined,
+        });
+      });
+
+      it('Then isHydrated is set to true', () => {
+        expect(useOnboardingStore.getState().isHydrated).toBe(true);
+      });
+
+      it('Then completedAt is null (session is in progress)', () => {
+        expect(useOnboardingStore.getState().completedAt).toBeNull();
+      });
+    });
+
+    describe('Given the backend returns a completed session', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'COMPLETED',
+            currentStep: 7,
+            path: 'CREATE',
+            stepData: {},
+          });
+        });
+      });
+
+      it('Then completedAt is set to a truthy value', () => {
+        expect(useOnboardingStore.getState().completedAt).not.toBeNull();
+      });
+    });
+
+    describe('Given the backend returns null (no session)', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: null,
+            currentStep: null,
+            path: null,
+            stepData: null,
+          });
+        });
+      });
+
+      it('Then step stays at 0', () => {
+        expect(useOnboardingStore.getState().step).toBe(0);
+      });
+
+      it('Then isHydrated is set to true', () => {
+        expect(useOnboardingStore.getState().isHydrated).toBe(true);
+      });
+    });
+
+    describe('Given the backend returns a completely empty stepData object', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 1,
+            path: 'CREATE',
+            stepData: {},
+          });
+        });
+      });
+
+      it('Then all section data remains null', () => {
+        const { consents, preferences, businessProfile, context, invitationCode } =
+          useOnboardingStore.getState();
+        expect(consents).toBeNull();
+        expect(preferences).toBeNull();
+        expect(businessProfile).toBeNull();
+        expect(context).toBeNull();
+        expect(invitationCode).toBeNull();
+      });
+
+      it('Then isHydrated is true', () => {
+        expect(useOnboardingStore.getState().isHydrated).toBe(true);
+      });
+
+      it('Then step is set from backend', () => {
+        expect(useOnboardingStore.getState().step).toBe(1);
+      });
+    });
+
+    describe('Given the backend returns partial stepData (only consents present)', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 2,
+            path: 'CREATE',
+            stepData: {
+              'consents': { terms: true, marketing: true, analytics: false },
+            },
+          });
+        });
+      });
+
+      it('Then consents are hydrated', () => {
+        expect(useOnboardingStore.getState().consents).toEqual({
+          terms: true,
+          marketing: true,
+          analytics: false,
+        });
+      });
+
+      it('Then preferences remain null (not in stepData)', () => {
+        expect(useOnboardingStore.getState().preferences).toBeNull();
+      });
+
+      it('Then businessProfile remains null (not in stepData)', () => {
+        expect(useOnboardingStore.getState().businessProfile).toBeNull();
+      });
+
+      it('Then context remains null (not in stepData)', () => {
+        expect(useOnboardingStore.getState().context).toBeNull();
+      });
+
+      it('Then invitationCode remains null (no path section)', () => {
+        expect(useOnboardingStore.getState().invitationCode).toBeNull();
+      });
+    });
+
+    describe('Given the backend returns stepData with context only', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 5,
+            path: 'CREATE',
+            stepData: {
+              'context': { teamSize: '6-10', monthlyRevenue: '200-500k' },
+            },
+          });
+        });
+      });
+
+      it('Then context is hydrated', () => {
+        expect(useOnboardingStore.getState().context).toEqual({
+          teamSize: '6-10',
+          monthlyRevenue: '200-500k',
+        });
+      });
+
+      it('Then consents remain null', () => {
+        expect(useOnboardingStore.getState().consents).toBeNull();
+      });
+    });
+
+    describe('Given the backend returns null stepData', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 1,
+            path: null,
+            stepData: null,
+          });
+        });
+      });
+
+      it('Then all section data remains null', () => {
+        const { consents, preferences, businessProfile, context } =
+          useOnboardingStore.getState();
+        expect(consents).toBeNull();
+        expect(preferences).toBeNull();
+        expect(businessProfile).toBeNull();
+        expect(context).toBeNull();
+      });
+
+      it('Then path remains null when backend path is null', () => {
+        expect(useOnboardingStore.getState().path).toBeNull();
+      });
+
+      it('Then isHydrated is true', () => {
+        expect(useOnboardingStore.getState().isHydrated).toBe(true);
+      });
+    });
+
+    describe('Given the backend returns stepData with empty section objects (missing fields)', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 4,
+            path: 'CREATE',
+            stepData: {
+              'consents': {},
+              'preferences': {},
+              'businessProfile': {},
+              'context': {},
+              'path': {},
+            },
+          });
+        });
+      });
+
+      it('Then consents uses fallback defaults for missing fields', () => {
+        expect(useOnboardingStore.getState().consents).toEqual({
+          terms: false,
+          marketing: false,
+          analytics: false,
+        });
+      });
+
+      it('Then preferences uses fallback defaults for missing fields', () => {
+        expect(useOnboardingStore.getState().preferences).toEqual({
+          language: 'es',
+          currency: 'MXN',
+          theme: 'light',
+        });
+      });
+
+      it('Then businessProfile uses empty string fallbacks', () => {
+        expect(useOnboardingStore.getState().businessProfile).toEqual({
+          businessName: '',
+          businessType: '',
+          otherBusinessType: undefined,
+          country: 'MX',
+          cityRegion: undefined,
+        });
+      });
+
+      it('Then context uses undefined for optional fields', () => {
+        const ctx = useOnboardingStore.getState().context;
+        expect(ctx).toEqual({
+          teamSize: undefined,
+          monthlyRevenue: undefined,
+        });
+      });
+
+      it('Then invitationCode falls back to null', () => {
+        expect(useOnboardingStore.getState().invitationCode).toBeNull();
+      });
+    });
+
+    describe('Given the backend returns a JOIN path', () => {
+      beforeEach(() => {
+        act(() => {
+          useOnboardingStore.getState().hydrateFromBackend({
+            status: 'IN_PROGRESS',
+            currentStep: 1,
+            path: 'JOIN',
+            stepData: {
+              'path': { path: 'JOIN', invitationCode: 'ABC12345' },
+            },
+          });
+        });
+      });
+
+      it('Then path is mapped to invitation', () => {
+        expect(useOnboardingStore.getState().path).toBe('invitation');
+      });
+
+      it('Then invitationCode is hydrated', () => {
+        expect(useOnboardingStore.getState().invitationCode).toBe('ABC12345');
       });
     });
   });
