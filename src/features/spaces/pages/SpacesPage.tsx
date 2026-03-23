@@ -42,7 +42,7 @@ export default function SpacesPage(): React.ReactElement {
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isRestoreOpen, setIsRestoreOpen] = useState(false);
 
-  const canEditSpace = canDo('CREATE_EDIT_SPACE');
+  const canEditSpace = canDo('STORAGE_CREATE');
   const effectiveTier = tier ?? 'FREE';
 
   // A space can only be archived if it is NOT the last active one of its type
@@ -103,7 +103,7 @@ export default function SpacesPage(): React.ReactElement {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+          <h1 className="text-2xl font-bold text-neutral-900">
             {t('page.title')}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t('page.subtitle')}</p>
@@ -138,7 +138,7 @@ export default function SpacesPage(): React.ReactElement {
               'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === tab
                 ? 'border-brand text-brand'
-                : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100',
+                : 'border-transparent text-neutral-500 hover:text-neutral-900',
             )}
           >
             {t(`tabs.${tab}`)}

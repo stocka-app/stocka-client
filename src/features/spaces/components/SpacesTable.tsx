@@ -15,7 +15,7 @@ interface SpacesTableProps {
  * SpacesTable
  *
  * Renders a list of spaces with name, type, address, and action columns.
- * Edit and archive buttons are shown only when the user has CREATE_EDIT_SPACE permission.
+ * Edit and archive buttons are shown only when the user has STORAGE_CREATE permission.
  */
 export function SpacesTable({
   spaces,
@@ -26,7 +26,7 @@ export function SpacesTable({
 }: SpacesTableProps): React.ReactElement {
   const { t } = useTranslation('spaces');
   const { canDo } = useRBACStore();
-  const canEditSpace = canDo('CREATE_EDIT_SPACE');
+  const canEditSpace = canDo('STORAGE_CREATE');
 
   const emptyKey = showArchived ? 'table.emptyArchived' : 'table.empty';
 
@@ -35,16 +35,16 @@ export function SpacesTable({
       <table className="min-w-full divide-y divide-neutral-200 dark:divide-neutral-800 text-sm">
         <thead className="bg-neutral-50 dark:bg-neutral-900">
           <tr>
-            <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">
+            <th className="px-4 py-3 text-left font-medium text-neutral-600">
               {t('table.name')}
             </th>
-            <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">
+            <th className="px-4 py-3 text-left font-medium text-neutral-600">
               {t('table.type')}
             </th>
-            <th className="px-4 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">
+            <th className="px-4 py-3 text-left font-medium text-neutral-600">
               {t('table.address')}
             </th>
-            <th className="px-4 py-3 text-right font-medium text-neutral-600 dark:text-neutral-400">
+            <th className="px-4 py-3 text-right font-medium text-neutral-600">
               {t('table.actions')}
             </th>
           </tr>
@@ -54,7 +54,7 @@ export function SpacesTable({
             <tr>
               <td
                 colSpan={4}
-                className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400"
+                className="px-4 py-8 text-center text-sm text-neutral-500"
               >
                 {t(emptyKey)}
               </td>
@@ -65,13 +65,13 @@ export function SpacesTable({
                 key={space.id}
                 className="hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
               >
-                <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
+                <td className="px-4 py-3 font-medium text-neutral-900">
                   {space.name}
                 </td>
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400">
+                <td className="px-4 py-3 text-neutral-600">
                   {t(`types.${space.type}`)}
                 </td>
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400">
+                <td className="px-4 py-3 text-neutral-600">
                   {space.address ?? '—'}
                 </td>
                 <td className="px-4 py-3">

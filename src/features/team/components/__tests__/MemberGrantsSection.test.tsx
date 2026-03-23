@@ -23,7 +23,7 @@ vi.mock('react-i18next', async () => {
 
 const existingGrant: IndividualGrant = {
   memberId: 'member-003',
-  action: 'INVITE_MEMBERS',
+  action: 'MEMBER_INVITE',
   grantedAt: '2026-03-10T00:00:00.000Z',
   grantedBy: 'member-001',
 };
@@ -71,9 +71,9 @@ describe('Given the MemberGrantsSection manages individual permissions', () => {
 
   describe('When the current user can grant some actions', () => {
     beforeEach(() => {
-      // Only allow INVITE_MEMBERS and VIEW_MEMBERS
+      // Only allow MEMBER_INVITE and MEMBER_READ
       mockCanDo.mockImplementation((action: string) =>
-        action === 'INVITE_MEMBERS' || action === 'VIEW_MEMBERS',
+        action === 'MEMBER_INVITE' || action === 'MEMBER_READ',
       );
     });
 
@@ -88,9 +88,9 @@ describe('Given the MemberGrantsSection manages individual permissions', () => {
           onRemoveGrant={vi.fn()}
         />,
       );
-      expect(screen.getByText('INVITE_MEMBERS')).toBeInTheDocument();
-      expect(screen.getByText('VIEW_MEMBERS')).toBeInTheDocument();
-      expect(screen.queryByText('EDIT_ORG_CONFIG')).not.toBeInTheDocument();
+      expect(screen.getByText('MEMBER_INVITE')).toBeInTheDocument();
+      expect(screen.getByText('MEMBER_READ')).toBeInTheDocument();
+      expect(screen.queryByText('TENANT_SETTINGS_UPDATE')).not.toBeInTheDocument();
     });
 
     it('Then actions without grants show an Add button', async () => {
@@ -112,7 +112,7 @@ describe('Given the MemberGrantsSection manages individual permissions', () => {
   describe('When a member already has a grant', () => {
     beforeEach(() => {
       mockCanDo.mockImplementation((action: string) =>
-        action === 'INVITE_MEMBERS' || action === 'VIEW_MEMBERS',
+        action === 'MEMBER_INVITE' || action === 'MEMBER_READ',
       );
     });
 
@@ -127,14 +127,14 @@ describe('Given the MemberGrantsSection manages individual permissions', () => {
           onRemoveGrant={vi.fn()}
         />,
       );
-      // INVITE_MEMBERS already granted → should show Remove
+      // MEMBER_INVITE already granted → should show Remove
       expect(screen.getByText('grants.remove')).toBeInTheDocument();
     });
   });
 
   describe('When the user clicks the Add button for an action', () => {
     beforeEach(() => {
-      mockCanDo.mockImplementation((action: string) => action === 'VIEW_MEMBERS');
+      mockCanDo.mockImplementation((action: string) => action === 'MEMBER_READ');
     });
 
     it('Then the onAddGrant callback is called with the correct arguments', async () => {
@@ -150,13 +150,13 @@ describe('Given the MemberGrantsSection manages individual permissions', () => {
         />,
       );
       await user.click(screen.getByText('grants.add'));
-      expect(onAddGrant).toHaveBeenCalledWith('member-003', 'VIEW_MEMBERS');
+      expect(onAddGrant).toHaveBeenCalledWith('member-003', 'MEMBER_READ');
     });
   });
 
   describe('When the user clicks the Remove button for a granted action', () => {
     beforeEach(() => {
-      mockCanDo.mockImplementation((action: string) => action === 'INVITE_MEMBERS');
+      mockCanDo.mockImplementation((action: string) => action === 'MEMBER_INVITE');
     });
 
     it('Then the onRemoveGrant callback is called with the correct arguments', async () => {
@@ -172,13 +172,13 @@ describe('Given the MemberGrantsSection manages individual permissions', () => {
         />,
       );
       await user.click(screen.getByText('grants.remove'));
-      expect(onRemoveGrant).toHaveBeenCalledWith('member-003', 'INVITE_MEMBERS');
+      expect(onRemoveGrant).toHaveBeenCalledWith('member-003', 'MEMBER_INVITE');
     });
   });
 
   describe('When the section is in loading state', () => {
     beforeEach(() => {
-      mockCanDo.mockImplementation((action: string) => action === 'INVITE_MEMBERS');
+      mockCanDo.mockImplementation((action: string) => action === 'MEMBER_INVITE');
     });
 
     it('Then action buttons are disabled', async () => {

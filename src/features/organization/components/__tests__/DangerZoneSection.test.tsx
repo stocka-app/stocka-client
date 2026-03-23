@@ -47,7 +47,7 @@ describe('DangerZoneSection', () => {
   // Permission gate
   // =========================================================================
 
-  describe('Given the user is an OWNER with EDIT_ORG_CONFIG permission', () => {
+  describe('Given the user is an OWNER with TENANT_SETTINGS_UPDATE permission', () => {
     describe('When the danger zone renders', () => {
       it('Then the danger zone section is visible', async () => {
         const usePermissionMock = await getUsePermissionMock();
@@ -79,7 +79,7 @@ describe('DangerZoneSection', () => {
     });
   });
 
-  describe('Given the user does not have EDIT_ORG_CONFIG permission', () => {
+  describe('Given the user does not have TENANT_SETTINGS_UPDATE permission', () => {
     describe('When the danger zone renders', () => {
       it('Then nothing is rendered', async () => {
         const usePermissionMock = await getUsePermissionMock();

@@ -56,7 +56,7 @@ export const mockInvitations: PendingInvitation[] = [
 export const mockGrants: IndividualGrant[] = [
   {
     memberId: 'member-uuid-003',
-    action: 'INVITE_MEMBERS',
+    action: 'MEMBER_INVITE',
     grantedAt: '2026-03-10T00:00:00.000Z',
     grantedBy: 'member-uuid-001',
   },

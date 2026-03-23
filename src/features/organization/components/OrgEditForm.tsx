@@ -75,7 +75,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
       <div>
         <label
           htmlFor="org-name"
-          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+          className="block text-sm font-medium text-neutral-700 mb-1"
         >
           {t('profile.fields.name')}
         </label>
@@ -86,7 +86,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
             placeholder={t('profile.fields.namePlaceholder')}
             className={cn(
               'w-full rounded-lg border px-3 py-2 text-sm pr-9',
-              'text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900',
+              'text-neutral-900 bg-white dark:bg-neutral-900',
               'focus:outline-none focus:ring-2 focus:ring-brand/50',
               errors.name
                 ? 'border-red-400 dark:border-red-600'
@@ -124,7 +124,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
       <div>
         <label
           htmlFor="org-business-type"
-          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+          className="block text-sm font-medium text-neutral-700 mb-1"
         >
           {t('profile.fields.businessType')}
         </label>
@@ -132,7 +132,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           id="org-business-type"
           className={cn(
             'w-full rounded-lg border px-3 py-2 text-sm',
-            'text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900',
+            'text-neutral-900 bg-white dark:bg-neutral-900',
             'focus:outline-none focus:ring-2 focus:ring-brand/50',
             errors.businessType
               ? 'border-red-400 dark:border-red-600'
@@ -158,7 +158,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
       <div>
         <label
           htmlFor="org-rfc"
-          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+          className="block text-sm font-medium text-neutral-700 mb-1"
         >
           {t('profile.fields.rfc')}
         </label>
@@ -169,7 +169,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           maxLength={20}
           className={cn(
             'w-full rounded-lg border px-3 py-2 text-sm',
-            'text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900',
+            'text-neutral-900 bg-white dark:bg-neutral-900',
             'focus:outline-none focus:ring-2 focus:ring-brand/50',
             'border-neutral-300 dark:border-neutral-700',
           )}
@@ -186,7 +186,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
       <div>
         <label
           htmlFor="org-logo"
-          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+          className="block text-sm font-medium text-neutral-700 mb-1"
         >
           {t('profile.fields.logo')}
         </label>
@@ -202,7 +202,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           type="file"
           accept="image/*"
           onChange={handleLogoChange}
-          className="block w-full text-sm text-neutral-500 dark:text-neutral-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand hover:file:bg-brand/20"
+          className="block w-full text-sm text-neutral-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand hover:file:bg-brand/20"
         />
       </div>
 
@@ -220,7 +220,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-60 transition-colors"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-60 transition-colors"
         >
           {t('profile.cancelButton')}
         </button>

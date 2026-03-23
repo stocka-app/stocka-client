@@ -84,7 +84,7 @@ export function CreateEditSpaceModal({
       <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
         <h2
           id="create-edit-space-modal-title"
-          className="mb-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+          className="mb-4 text-lg font-semibold text-neutral-900"
         >
           {isEdit ? t('createModal.titleEdit') : t('createModal.titleCreate')}
         </h2>

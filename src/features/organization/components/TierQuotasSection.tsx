@@ -14,7 +14,7 @@ export function TierQuotasSection(): React.ReactNode {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">{t('audit.loading')}</span>
+        <span className="text-sm text-neutral-500">{t('audit.loading')}</span>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export function TierQuotasSection(): React.ReactNode {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2 className="text-lg font-semibold text-neutral-900">
           {t('limits.title')}
         </h2>
         {profile && (

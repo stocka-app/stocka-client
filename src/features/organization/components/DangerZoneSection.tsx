@@ -17,7 +17,7 @@ interface DangerZoneSectionProps {
 
 export function DangerZoneSection({ businessName, members }: DangerZoneSectionProps): React.ReactNode {
   const { t } = useTranslation('organization');
-  const canManageOrg = usePermission('EDIT_ORG_CONFIG');
+  const canManageOrg = usePermission('TENANT_SETTINGS_UPDATE');
 
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
@@ -39,7 +39,7 @@ export function DangerZoneSection({ businessName, members }: DangerZoneSectionPr
         <button
           type="button"
           onClick={() => setIsTransferOpen(true)}
-          className="rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          className="rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         >
           {t('dangerZone.transferOwnership.triggerButton')}
         </button>

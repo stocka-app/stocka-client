@@ -39,7 +39,7 @@ export function SpaceLimitsSection({ spaces }: SpaceLimitsSectionProps): React.R
 
   return (
     <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-surface-page p-4">
-      <h3 className="mb-3 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+      <h3 className="mb-3 text-sm font-semibold text-neutral-700">
         {t('limits.title')}
       </h3>
       <div className="space-y-3">
@@ -75,7 +75,7 @@ export function SpaceLimitsSection({ spaces }: SpaceLimitsSectionProps): React.R
               }
             >
               {/* Type label */}
-              <span className="w-32 shrink-0 text-sm text-neutral-600 dark:text-neutral-400">
+              <span className="w-32 shrink-0 text-sm text-neutral-600">
                 {t(`types.${type}`)}
               </span>
 
@@ -101,7 +101,7 @@ export function SpaceLimitsSection({ spaces }: SpaceLimitsSectionProps): React.R
               </div>
 
               {/* Usage label */}
-              <span className="w-20 shrink-0 text-right text-xs text-neutral-500 dark:text-neutral-400">
+              <span className="w-20 shrink-0 text-right text-xs text-neutral-500">
                 {isUnlimited
                   ? t('limits.unlimited')
                   : t('limits.used', { used, max })}

@@ -16,7 +16,7 @@ const STATUS_STYLES = {
 };
 
 const TIER_STYLES: Record<string, string> = {
-  FREE: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
+  FREE: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800',
   STARTER: 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-300',
   GROWTH: 'bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-300',
   ENTERPRISE: 'bg-brand/10 text-brand dark:bg-brand/20',
@@ -24,7 +24,7 @@ const TIER_STYLES: Record<string, string> = {
 
 export function OrgProfileCard({ profile, onEdit }: OrgProfileCardProps): React.ReactNode {
   const { t } = useTranslation('organization');
-  const canEdit = usePermission('EDIT_ORG_CONFIG');
+  const canEdit = usePermission('TENANT_SETTINGS_UPDATE');
 
   const formattedDate = new Date(profile.createdAt).toLocaleDateString();
 
@@ -45,10 +45,10 @@ export function OrgProfileCard({ profile, onEdit }: OrgProfileCardProps): React.
             </div>
           )}
           <div>
-            <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+            <h2 className="text-xl font-bold text-neutral-900">
               {profile.name}
             </h2>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">/{profile.slug}</p>
+            <p className="text-sm text-neutral-500">/{profile.slug}</p>
           </div>
         </div>
 
@@ -67,25 +67,25 @@ export function OrgProfileCard({ profile, onEdit }: OrgProfileCardProps): React.
       {/* Fields grid */}
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             {t('profile.fields.businessType')}
           </dt>
-          <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+          <dd className="mt-1 text-sm text-neutral-900">
             {t(`profile.businessTypes.${profile.businessType}`)}
           </dd>
         </div>
 
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             {t('profile.fields.rfc')}
           </dt>
-          <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+          <dd className="mt-1 text-sm text-neutral-900">
             {profile.rfc ?? '—'}
           </dd>
         </div>
 
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             {t('profile.fields.status')}
           </dt>
           <dd className="mt-1">
@@ -101,7 +101,7 @@ export function OrgProfileCard({ profile, onEdit }: OrgProfileCardProps): React.
         </div>
 
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             {t('profile.fields.tier')}
           </dt>
           <dd className="mt-1">
@@ -117,19 +117,19 @@ export function OrgProfileCard({ profile, onEdit }: OrgProfileCardProps): React.
         </div>
 
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             {t('profile.fields.slug')}
           </dt>
-          <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100 font-mono">
+          <dd className="mt-1 text-sm text-neutral-900 font-mono">
             {profile.slug}
           </dd>
         </div>
 
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+          <dt className="text-xs font-medium uppercase tracking-wider text-neutral-500">
             {t('profile.fields.createdAt')}
           </dt>
-          <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+          <dd className="mt-1 text-sm text-neutral-900">
             {formattedDate}
           </dd>
         </div>

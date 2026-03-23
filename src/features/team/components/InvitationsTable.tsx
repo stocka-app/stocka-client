@@ -78,7 +78,7 @@ export function InvitationsTable({
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                       isPending
                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400'
-                        : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                        : 'bg-neutral-100 text-neutral-500'
                     }`}
                   >
                     {t(`status.${invitation.status}`)}

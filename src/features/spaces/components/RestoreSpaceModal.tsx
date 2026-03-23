@@ -43,13 +43,13 @@ export function RestoreSpaceModal({
       <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
         <h2
           id="restore-space-modal-title"
-          className="mb-3 text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+          className="mb-3 text-lg font-semibold text-neutral-900"
         >
           {t('restoreModal.title')}
         </h2>
 
         {canRestore ? (
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-sm text-neutral-600">
             {t('restoreModal.description', { name: space.name })}
           </p>
         ) : (

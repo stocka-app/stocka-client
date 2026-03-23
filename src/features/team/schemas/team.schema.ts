@@ -19,20 +19,23 @@ export const MemberStatusSchema = z.enum(['ACTIVE', 'SUSPENDED']);
 export const InvitationStatusSchema = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']);
 
 export const RBACActionSchema = z.enum([
-  'VIEW_ORG_CONFIG',
-  'EDIT_ORG_CONFIG',
-  'VIEW_MEMBERS',
-  'INVITE_MEMBERS',
-  'CHANGE_MEMBER_ROLE',
-  'REMOVE_MEMBER',
-  'VIEW_PRODUCTS',
-  'CREATE_PRODUCT',
-  'EDIT_PRODUCT',
-  'DELETE_PRODUCT',
-  'VIEW_SPACES',
-  'CREATE_EDIT_SPACE',
-  'VIEW_REPORTS',
-  'EXPORT_REPORTS',
+  'STORAGE_CREATE',
+  'STORAGE_READ',
+  'STORAGE_UPDATE',
+  'STORAGE_DELETE',
+  'MEMBER_INVITE',
+  'MEMBER_READ',
+  'MEMBER_UPDATE_ROLE',
+  'MEMBER_REMOVE',
+  'PRODUCT_CREATE',
+  'PRODUCT_READ',
+  'PRODUCT_UPDATE',
+  'PRODUCT_DELETE',
+  'REPORT_READ',
+  'REPORT_ADVANCED',
+  'INVENTORY_EXPORT',
+  'TENANT_SETTINGS_READ',
+  'TENANT_SETTINGS_UPDATE',
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

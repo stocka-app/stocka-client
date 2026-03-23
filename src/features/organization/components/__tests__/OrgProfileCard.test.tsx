@@ -107,7 +107,7 @@ describe('OrgProfileCard', () => {
   // Edit button visibility
   // =========================================================================
 
-  describe('Given the user has EDIT_ORG_CONFIG permission', () => {
+  describe('Given the user has TENANT_SETTINGS_UPDATE permission', () => {
     describe('When the card renders', () => {
       it('Then the Edit button is visible', async () => {
         const usePermissionMock = await getUsePermissionMock();
@@ -132,7 +132,7 @@ describe('OrgProfileCard', () => {
     });
   });
 
-  describe('Given the user does not have EDIT_ORG_CONFIG permission', () => {
+  describe('Given the user does not have TENANT_SETTINGS_UPDATE permission', () => {
     describe('When the card renders', () => {
       it('Then the Edit button is not shown', async () => {
         const usePermissionMock = await getUsePermissionMock();

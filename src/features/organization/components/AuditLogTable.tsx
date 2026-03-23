@@ -20,7 +20,7 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">{t('audit.loading')}</span>
+        <span className="text-sm text-neutral-500">{t('audit.loading')}</span>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
   if (entries.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">{t('audit.empty')}</span>
+        <span className="text-sm text-neutral-500">{t('audit.empty')}</span>
       </div>
     );
   }
@@ -47,16 +47,16 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
         <table className="w-full text-sm">
           <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {t('audit.columns.datetime')}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {t('audit.columns.actor')}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {t('audit.columns.action')}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {t('audit.columns.details')}
               </th>
             </tr>
@@ -67,16 +67,16 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
                 key={entry.id}
                 className="bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
               >
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
+                <td className="px-4 py-3 text-neutral-600 whitespace-nowrap">
                   {new Date(entry.timestamp).toLocaleString()}
                 </td>
-                <td className="px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
+                <td className="px-4 py-3 font-medium text-neutral-900">
                   {entry.actorName}
                 </td>
-                <td className="px-4 py-3 text-neutral-700 dark:text-neutral-300 font-mono text-xs">
+                <td className="px-4 py-3 text-neutral-700 font-mono text-xs">
                   {entry.action}
                 </td>
-                <td className="px-4 py-3 text-neutral-600 dark:text-neutral-400">
+                <td className="px-4 py-3 text-neutral-600">
                   {entry.details}
                 </td>
               </tr>
@@ -90,7 +90,7 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
           <button
             type="button"
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-            className="rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            className="rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
           >
             {t('audit.loadMore')}
           </button>

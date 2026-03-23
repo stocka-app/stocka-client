@@ -41,7 +41,7 @@ describe('Given the PermissionGate controls access to UI elements', () => {
     it('Then the children are rendered', async () => {
       const PermissionGate = await getComponent();
       render(
-        <PermissionGate action="INVITE_MEMBERS">
+        <PermissionGate action="MEMBER_INVITE">
           <button type="button">Invite</button>
         </PermissionGate>,
       );
@@ -57,7 +57,7 @@ describe('Given the PermissionGate controls access to UI elements', () => {
     it('Then children are hidden by default (hide mode)', async () => {
       const PermissionGate = await getComponent();
       render(
-        <PermissionGate action="INVITE_MEMBERS">
+        <PermissionGate action="MEMBER_INVITE">
           <button type="button">Invite</button>
         </PermissionGate>,
       );
@@ -67,7 +67,7 @@ describe('Given the PermissionGate controls access to UI elements', () => {
     it('Then a custom fallback is shown when provided', async () => {
       const PermissionGate = await getComponent();
       render(
-        <PermissionGate action="INVITE_MEMBERS" fallback={<span>No access</span>}>
+        <PermissionGate action="MEMBER_INVITE" fallback={<span>No access</span>}>
           <button type="button">Invite</button>
         </PermissionGate>,
       );
@@ -78,7 +78,7 @@ describe('Given the PermissionGate controls access to UI elements', () => {
     it('Then children are rendered as disabled when mode is disable', async () => {
       const PermissionGate = await getComponent();
       render(
-        <PermissionGate action="INVITE_MEMBERS" mode="disable">
+        <PermissionGate action="MEMBER_INVITE" mode="disable">
           <button type="button">Invite</button>
         </PermissionGate>,
       );
@@ -89,7 +89,7 @@ describe('Given the PermissionGate controls access to UI elements', () => {
     it('Then the null fallback is rendered when no fallback is provided', async () => {
       const PermissionGate = await getComponent();
       const { container } = render(
-        <PermissionGate action="INVITE_MEMBERS">
+        <PermissionGate action="MEMBER_INVITE">
           <button type="button">Invite</button>
         </PermissionGate>,
       );
@@ -105,7 +105,7 @@ describe('Given the PermissionGate controls access to UI elements', () => {
     it('Then all nested children are rendered', async () => {
       const PermissionGate = await getComponent();
       render(
-        <PermissionGate action="CREATE_PRODUCT">
+        <PermissionGate action="PRODUCT_CREATE">
           <div>
             <span>Label</span>
             <button type="button">Create</button>

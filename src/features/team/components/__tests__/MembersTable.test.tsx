@@ -145,7 +145,7 @@ describe('Given the MembersTable displays team members', () => {
 
   describe('When the user does not have role change permission', () => {
     beforeEach(() => {
-      mockCanDo.mockImplementation((action: string) => action !== 'CHANGE_MEMBER_ROLE');
+      mockCanDo.mockImplementation((action: string) => action !== 'MEMBER_UPDATE_ROLE');
     });
 
     it('Then role dropdowns are not shown', async () => {

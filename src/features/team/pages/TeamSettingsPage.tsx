@@ -33,7 +33,7 @@ interface RoleChangeState {
 export default function TeamSettingsPage(): React.ReactElement {
   const { t } = useTranslation('team');
   const { role } = useRBACStore();
-  const canInvite = usePermission('INVITE_MEMBERS');
+  const canInvite = usePermission('MEMBER_INVITE');
 
   const {
     members,
@@ -129,7 +129,7 @@ export default function TeamSettingsPage(): React.ReactElement {
         <div id="tabpanel-members" role="tabpanel" aria-labelledby="tab-members">
           <FreeTierBanner />
           <div className="mb-4 flex justify-end">
-            <PermissionGate action="INVITE_MEMBERS">
+            <PermissionGate action="MEMBER_INVITE">
               <Button type="button" onClick={() => setShowInviteModal(true)} disabled={isLoading}>
                 {t('members.inviteButton')}
               </Button>

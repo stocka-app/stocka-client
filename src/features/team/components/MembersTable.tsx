@@ -48,7 +48,7 @@ function getRoleSelectableOptions(currentUserRole: TenantRole): TenantRole[] {
  * MembersTable
  *
  * Renders the team members in a table.
- * Role dropdown is visible only to users with CHANGE_MEMBER_ROLE permission
+ * Role dropdown is visible only to users with MEMBER_UPDATE_ROLE permission
  * and filtered by hierarchy (can't promote to role >= own level).
  * OWNER row has no change role or remove actions.
  */
@@ -61,8 +61,8 @@ export function MembersTable({
   onRemove,
 }: MembersTableProps): React.ReactElement {
   const { t } = useTranslation('team');
-  const canChangeRole = usePermission('CHANGE_MEMBER_ROLE');
-  const canRemove = usePermission('REMOVE_MEMBER');
+  const canChangeRole = usePermission('MEMBER_UPDATE_ROLE');
+  const canRemove = usePermission('MEMBER_REMOVE');
   const selectableRoles = getRoleSelectableOptions(currentUserRole);
 
   if (members.length === 0) {
@@ -142,7 +142,7 @@ export function MembersTable({
                 </td>
                 <td className="px-4 py-3 text-right">
                   {!isOwner && (
-                    <PermissionGate action="REMOVE_MEMBER">
+                    <PermissionGate action="MEMBER_REMOVE">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button

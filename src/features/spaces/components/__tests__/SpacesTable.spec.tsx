@@ -146,7 +146,7 @@ describe('Given SpacesTable renders spaces with actions', () => {
     });
   });
 
-  describe('When the user does not have CREATE_EDIT_SPACE permission', () => {
+  describe('When the user does not have STORAGE_CREATE permission', () => {
     beforeEach(() => {
       canDoResult = false;
     });

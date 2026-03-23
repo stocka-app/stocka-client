@@ -508,7 +508,7 @@ describe('Given the useTeam hook manages team state', () => {
         data: [
           {
             memberId: 'member-uuid-003',
-            action: 'INVITE_MEMBERS',
+            action: 'MEMBER_INVITE',
             grantedAt: '2026-03-10T00:00:00.000Z',
             grantedBy: 'member-uuid-001',
           },
@@ -522,11 +522,11 @@ describe('Given the useTeam hook manages team state', () => {
       const { result } = renderHook(() => useTeam());
 
       await act(async () => {
-        await result.current.addGrant('member-uuid-003', 'INVITE_MEMBERS');
+        await result.current.addGrant('member-uuid-003', 'MEMBER_INVITE');
       });
 
-      expect(teamService.addGrant).toHaveBeenCalledWith('member-uuid-003', 'INVITE_MEMBERS');
-      expect(result.current.grants.some((g) => g.action === 'INVITE_MEMBERS')).toBe(true);
+      expect(teamService.addGrant).toHaveBeenCalledWith('member-uuid-003', 'MEMBER_INVITE');
+      expect(result.current.grants.some((g) => g.action === 'MEMBER_INVITE')).toBe(true);
     });
   });
 
@@ -540,7 +540,7 @@ describe('Given the useTeam hook manages team state', () => {
       const { result } = renderHook(() => useTeam());
 
       await act(async () => {
-        await result.current.addGrant('member-uuid-003', 'INVITE_MEMBERS');
+        await result.current.addGrant('member-uuid-003', 'MEMBER_INVITE');
       });
 
       expect(result.current.error).toBe('grants.addError');
@@ -552,7 +552,7 @@ describe('Given the useTeam hook manages team state', () => {
   describe('When a grant is removed successfully', () => {
     const existingGrant = {
       memberId: 'member-uuid-003',
-      action: 'INVITE_MEMBERS' as const,
+      action: 'MEMBER_INVITE' as const,
       grantedAt: '2026-03-10T00:00:00.000Z',
       grantedBy: 'member-uuid-001',
     };
@@ -571,10 +571,10 @@ describe('Given the useTeam hook manages team state', () => {
       });
 
       await act(async () => {
-        await result.current.removeGrant('member-uuid-003', 'INVITE_MEMBERS');
+        await result.current.removeGrant('member-uuid-003', 'MEMBER_INVITE');
       });
 
-      expect(result.current.grants.find((g) => g.action === 'INVITE_MEMBERS')).toBeUndefined();
+      expect(result.current.grants.find((g) => g.action === 'MEMBER_INVITE')).toBeUndefined();
     });
   });
 
@@ -588,7 +588,7 @@ describe('Given the useTeam hook manages team state', () => {
       const { result } = renderHook(() => useTeam());
 
       await act(async () => {
-        await result.current.removeGrant('member-uuid-003', 'INVITE_MEMBERS');
+        await result.current.removeGrant('member-uuid-003', 'MEMBER_INVITE');
       });
 
       expect(result.current.error).toBe('grants.removeError');

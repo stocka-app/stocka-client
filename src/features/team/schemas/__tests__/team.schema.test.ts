@@ -208,7 +208,7 @@ describe('Given the grant list API response schema', () => {
         data: [
           {
             memberId: '550e8400-e29b-41d4-a716-446655440003',
-            action: 'INVITE_MEMBERS',
+            action: 'MEMBER_INVITE',
             grantedAt: '2026-03-10T00:00:00.000Z',
             grantedBy: '550e8400-e29b-41d4-a716-446655440000',
           },

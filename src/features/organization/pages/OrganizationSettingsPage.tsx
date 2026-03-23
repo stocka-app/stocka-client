@@ -14,7 +14,7 @@ type ActiveTab = 'profile' | 'limits' | 'audit';
 
 export default function OrganizationSettingsPage(): React.ReactNode {
   const { t } = useTranslation('organization');
-  const canViewAudit = usePermission('VIEW_AUDIT_LOG');
+  const canViewAudit = usePermission('REPORT_ADVANCED');
 
   const { profile, auditLog, isLoading, error, fetchProfile, fetchAuditLog } = useOrganization();
 
@@ -42,7 +42,7 @@ export default function OrganizationSettingsPage(): React.ReactNode {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+      <h1 className="text-2xl font-bold text-neutral-900">
         {t('pageTitle')}
       </h1>
 
@@ -63,7 +63,7 @@ export default function OrganizationSettingsPage(): React.ReactNode {
                 'px-4 py-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === key
                   ? 'border-brand text-brand'
-                  : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:border-neutral-300 dark:hover:border-neutral-600',
+                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300',
               )}
               aria-current={activeTab === key ? 'page' : undefined}
             >
@@ -78,7 +78,7 @@ export default function OrganizationSettingsPage(): React.ReactNode {
         <div className="space-y-8">
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+              <span className="text-sm text-neutral-500">
                 {t('audit.loading')}
               </span>
             </div>
@@ -116,7 +116,7 @@ export default function OrganizationSettingsPage(): React.ReactNode {
             <AuditLogTable entries={auditLog} isLoading={isLoading} error={error} />
           ) : (
             <div className="flex items-center justify-center py-12">
-              <span className="text-sm text-neutral-500 dark:text-neutral-400">
+              <span className="text-sm text-neutral-500">
                 {t('audit.noPermission')}
               </span>
             </div>

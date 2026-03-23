@@ -24,8 +24,8 @@ export function QuotaProgressBar({ label, used, max }: QuotaProgressBarProps): R
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-neutral-700 dark:text-neutral-300">{label}</span>
-        <span className="text-neutral-500 dark:text-neutral-400">
+        <span className="font-medium text-neutral-700">{label}</span>
+        <span className="text-neutral-500">
           {used} / {limitLabel}
         </span>
       </div>

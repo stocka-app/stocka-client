@@ -60,11 +60,11 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
         <div>
           <label
             htmlFor="cancel-confirm-input"
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+            className="block text-sm font-medium text-neutral-700 mb-1"
           >
             {t('dangerZone.cancelOrg.confirmLabel')}
           </label>
-          <p className="mb-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="mb-2 text-xs text-neutral-500">
             {t('dangerZone.cancelOrg.confirmNote', { name: businessName })}
           </p>
           <input
@@ -75,7 +75,7 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
             placeholder={t('dangerZone.cancelOrg.confirmPlaceholder')}
             className={cn(
               'w-full rounded-lg border px-3 py-2 text-sm',
-              'text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900',
+              'text-neutral-900 bg-white dark:bg-neutral-900',
               'focus:outline-none focus:ring-2 focus:ring-red-400/50',
               'border-neutral-300 dark:border-neutral-700',
             )}
@@ -97,7 +97,7 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+            className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
           >
             {t('dangerZone.cancelOrg.cancelButton')}
           </button>
