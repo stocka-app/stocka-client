@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Package } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import { StockaIcon } from '@/shared/components/StockaIcon';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
 
 interface LogoProps {
@@ -31,7 +31,7 @@ export function Logo({ className, size = 'md', showIcon = true, disableLink = fa
 
   const logoContent = (
     <div className={cn('flex items-center gap-2', className)}>
-      {showIcon && <Package className={cn('text-primary', iconSizes[size])} />}
+      {showIcon && <StockaIcon className={cn('text-primary', iconSizes[size])} />}
       <span className={cn('font-bold text-primary', sizes[size])}>Stocka</span>
     </div>
   );

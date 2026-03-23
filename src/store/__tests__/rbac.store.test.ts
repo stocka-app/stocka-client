@@ -1,5 +1,12 @@
 import { useRBACStore } from '@/store/rbac.store';
+import { api } from '@/shared/lib/axios';
 import type { RBACAction } from '@/features/team/types/team.types';
+
+vi.mock('@/shared/lib/axios', () => ({
+  api: {
+    get: vi.fn(),
+  },
+}));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -10,9 +17,40 @@ function resetStore(): void {
     role: null,
     tier: null,
     tenantStatus: 'ACTIVE',
+    permissions: [],
     grants: [],
+    loaded: false,
   });
 }
+
+/** All read actions */
+const READ_PERMISSIONS: RBACAction[] = [
+  'TENANT_SETTINGS_READ',
+  'MEMBER_READ',
+  'PRODUCT_READ',
+  'STORAGE_READ',
+  'REPORT_READ',
+];
+
+/** All write actions */
+const WRITE_PERMISSIONS: RBACAction[] = [
+  'TENANT_SETTINGS_UPDATE',
+  'MEMBER_INVITE',
+  'MEMBER_UPDATE_ROLE',
+  'MEMBER_REMOVE',
+  'PRODUCT_CREATE',
+  'PRODUCT_UPDATE',
+  'PRODUCT_DELETE',
+  'STORAGE_CREATE',
+  'INVENTORY_EXPORT',
+];
+
+/** All actions an OWNER would have */
+const ALL_PERMISSIONS: RBACAction[] = [
+  ...READ_PERMISSIONS,
+  ...WRITE_PERMISSIONS,
+  'REPORT_ADVANCED',
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tests
@@ -28,8 +66,8 @@ describe('Given the RBAC store manages permissions', () => {
   describe('When the user has no role assigned yet', () => {
     it('Then all actions are denied', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_MEMBERS')).toBe(false);
-      expect(canDo('INVITE_MEMBERS')).toBe(false);
+      expect(canDo('MEMBER_READ')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
     });
   });
 
@@ -37,34 +75,41 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When the OWNER is on the FREE tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'OWNER', tier: 'FREE', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'FREE',
+        tenantStatus: 'ACTIVE',
+        permissions: ALL_PERMISSIONS,
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the OWNER can perform all write actions', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('EDIT_ORG_CONFIG')).toBe(true);
-      expect(canDo('INVITE_MEMBERS')).toBe(true);
-      expect(canDo('CHANGE_MEMBER_ROLE')).toBe(true);
-      expect(canDo('REMOVE_MEMBER')).toBe(true);
-      expect(canDo('CREATE_PRODUCT')).toBe(true);
-      expect(canDo('EDIT_PRODUCT')).toBe(true);
-      expect(canDo('DELETE_PRODUCT')).toBe(true);
-      expect(canDo('CREATE_EDIT_SPACE')).toBe(true);
-      expect(canDo('EXPORT_REPORTS')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
+      expect(canDo('MEMBER_UPDATE_ROLE')).toBe(true);
+      expect(canDo('MEMBER_REMOVE')).toBe(true);
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+      expect(canDo('PRODUCT_UPDATE')).toBe(true);
+      expect(canDo('PRODUCT_DELETE')).toBe(true);
+      expect(canDo('STORAGE_CREATE')).toBe(true);
+      expect(canDo('INVENTORY_EXPORT')).toBe(true);
     });
 
     it('Then the OWNER can perform all read actions', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_ORG_CONFIG')).toBe(true);
-      expect(canDo('VIEW_MEMBERS')).toBe(true);
-      expect(canDo('VIEW_PRODUCTS')).toBe(true);
-      expect(canDo('VIEW_SPACES')).toBe(true);
-      expect(canDo('VIEW_REPORTS')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_READ')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('STORAGE_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
     });
 
     it('Then the OWNER can view the audit log', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_AUDIT_LOG')).toBe(true);
+      expect(canDo('REPORT_ADVANCED')).toBe(true);
     });
   });
 
@@ -72,32 +117,39 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a MANAGER is on the FREE tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'MANAGER', tier: 'FREE', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'MANAGER',
+        tier: 'FREE',
+        tenantStatus: 'ACTIVE',
+        permissions: [...READ_PERMISSIONS],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the MANAGER cannot perform write actions due to tier restriction', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('INVITE_MEMBERS')).toBe(false);
-      expect(canDo('CHANGE_MEMBER_ROLE')).toBe(false);
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
-      expect(canDo('EDIT_PRODUCT')).toBe(false);
-      expect(canDo('DELETE_PRODUCT')).toBe(false);
-      expect(canDo('CREATE_EDIT_SPACE')).toBe(false);
-      expect(canDo('EXPORT_REPORTS')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+      expect(canDo('MEMBER_UPDATE_ROLE')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
+      expect(canDo('PRODUCT_UPDATE')).toBe(false);
+      expect(canDo('PRODUCT_DELETE')).toBe(false);
+      expect(canDo('STORAGE_CREATE')).toBe(false);
+      expect(canDo('INVENTORY_EXPORT')).toBe(false);
     });
 
     it('Then the MANAGER can still perform read actions', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_MEMBERS')).toBe(true);
-      expect(canDo('VIEW_PRODUCTS')).toBe(true);
-      expect(canDo('VIEW_SPACES')).toBe(true);
-      expect(canDo('VIEW_REPORTS')).toBe(true);
-      expect(canDo('VIEW_ORG_CONFIG')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('STORAGE_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_READ')).toBe(true);
     });
 
     it('Then the MANAGER cannot view the audit log', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_AUDIT_LOG')).toBe(false);
+      expect(canDo('REPORT_ADVANCED')).toBe(false);
     });
   });
 
@@ -105,20 +157,27 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a VIEWER is on the FREE tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'VIEWER', tier: 'FREE', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'VIEWER',
+        tier: 'FREE',
+        tenantStatus: 'ACTIVE',
+        permissions: ['MEMBER_READ', 'PRODUCT_READ', 'STORAGE_READ', 'REPORT_READ'],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the VIEWER can only read', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_MEMBERS')).toBe(true);
-      expect(canDo('VIEW_PRODUCTS')).toBe(true);
-      expect(canDo('INVITE_MEMBERS')).toBe(false);
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
     });
 
     it('Then the VIEWER cannot view the audit log', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_AUDIT_LOG')).toBe(false);
+      expect(canDo('REPORT_ADVANCED')).toBe(false);
     });
   });
 
@@ -126,15 +185,22 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When the OWNER is on the STARTER tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'OWNER', tier: 'STARTER', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: ALL_PERMISSIONS,
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the OWNER can perform all actions', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('EDIT_ORG_CONFIG')).toBe(true);
-      expect(canDo('INVITE_MEMBERS')).toBe(true);
-      expect(canDo('REMOVE_MEMBER')).toBe(true);
-      expect(canDo('EXPORT_REPORTS')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
+      expect(canDo('MEMBER_REMOVE')).toBe(true);
+      expect(canDo('INVENTORY_EXPORT')).toBe(true);
     });
   });
 
@@ -142,29 +208,44 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a MANAGER is on the STARTER tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'MANAGER', tier: 'STARTER', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'MANAGER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: [
+          ...READ_PERMISSIONS,
+          'MEMBER_INVITE',
+          'PRODUCT_CREATE',
+          'PRODUCT_UPDATE',
+          'PRODUCT_DELETE',
+          'STORAGE_CREATE',
+          'INVENTORY_EXPORT',
+        ],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the MANAGER can invite members', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('INVITE_MEMBERS')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
     });
 
     it('Then the MANAGER cannot remove members (outside role permissions)', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('REMOVE_MEMBER')).toBe(false);
+      expect(canDo('MEMBER_REMOVE')).toBe(false);
     });
 
     it('Then the MANAGER can create and edit products', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('CREATE_PRODUCT')).toBe(true);
-      expect(canDo('EDIT_PRODUCT')).toBe(true);
-      expect(canDo('DELETE_PRODUCT')).toBe(true);
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+      expect(canDo('PRODUCT_UPDATE')).toBe(true);
+      expect(canDo('PRODUCT_DELETE')).toBe(true);
     });
 
     it('Then the MANAGER cannot edit org config', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('EDIT_ORG_CONFIG')).toBe(false);
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(false);
     });
   });
 
@@ -172,19 +253,26 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a BUYER is on the STARTER tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'BUYER', tier: 'STARTER', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'BUYER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: ['MEMBER_READ', 'PRODUCT_READ', 'STORAGE_READ', 'REPORT_READ'],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the BUYER can view members and products', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_MEMBERS')).toBe(true);
-      expect(canDo('VIEW_PRODUCTS')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
     });
 
     it('Then the BUYER cannot invite members or create products', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('INVITE_MEMBERS')).toBe(false);
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
     });
   });
 
@@ -192,19 +280,30 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a WAREHOUSE_KEEPER is on the STARTER tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'WAREHOUSE_KEEPER', tier: 'STARTER', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'WAREHOUSE_KEEPER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: [
+          ...READ_PERMISSIONS,
+          'PRODUCT_UPDATE',
+          'INVENTORY_EXPORT',
+        ],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the WAREHOUSE_KEEPER can edit products and export reports', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('EDIT_PRODUCT')).toBe(true);
-      expect(canDo('EXPORT_REPORTS')).toBe(true);
+      expect(canDo('PRODUCT_UPDATE')).toBe(true);
+      expect(canDo('INVENTORY_EXPORT')).toBe(true);
     });
 
     it('Then the WAREHOUSE_KEEPER cannot create or delete products', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
-      expect(canDo('DELETE_PRODUCT')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
+      expect(canDo('PRODUCT_DELETE')).toBe(false);
     });
   });
 
@@ -212,48 +311,57 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When the tenant is SUSPENDED', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'OWNER', tier: 'STARTER', tenantStatus: 'SUSPENDED', grants: [] });
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'STARTER',
+        tenantStatus: 'SUSPENDED',
+        permissions: ALL_PERMISSIONS,
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then no write actions are allowed even for OWNER', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('EDIT_ORG_CONFIG')).toBe(false);
-      expect(canDo('INVITE_MEMBERS')).toBe(false);
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
-      expect(canDo('REMOVE_MEMBER')).toBe(false);
-      expect(canDo('EXPORT_REPORTS')).toBe(false);
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
+      expect(canDo('MEMBER_REMOVE')).toBe(false);
+      expect(canDo('INVENTORY_EXPORT')).toBe(false);
     });
 
     it('Then read actions are still allowed', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_MEMBERS')).toBe(true);
-      expect(canDo('VIEW_PRODUCTS')).toBe(true);
-      expect(canDo('VIEW_SPACES')).toBe(true);
-      expect(canDo('VIEW_REPORTS')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('STORAGE_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
     });
   });
 
   // ─── Individual grants ────────────────────────────────────────────────────
 
-  describe('When a VIEWER has an individual INVITE_MEMBERS grant', () => {
+  describe('When a VIEWER has an individual MEMBER_INVITE grant', () => {
     beforeEach(() => {
       useRBACStore.setState({
         role: 'VIEWER',
         tier: 'STARTER',
         tenantStatus: 'ACTIVE',
-        grants: ['INVITE_MEMBERS'],
+        permissions: ['MEMBER_READ', 'PRODUCT_READ', 'STORAGE_READ', 'REPORT_READ'],
+        grants: ['MEMBER_INVITE'],
+        loaded: true,
       });
     });
 
     it('Then the VIEWER can invite members thanks to the individual grant', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('INVITE_MEMBERS')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
     });
 
     it('Then the VIEWER still cannot perform other write actions', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
-      expect(canDo('REMOVE_MEMBER')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
+      expect(canDo('MEMBER_REMOVE')).toBe(false);
     });
   });
 
@@ -263,13 +371,15 @@ describe('Given the RBAC store manages permissions', () => {
         role: 'VIEWER',
         tier: 'FREE',
         tenantStatus: 'ACTIVE',
-        grants: ['INVITE_MEMBERS'],
+        permissions: ['MEMBER_READ', 'PRODUCT_READ', 'STORAGE_READ', 'REPORT_READ'],
+        grants: ['MEMBER_INVITE'],
+        loaded: true,
       });
     });
 
-    it('Then the FREE tier restriction overrides the individual grant for write actions', () => {
+    it('Then the grant allows the write action (permissions + grants evaluation)', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('INVITE_MEMBERS')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
     });
   });
 
@@ -322,21 +432,21 @@ describe('Given the RBAC store manages permissions', () => {
   describe('When addGrant is called with a new action', () => {
     it('Then the action is added to the grants list', () => {
       const { addGrant } = useRBACStore.getState();
-      addGrant('INVITE_MEMBERS');
-      expect(useRBACStore.getState().grants).toContain('INVITE_MEMBERS');
+      addGrant('MEMBER_INVITE');
+      expect(useRBACStore.getState().grants).toContain('MEMBER_INVITE');
     });
   });
 
   describe('When addGrant is called with an already-granted action', () => {
     beforeEach(() => {
-      useRBACStore.setState({ grants: ['INVITE_MEMBERS'] });
+      useRBACStore.setState({ grants: ['MEMBER_INVITE'] });
     });
 
     it('Then the action is not duplicated in the grants list', () => {
       const { addGrant } = useRBACStore.getState();
-      addGrant('INVITE_MEMBERS');
+      addGrant('MEMBER_INVITE');
       const { grants } = useRBACStore.getState();
-      expect(grants.filter((g: RBACAction) => g === 'INVITE_MEMBERS')).toHaveLength(1);
+      expect(grants.filter((g: RBACAction) => g === 'MEMBER_INVITE')).toHaveLength(1);
     });
   });
 
@@ -344,19 +454,19 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When removeGrant is called', () => {
     beforeEach(() => {
-      useRBACStore.setState({ grants: ['INVITE_MEMBERS', 'EXPORT_REPORTS'] });
+      useRBACStore.setState({ grants: ['MEMBER_INVITE', 'INVENTORY_EXPORT'] });
     });
 
     it('Then the action is removed from the grants list', () => {
       const { removeGrant } = useRBACStore.getState();
-      removeGrant('INVITE_MEMBERS');
-      expect(useRBACStore.getState().grants).not.toContain('INVITE_MEMBERS');
+      removeGrant('MEMBER_INVITE');
+      expect(useRBACStore.getState().grants).not.toContain('MEMBER_INVITE');
     });
 
     it('Then other grants remain intact', () => {
       const { removeGrant } = useRBACStore.getState();
-      removeGrant('INVITE_MEMBERS');
-      expect(useRBACStore.getState().grants).toContain('EXPORT_REPORTS');
+      removeGrant('MEMBER_INVITE');
+      expect(useRBACStore.getState().grants).toContain('INVENTORY_EXPORT');
     });
   });
 
@@ -368,7 +478,9 @@ describe('Given the RBAC store manages permissions', () => {
         role: 'MANAGER',
         tier: 'GROWTH',
         tenantStatus: 'SUSPENDED',
-        grants: ['INVITE_MEMBERS'],
+        permissions: ['MEMBER_READ'],
+        grants: ['MEMBER_INVITE'],
+        loaded: true,
       });
     });
 
@@ -379,7 +491,9 @@ describe('Given the RBAC store manages permissions', () => {
       expect(state.role).toBeNull();
       expect(state.tier).toBeNull();
       expect(state.tenantStatus).toBe('ACTIVE');
+      expect(state.permissions).toEqual([]);
       expect(state.grants).toEqual([]);
+      expect(state.loaded).toBe(false);
     });
   });
 
@@ -387,29 +501,46 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a PARTNER is on the STARTER tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'PARTNER', tier: 'STARTER', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'PARTNER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: [
+          ...READ_PERMISSIONS,
+          'MEMBER_INVITE',
+          'MEMBER_UPDATE_ROLE',
+          'PRODUCT_CREATE',
+          'PRODUCT_UPDATE',
+          'PRODUCT_DELETE',
+          'STORAGE_CREATE',
+          'INVENTORY_EXPORT',
+          'REPORT_ADVANCED',
+        ],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the PARTNER can invite members and change roles', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('INVITE_MEMBERS')).toBe(true);
-      expect(canDo('CHANGE_MEMBER_ROLE')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
+      expect(canDo('MEMBER_UPDATE_ROLE')).toBe(true);
     });
 
     it('Then the PARTNER cannot remove members', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('REMOVE_MEMBER')).toBe(false);
+      expect(canDo('MEMBER_REMOVE')).toBe(false);
     });
 
     it('Then the PARTNER can view org config but not edit it', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_ORG_CONFIG')).toBe(true);
-      expect(canDo('EDIT_ORG_CONFIG')).toBe(false);
+      expect(canDo('TENANT_SETTINGS_READ')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(false);
     });
 
     it('Then the PARTNER can view the audit log', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_AUDIT_LOG')).toBe(true);
+      expect(canDo('REPORT_ADVANCED')).toBe(true);
     });
   });
 
@@ -417,19 +548,124 @@ describe('Given the RBAC store manages permissions', () => {
 
   describe('When a SALES_REP is on the STARTER tier', () => {
     beforeEach(() => {
-      useRBACStore.setState({ role: 'SALES_REP', tier: 'STARTER', tenantStatus: 'ACTIVE', grants: [] });
+      useRBACStore.setState({
+        role: 'SALES_REP',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: ['MEMBER_READ', 'PRODUCT_READ', 'STORAGE_READ', 'REPORT_READ'],
+        grants: [],
+        loaded: true,
+      });
     });
 
     it('Then the SALES_REP can view products and reports', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('VIEW_PRODUCTS')).toBe(true);
-      expect(canDo('VIEW_REPORTS')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
     });
 
     it('Then the SALES_REP cannot create products or export reports', () => {
       const { canDo } = useRBACStore.getState();
-      expect(canDo('CREATE_PRODUCT')).toBe(false);
-      expect(canDo('EXPORT_REPORTS')).toBe(false);
+      expect(canDo('PRODUCT_CREATE')).toBe(false);
+      expect(canDo('INVENTORY_EXPORT')).toBe(false);
+    });
+  });
+
+  // ─── loadPermissions ─────────────────────────────────────────────────────
+
+  describe('When loadPermissions is called and API responds successfully', () => {
+    beforeEach(async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        data: {
+          role: 'MANAGER',
+          tier: 'STARTER',
+          actions: ['PRODUCT_READ', 'PRODUCT_CREATE', 'STORAGE_READ'],
+          grants: ['REPORT_ADVANCED'],
+        },
+      });
+
+      await useRBACStore.getState().loadPermissions();
+    });
+
+    it('Then it sets role, tier, permissions, and grants from the API response', () => {
+      const state = useRBACStore.getState();
+      expect(state.role).toBe('MANAGER');
+      expect(state.tier).toBe('STARTER');
+      expect(state.permissions).toEqual(['PRODUCT_READ', 'PRODUCT_CREATE', 'STORAGE_READ']);
+      expect(state.grants).toEqual(['REPORT_ADVANCED']);
+      expect(state.loaded).toBe(true);
+    });
+
+    it('Then canDo allows permissions from the API', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+      expect(canDo('REPORT_ADVANCED')).toBe(true);
+    });
+
+    it('Then canDo denies actions not in permissions or grants', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+    });
+  });
+
+  describe('When loadPermissions is called and API fails', () => {
+    beforeEach(async () => {
+      vi.mocked(api.get).mockRejectedValue(new Error('Network error'));
+
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'FREE',
+        permissions: ['PRODUCT_READ'],
+        grants: [],
+        loaded: true,
+        tenantStatus: 'ACTIVE',
+      });
+
+      await useRBACStore.getState().loadPermissions();
+    });
+
+    it('Then it keeps existing state (graceful degradation)', () => {
+      const state = useRBACStore.getState();
+      expect(state.role).toBe('OWNER');
+      expect(state.tier).toBe('FREE');
+      expect(state.permissions).toEqual(['PRODUCT_READ']);
+      expect(state.loaded).toBe(true);
+    });
+  });
+
+  // ─── SUSPENDED tenant write action check ─────────────────────────────────
+
+  describe('When tenant is SUSPENDED and user has write permissions', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'STARTER',
+        tenantStatus: 'SUSPENDED',
+        permissions: ['PRODUCT_CREATE', 'PRODUCT_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_DELETE', 'INVENTORY_EXPORT'],
+        grants: [],
+        loaded: true,
+      });
+    });
+
+    it('Then canDo allows read actions', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('PRODUCT_READ')).toBe(true);
+    });
+
+    it('Then canDo blocks STORAGE_UPDATE as a write action', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('STORAGE_UPDATE')).toBe(false);
+    });
+
+    it('Then canDo blocks STORAGE_DELETE as a write action', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('STORAGE_DELETE')).toBe(false);
+    });
+
+    it('Then canDo blocks INVENTORY_EXPORT as a write action', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('INVENTORY_EXPORT')).toBe(false);
     });
   });
 });

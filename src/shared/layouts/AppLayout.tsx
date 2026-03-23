@@ -20,6 +20,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ThemeToggle } from '@/shared/components/ThemeToggle';
 import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
+import { StockaIcon } from '@/shared/components/StockaIcon';
 import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
 
@@ -90,13 +91,11 @@ export function AppLayout() {
         <div className="flex h-16 items-center justify-between border-b border-border px-4 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-8 w-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0 dark:shadow-glow-brand">
-              <span className="material-symbols-outlined text-white leading-none" style={{ fontSize: 18 }}>
-                inventory_2
-              </span>
+              <StockaIcon className="h-[18px] w-[18px] text-white" />
             </div>
             <span
               className={cn(
-                'text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 truncate',
+                'text-lg font-bold tracking-tight text-neutral-900 truncate',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -144,7 +143,7 @@ export function AppLayout() {
             <Warehouse className="h-4 w-4 text-brand flex-shrink-0" />
             <span
               className={cn(
-                'text-neutral-700 dark:text-neutral-300 font-semibold truncate flex-1 text-left',
+                'text-neutral-700 font-semibold truncate flex-1 text-left',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -172,8 +171,8 @@ export function AppLayout() {
                 cn(
                   'flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-neutral-100'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-neutral-100',
+                    ? 'bg-neutral-100 dark:bg-white/5 text-neutral-900'
+                    : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900',
                 )
               }
             >
@@ -197,7 +196,7 @@ export function AppLayout() {
             type="button"
             aria-label={t('sidebar.notifications')}
             title={t('sidebar.notifications')}
-            className="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 transition-colors"
           >
             <Bell className="h-4 w-4" />
           </button>
@@ -227,7 +226,7 @@ export function AppLayout() {
             <button
               type="button"
               aria-label={t('sidebar.notifications')}
-              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
             >
               <Bell className="h-5 w-5" />
             </button>
@@ -241,7 +240,7 @@ export function AppLayout() {
               {userInitials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate leading-tight">
+              <p className="text-sm font-semibold text-neutral-900 truncate leading-tight">
                 {user?.username ?? '—'}
               </p>
               <p className="text-xs text-neutral-500 truncate leading-tight">{user?.email ?? ''}</p>
@@ -249,7 +248,7 @@ export function AppLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
               aria-label={t('sidebar.logout')}
             >
               <LogOut className="h-4 w-4" />
@@ -270,11 +269,9 @@ export function AppLayout() {
         </button>
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 bg-brand rounded-lg flex items-center justify-center dark:shadow-glow-brand">
-            <span className="material-symbols-outlined text-white leading-none" style={{ fontSize: 16 }}>
-              inventory_2
-            </span>
+            <StockaIcon className="h-4 w-4 text-white" />
           </div>
-          <span className="font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Stocka</span>
+          <span className="font-bold tracking-tight text-neutral-900">Stocka</span>
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />

@@ -1,76 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { api } from '@/shared/lib/axios';
 import type { RBACAction, TenantRole, TenantTier, TenantStatus } from '@/features/team/types/team.types';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Permission matrix: which roles have which actions by default
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ROLE_PERMISSIONS: Record<TenantRole, RBACAction[]> = {
-  OWNER: [
-    'VIEW_ORG_CONFIG',
-    'EDIT_ORG_CONFIG',
-    'VIEW_MEMBERS',
-    'INVITE_MEMBERS',
-    'CHANGE_MEMBER_ROLE',
-    'REMOVE_MEMBER',
-    'VIEW_PRODUCTS',
-    'CREATE_PRODUCT',
-    'EDIT_PRODUCT',
-    'DELETE_PRODUCT',
-    'VIEW_SPACES',
-    'CREATE_EDIT_SPACE',
-    'VIEW_REPORTS',
-    'EXPORT_REPORTS',
-    'VIEW_AUDIT_LOG',
-  ],
-  PARTNER: [
-    'VIEW_ORG_CONFIG',
-    'VIEW_MEMBERS',
-    'INVITE_MEMBERS',
-    'CHANGE_MEMBER_ROLE',
-    'VIEW_PRODUCTS',
-    'CREATE_PRODUCT',
-    'EDIT_PRODUCT',
-    'DELETE_PRODUCT',
-    'VIEW_SPACES',
-    'CREATE_EDIT_SPACE',
-    'VIEW_REPORTS',
-    'EXPORT_REPORTS',
-    'VIEW_AUDIT_LOG',
-  ],
-  MANAGER: [
-    'VIEW_ORG_CONFIG',
-    'VIEW_MEMBERS',
-    'INVITE_MEMBERS',
-    'CHANGE_MEMBER_ROLE',
-    'VIEW_PRODUCTS',
-    'CREATE_PRODUCT',
-    'EDIT_PRODUCT',
-    'DELETE_PRODUCT',
-    'VIEW_SPACES',
-    'CREATE_EDIT_SPACE',
-    'VIEW_REPORTS',
-    'EXPORT_REPORTS',
-  ],
-  BUYER: ['VIEW_MEMBERS', 'VIEW_PRODUCTS', 'VIEW_SPACES', 'VIEW_REPORTS'],
-  WAREHOUSE_KEEPER: ['VIEW_MEMBERS', 'VIEW_PRODUCTS', 'EDIT_PRODUCT', 'VIEW_SPACES', 'VIEW_REPORTS', 'EXPORT_REPORTS'],
-  SALES_REP: ['VIEW_MEMBERS', 'VIEW_PRODUCTS', 'VIEW_SPACES', 'VIEW_REPORTS'],
-  VIEWER: ['VIEW_MEMBERS', 'VIEW_PRODUCTS', 'VIEW_SPACES', 'VIEW_REPORTS'],
-};
-
-// Actions that are considered writes — denied for FREE non-OWNER and for SUSPENDED tenants
-const WRITE_ACTIONS: RBACAction[] = [
-  'EDIT_ORG_CONFIG',
-  'INVITE_MEMBERS',
-  'CHANGE_MEMBER_ROLE',
-  'REMOVE_MEMBER',
-  'CREATE_PRODUCT',
-  'EDIT_PRODUCT',
-  'DELETE_PRODUCT',
-  'CREATE_EDIT_SPACE',
-  'EXPORT_REPORTS',
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Store interface
@@ -80,11 +11,17 @@ interface RBACState {
   role: TenantRole | null;
   tier: TenantTier | null;
   tenantStatus: TenantStatus;
+  /** Role-based permissions loaded from API */
+  permissions: RBACAction[];
+  /** Individual additive grants loaded from API */
   grants: RBACAction[];
+  /** Whether permissions have been loaded from API */
+  loaded: boolean;
 }
 
 interface RBACActions {
   canDo: (action: RBACAction) => boolean;
+  loadPermissions: () => Promise<void>;
   setRole: (role: TenantRole | null) => void;
   setTier: (tier: TenantTier | null) => void;
   setTenantStatus: (status: TenantStatus) => void;
@@ -103,7 +40,9 @@ const initialState: RBACState = {
   role: null,
   tier: null,
   tenantStatus: 'ACTIVE',
+  permissions: [],
   grants: [],
+  loaded: false,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,37 +58,49 @@ export const useRBACStore = create<RBACStore>()(
        * Evaluates whether the current user can perform an action.
        *
        * Evaluation order:
-       * 1. SUSPENDED tenant → deny all write actions; allow reads
-       * 2. Check role permission matrix
-       * 3. Check individual grants (additive)
-       * 4. FREE tier + non-OWNER → deny all write actions
+       * 1. No role → deny everything
+       * 2. SUSPENDED tenant → deny all write actions; allow reads
+       * 3. Check permissions from API (role-based)
+       * 4. Check individual grants (additive)
        */
       canDo: (action: RBACAction): boolean => {
-        const { role, tier, tenantStatus, grants } = get();
+        const { role, tenantStatus, permissions, grants } = get();
 
         // No role means user is not initialized — deny everything
         if (!role) return false;
 
         // SUSPENDED tenant: block writes, allow reads
         if (tenantStatus === 'SUSPENDED') {
-          return !WRITE_ACTIONS.includes(action);
+          return permissions.includes(action) && !isWriteAction(action);
         }
 
-        // Check base role permissions
-        const roleAllows = ROLE_PERMISSIONS[role].includes(action);
+        return permissions.includes(action) || grants.includes(action);
+      },
 
-        // Check individual additive grants
-        const grantAllows = grants.includes(action);
+      /**
+       * Load effective permissions from the RBAC API.
+       * GET /api/rbac/my-permissions
+       */
+      loadPermissions: async (): Promise<void> => {
+        try {
+          const response = await api.get('/rbac/my-permissions');
+          const data = response.data as {
+            role: TenantRole;
+            tier: TenantTier;
+            actions: RBACAction[];
+            grants: RBACAction[];
+          };
 
-        const hasPermission = roleAllows || grantAllows;
-        if (!hasPermission) return false;
-
-        // FREE tier: non-OWNER members cannot do write actions
-        if (tier === 'FREE' && role !== 'OWNER' && WRITE_ACTIONS.includes(action)) {
-          return false;
+          set({
+            role: data.role,
+            tier: data.tier,
+            permissions: data.actions,
+            grants: data.grants,
+            loaded: true,
+          });
+        } catch {
+          // Graceful degradation: if API is unavailable, keep existing state
         }
-
-        return true;
       },
 
       setRole: (role: TenantRole | null): void => {
@@ -187,8 +138,32 @@ export const useRBACStore = create<RBACStore>()(
         role: state.role,
         tier: state.tier,
         tenantStatus: state.tenantStatus,
+        permissions: state.permissions,
         grants: state.grants,
+        loaded: state.loaded,
       }),
     },
   ),
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Write actions — derived from SystemAction semantics (CREATE/UPDATE/DELETE)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const WRITE_ACTIONS: RBACAction[] = [
+  'TENANT_SETTINGS_UPDATE',
+  'MEMBER_INVITE',
+  'MEMBER_UPDATE_ROLE',
+  'MEMBER_REMOVE',
+  'PRODUCT_CREATE',
+  'PRODUCT_UPDATE',
+  'PRODUCT_DELETE',
+  'STORAGE_CREATE',
+  'STORAGE_UPDATE',
+  'STORAGE_DELETE',
+  'INVENTORY_EXPORT',
+];
+
+function isWriteAction(action: RBACAction): boolean {
+  return WRITE_ACTIONS.includes(action);
+}

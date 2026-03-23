@@ -81,6 +81,28 @@ function isAuthRoute(url?: string): boolean {
 }
 
 /**
+ * Detects network-level errors (no response received from server).
+ * These are distinct from server errors (4xx/5xx) where a response IS received.
+ */
+function isNetworkError(error: AxiosError): boolean {
+  return !error.response && (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED' || error.message === 'Network Error');
+}
+
+/**
+ * Resolves the most specific error code from an AxiosError.
+ * Priority: backend error code > network error detection > generic fallback.
+ */
+function resolveErrorCode(error: AxiosError<ApiError>): AuthenticationErrorCode {
+  const backendCode = error.response?.data?.error;
+  if (typeof backendCode === 'string') return backendCode as AuthenticationErrorCode;
+
+  if (isNetworkError(error)) return 'NETWORK_ERROR' as AuthenticationErrorCode;
+  if (error.code === 'ECONNABORTED') return 'REQUEST_TIMEOUT' as AuthenticationErrorCode;
+
+  return 'UNKNOWN_ERROR' as AuthenticationErrorCode;
+}
+
+/**
  * Response interceptor
  * - Maneja refresh de tokens automático en 401 (excepto en rutas de authentication)
  * - La cookie refresh_token se envía automáticamente gracias a withCredentials: true
@@ -97,18 +119,16 @@ api.interceptors.response.use(
     // NO hacer refresh automático en rutas de autenticación
     // El 401 en /authentication/sign-in es "credenciales inválidas", no "token expirado"
     if (isAuthRoute(originalRequest?.url)) {
+      const errorCode = resolveErrorCode(error);
       const backendError = (error.response?.data ?? {}) as Partial<ApiError>;
       const apiError: ApiError = {
+        ...backendError,
         statusCode: error.response?.status || 500,
         message:
           typeof backendError.message === 'string'
             ? backendError.message
             : error.message || 'An unexpected error occurred',
-        error:
-          typeof backendError.error === 'string'
-            ? backendError.error
-            : ('UNKNOWN_ERROR' as AuthenticationErrorCode),
-        ...backendError,
+        error: errorCode,
       };
       return Promise.reject(apiError);
     }
@@ -145,18 +165,16 @@ api.interceptors.response.use(
     }
 
     // Transformar error al formato ApiError
+    const errorCode = resolveErrorCode(error);
     const backendError = (error.response?.data ?? {}) as Partial<ApiError>;
     const apiError: ApiError = {
+      ...backendError,
       statusCode: error.response?.status || 500,
       message:
         typeof backendError.message === 'string'
           ? backendError.message
           : error.message || 'An unexpected error occurred',
-      error:
-        typeof backendError.error === 'string'
-          ? backendError.error
-          : ('UNKNOWN_ERROR' as AuthenticationErrorCode),
-      ...backendError,
+      error: errorCode,
     };
 
     return Promise.reject(apiError);

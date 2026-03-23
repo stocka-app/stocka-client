@@ -75,7 +75,7 @@ describe('Given the UpgradeModal component renders based on store state', () => 
       useUpgradeModalStore.setState({
         isOpen: true,
         reason: 'FEATURE_NOT_IN_TIER',
-        feature: 'INVITE_MEMBERS',
+        feature: 'MEMBER_INVITE',
       });
     });
 

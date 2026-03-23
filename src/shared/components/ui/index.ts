@@ -5,6 +5,7 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 export { Checkbox } from './checkbox';
 export { Separator } from './separator';
 export { Skeleton } from './skeleton';
+export { Switch } from './switch';
 export {
   useFormField,
   Form,

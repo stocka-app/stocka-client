@@ -21,9 +21,11 @@
   "digitOf": "Digit {{index}} of {{length}}",
   "errorBoundary": {
     "title": "Something went wrong",
-    "description": "An unexpected error occurred. You can reload the page or return to the home page.",
+    "description": "An unexpected error occurred. You can reload the page or try again.",
     "reload": "Reload page",
-    "goHome": "Go to home"
+    "goHome": "Go to home",
+    "goToLogin": "Go to login",
+    "tryAgain": "Try again"
   },
   "upgradeModal": {
     "title": "Upgrade your plan",

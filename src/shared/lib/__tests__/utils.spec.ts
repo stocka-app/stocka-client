@@ -47,7 +47,7 @@ describe('cn() utility — Tailwind class merging', () => {
     });
 
     it('Then the last background color class wins', () => {
-      expect(cn('bg-white', 'bg-gray-100', 'bg-slate-900')).toBe('bg-slate-900');
+      expect(cn('bg-white', 'bg-neutral-100', 'bg-slate-900')).toBe('bg-slate-900');
     });
   });
 

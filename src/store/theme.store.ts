@@ -5,6 +5,7 @@ type Theme = 'light' | 'dark';
 
 interface ThemeState {
   theme: Theme;
+  isHydrated: boolean;
   setTheme: (theme: Theme) => void;
   toggle: () => void;
 }
@@ -22,6 +23,7 @@ export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
       theme: 'light',
+      isHydrated: false,
       setTheme: (theme) => {
         set({ theme });
         applyTheme(theme);
@@ -34,9 +36,14 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'stocka-theme',
+      partialize: (state) => ({ theme: state.theme }),
       onRehydrateStorage: () => (state) => {
-        if (state?.theme) applyTheme(state.theme);
+        if (state) {
+          applyTheme(state.theme);
+          // Mark hydration complete so ThemeInitializer knows the value is real
+          useThemeStore.setState({ isHydrated: true });
+        }
       },
-    }
-  )
+    },
+  ),
 );

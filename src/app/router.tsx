@@ -2,7 +2,7 @@ import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/components';
 import { AuthenticationLayout, AppLayout } from '@/shared/layouts';
-import { PublicRoute, ProtectedRoute, VerificationRoute } from '@/features/authentication/guards';
+import { PublicRoute, ProtectedRoute, RequiresTenantRoute, VerificationRoute } from '@/features/authentication/guards';
 import { OnboardingGuard } from '@/features/onboarding';
 import { PageLoader } from '@/app/page-loader';
 
@@ -19,6 +19,7 @@ const OrganizationSettingsPage = lazy(
 );
 const TeamSettingsPage = lazy(() => import('@/features/team/pages/TeamSettingsPage'));
 const SpacesPage = lazy(() => import('@/features/spaces/pages/SpacesPage'));
+const PrivacySettingsPage = lazy(() => import('@/features/privacy/pages/PrivacySettingsPage'));
 
 export const router = createBrowserRouter([
   {
@@ -41,16 +42,12 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: (
-          <ErrorBoundary>
-            <Navigate to="/authentication/sign-in" replace />
-          </ErrorBoundary>
-        ),
+        element: <Navigate to="/authentication/sign-in" replace />,
       },
       {
         path: 'sign-in',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <LoginPage />
             </Suspense>
@@ -60,7 +57,7 @@ export const router = createBrowserRouter([
       {
         path: 'sign-up',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <RegisterPage />
             </Suspense>
@@ -70,7 +67,7 @@ export const router = createBrowserRouter([
       {
         path: 'verify-email',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <VerificationRoute>
               <Suspense fallback={<PageLoader />}>
                 <VerifyEmailPage />
@@ -82,7 +79,7 @@ export const router = createBrowserRouter([
       {
         path: 'forgot-password',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <ForgotPasswordPage />
             </Suspense>
@@ -92,7 +89,7 @@ export const router = createBrowserRouter([
       {
         path: 'reset-password',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <ResetPasswordPage />
             </Suspense>
@@ -102,9 +99,6 @@ export const router = createBrowserRouter([
     ],
   },
   // ── OAuth callback — outside PublicRoute to avoid redirect race ──
-  // The popup already has a refresh cookie set by the backend, so PublicRoute
-  // would detect isAuthenticated=true and redirect to /dashboard before
-  // OAuthCallbackPage can broadcast the token and close the popup.
   {
     path: '/authentication/callback',
     element: (
@@ -131,11 +125,14 @@ export const router = createBrowserRouter([
     ),
   },
   // ── Authenticated shell: all post-login routes nested under AppLayout ──
+  // RequiresTenantRoute redirects to /onboarding if tenantId is null in the JWT
   {
     element: (
       <ErrorBoundary>
         <ProtectedRoute>
-          <AppLayout />
+          <RequiresTenantRoute>
+            <AppLayout />
+          </RequiresTenantRoute>
         </ProtectedRoute>
       </ErrorBoundary>
     ),
@@ -143,7 +140,7 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <DashboardPage />
             </Suspense>
@@ -152,16 +149,12 @@ export const router = createBrowserRouter([
       },
       {
         path: '/settings',
-        element: (
-          <ErrorBoundary>
-            <Navigate to="/settings/organization" replace />
-          </ErrorBoundary>
-        ),
+        element: <Navigate to="/settings/organization" replace />,
       },
       {
         path: '/settings/organization',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <OrganizationSettingsPage />
             </Suspense>
@@ -171,7 +164,7 @@ export const router = createBrowserRouter([
       {
         path: '/settings/team',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <TeamSettingsPage />
             </Suspense>
@@ -179,9 +172,19 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/settings/privacy',
+        element: (
+          <ErrorBoundary context="inline">
+            <Suspense fallback={<PageLoader />}>
+              <PrivacySettingsPage />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+      },
+      {
         path: '/warehouse',
         element: (
-          <ErrorBoundary>
+          <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
               <SpacesPage />
             </Suspense>
@@ -195,8 +198,8 @@ export const router = createBrowserRouter([
     element: (
       <ErrorBoundary>
         <div className="flex min-h-screen flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold text-gray-900">404</h1>
-          <p className="mt-2 text-gray-600">Page not found</p>
+          <h1 className="text-4xl font-bold text-neutral-900">404</h1>
+          <p className="mt-2 text-neutral-500">Page not found</p>
           <a href="/authentication/sign-in" className="mt-4 text-primary hover:underline">
             Go to login
           </a>

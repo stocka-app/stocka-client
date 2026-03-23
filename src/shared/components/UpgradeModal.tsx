@@ -32,7 +32,7 @@ export function UpgradeModal(): React.ReactElement | null {
         {/* Header */}
         <h2
           id="upgrade-modal-title"
-          className="mb-2 text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+          className="mb-2 text-lg font-semibold text-neutral-900"
         >
           {t('upgradeModal.title')}
         </h2>

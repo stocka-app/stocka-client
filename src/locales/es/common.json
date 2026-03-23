@@ -21,9 +21,11 @@
   "digitOf": "Dígito {{index}} de {{length}}",
   "errorBoundary": {
     "title": "Algo salió mal",
-    "description": "Ocurrió un error inesperado. Puedes recargar la página o volver al inicio.",
+    "description": "Ocurrió un error inesperado. Puedes recargar la página o intentar de nuevo.",
     "reload": "Recargar página",
-    "goHome": "Ir al inicio"
+    "goHome": "Ir al inicio",
+    "goToLogin": "Ir al login",
+    "tryAgain": "Intentar de nuevo"
   },
   "upgradeModal": {
     "title": "Actualiza tu plan",

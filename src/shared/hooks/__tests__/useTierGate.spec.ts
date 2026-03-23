@@ -38,14 +38,14 @@ describe('Given useTierGate provides upgrade modal controls', () => {
 
     it('Then the store reflects the reason', () => {
       const { result } = renderHook(() => useTierGate());
-      result.current.openUpgradeModal('FEATURE_NOT_IN_TIER', 'INVITE_MEMBERS');
+      result.current.openUpgradeModal('FEATURE_NOT_IN_TIER', 'MEMBER_INVITE');
       expect(useUpgradeModalStore.getState().reason).toBe('FEATURE_NOT_IN_TIER');
     });
 
     it('Then the store reflects the feature', () => {
       const { result } = renderHook(() => useTierGate());
-      result.current.openUpgradeModal('FEATURE_NOT_IN_TIER', 'INVITE_MEMBERS');
-      expect(useUpgradeModalStore.getState().feature).toBe('INVITE_MEMBERS');
+      result.current.openUpgradeModal('FEATURE_NOT_IN_TIER', 'MEMBER_INVITE');
+      expect(useUpgradeModalStore.getState().feature).toBe('MEMBER_INVITE');
     });
   });
 

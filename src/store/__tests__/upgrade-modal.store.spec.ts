@@ -43,7 +43,7 @@ describe('Given the upgrade-modal store manages ephemeral modal state', () => {
 
   describe('When open is called with FEATURE_NOT_IN_TIER reason', () => {
     beforeEach(() => {
-      useUpgradeModalStore.getState().open('FEATURE_NOT_IN_TIER', 'INVITE_MEMBERS');
+      useUpgradeModalStore.getState().open('FEATURE_NOT_IN_TIER', 'MEMBER_INVITE');
     });
 
     it('Then reason is FEATURE_NOT_IN_TIER', () => {

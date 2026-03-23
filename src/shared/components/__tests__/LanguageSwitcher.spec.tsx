@@ -76,8 +76,9 @@ describe('LanguageSwitcher', () => {
       const trigger = screen.getByRole('button');
       await user.click(trigger);
 
-      const englishOption = screen.getByText('English');
-      await user.click(englishOption);
+      const englishOptions = screen.getAllByText('English');
+      // Click the dropdown menu item (last occurrence), not the trigger button
+      await user.click(englishOptions[englishOptions.length - 1]);
 
       expect(mockChangeLanguage).toHaveBeenCalledWith('en');
     });
