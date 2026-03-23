@@ -3,6 +3,30 @@
 All notable changes to this project are documented here.
 
 
+## [0.8.4](https://github.com/stocka-app/stocka-client/compare/v0.8.3...v0.8.4) (2026-03-23)
+
+### 🐛 Bug Fixes
+
+* **auth:** fix OAuth popup flow and rename auth routes ([a0380bf](https://github.com/stocka-app/stocka-client/commit/a0380bf18fef1549c6841297465e8f0df20b342c))
+* **e2e:** update Playwright E2E tests to match current UI and schema architecture ([a55a376](https://github.com/stocka-app/stocka-client/commit/a55a376b5f60daa7e27557d973402b34032ff570))
+* **test:** add initReactI18next mock to i18n test helper ([499b5e1](https://github.com/stocka-app/stocka-client/commit/499b5e15881916f37bfd8ace0e5f154b46c34325))
+
+### 🔧 Refactoring
+
+* **auth:** improve authentication components, guards, and store ([a930731](https://github.com/stocka-app/stocka-client/commit/a9307314f0fb7301d94d34adfdfb0e29cabc2d4d))
+* **onboarding:** enhance onboarding flow, schemas, and store ([522067e](https://github.com/stocka-app/stocka-client/commit/522067e357005236cbf7675ea8e7b3a24ccd3071))
+* **onboarding:** merge step 6 and step 7 into single completion step ([d2c0368](https://github.com/stocka-app/stocka-client/commit/d2c0368992faa50cd3ec834904d07b04a4989efb))
+* **org:** update organization, spaces, and team components ([0e6d5fd](https://github.com/stocka-app/stocka-client/commit/0e6d5fdf92bb0cec82871e4ef9ffc8b05e38720b))
+* **shared:** update shared components, stores, and infrastructure ([cacbdd7](https://github.com/stocka-app/stocka-client/commit/cacbdd785220b41c2ac3dbfe3422dfeb3a18b6ab))
+
+### 📚 Documentation
+
+* rewrite README in English with improved structure and badges ([c69d94c](https://github.com/stocka-app/stocka-client/commit/c69d94c66b6a7b098d4fe604d7566cc9811faf96))
+
+### ✅ Tests
+
+* **onboarding,privacy:** achieve 100% unit test coverage across all features ([346f42f](https://github.com/stocka-app/stocka-client/commit/346f42f1ba28116ca6784bfc1de012c3266fc468))
+
 ## [0.8.3](https://github.com/stocka-app/stocka-client/compare/v0.8.2...v0.8.3) (2026-03-20)
 
 ### 🐛 Bug Fixes
