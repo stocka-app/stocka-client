@@ -26,15 +26,12 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300"
+        >
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline-flex sm:items-center sm:gap-1.5">
-            <currentLanguage.Flag className="h-4 w-auto rounded-[2px]" />
-            {currentLanguage.label}
-          </span>
-          <span className="sm:hidden">
-            <currentLanguage.Flag className="h-4 w-auto rounded-[2px]" />
-          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
