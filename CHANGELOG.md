@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.0](https://github.com/stocka-app/stocka-client/compare/v0.10.0...v0.11.0) (2026-03-24)
+
+### ✨ Features
+
+* **auth:** [Sprint 1] show OAuth avatar and smart initials in sidebar ([38281f8](https://github.com/stocka-app/stocka-client/commit/38281f8683a76e1fa7e938599a608e5d81bd008c))
+
 ## [0.10.0](https://github.com/stocka-app/stocka-client/compare/v0.9.0...v0.10.0) (2026-03-24)
 
 ### ✨ Features
