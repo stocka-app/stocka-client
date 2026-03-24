@@ -22,6 +22,7 @@ vi.mock('@/features/authentication/api/oauth-popup.helper', () => ({
 vi.mock('@/features/authentication/api/authentication.service', () => ({
   authenticationService: {
     getOAuthUrl: vi.fn(),
+    getMe: vi.fn(),
   },
 }));
 
@@ -81,6 +82,19 @@ describe('useOAuthPopup', () => {
     setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
 
     vi.mocked(authenticationService.getOAuthUrl).mockReturnValue(OAUTH_URL);
+    vi.mocked(authenticationService.getMe).mockResolvedValue({
+      data: {
+        id: '00000000-0000-0000-0000-000000000001',
+        email: 'oauth@test.com',
+        username: 'oauth',
+        status: 'email_verified_by_provider',
+        createdAt: new Date().toISOString(),
+        givenName: 'Roberto',
+        familyName: 'Medina',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      },
+      success: true,
+    } as never);
 
     // Reset auth store to clean state
     useAuthenticationStore.setState({
@@ -165,7 +179,7 @@ describe('useOAuthPopup', () => {
         expect(setAccessToken).toHaveBeenCalledWith(FAKE_JWT);
       });
 
-      it('Then it builds the user from the JWT payload without calling getMe', async () => {
+      it('Then it builds the user from the JWT payload and enriches it with social data', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
@@ -180,6 +194,62 @@ describe('useOAuthPopup', () => {
         expect(storeState.user).toBeTruthy();
         expect(storeState.user!.id).toBe('00000000-0000-0000-0000-000000000001');
         expect(storeState.user!.email).toBe('oauth@test.com');
+        expect(storeState.user!.givenName).toBe('Roberto');
+        expect(storeState.user!.familyName).toBe('Medina');
+        expect(storeState.user!.avatarUrl).toBe('https://example.com/avatar.jpg');
+      });
+
+      it('Then it keeps social fields as null when getMe returns null values', async () => {
+        vi.mocked(authenticationService.getMe).mockResolvedValueOnce({
+          data: {
+            id: '00000000-0000-0000-0000-000000000001',
+            email: 'oauth@test.com',
+            username: 'oauth',
+            status: 'email_verified_by_provider',
+            createdAt: new Date().toISOString(),
+            givenName: null,
+            familyName: null,
+            avatarUrl: null,
+          },
+          success: true,
+        } as never);
+
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        const storeState = useAuthenticationStore.getState();
+        expect(storeState.user!.givenName).toBeNull();
+        expect(storeState.user!.familyName).toBeNull();
+        expect(storeState.user!.avatarUrl).toBeNull();
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+      });
+
+      it('Then it calls getMe to enrich social data even when getMe fails', async () => {
+        vi.mocked(authenticationService.getMe).mockRejectedValueOnce(new Error('network error'));
+
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        // Still navigates despite getMe failure
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+        // User is set from JWT (avatarUrl null since getMe failed)
+        const storeState = useAuthenticationStore.getState();
+        expect(storeState.user).toBeTruthy();
+        expect(storeState.user!.avatarUrl).toBeNull();
       });
 
       it('Then it marks the user as authenticated in the store', async () => {

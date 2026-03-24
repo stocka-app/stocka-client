@@ -92,6 +92,8 @@ describe('useAuthentication hook', () => {
           email: 'user@test.com',
           username: 'testuser',
           displayName: null,
+          givenName: null,
+          familyName: null,
           status: 'active',
           createdAt: '2024-01-01T00:00:00.000Z',
         },

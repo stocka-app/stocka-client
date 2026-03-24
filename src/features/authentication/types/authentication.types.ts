@@ -44,6 +44,9 @@ export interface User {
   email: string;
   username: string;
   displayName: string | null; // from JWT — full name from OAuth provider
+  givenName: string | null; // from OAuth provider social profile
+  familyName: string | null; // from OAuth provider social profile
+  avatarUrl: string | null; // from OAuth provider social profile
   status: UserStatus;
   createdAt: string; // ISO 8601
   tenantId: string | null; // from JWT — null = onboarding not completed

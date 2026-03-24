@@ -23,6 +23,7 @@ import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
 import { StockaIcon } from '@/shared/components/StockaIcon';
 import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
+import { AvatarWithFallback, getInitials } from '@/shared/components/AvatarWithFallback';
 
 interface NavItem {
   key: string;
@@ -40,15 +41,6 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'settings', path: '/settings/organization', icon: Settings },
 ];
 
-function getInitials(displayName: string | null | undefined, username: string): string {
-  if (displayName) {
-    const parts = displayName.trim().split(/\s+/).filter(Boolean);
-    if (parts.length >= 4) return (parts[0][0] + parts[2][0]).toUpperCase();
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return username.slice(0, 2).toUpperCase();
-}
 
 export function AppLayout() {
   const { t } = useTranslation('layout');
@@ -63,7 +55,7 @@ export function AppLayout() {
     navigate('/authentication/sign-in');
   }, [logout, navigate]);
 
-  const userInitials = user ? getInitials(user.displayName, user.username) : '?';
+  const userInitials = user ? getInitials(user.givenName, user.familyName, user.displayName, user.username) : '?';
 
   // Sidebar width: mobile=w-64, tablet=w-16, desktop=w-64|w-16
   const sidebarWidthClass = cn('w-64', 'md:w-16', isCollapsed ? 'lg:w-16' : 'lg:w-64');
@@ -217,10 +209,10 @@ export function AppLayout() {
             type="button"
             onClick={handleLogout}
             title={t('sidebar.logout')}
-            className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all"
+            className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all overflow-hidden"
             aria-label={t('sidebar.logout')}
           >
-            {userInitials}
+            <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
           </button>
         </div>
 
@@ -247,8 +239,8 @@ export function AppLayout() {
 
           {/* User row */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0">
-              {userInitials}
+            <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
+              <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-neutral-900 truncate leading-tight">

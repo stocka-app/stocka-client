@@ -48,7 +48,22 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
         // Refresh tenant context from JWT on every silent refresh
         const { tenantId, role, displayName } = extractTenantContext(accessToken);
         const currentUser = useAuthenticationStore.getState().user;
-        const updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName } : null;
+        let updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName } : null;
+
+        // Fetch social name and avatar data from /me endpoint
+        try {
+          const meResponse = await authenticationService.getMe();
+          const socialData = {
+            givenName: meResponse.data.givenName ?? null,
+            familyName: meResponse.data.familyName ?? null,
+            avatarUrl: meResponse.data.avatarUrl ?? null,
+          };
+          if (updatedUser) {
+            updatedUser = { ...updatedUser, ...socialData };
+          }
+        } catch {
+          // Non-critical — social data is optional
+        }
 
         if (emailVerificationRequired) {
           // Sesión válida pero pendiente de verificación de email —

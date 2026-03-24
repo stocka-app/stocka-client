@@ -48,13 +48,16 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
 
       setAccessToken(accessToken);
 
-      // Build user from JWT payload — no extra API call needed
+      // Build user from JWT payload
       const payload = decodeJwtPayload<StockaJwtPayload>(accessToken);
       const user: User = {
         id: payload.sub,
         email: payload.email,
         username: payload.email.split('@')[0],
         displayName: payload.displayName ?? null,
+        givenName: null,
+        familyName: null,
+        avatarUrl: null,
         status: 'active',
         createdAt: new Date().toISOString(),
         tenantId: payload.tenantId ?? null,
@@ -62,6 +65,21 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
       };
 
       handleOAuthCallback({ accessToken, user });
+
+      // Enrich with social name and avatar from /me before navigating
+      try {
+        const meResponse = await authenticationService.getMe();
+        const enriched = {
+          givenName: meResponse.data.givenName ?? null,
+          familyName: meResponse.data.familyName ?? null,
+          avatarUrl: meResponse.data.avatarUrl ?? null,
+        };
+        const current = useAuthenticationStore.getState().user;
+        if (current) useAuthenticationStore.setState({ user: { ...current, ...enriched } });
+      } catch {
+        // Non-critical — avatar and name will load on next silent refresh
+      }
+
       navigate('/dashboard', { replace: true });
     },
     [cleanup, handleOAuthCallback, navigate],
