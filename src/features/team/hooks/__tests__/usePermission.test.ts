@@ -144,4 +144,56 @@ describe('Given the usePermission hook evaluates permissions', () => {
       expect(result.current).toBe(true);
     });
   });
+
+  describe('When the OWNER is in a CANCELLED tenant and checks a read action', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'STARTER',
+        tenantStatus: 'CANCELLED',
+        permissions: [
+          'TENANT_SETTINGS_READ',
+          'MEMBER_READ',
+          'PRODUCT_READ',
+          'STORAGE_READ',
+          'REPORT_READ',
+        ],
+        grants: [],
+        loaded: true,
+      });
+    });
+
+    it('Then the read permission is allowed (CANCELLED is not restricted like SUSPENDED)', async () => {
+      const usePermission = await getHook();
+      const { result } = renderHook(() => usePermission('PRODUCT_READ'));
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('When a WAREHOUSE_KEEPER has an individual PRODUCT_CREATE grant', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'WAREHOUSE_KEEPER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: [
+          'STORAGE_READ',
+          'STORAGE_UPDATE',
+          'PRODUCT_READ',
+          'PRODUCT_UPDATE',
+          'INVENTORY_EXPORT',
+          'REPORT_READ',
+          'TENANT_SETTINGS_READ',
+        ],
+        grants: ['PRODUCT_CREATE'],
+        loaded: true,
+      });
+    });
+
+    it('Then the PRODUCT_CREATE action is allowed due to the individual grant', async () => {
+      const usePermission = await getHook();
+      const { result } = renderHook(() => usePermission('PRODUCT_CREATE'));
+      expect(result.current).toBe(true);
+    });
+  });
 });

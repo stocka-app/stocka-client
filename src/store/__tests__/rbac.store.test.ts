@@ -668,4 +668,159 @@ describe('Given the RBAC store manages permissions', () => {
       expect(canDo('INVENTORY_EXPORT')).toBe(false);
     });
   });
+
+  // ─── OWNER / GROWTH tier ──────────────────────────────────────────────────
+
+  describe('When the OWNER is on the GROWTH tier', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'GROWTH',
+        tenantStatus: 'ACTIVE',
+        permissions: ALL_PERMISSIONS,
+        grants: [],
+        loaded: true,
+      });
+    });
+
+    it('Then the OWNER can perform all actions on GROWTH tier', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
+      expect(canDo('MEMBER_UPDATE_ROLE')).toBe(true);
+      expect(canDo('MEMBER_REMOVE')).toBe(true);
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+      expect(canDo('PRODUCT_UPDATE')).toBe(true);
+      expect(canDo('PRODUCT_DELETE')).toBe(true);
+      expect(canDo('STORAGE_CREATE')).toBe(true);
+      expect(canDo('INVENTORY_EXPORT')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_READ')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('STORAGE_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
+      expect(canDo('REPORT_ADVANCED')).toBe(true);
+    });
+  });
+
+  // ─── OWNER / ENTERPRISE tier ──────────────────────────────────────────────
+
+  describe('When the OWNER is on the ENTERPRISE tier', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'ENTERPRISE',
+        tenantStatus: 'ACTIVE',
+        permissions: ALL_PERMISSIONS,
+        grants: [],
+        loaded: true,
+      });
+    });
+
+    it('Then the OWNER can perform all actions on ENTERPRISE tier', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
+      expect(canDo('MEMBER_UPDATE_ROLE')).toBe(true);
+      expect(canDo('MEMBER_REMOVE')).toBe(true);
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+      expect(canDo('PRODUCT_UPDATE')).toBe(true);
+      expect(canDo('PRODUCT_DELETE')).toBe(true);
+      expect(canDo('STORAGE_CREATE')).toBe(true);
+      expect(canDo('INVENTORY_EXPORT')).toBe(true);
+      expect(canDo('TENANT_SETTINGS_READ')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('STORAGE_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
+      expect(canDo('REPORT_ADVANCED')).toBe(true);
+    });
+  });
+
+  // ─── CANCELLED tenant ─────────────────────────────────────────────────────
+  // canDo only has a special branch for SUSPENDED. CANCELLED falls through to
+  // the default: permissions.includes(action) || grants.includes(action).
+  // This means CANCELLED behaves identically to ACTIVE — writes are not blocked.
+
+  describe('When the tenant status is CANCELLED', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'STARTER',
+        tenantStatus: 'CANCELLED',
+        permissions: ALL_PERMISSIONS,
+        grants: [],
+        loaded: true,
+      });
+    });
+
+    it('Then write actions are still allowed (CANCELLED is not SUSPENDED)', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(true);
+      expect(canDo('MEMBER_INVITE')).toBe(true);
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+      expect(canDo('MEMBER_REMOVE')).toBe(true);
+      expect(canDo('INVENTORY_EXPORT')).toBe(true);
+    });
+
+    it('Then read actions are allowed', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('TENANT_SETTINGS_READ')).toBe(true);
+      expect(canDo('MEMBER_READ')).toBe(true);
+      expect(canDo('PRODUCT_READ')).toBe(true);
+      expect(canDo('STORAGE_READ')).toBe(true);
+      expect(canDo('REPORT_READ')).toBe(true);
+    });
+  });
+
+  // ─── loaded:false — role set but permissions not yet hydrated ─────────────
+
+  describe('When the store has a role but permissions have not loaded yet (loaded:false)', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'OWNER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: [],
+        grants: [],
+        loaded: false,
+      });
+    });
+
+    it('Then canDo returns false for all actions since permissions array is empty', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+      expect(canDo('PRODUCT_READ')).toBe(false);
+      expect(canDo('MEMBER_READ')).toBe(false);
+      expect(canDo('REPORT_ADVANCED')).toBe(false);
+    });
+  });
+
+  // ─── Individual grant with empty permissions ───────────────────────────────
+
+  describe('When the user has no role-based permissions but has an individual grant', () => {
+    beforeEach(() => {
+      useRBACStore.setState({
+        role: 'MANAGER',
+        tier: 'STARTER',
+        tenantStatus: 'ACTIVE',
+        permissions: [],
+        grants: ['PRODUCT_CREATE'],
+        loaded: true,
+      });
+    });
+
+    it('Then the granted action is allowed despite empty permissions list', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('PRODUCT_CREATE')).toBe(true);
+    });
+
+    it('Then other non-granted actions are still denied', () => {
+      const { canDo } = useRBACStore.getState();
+      expect(canDo('PRODUCT_READ')).toBe(false);
+      expect(canDo('MEMBER_INVITE')).toBe(false);
+      expect(canDo('TENANT_SETTINGS_UPDATE')).toBe(false);
+    });
+  });
 });
