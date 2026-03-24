@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useOnboardingStore } from '@/features/onboarding/store/onboarding.store';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
 import { onboardingService } from '@/features/onboarding/api/onboarding.service';
+import { authenticationService } from '@/features/authentication/api/authentication.service';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -16,6 +17,15 @@ vi.mock('@/features/onboarding/api/onboarding.service', () => ({
     completeOnboarding: vi.fn(),
     validateInvitation: vi.fn(),
     acceptInvitation: vi.fn(),
+  },
+}));
+
+vi.mock('@/features/authentication/api/authentication.service', () => ({
+  authenticationService: {
+    refreshSession: vi.fn().mockResolvedValue({
+      data: { accessToken: 'rotated-token' },
+      success: true,
+    }),
   },
 }));
 
@@ -1010,7 +1020,12 @@ describe('useOnboarding', () => {
       beforeEach(() => {
         useOnboardingStore.setState({ invitationCode: 'ABC12345' });
         vi.mocked(onboardingService.acceptInvitation).mockResolvedValue({
-          data: { tenantId: 'tenant-uuid', role: 'EMPLOYEE' },
+          data: {
+            tenantUUID: 'tenant-uuid',
+            tenantName: 'Test Corp',
+            role: 'EMPLOYEE',
+            joinedAt: '2026-01-01T00:00:00.000Z',
+          },
           success: true,
         });
       });
@@ -1063,6 +1078,89 @@ describe('useOnboarding', () => {
 
           expect(result.current.error).toBe('errors.invitationAcceptFailed');
           expect(mockNavigate).not.toHaveBeenCalled();
+        });
+      });
+    });
+  });
+
+  // =========================================================================
+  // acceptInvitation — auth store update
+  // =========================================================================
+
+  describe('acceptInvitation — auth store update', () => {
+    describe('Given the user is authenticated with no tenant and accepts an invitation', () => {
+      beforeEach(() => {
+        useOnboardingStore.setState({ invitationCode: 'INV-001' });
+        useAuthenticationStore.setState({
+          user: {
+            id: 'user-1',
+            email: 'invited@example.com',
+            username: 'invited',
+            status: 'active',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+          },
+          isAuthenticated: true,
+        });
+        vi.mocked(onboardingService.acceptInvitation).mockResolvedValue({
+          data: {
+            tenantUUID: 'tenant-uuid-from-invite',
+            tenantName: 'Tech Corp',
+            role: 'EMPLOYEE',
+            joinedAt: '2026-01-01T00:00:00.000Z',
+          },
+          success: true,
+        });
+      });
+
+      afterEach(() => {
+        useAuthenticationStore.setState({ user: null, isAuthenticated: false });
+      });
+
+      describe('When acceptInvitation succeeds', () => {
+        it('Then the auth store user is updated with the tenantId and role from the invitation', async () => {
+          const useOnboarding = await getHook();
+          const { result } = renderHook(() => useOnboarding());
+
+          await act(async () => {
+            await result.current.acceptInvitation();
+          });
+
+          const updatedUser = useAuthenticationStore.getState().user;
+          expect(updatedUser?.tenantId).toBe('tenant-uuid-from-invite');
+          expect(updatedUser?.role).toBe('EMPLOYEE');
+        });
+
+        it('Then the refresh token is rotated and the new accessToken is stored', async () => {
+          vi.mocked(authenticationService.refreshSession).mockResolvedValueOnce({
+            data: { accessToken: 'new-rotated-token' },
+            success: true,
+          });
+
+          const useOnboarding = await getHook();
+          const { result } = renderHook(() => useOnboarding());
+
+          await act(async () => {
+            await result.current.acceptInvitation();
+          });
+
+          expect(authenticationService.refreshSession).toHaveBeenCalled();
+          expect(useAuthenticationStore.getState().accessToken).toBe('new-rotated-token');
+        });
+
+        it('Then navigation to dashboard still occurs even if token rotation fails', async () => {
+          vi.mocked(authenticationService.refreshSession).mockRejectedValueOnce(new Error('Network'));
+
+          const useOnboarding = await getHook();
+          const { result } = renderHook(() => useOnboarding());
+
+          await act(async () => {
+            await result.current.acceptInvitation();
+          });
+
+          expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+          expect(result.current.error).toBeNull();
         });
       });
     });
@@ -2609,6 +2707,80 @@ describe('Onboarding flow — exhaustive scenarios', () => {
           const updatedUser = useAuthenticationStore.getState().user;
           expect(updatedUser?.tenantId).toBe('tenant-uuid-456');
           expect(updatedUser?.role).toBe('EMPLOYEE');
+        });
+      });
+    });
+  });
+
+  // =========================================================================
+  // completeOnboarding — token rotation
+  // =========================================================================
+
+  describe('completeOnboarding — token rotation', () => {
+    describe('Given the user completes onboarding and the server returns a tenantId', () => {
+      beforeEach(() => {
+        useAuthenticationStore.setState({
+          user: {
+            id: 'user-1',
+            email: 'owner@example.com',
+            username: 'owner',
+            status: 'active',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+          },
+        });
+        vi.mocked(onboardingService.completeOnboarding).mockResolvedValue({
+          data: { path: 'CREATE', tenantId: 'tenant-uuid-rotate', tenantName: 'Mi Tienda', role: 'OWNER' },
+          success: true,
+        });
+      });
+
+      afterEach(() => {
+        useAuthenticationStore.setState({ user: null });
+      });
+
+      describe('When completeOnboarding succeeds', () => {
+        it('Then refreshSession is called to rotate the refresh token cookie', async () => {
+          const useOnboarding = await getHook();
+          const { result } = renderHook(() => useOnboarding());
+
+          await act(async () => {
+            await result.current.completeOnboarding();
+          });
+
+          expect(authenticationService.refreshSession).toHaveBeenCalled();
+        });
+
+        it('Then the new accessToken from rotation is stored in the auth store', async () => {
+          vi.mocked(authenticationService.refreshSession).mockResolvedValueOnce({
+            data: { accessToken: 'rotated-access-token' },
+            success: true,
+          });
+
+          const useOnboarding = await getHook();
+          const { result } = renderHook(() => useOnboarding());
+
+          await act(async () => {
+            await result.current.completeOnboarding();
+          });
+
+          expect(useAuthenticationStore.getState().accessToken).toBe('rotated-access-token');
+        });
+
+        it('Then onboarding still completes if token rotation fails', async () => {
+          vi.mocked(authenticationService.refreshSession).mockRejectedValueOnce(new Error('Network'));
+
+          const useOnboarding = await getHook();
+          const { result } = renderHook(() => useOnboarding());
+
+          await act(async () => {
+            await result.current.completeOnboarding();
+          });
+
+          expect(result.current.completedAt).not.toBeNull();
+          expect(result.current.currentStep).toBe(7);
+          expect(result.current.error).toBeNull();
         });
       });
     });

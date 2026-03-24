@@ -2,7 +2,9 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboardingStore } from '../store/onboarding.store';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
+import { authenticationService } from '@/features/authentication/api/authentication.service';
 import { onboardingService } from '../api/onboarding.service';
+import { setAccessToken } from '@/shared/lib/axios';
 import type {
   OnboardingStep,
   OnboardingConsents,
@@ -282,6 +284,15 @@ export function useOnboarding(): {
         });
       }
 
+      // Rotate the refresh token so the next session gets a JWT with tenantId from DB
+      try {
+        const refreshResponse = await authenticationService.refreshSession();
+        setAccessToken(refreshResponse.data.accessToken);
+        useAuthenticationStore.setState({ accessToken: refreshResponse.data.accessToken });
+      } catch {
+        // Non-critical: auth store already has the correct tenantId from the completeOnboarding response
+      }
+
       setCompletedAt(new Date().toISOString());
       setStep(7);
     } catch (err: unknown) {
@@ -333,8 +344,27 @@ export function useOnboarding(): {
     setLoading(true);
     setError(null);
     try {
-      await onboardingService.acceptInvitation(invitationCode);
+      const response = await onboardingService.acceptInvitation(invitationCode);
+
+      // Update auth store with tenant context so RequiresTenantRoute allows /dashboard
+      const currentUser = useAuthenticationStore.getState().user;
+      if (currentUser) {
+        useAuthenticationStore.setState({
+          user: { ...currentUser, tenantId: response.data.tenantUUID, role: response.data.role },
+        });
+      }
+
       setCompletedAt(new Date().toISOString());
+
+      // Rotate the refresh token so the next session gets a JWT with tenantId from DB
+      try {
+        const refreshResponse = await authenticationService.refreshSession();
+        setAccessToken(refreshResponse.data.accessToken);
+        useAuthenticationStore.setState({ accessToken: refreshResponse.data.accessToken });
+      } catch {
+        // Non-critical: user.tenantId is already set above, navigate will succeed
+      }
+
       navigate('/dashboard');
     } catch {
       setError('errors.invitationAcceptFailed');
