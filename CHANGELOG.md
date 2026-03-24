@@ -3,6 +3,24 @@
 All notable changes to this project are documented here.
 
 
+## [0.9.0](https://github.com/stocka-app/stocka-client/compare/v0.8.4...v0.9.0) (2026-03-24)
+
+### ✨ Features
+
+* **layout:** [Sprint 1] add hasSubNav chevron indicator to sidebar nav items ([0b7b83e](https://github.com/stocka-app/stocka-client/commit/0b7b83eaaeeb502de67eec9575e5b4515d06d0da))
+
+### 🐛 Bug Fixes
+
+* **onboarding:** [Sprint 1] fix token rotation and auth store update after onboarding completion ([8d9e0bf](https://github.com/stocka-app/stocka-client/commit/8d9e0bffcb7e20bc5984bf6668feec384e46fc91))
+
+### 🔧 Refactoring
+
+* **shared:** [Sprint 1] redesign LanguageSwitcher to Globe icon trigger and fix tests ([9f83aa3](https://github.com/stocka-app/stocka-client/commit/9f83aa390c0c6379b563734155acff77f0f26c4c))
+
+### ✅ Tests
+
+* **rbac:** [Sprint 1] extend RBAC store and usePermission coverage ([d3f37da](https://github.com/stocka-app/stocka-client/commit/d3f37da757227f71825c3d851d4ed8ed228a0649))
+
 ## [0.8.4](https://github.com/stocka-app/stocka-client/compare/v0.8.3...v0.8.4) (2026-03-23)
 
 ### 🐛 Bug Fixes
