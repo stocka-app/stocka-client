@@ -46,9 +46,9 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
         setAccessToken(accessToken);
 
         // Refresh tenant context from JWT on every silent refresh
-        const { tenantId, role } = extractTenantContext(accessToken);
+        const { tenantId, role, displayName } = extractTenantContext(accessToken);
         const currentUser = useAuthenticationStore.getState().user;
-        const updatedUser = currentUser ? { ...currentUser, tenantId, role } : null;
+        const updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName } : null;
 
         if (emailVerificationRequired) {
           // Sesión válida pero pendiente de verificación de email —

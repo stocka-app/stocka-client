@@ -40,6 +40,16 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'settings', path: '/settings/organization', icon: Settings },
 ];
 
+function getInitials(displayName: string | null | undefined, username: string): string {
+  if (displayName) {
+    const parts = displayName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 4) return (parts[0][0] + parts[2][0]).toUpperCase();
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return username.slice(0, 2).toUpperCase();
+}
+
 export function AppLayout() {
   const { t } = useTranslation('layout');
   const navigate = useNavigate();
@@ -53,7 +63,7 @@ export function AppLayout() {
     navigate('/authentication/sign-in');
   }, [logout, navigate]);
 
-  const userInitials = user ? user.username.slice(0, 2).toUpperCase() : '?';
+  const userInitials = user ? getInitials(user.displayName, user.username) : '?';
 
   // Sidebar width: mobile=w-64, tablet=w-16, desktop=w-64|w-16
   const sidebarWidthClass = cn('w-64', 'md:w-16', isCollapsed ? 'lg:w-16' : 'lg:w-64');

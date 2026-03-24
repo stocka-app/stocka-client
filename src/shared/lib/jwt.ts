@@ -22,6 +22,7 @@ export interface StockaJwtPayload {
   email: string;
   tenantId: string | null;
   role: string | null;
+  displayName: string | null;
   iat: number;
   exp: number;
 }
@@ -32,14 +33,16 @@ export interface StockaJwtPayload {
 export function extractTenantContext(accessToken: string): {
   tenantId: string | null;
   role: string | null;
+  displayName: string | null;
 } {
   try {
     const payload = decodeJwtPayload<StockaJwtPayload>(accessToken);
     return {
       tenantId: payload.tenantId ?? null,
       role: payload.role ?? null,
+      displayName: payload.displayName ?? null,
     };
   } catch {
-    return { tenantId: null, role: null };
+    return { tenantId: null, role: null, displayName: null };
   }
 }

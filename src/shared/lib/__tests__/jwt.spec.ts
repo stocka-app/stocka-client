@@ -23,6 +23,7 @@ describe('decodeJwtPayload', () => {
         email: 'user@example.com',
         tenantId: 'tenant-123',
         role: 'owner',
+        displayName: 'Roberto Medina',
         iat: 1700000000,
         exp: 1700003600,
       };
@@ -34,6 +35,7 @@ describe('decodeJwtPayload', () => {
       expect(result.email).toBe(payload.email);
       expect(result.tenantId).toBe(payload.tenantId);
       expect(result.role).toBe(payload.role);
+      expect(result.displayName).toBe(payload.displayName);
     });
   });
 
@@ -44,6 +46,7 @@ describe('decodeJwtPayload', () => {
         email: 'test@test.com',
         tenantId: null,
         role: null,
+        displayName: null,
         iat: 1700000000,
         exp: 1700003600,
       });
@@ -51,6 +54,7 @@ describe('decodeJwtPayload', () => {
       const result = decodeJwtPayload<StockaJwtPayload>(token);
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
+      expect(result.displayName).toBeNull();
     });
   });
 });
@@ -60,13 +64,14 @@ describe('decodeJwtPayload', () => {
 // ---------------------------------------------------------------------------
 
 describe('extractTenantContext', () => {
-  describe('Given a valid JWT with tenantId and role', () => {
-    it('Then it returns the tenantId and role', () => {
+  describe('Given a valid JWT with tenantId, role and displayName', () => {
+    it('Then it returns the tenantId, role and displayName', () => {
       const token = buildFakeJwt({
         sub: 'user-1',
         email: 'test@test.com',
         tenantId: 'tenant-abc',
         role: 'admin',
+        displayName: 'Roberto Medina',
         iat: 1700000000,
         exp: 1700003600,
       });
@@ -75,11 +80,12 @@ describe('extractTenantContext', () => {
 
       expect(result.tenantId).toBe('tenant-abc');
       expect(result.role).toBe('admin');
+      expect(result.displayName).toBe('Roberto Medina');
     });
   });
 
-  describe('Given a valid JWT with missing tenantId and role', () => {
-    it('Then it returns null for both fields', () => {
+  describe('Given a valid JWT with missing tenantId, role and displayName', () => {
+    it('Then it returns null for all fields', () => {
       const token = buildFakeJwt({
         sub: 'user-1',
         email: 'test@test.com',
@@ -91,24 +97,27 @@ describe('extractTenantContext', () => {
 
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
+      expect(result.displayName).toBeNull();
     });
   });
 
   describe('Given a malformed token that causes a parsing error', () => {
-    it('Then it catches the error and returns null for both fields', () => {
+    it('Then it catches the error and returns null for all fields', () => {
       const result = extractTenantContext('not.a.valid.jwt');
 
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
+      expect(result.displayName).toBeNull();
     });
   });
 
   describe('Given a completely invalid string (not even dot-separated)', () => {
-    it('Then it catches the error and returns null for both fields', () => {
+    it('Then it catches the error and returns null for all fields', () => {
       const result = extractTenantContext('garbage');
 
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
+      expect(result.displayName).toBeNull();
     });
   });
 });

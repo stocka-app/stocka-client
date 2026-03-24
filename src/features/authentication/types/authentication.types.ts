@@ -43,6 +43,7 @@ export interface User {
   id: string; // UUID
   email: string;
   username: string;
+  displayName: string | null; // from JWT — full name from OAuth provider
   status: UserStatus;
   createdAt: string; // ISO 8601
   tenantId: string | null; // from JWT — null = onboarding not completed

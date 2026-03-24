@@ -146,6 +146,7 @@ function OAuthCallbackPage() {
             id: payload.sub,
             email: payload.email,
             username: payload.email.split('@')[0],
+            displayName: payload.displayName ?? null,
             status: 'active',
             createdAt: new Date().toISOString(),
             tenantId: payload.tenantId ?? null,

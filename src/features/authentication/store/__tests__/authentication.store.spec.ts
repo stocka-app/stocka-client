@@ -23,7 +23,7 @@ vi.mock('@/shared/lib/axios', () => ({
 }));
 
 vi.mock('@/shared/lib/jwt', () => ({
-  extractTenantContext: vi.fn(() => ({ tenantId: null, role: null })),
+  extractTenantContext: vi.fn(() => ({ tenantId: null, role: null, displayName: null })),
 }));
 
 // ---------------------------------------------------------------------------
@@ -609,6 +609,7 @@ describe('useAuthenticationStore', () => {
             id: '00000000-0000-0000-0000-000000000001',
             email: 'user@test.com',
             username: 'testuser',
+            displayName: null,
             status: 'pending_verification',
             createdAt: '2024-01-01T00:00:00.000Z',
           },
@@ -862,6 +863,7 @@ describe('useAuthenticationStore', () => {
             id: '00000000-0000-0000-0000-000000000001',
             email: 'user@test.com',
             username: 'testuser',
+            displayName: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
           },
@@ -902,6 +904,7 @@ describe('useAuthenticationStore', () => {
             id: '00000000-0000-0000-0000-000000000001',
             email: 'user@test.com',
             username: 'testuser',
+            displayName: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
           },
@@ -938,6 +941,7 @@ describe('useAuthenticationStore', () => {
             id: '00000000-0000-0000-0000-000000000002',
             email: 'oauth@test.com',
             username: 'oauthuser',
+            displayName: null,
             status: 'email_verified_by_provider' as const,
             createdAt: '2024-01-01T00:00:00.000Z',
           };
@@ -949,8 +953,8 @@ describe('useAuthenticationStore', () => {
             });
           });
 
-          // handleOAuthCallback enriches user with tenantId/role from JWT
-          expect(result.current.user).toEqual({ ...oauthUser, tenantId: null, role: null });
+          // handleOAuthCallback enriches user with tenantId/role/displayName from JWT
+          expect(result.current.user).toEqual({ ...oauthUser, tenantId: null, role: null, displayName: null });
           expect(result.current.isAuthenticated).toBe(true);
           expect(result.current.error).toBeNull();
           expect(result.current.blockInfo).toBeNull();
@@ -966,6 +970,7 @@ describe('useAuthenticationStore', () => {
                 id: '00000000-0000-0000-0000-000000000002',
                 email: 'oauth@test.com',
                 username: 'oauthuser',
+                displayName: null,
                 status: 'email_verified_by_provider',
                 createdAt: '2024-01-01T00:00:00.000Z',
                 tenantId: null,
@@ -992,6 +997,7 @@ describe('useAuthenticationStore', () => {
           id: '00000000-0000-0000-0000-000000000003',
           email: 'new@test.com',
           username: 'newuser',
+          displayName: null,
           status: 'active' as const,
           createdAt: '2024-01-01T00:00:00.000Z',
         };
@@ -1011,6 +1017,7 @@ describe('useAuthenticationStore', () => {
             id: '00000000-0000-0000-0000-000000000001',
             email: 'user@test.com',
             username: 'testuser',
+            displayName: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
           },
@@ -1140,6 +1147,7 @@ describe('useAuthenticationStore', () => {
             id: '00000000-0000-0000-0000-000000000001',
             email: 'user@test.com',
             username: 'testuser',
+            displayName: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
           },

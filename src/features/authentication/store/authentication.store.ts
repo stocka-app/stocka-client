@@ -71,12 +71,13 @@ export const useAuthenticationStore = create<AuthStore>()(
           } = response.data;
 
           // Extract tenant context from JWT
-          const { tenantId, role } = extractTenantContext(accessToken);
+          const { tenantId, role, displayName } = extractTenantContext(accessToken);
 
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
             username: backendUser.username,
+            displayName,
             status: emailVerificationRequired ? 'pending_verification' : 'active',
             createdAt: backendUser.createdAt,
             tenantId,
@@ -179,12 +180,13 @@ export const useAuthenticationStore = create<AuthStore>()(
           const { user: backendUser, accessToken, emailSent } = response.data;
 
           // Extract tenant context from JWT (will be null for new registrations)
-          const { tenantId, role } = extractTenantContext(accessToken);
+          const { tenantId, role, displayName } = extractTenantContext(accessToken);
 
           const user: User = {
             id: backendUser.id,
             email: backendUser.email,
             username: backendUser.username,
+            displayName,
             status: 'pending_verification',
             createdAt: backendUser.createdAt,
             tenantId,
@@ -340,8 +342,8 @@ export const useAuthenticationStore = create<AuthStore>()(
         setAccessToken(tokens.accessToken);
 
         // Enrich user with tenant context from JWT
-        const { tenantId, role } = extractTenantContext(tokens.accessToken);
-        const enrichedUser: User = { ...tokens.user, tenantId, role };
+        const { tenantId, role, displayName } = extractTenantContext(tokens.accessToken);
+        const enrichedUser: User = { ...tokens.user, tenantId, role, displayName };
 
         set({
           user: enrichedUser,
