@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.10.0](https://github.com/stocka-app/stocka-client/compare/v0.9.0...v0.10.0) (2026-03-24)
+
+### ✨ Features
+
+* **auth:** [Sprint 1] add displayName to JWT payload and user avatar initials ([c6e9272](https://github.com/stocka-app/stocka-client/commit/c6e927254db8cf619772191fcbb13c54569a3e5b))
+
 ## [0.9.0](https://github.com/stocka-app/stocka-client/compare/v0.8.4...v0.9.0) (2026-03-24)
 
 ### ✨ Features
