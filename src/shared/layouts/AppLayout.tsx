@@ -28,13 +28,14 @@ interface NavItem {
   key: string;
   path: string;
   icon: LucideIcon;
+  hasSubNav?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { key: 'categories', path: '/categories', icon: Tag },
-  { key: 'warehouse', path: '/warehouse', icon: Warehouse },
-  { key: 'products', path: '/products', icon: Package },
+  { key: 'categories', path: '/categories', icon: Tag, hasSubNav: true },
+  { key: 'warehouse', path: '/warehouse', icon: Warehouse, hasSubNav: true },
+  { key: 'products', path: '/products', icon: Package, hasSubNav: true },
   { key: 'suppliers', path: '/suppliers', icon: Truck },
   { key: 'settings', path: '/settings/organization', icon: Settings },
 ];
@@ -113,17 +114,6 @@ export function AppLayout() {
             <X className="h-4 w-4" />
           </button>
 
-          {/* Desktop: collapse toggle */}
-          <button
-            className={cn(
-              'hidden lg:flex flex-shrink-0 h-7 w-7 items-center justify-center rounded-md',
-              'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors',
-            )}
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-          >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </button>
         </div>
 
         {/* Warehouse / Business selector */}
@@ -162,7 +152,7 @@ export function AppLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-3" aria-label={t('sidebar.nav')}>
-          {NAV_ITEMS.map(({ key, path, icon: Icon }) => (
+          {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
               key={key}
               to={path}
@@ -170,16 +160,27 @@ export function AppLayout() {
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
+                  'md:justify-center md:gap-0 md:px-0',
+                  !isCollapsed ? 'lg:justify-start lg:gap-4 lg:px-4' : 'lg:justify-center lg:gap-0 lg:px-0',
                   isActive
-                    ? 'bg-neutral-100 dark:bg-white/5 text-neutral-900'
-                    : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900',
+                    ? 'bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-neutral-100'
+                    : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-neutral-100',
                 )
               }
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
-              <span className={cn('truncate', 'md:hidden', !isCollapsed && 'lg:inline')}>
+              <span className={cn('flex-1 truncate', 'md:hidden', !isCollapsed && 'lg:inline')}>
                 {t(`nav.${key}`)}
               </span>
+              {hasSubNav && (
+                <ChevronRight
+                  className={cn(
+                    'h-3.5 w-3.5 flex-shrink-0 text-neutral-400',
+                    'md:hidden',
+                    !isCollapsed && 'lg:block',
+                  )}
+                />
+              )}
             </NavLink>
           ))}
         </nav>
@@ -243,7 +244,11 @@ export function AppLayout() {
               <p className="text-sm font-semibold text-neutral-900 truncate leading-tight">
                 {user?.username ?? '—'}
               </p>
-              <p className="text-xs text-neutral-500 truncate leading-tight">{user?.email ?? ''}</p>
+              <p className="text-xs text-neutral-500 truncate leading-tight">
+                {user?.role
+                  ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
+                  : 'Member'}
+              </p>
             </div>
             <button
               type="button"
@@ -255,6 +260,23 @@ export function AppLayout() {
             </button>
           </div>
         </div>
+        {/* ── Desktop: collapse toggle — floating on sidebar right edge ── */}
+        <button
+          className={cn(
+            'absolute top-[96px] right-[-12px] hidden lg:flex',
+            'h-6 w-6 items-center justify-center rounded-full',
+            'bg-white dark:bg-neutral-800 border border-border shadow-sm',
+            'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors',
+          )}
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-3 w-3" />
+          ) : (
+            <ChevronLeft className="h-3 w-3" />
+          )}
+        </button>
       </aside>
 
       {/* ── Mobile top bar (< 768px) ── */}
