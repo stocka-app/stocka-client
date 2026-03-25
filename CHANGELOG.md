@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.2](https://github.com/stocka-app/stocka-client/compare/v0.11.1...v0.11.2) (2026-03-25)
+
+### 🐛 Bug Fixes
+
+* **ui:** fix avatar 429 error, ThemeToggle FOUT, and silent getMe failure ([cd22494](https://github.com/stocka-app/stocka-client/commit/cd224944cf4501b5c5e9392fb0eaba79c26ca0db))
+
 ## [0.11.1](https://github.com/stocka-app/stocka-client/compare/v0.11.0...v0.11.1) (2026-03-25)
 
 ### 🎨 Styles
