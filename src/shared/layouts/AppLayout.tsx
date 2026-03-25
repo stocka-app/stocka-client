@@ -98,7 +98,7 @@ export function AppLayout() {
             </div>
             <span
               className={cn(
-                'text-lg font-bold tracking-tight text-neutral-900 truncate',
+                'text-lg font-bold tracking-tight text-neutral-900 dark:text-white truncate',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -126,8 +126,8 @@ export function AppLayout() {
           </p>
           <button
             className={cn(
-              'w-full flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 text-sm',
-              'hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors',
+              'w-full flex items-center gap-3 rounded-xl border border-border dark:border-white/[0.08] px-3 py-2.5 text-sm',
+              'hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors',
             )}
             aria-label={t('sidebar.myBusiness')}
             type="button"
@@ -135,7 +135,7 @@ export function AppLayout() {
             <Warehouse className="h-4 w-4 text-brand flex-shrink-0" />
             <span
               className={cn(
-                'text-neutral-700 font-semibold truncate flex-1 text-left',
+                'text-neutral-700 dark:text-neutral-200 font-semibold truncate flex-1 text-left',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -165,8 +165,8 @@ export function AppLayout() {
                   'md:justify-center md:gap-0 md:px-0',
                   !isCollapsed ? 'lg:justify-start lg:gap-4 lg:px-4' : 'lg:justify-center lg:gap-0 lg:px-0',
                   isActive
-                    ? 'bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-neutral-100'
-                    : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-neutral-100',
+                    ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
                 )
               }
             >
@@ -243,10 +243,10 @@ export function AppLayout() {
               <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-neutral-900 truncate leading-tight">
+              <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate leading-tight">
                 {user?.username ?? '—'}
               </p>
-              <p className="text-xs text-neutral-500 truncate leading-tight">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate leading-tight">
                 {user?.role
                   ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
                   : 'Member'}
@@ -267,7 +267,7 @@ export function AppLayout() {
           className={cn(
             'absolute top-[96px] right-[-12px] hidden lg:flex',
             'h-6 w-6 items-center justify-center rounded-full',
-            'bg-white dark:bg-neutral-800 border border-border shadow-sm',
+            'bg-white dark:bg-[#0d1526] border border-border dark:border-white/[0.12] shadow-sm',
             'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors',
           )}
           onClick={() => setIsCollapsed((prev) => !prev)}
