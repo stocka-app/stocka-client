@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.1](https://github.com/stocka-app/stocka-client/compare/v0.11.0...v0.11.1) (2026-03-25)
+
+### 🎨 Styles
+
+* update dark mode styles for improved contrast and readability ([bec2039](https://github.com/stocka-app/stocka-client/commit/bec203945856b945d6c86203937cda9eb8701809))
+
 ## [0.11.0](https://github.com/stocka-app/stocka-client/compare/v0.10.0...v0.11.0) (2026-03-24)
 
 ### ✨ Features
