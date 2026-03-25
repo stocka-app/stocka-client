@@ -34,6 +34,7 @@ export function AvatarWithFallback({
       <img
         src={avatarUrl}
         alt={initials}
+        referrerPolicy="no-referrer"
         className={cn('rounded-full object-cover', className)}
         onError={() => setImgError(true)}
       />

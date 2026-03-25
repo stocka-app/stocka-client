@@ -1,3 +1,4 @@
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/shared/hooks/useTheme';
 
 export function ThemeToggle() {
@@ -15,9 +16,7 @@ export function ThemeToggle() {
         transition-colors duration-200
       "
     >
-      <span className="material-symbols-outlined text-[20px]">
-        {isDark ? 'light_mode' : 'dark_mode'}
-      </span>
+      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   );
 }

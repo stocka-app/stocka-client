@@ -61,8 +61,9 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
           if (updatedUser) {
             updatedUser = { ...updatedUser, ...socialData };
           }
-        } catch {
-          // Non-critical — social data is optional
+        } catch (err) {
+          // Non-critical — social data is optional, but log to aid debugging
+          console.error('[Stocka] getMe() failed during silent refresh:', err);
         }
 
         if (emailVerificationRequired) {
