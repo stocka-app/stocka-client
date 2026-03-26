@@ -128,7 +128,7 @@ export default function SpacesPage(): React.ReactElement {
       )}
 
       {/* Tabs */}
-      <div className="mb-4 flex gap-1 border-b border-neutral-200 dark:border-neutral-800">
+      <div className="mb-4 flex gap-1 border-b border-border">
         {(['active', 'archived'] as const).map((tab) => (
           <button
             key={tab}

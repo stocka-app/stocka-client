@@ -39,7 +39,7 @@ export function DangerZoneSection({ businessName, members }: DangerZoneSectionPr
         <button
           type="button"
           onClick={() => setIsTransferOpen(true)}
-          className="rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-100 transition-colors"
         >
           {t('dangerZone.transferOwnership.triggerButton')}
         </button>

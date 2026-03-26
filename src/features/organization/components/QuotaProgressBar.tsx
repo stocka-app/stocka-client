@@ -32,7 +32,7 @@ export function QuotaProgressBar({ label, used, max }: QuotaProgressBarProps): R
 
       {!isUnlimited && (
         <div
-          className="h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden"
+          className="h-2 w-full rounded-full bg-neutral-200 overflow-hidden"
           role="progressbar"
           aria-valuenow={percentage}
           aria-valuemin={0}

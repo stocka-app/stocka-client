@@ -100,16 +100,16 @@
   --color-authentication-input-border:    #334155;
 
   /* Surfaces (6-layer hierarchy — DS-003) */
-  --color-surface-page:     #0f172a;
-  --color-surface-card:     #1e293b;
+  --color-surface-page:     #0b1221;
+  --color-surface-card:     #182437;
   --color-surface-sidebar:  #0d1526;
-  --color-surface-header:   #1e293b;
-  --color-surface-raised:   #334155;
-  --color-surface-overlay:  #475569;
+  --color-surface-header:   #182437;
+  --color-surface-raised:   #1e2d42;
+  --color-surface-overlay:  #253a56;
 
   /* Borders */
-  --color-border:        #1e2d45;
-  --color-border-strong: #334155;
+  --color-border:        #273d5c;
+  --color-border-strong: #3a5575;
 
   /* Neutral scale (inverted) */
   --color-neutral-0:    #020617;
@@ -140,8 +140,8 @@
   --color-status-out-of-stock:  #f87171;
 
   /* Shadows */
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-dropdown: 0 4px 6px -1px rgba(0,0,0,0.5), 0 2px 4px -1px rgba(0,0,0,0.4);
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-dropdown: 0 4px 6px -1px rgba(0,0,0,0.6), 0 2px 4px -1px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
 
   /* Glow effects (dark-only) */
   --glow-brand:   0 0 15px rgba(20,184,166,0.4);

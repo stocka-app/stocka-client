@@ -52,7 +52,7 @@ export default function OrganizationSettingsPage(): React.ReactNode {
       )}
 
       {/* Tabs */}
-      <div className="border-b border-neutral-200 dark:border-neutral-800">
+      <div className="border-b border-border">
         <nav className="-mb-px flex gap-0" aria-label="Organization settings tabs">
           {tabs.map(({ key, label, onClick }) => (
             <button

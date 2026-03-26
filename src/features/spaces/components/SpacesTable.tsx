@@ -31,9 +31,9 @@ export function SpacesTable({
   const emptyKey = showArchived ? 'table.emptyArchived' : 'table.empty';
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
-      <table className="min-w-full divide-y divide-neutral-200 dark:divide-neutral-800 text-sm">
-        <thead className="bg-neutral-50 dark:bg-neutral-900">
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="min-w-full divide-y divide-border text-sm">
+        <thead className="bg-neutral-50 dark:bg-surface-card">
           <tr>
             <th className="px-4 py-3 text-left font-medium text-neutral-600">
               {t('table.name')}
@@ -49,7 +49,7 @@ export function SpacesTable({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800 bg-background">
+        <tbody className="divide-y divide-border bg-background">
           {spaces.length === 0 ? (
             <tr>
               <td
@@ -63,7 +63,7 @@ export function SpacesTable({
             spaces.map((space) => (
               <tr
                 key={space.id}
-                className="hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-100 transition-colors"
               >
                 <td className="px-4 py-3 font-medium text-neutral-900">
                   {space.name}

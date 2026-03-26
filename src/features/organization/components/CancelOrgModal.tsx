@@ -29,7 +29,7 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
       aria-labelledby="cancel-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
     >
-      <div className="w-full max-w-md rounded-xl bg-white dark:bg-neutral-900 shadow-xl p-6 space-y-5">
+      <div className="w-full max-w-md rounded-xl bg-surface-card shadow-xl p-6 space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2
@@ -42,7 +42,7 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
             type="button"
             onClick={onClose}
             aria-label={t('dangerZone.cancelOrg.cancelButton')}
-            className="h-7 w-7 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="h-7 w-7 flex items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-100 transition-colors"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -75,9 +75,9 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
             placeholder={t('dangerZone.cancelOrg.confirmPlaceholder')}
             className={cn(
               'w-full rounded-lg border px-3 py-2 text-sm',
-              'text-neutral-900 bg-white dark:bg-neutral-900',
+              'text-neutral-900 bg-background',
               'focus:outline-none focus:ring-2 focus:ring-red-400/50',
-              'border-neutral-300 dark:border-neutral-700',
+              'border-border',
             )}
             aria-describedby="cancel-match-hint"
           />
@@ -97,7 +97,7 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+            className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-100 disabled:opacity-50 transition-colors"
           >
             {t('dangerZone.cancelOrg.cancelButton')}
           </button>

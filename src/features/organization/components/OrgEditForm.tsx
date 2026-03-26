@@ -86,11 +86,11 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
             placeholder={t('profile.fields.namePlaceholder')}
             className={cn(
               'w-full rounded-lg border px-3 py-2 text-sm pr-9',
-              'text-neutral-900 bg-white dark:bg-neutral-900',
+              'text-neutral-900 bg-background',
               'focus:outline-none focus:ring-2 focus:ring-brand/50',
               errors.name
                 ? 'border-red-400 dark:border-red-600'
-                : 'border-neutral-300 dark:border-neutral-700',
+                : 'border-border',
             )}
             {...register('name')}
             aria-describedby={errors.name ? 'org-name-error' : undefined}
@@ -132,11 +132,11 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           id="org-business-type"
           className={cn(
             'w-full rounded-lg border px-3 py-2 text-sm',
-            'text-neutral-900 bg-white dark:bg-neutral-900',
+            'text-neutral-900 bg-background',
             'focus:outline-none focus:ring-2 focus:ring-brand/50',
             errors.businessType
               ? 'border-red-400 dark:border-red-600'
-              : 'border-neutral-300 dark:border-neutral-700',
+              : 'border-border',
           )}
           {...register('businessType')}
         >
@@ -169,9 +169,9 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           maxLength={20}
           className={cn(
             'w-full rounded-lg border px-3 py-2 text-sm',
-            'text-neutral-900 bg-white dark:bg-neutral-900',
+            'text-neutral-900 bg-background',
             'focus:outline-none focus:ring-2 focus:ring-brand/50',
-            'border-neutral-300 dark:border-neutral-700',
+            'border-border',
           )}
           {...register('rfc')}
         />
@@ -194,7 +194,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           <img
             src={profile.logoUrl}
             alt={t('profile.fields.logoPreviewAlt')}
-            className="mb-2 h-12 w-12 rounded-lg object-cover border border-neutral-200 dark:border-neutral-700"
+            className="mb-2 h-12 w-12 rounded-lg object-cover border border-border"
           />
         )}
         <input
@@ -220,7 +220,7 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-60 transition-colors"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-100 disabled:opacity-60 transition-colors"
         >
           {t('profile.cancelButton')}
         </button>

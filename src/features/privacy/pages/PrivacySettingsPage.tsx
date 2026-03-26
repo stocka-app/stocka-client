@@ -76,7 +76,7 @@ function ConsentToggleRow({ icon: Icon, label, description, checked, disabled, o
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex items-start gap-3 min-w-0">
-        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
           <Icon className="h-4 w-4 text-neutral-600" />
         </div>
         <div className="min-w-0">
@@ -122,7 +122,7 @@ function LegalDocRow({ icon: Icon, label, acceptedOn, acceptedOnTemplate, viewLa
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex items-start gap-3 min-w-0">
-        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
           <Icon className="h-4 w-4 text-neutral-600" />
         </div>
         <div className="min-w-0">
@@ -234,7 +234,7 @@ export default function PrivacySettingsPage(): React.ReactNode {
                 onToggle={toggleMarketing}
               />
 
-              <div className="border-t border-neutral-200 dark:border-neutral-800" />
+              <div className="border-t border-border" />
 
               <ConsentToggleRow
                 icon={BarChart3}
@@ -264,7 +264,7 @@ export default function PrivacySettingsPage(): React.ReactNode {
                 href="/legal/terms"
               />
 
-              <div className="border-t border-neutral-200 dark:border-neutral-800" />
+              <div className="border-t border-border" />
 
               <LegalDocRow
                 icon={Shield}

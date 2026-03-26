@@ -38,7 +38,7 @@ export function SpaceLimitsSection({ spaces }: SpaceLimitsSectionProps): React.R
   const limits = SPACE_TIER_LIMITS[effectiveTier];
 
   return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-surface-page p-4">
+    <div className="rounded-lg border border-border bg-surface-card p-4">
       <h3 className="mb-3 text-sm font-semibold text-neutral-700">
         {t('limits.title')}
       </h3>
@@ -88,7 +88,7 @@ export function SpaceLimitsSection({ spaces }: SpaceLimitsSectionProps): React.R
                     </span>
                   </div>
                 ) : (
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
                     <div
                       className={cn(
                         'h-full rounded-full transition-all',

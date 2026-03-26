@@ -16,7 +16,7 @@ const STATUS_STYLES = {
 };
 
 const TIER_STYLES: Record<string, string> = {
-  FREE: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800',
+  FREE: 'bg-neutral-100 text-neutral-700',
   STARTER: 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-300',
   GROWTH: 'bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-300',
   ENTERPRISE: 'bg-brand/10 text-brand dark:bg-brand/20',
@@ -37,7 +37,7 @@ export function OrgProfileCard({ profile, onEdit }: OrgProfileCardProps): React.
             <img
               src={profile.logoUrl}
               alt={t('profile.fields.logoPreviewAlt')}
-              className="h-16 w-16 rounded-xl object-cover border border-neutral-200 dark:border-neutral-700"
+              className="h-16 w-16 rounded-xl object-cover border border-border"
             />
           ) : (
             <div className="h-16 w-16 rounded-xl bg-brand/10 flex items-center justify-center border border-brand/20">

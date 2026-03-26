@@ -43,9 +43,9 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+      <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
+          <thead className="bg-neutral-50 dark:bg-surface-card border-b border-border">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 {t('audit.columns.datetime')}
@@ -61,11 +61,11 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+          <tbody className="divide-y divide-border">
             {visibleEntries.map((entry) => (
               <tr
                 key={entry.id}
-                className="bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+                className="bg-background hover:bg-neutral-50 dark:hover:bg-neutral-100 transition-colors"
               >
                 <td className="px-4 py-3 text-neutral-600 whitespace-nowrap">
                   {new Date(entry.timestamp).toLocaleString()}
@@ -90,7 +90,7 @@ export function AuditLogTable({ entries, isLoading, error }: AuditLogTableProps)
           <button
             type="button"
             onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-            className="rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-100 transition-colors"
           >
             {t('audit.loadMore')}
           </button>
