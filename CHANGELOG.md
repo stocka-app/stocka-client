@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.5](https://github.com/stocka-app/stocka-client/compare/v0.11.4...v0.11.5) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **dashboard:** replace Card wrapper with flat divider layout pattern ([d187410](https://github.com/stocka-app/stocka-client/commit/d1874100da1db31629644d6c0eb964380c0bbccc))
+
 ## [0.11.4](https://github.com/stocka-app/stocka-client/compare/v0.11.3...v0.11.4) (2026-03-26)
 
 ### 🐛 Bug Fixes
