@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.3](https://github.com/stocka-app/stocka-client/compare/v0.11.2...v0.11.3) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **ui:** [dark-mode] fix inverted neutral scale misuse across app shell ([7c00c4a](https://github.com/stocka-app/stocka-client/commit/7c00c4a15fefb2ed947c522c06dc306a2b266ec9)), closes [#f8fafc](https://github.com/stocka-app/stocka-client/issues/f8fafc) [#e2e8f0](https://github.com/stocka-app/stocka-client/issues/e2e8f0) [#0b1221](https://github.com/stocka-app/stocka-client/issues/0b1221) [#182437](https://github.com/stocka-app/stocka-client/issues/182437) [#273d5c](https://github.com/stocka-app/stocka-client/issues/273d5c)
+
 ## [0.11.2](https://github.com/stocka-app/stocka-client/compare/v0.11.1...v0.11.2) (2026-03-25)
 
 ### 🐛 Bug Fixes
