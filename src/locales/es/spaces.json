@@ -51,6 +51,10 @@
   "error": {
     "retry": "Reintentar"
   },
+  "upgrade": {
+    "title": "Actualiza tu plan para desbloquear más instalaciones",
+    "cta": "Actualizar plan"
+  },
   "actions": {
     "create": "Nuevo espacio",
     "view": "Ver más",

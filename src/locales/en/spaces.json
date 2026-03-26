@@ -51,6 +51,10 @@
   "error": {
     "retry": "Retry"
   },
+  "upgrade": {
+    "title": "Upgrade your plan to unlock more spaces",
+    "cta": "Upgrade now"
+  },
   "actions": {
     "create": "New space",
     "view": "View",
