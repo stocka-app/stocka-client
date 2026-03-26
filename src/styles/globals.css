@@ -104,7 +104,7 @@
   /* Surfaces (6-layer hierarchy — DS-003) */
   --color-surface-page:     #0b1221;
   --color-surface-card:     #182437;
-  --color-surface-sidebar:  #0d1526;
+  --color-surface-sidebar:  #0b1221;
   --color-surface-header:   #182437;
   --color-surface-raised:   #1f3352;   /* clear delta from card (+7/+15/+27) */
   --color-surface-overlay:  #273e5c;   /* clear delta from raised (+8/+11/+10) */
