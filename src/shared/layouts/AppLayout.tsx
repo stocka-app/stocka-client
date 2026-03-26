@@ -238,10 +238,10 @@ export function AppLayout() {
             type="button"
             onClick={handleLogout}
             title={t('sidebar.logout')}
-            className="h-9 w-9 rounded-full bg-brand/10 dark:bg-brand/20 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all overflow-hidden"
+            className="h-10 w-10 rounded-full bg-brand/10 dark:bg-brand/20 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all overflow-hidden"
             aria-label={t('sidebar.logout')}
           >
-            <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
+            <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-10 w-10" />
           </button>
         </div>
 
@@ -268,8 +268,8 @@ export function AppLayout() {
 
           {/* User row */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="h-9 w-9 rounded-full bg-brand/10 dark:bg-brand/20 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
-              <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
+            <div className="h-10 w-10 rounded-full bg-brand/10 dark:bg-brand/20 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
+              <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-10 w-10" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate leading-tight">
