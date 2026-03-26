@@ -18,7 +18,7 @@ const OrganizationSettingsPage = lazy(
   () => import('@/features/organization/pages/OrganizationSettingsPage'),
 );
 const TeamSettingsPage = lazy(() => import('@/features/team/pages/TeamSettingsPage'));
-const SpacesPage = lazy(() => import('@/features/spaces/pages/SpacesPage'));
+const StoragesPage = lazy(() => import('@/features/storages/pages/StoragesPage'));
 const PrivacySettingsPage = lazy(() => import('@/features/privacy/pages/PrivacySettingsPage'));
 
 export const router = createBrowserRouter([
@@ -182,11 +182,11 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/warehouse',
+        path: '/installations',
         element: (
           <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>
-              <SpacesPage />
+              <StoragesPage />
             </Suspense>
           </ErrorBoundary>
         ),

@@ -35,7 +35,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', path: '/dashboard', icon: LayoutDashboard },
   { key: 'categories', path: '/categories', icon: Tag, hasSubNav: true },
-  { key: 'warehouse', path: '/warehouse', icon: Warehouse, hasSubNav: true },
+  { key: 'warehouse', path: '/installations', icon: Warehouse, hasSubNav: true },
   { key: 'products', path: '/products', icon: Package, hasSubNav: true },
   { key: 'suppliers', path: '/suppliers', icon: Truck },
   { key: 'settings', path: '/settings/organization', icon: Settings },

@@ -18,7 +18,7 @@ interface TierGateProps {
  * TierGate
  *
  * Conditionally renders children based on the `allowed` prop (computed by the caller
- * from SPACE_TIER_LIMITS or canDo). When blocked:
+ * from INSTALLATION_TIER_LIMITS or canDo). When blocked:
  * - If `fallback` is provided: renders the fallback wrapped in a clickable div
  *   that opens the UpgradeModal.
  * - If no `fallback`: renders children with disabled/reduced-opacity styling.
