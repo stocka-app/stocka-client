@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.0](https://github.com/stocka-app/stocka-client/compare/v0.11.10...v0.12.0) (2026-03-26)
+
+### ✨ Features
+
+* **design-system:** switch app font from Plus Jakarta Sans to Inter ([46ca99c](https://github.com/stocka-app/stocka-client/commit/46ca99c77fb53fd93cf44b3715b6c185f6594c7e))
+
 ## [0.11.10](https://github.com/stocka-app/stocka-client/compare/v0.11.9...v0.11.10) (2026-03-26)
 
 ### 🐛 Bug Fixes
