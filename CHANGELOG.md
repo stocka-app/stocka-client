@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.9](https://github.com/stocka-app/stocka-client/compare/v0.11.8...v0.11.9) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **design-system:** unify dark mode sidebar and page background ([c15ac98](https://github.com/stocka-app/stocka-client/commit/c15ac98e858a71a0733f209dcd89951666db0553)), closes [#0d1526](https://github.com/stocka-app/stocka-client/issues/0d1526) [#0b1221](https://github.com/stocka-app/stocka-client/issues/0b1221) [#0b1221](https://github.com/stocka-app/stocka-client/issues/0b1221) [#FFFFFF](https://github.com/stocka-app/stocka-client/issues/FFFFFF)
+
 ## [0.11.8](https://github.com/stocka-app/stocka-client/compare/v0.11.7...v0.11.8) (2026-03-26)
 
 ### 🐛 Bug Fixes
