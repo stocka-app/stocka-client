@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.7](https://github.com/stocka-app/stocka-client/compare/v0.11.6...v0.11.7) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** remove all internal sidebar dividers — keep only border-r ([33db3a3](https://github.com/stocka-app/stocka-client/commit/33db3a3cff42459c916809604664572a87bc862f))
+
 ## [0.11.6](https://github.com/stocka-app/stocka-client/compare/v0.11.5...v0.11.6) (2026-03-26)
 
 ### 🐛 Bug Fixes
