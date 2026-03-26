@@ -91,7 +91,7 @@ export function AppLayout() {
         aria-label={t('sidebar.ariaLabel')}
       >
         {/* Logo + collapse toggle */}
-        <div className="flex h-16 items-center justify-between border-b border-border px-4 flex-shrink-0">
+        <div className="flex h-16 items-center justify-between px-4 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-8 w-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0 dark:shadow-glow-brand">
               <StockaIcon className="h-[18px] w-[18px] text-white" />
@@ -119,7 +119,7 @@ export function AppLayout() {
         </div>
 
         {/* Warehouse / Business selector */}
-        <div className="border-b border-border px-3 py-3 flex-shrink-0">
+        <div className="px-3 py-3 flex-shrink-0">
           {/* Label: visible on mobile and desktop-expanded, hidden on tablet/collapsed */}
           <p className={cn('text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2 px-1', labelVisible)}>
             {t('sidebar.selectBusiness')}
@@ -190,7 +190,7 @@ export function AppLayout() {
         {/* ── Compact bottom (tablet + desktop-collapsed) ── */}
         <div
           className={cn(
-            'hidden border-t border-border py-3 flex-shrink-0 flex-col items-center gap-2',
+            'hidden py-3 flex-shrink-0 flex-col items-center gap-2',
             'md:flex lg:hidden',
             isCollapsed && 'lg:flex',
           )}
@@ -219,13 +219,13 @@ export function AppLayout() {
         {/* ── Expanded bottom (mobile drawer + desktop-expanded) ── */}
         <div
           className={cn(
-            'flex flex-col border-t border-border flex-shrink-0',
+            'flex flex-col flex-shrink-0',
             'md:hidden',
             !isCollapsed && 'lg:flex',
           )}
         >
           {/* Icon row: notifications, language, theme */}
-          <div className="flex items-center justify-around py-3 border-b border-border">
+          <div className="flex items-center justify-around py-3">
             <button
               type="button"
               aria-label={t('sidebar.notifications')}
