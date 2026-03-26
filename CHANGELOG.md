@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.4](https://github.com/stocka-app/stocka-client/compare/v0.12.3...v0.12.4) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** pt-10 → pt-14 logo-to-nav gap ([0a89dd0](https://github.com/stocka-app/stocka-client/commit/0a89dd04365e436c8a8295a324d9687b73ad9e3a))
+
 ## [0.12.3](https://github.com/stocka-app/stocka-client/compare/v0.12.2...v0.12.3) (2026-03-26)
 
 ### 🐛 Bug Fixes
