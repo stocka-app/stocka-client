@@ -15,6 +15,17 @@ export function decodeJwtPayload<T = Record<string, unknown>>(token: string): T 
 }
 
 /**
+ * Tier limits embedded in the JWT payload.
+ * Matches the TierLimits shape from the backend TenantFacade.
+ */
+export interface JwtTierLimits {
+  tier: string;
+  maxCustomRooms: number;
+  maxStoreRooms: number;
+  maxWarehouses: number;
+}
+
+/**
  * JWT payload structure from Stocka backend.
  */
 export interface StockaJwtPayload {
@@ -23,17 +34,19 @@ export interface StockaJwtPayload {
   tenantId: string | null;
   role: string | null;
   displayName: string | null;
+  tierLimits: JwtTierLimits | null;
   iat: number;
   exp: number;
 }
 
 /**
- * Extracts tenant context (tenantId and role) from a Stocka access token.
+ * Extracts tenant context (tenantId, role, displayName, tierLimits) from a Stocka access token.
  */
 export function extractTenantContext(accessToken: string): {
   tenantId: string | null;
   role: string | null;
   displayName: string | null;
+  tierLimits: JwtTierLimits | null;
 } {
   try {
     const payload = decodeJwtPayload<StockaJwtPayload>(accessToken);
@@ -41,8 +54,9 @@ export function extractTenantContext(accessToken: string): {
       tenantId: payload.tenantId ?? null,
       role: payload.role ?? null,
       displayName: payload.displayName ?? null,
+      tierLimits: payload.tierLimits ?? null,
     };
   } catch {
-    return { tenantId: null, role: null, displayName: null };
+    return { tenantId: null, role: null, displayName: null, tierLimits: null };
   }
 }

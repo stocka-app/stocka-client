@@ -5,7 +5,7 @@ import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { useRBACStore } from '@/store/rbac.store';
 import { useStorages } from '../hooks/useStorages';
-import { STORAGE_TIER_LIMITS } from '../types/storages.types';
+import { useCapabilities } from '../hooks/useCapabilities';
 import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
 import { StorageLimitsSection } from '../components/StorageLimitsSection';
 import { StorageCard } from '../components/StorageCard';
@@ -24,7 +24,8 @@ import type { CreateStorageFormData } from '../schemas/storages.schema';
  */
 export default function StoragesPage(): React.ReactElement {
   const { t } = useTranslation('storages');
-  const { canDo, tier } = useRBACStore();
+  const { canDo } = useRBACStore();
+  const { limits } = useCapabilities();
   const {
     storages,
     activeStorages,
@@ -53,8 +54,6 @@ export default function StoragesPage(): React.ReactElement {
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
 
-  const effectiveTier = tier ?? 'FREE';
-
   // ── Business rules ──────────────────────────────────────────────────────────
 
   // A storage can only be archived if it is NOT the last active one of its type
@@ -65,7 +64,7 @@ export default function StoragesPage(): React.ReactElement {
 
   // A storage can be restored only if doing so won't exceed the tier limit for its type
   const canRestoreStorage = (storage: Storage): boolean => {
-    const limit = STORAGE_TIER_LIMITS[effectiveTier][storage.type];
+    const limit = limits[storage.type];
     if (limit === -1) return true;
     const activeOfType = activeStorages.filter((s) => s.type === storage.type).length;
     return activeOfType < limit;

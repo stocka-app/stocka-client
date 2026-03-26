@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Storage } from '../../types/storages.types';
+import { STORAGE_TIER_LIMITS } from '../../types/storages.types';
+import type { Storage, StorageType } from '../../types/storages.types';
+import type { TenantTier } from '@/features/team/types/team.types';
 
 const mockOpenUpgradeModal = vi.fn();
 
@@ -23,6 +25,21 @@ let currentTier: string | null = 'FREE';
 
 vi.mock('@/store/rbac.store', () => ({
   useRBACStore: () => ({ tier: currentTier }),
+}));
+
+/**
+ * Mock useCapabilities to return limits matching the current test tier.
+ * This mirrors how the component resolves limits — from JWT → API → fallback.
+ * In tests we use the same fallback constant to keep assertions aligned.
+ */
+vi.mock('../../hooks/useCapabilities', () => ({
+  useCapabilities: (): { limits: Record<StorageType, number>; isLoading: boolean } => {
+    const tier = (currentTier ?? 'FREE') as TenantTier;
+    return {
+      limits: STORAGE_TIER_LIMITS[tier] ?? STORAGE_TIER_LIMITS.FREE,
+      isLoading: false,
+    };
+  },
 }));
 
 import { StorageLimitsSection } from '../StorageLimitsSection';
@@ -99,7 +116,7 @@ describe('Given StorageLimitsSection displays per-type storage usage', () => {
     });
   });
 
-  describe('When the user presses Enter on the WAREHOUSE row on FREE tier', () => {
+  describe('When the user presses Space on the WAREHOUSE row on FREE tier', () => {
     it('Then openUpgradeModal is called via keyboard', async () => {
       render(<StorageLimitsSection storages={activeStorages} />);
       const warehouseRow = screen.getByRole('button');

@@ -380,6 +380,7 @@ describe('RequiresTenantRoute', () => {
             createdAt: '2024-01-01T00:00:00Z',
             tenantId: null,
             role: null,
+            tierLimits: null,
           },
         }),
       );
@@ -421,6 +422,7 @@ describe('RequiresTenantRoute', () => {
             createdAt: '2024-01-01T00:00:00Z',
             tenantId: '00000000-0000-0000-0000-000000000002',
             role: 'owner',
+            tierLimits: null,
           },
         }),
       );
