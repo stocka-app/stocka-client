@@ -36,7 +36,7 @@ export function StorageCard({
   onRestore,
   onDelete,
 }: StorageCardProps): React.ReactElement {
-  const { t } = useTranslation('installations');
+  const { t } = useTranslation('storages');
 
   // Action visibility is fully driven by the handlers passed from the parent.
   // The parent (StoragesPage) decides which handlers to pass based on RBAC + business rules.

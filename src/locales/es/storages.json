@@ -42,8 +42,8 @@
     "sortDesc": "Z → A"
   },
   "empty": {
-    "noInstallations": "Aún no tienes instalaciones",
-    "noInstallationsSubtitle": "Crea tu primera instalación para gestionar tu inventario",
+    "noStorages": "Aún no tienes instalaciones",
+    "noStoragesSubtitle": "Crea tu primera instalación para gestionar tu inventario",
     "createFirst": "Crear mi primera instalación",
     "noResults": "Sin resultados",
     "noResultsSubtitle": "Intenta ajustar tu búsqueda o eliminar los filtros activos"

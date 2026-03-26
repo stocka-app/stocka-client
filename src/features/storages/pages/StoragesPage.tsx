@@ -23,7 +23,7 @@ import type { CreateStorageFormData } from '../schemas/storages.schema';
  * that shows actions based solely on the handlers passed to it.
  */
 export default function StoragesPage(): React.ReactElement {
-  const { t } = useTranslation('installations');
+  const { t } = useTranslation('storages');
   const { canDo, tier } = useRBACStore();
   const {
     storages,
@@ -301,8 +301,8 @@ export default function StoragesPage(): React.ReactElement {
       {/* Empty state — no storages at all */}
       {error === null && !hasStorages && (
         <div className="py-16 text-center">
-          <p className="mb-1 text-base font-medium text-neutral-900">{t('empty.noInstallations')}</p>
-          <p className="mb-4 text-sm text-muted-foreground">{t('empty.noInstallationsSubtitle')}</p>
+          <p className="mb-1 text-base font-medium text-neutral-900">{t('empty.noStorages')}</p>
+          <p className="mb-4 text-sm text-muted-foreground">{t('empty.noStoragesSubtitle')}</p>
           {canCreate && (
             <Button type="button" onClick={handleCreateClick}>
               {t('empty.createFirst')}
