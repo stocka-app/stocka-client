@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.18](https://github.com/stocka-app/stocka-client/compare/v0.12.17...v0.12.18) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — business selector shows selected name and stays visible when collapsed ([6888b0e](https://github.com/stocka-app/stocka-client/commit/6888b0e79655e9c35c268481ac467d402aae4489))
+
 ## [0.12.17](https://github.com/stocka-app/stocka-client/compare/v0.12.16...v0.12.17) (2026-03-26)
 
 ### 🐛 Bug Fixes
