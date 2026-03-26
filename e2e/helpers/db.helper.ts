@@ -100,6 +100,54 @@ export async function truncateTables(pool: Pool, tables: string[]): Promise<void
 }
 
 /**
+ * Adds an existing user as a member of an existing tenant with the given role.
+ * Use this to set up role-based E2E scenarios without going through full onboarding.
+ */
+export async function addMemberToTenant(
+  pool: Pool,
+  tenantUuid: string,
+  userUuid: string,
+  role: string,
+): Promise<void> {
+  const tenantResult = await pool.query<{ id: number }>(
+    `SELECT id FROM tenants.tenants WHERE uuid = $1`,
+    [tenantUuid],
+  );
+  if (tenantResult.rows.length === 0) {
+    throw new Error(`[db.helper] No tenant found with uuid: ${tenantUuid}`);
+  }
+  const tenantId = tenantResult.rows[0].id;
+
+  const userResult = await pool.query<{ id: number }>(
+    `SELECT id FROM identity.users WHERE uuid = $1`,
+    [userUuid],
+  );
+  if (userResult.rows.length === 0) {
+    throw new Error(`[db.helper] No user found with uuid: ${userUuid}`);
+  }
+  const userId = userResult.rows[0].id;
+
+  await pool.query(
+    `INSERT INTO tenants.tenant_members (uuid, tenant_id, user_id, user_uuid, role, status, joined_at, created_at, updated_at)
+     VALUES (gen_random_uuid(), $1, $2, $3, $4, 'active', NOW(), NOW(), NOW())`,
+    [tenantId, userId, userUuid, role],
+  );
+}
+
+/**
+ * Returns the tenant UUID owned by the given user, or null if not found.
+ */
+export async function findTenantByUserUuid(pool: Pool, userUuid: string): Promise<string | null> {
+  const result = await pool.query<{ uuid: string }>(
+    `SELECT t.uuid FROM tenants.tenants t
+     WHERE t.owner_user_id = (SELECT id FROM identity.users WHERE uuid = $1)
+     LIMIT 1`,
+    [userUuid],
+  );
+  return result.rows[0]?.uuid ?? null;
+}
+
+/**
  * Returns the account id for the given email, or null if not found.
  * Useful for verifying that a sign-up actually created the user.
  */

@@ -23,6 +23,7 @@ import { StockaIcon } from '@/shared/components/StockaIcon';
 import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
 import { AvatarWithFallback, getInitials } from '@/shared/components/AvatarWithFallback';
+import { useRBACStore } from '@/store/rbac.store';
 
 interface NavItem {
   key: string;
@@ -54,6 +55,10 @@ export function AppLayout() {
   const selectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    void useRBACStore.getState().loadPermissions();
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent): void => {
       if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) {
         setIsSelectorOpen(false);
@@ -77,9 +82,6 @@ export function AppLayout() {
     'md:translate-x-0',
   );
   const mainMarginClass = cn('ml-0', 'md:ml-16', isCollapsed ? 'lg:ml-16' : 'lg:ml-64');
-
-  // Classes for elements that should only show when sidebar has label space
-  const labelVisible = cn('block md:hidden', !isCollapsed && 'lg:block');
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-page font-app antialiased">
