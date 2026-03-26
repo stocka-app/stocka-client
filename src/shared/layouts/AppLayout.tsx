@@ -151,7 +151,7 @@ export function AppLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto pt-6 pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
+        <nav className="flex-1 overflow-y-auto pt-10 pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
           {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
               key={key}
