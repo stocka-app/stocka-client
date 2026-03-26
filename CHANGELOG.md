@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.10](https://github.com/stocka-app/stocka-client/compare/v0.11.9...v0.11.10) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** larger logo, bigger wordmark, more breathing room above nav ([5431e60](https://github.com/stocka-app/stocka-client/commit/5431e60e5fa3b74e78217eb2992b7ac50fa7bd29))
+
 ## [0.11.9](https://github.com/stocka-app/stocka-client/compare/v0.11.8...v0.11.9) (2026-03-26)
 
 ### 🐛 Bug Fixes
