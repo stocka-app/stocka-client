@@ -10,7 +10,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Menu,
   X,
   LogOut,
@@ -142,10 +141,10 @@ export function AppLayout() {
             <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
               {t('sidebar.myBusiness')}
             </span>
-            <ChevronDown
+            <ChevronRight
               className={cn(
                 'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
-                isSelectorOpen && 'rotate-180',
+                isSelectorOpen && 'rotate-90',
               )}
             />
           </button>
