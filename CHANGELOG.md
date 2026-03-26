@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.8](https://github.com/stocka-app/stocka-client/compare/v0.11.7...v0.11.8) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** remove border from business selector — matches nav item style ([8abf943](https://github.com/stocka-app/stocka-client/commit/8abf94321800330338ac53245920836cf83fa177))
+
 ## [0.11.7](https://github.com/stocka-app/stocka-client/compare/v0.11.6...v0.11.7) (2026-03-26)
 
 ### 🐛 Bug Fixes
