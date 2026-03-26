@@ -97,6 +97,11 @@
     "archiveFailed": "Error al archivar la instalación",
     "restoreFailed": "Error al restaurar la instalación"
   },
+  "pagination": {
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {{page}} de {{totalPages}}"
+  },
   "toast": {
     "restored": "{{name}} restaurada",
     "restoreFailed": "No se pudo restaurar la instalación"

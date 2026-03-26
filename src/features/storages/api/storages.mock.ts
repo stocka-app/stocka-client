@@ -1,4 +1,4 @@
-import type { Storage } from '../types/storages.types';
+import type { Storage, StoragesPage } from '../types/storages.types';
 
 export const mockStorages: Storage[] = [
   {
@@ -36,8 +36,16 @@ export const mockStorages: Storage[] = [
   },
 ];
 
+export const mockStoragesPage: StoragesPage = {
+  items: mockStorages,
+  total: mockStorages.length,
+  page: 1,
+  limit: 50,
+  totalPages: 1,
+};
+
 export const mockStoragesService = {
-  list: vi.fn().mockResolvedValue(mockStorages),
+  list: vi.fn().mockResolvedValue(mockStoragesPage),
   create: vi.fn().mockResolvedValue(mockStorages[0]),
   update: vi.fn().mockResolvedValue(mockStorages[0]),
   archive: vi.fn().mockResolvedValue({ ...mockStorages[0], status: 'ARCHIVED' }),

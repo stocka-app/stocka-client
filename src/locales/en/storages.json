@@ -97,6 +97,11 @@
     "archiveFailed": "Failed to archive storage",
     "restoreFailed": "Failed to restore storage"
   },
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}"
+  },
   "toast": {
     "restored": "{{name}} restored",
     "restoreFailed": "Could not restore storage"

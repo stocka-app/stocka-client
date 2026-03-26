@@ -7,12 +7,16 @@ import type { Storage } from '../types/storages.types';
 
 interface StoragesState {
   storages: Storage[];
+  total: number;
+  page: number;
+  totalPages: number;
   isLoading: boolean;
   error: string | null;
 }
 
 interface StoragesActions {
   setStorages: (storages: Storage[]) => void;
+  setPagination: (total: number, page: number, totalPages: number) => void;
   addStorage: (storage: Storage) => void;
   updateStorage: (storage: Storage) => void;
   setLoading: (loading: boolean) => void;
@@ -26,6 +30,9 @@ interface StoragesActions {
 
 const initialState: StoragesState = {
   storages: [],
+  total: 0,
+  page: 1,
+  totalPages: 0,
   isLoading: false,
   error: null,
 };
@@ -38,6 +45,9 @@ export const useStoragesStore = create<StoragesState & StoragesActions>()((set) 
   ...initialState,
 
   setStorages: (storages: Storage[]): void => set({ storages }),
+
+  setPagination: (total: number, page: number, totalPages: number): void =>
+    set({ total, page, totalPages }),
 
   addStorage: (storage: Storage): void =>
     set((state) => ({ storages: [...state.storages, storage] })),

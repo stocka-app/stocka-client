@@ -21,6 +21,9 @@ import type { CreateStorageFormData } from '../schemas/storages.schema';
  *
  * RBAC decisions live here — StorageCard is a pure presentational component
  * that shows actions based solely on the handlers passed to it.
+ *
+ * Filtering, search and sort are server-side: any change triggers a re-fetch.
+ * Pagination is rendered when totalPages > 1.
  */
 export default function StoragesPage(): React.ReactElement {
   const { t } = useTranslation('storages');
@@ -31,7 +34,9 @@ export default function StoragesPage(): React.ReactElement {
     activeStorages,
     frozenStorages,
     archivedStorages,
-    filteredStorages,
+    total,
+    page,
+    totalPages,
     isLoading,
     error,
     filterStatus,
@@ -42,6 +47,7 @@ export default function StoragesPage(): React.ReactElement {
     setFilterType,
     setSearchQuery,
     setSortOrder,
+    setPage,
     canCreate,
     fetchStorages,
     createStorage,
@@ -56,13 +62,12 @@ export default function StoragesPage(): React.ReactElement {
 
   // ── Business rules ──────────────────────────────────────────────────────────
 
-  // A storage can only be archived if it is NOT the last active one of its type
-  const canArchiveStorage = (storage: Storage): boolean => {
-    const activeOfType = activeStorages.filter((s) => s.type === storage.type);
-    return activeOfType.length > 1;
-  };
+  // Archive is allowed for any ACTIVE storage — the backend enforces the
+  // "last active of type" constraint and returns an error if violated.
+  const canArchiveStorage = (storage: Storage): boolean => storage.status === 'ACTIVE';
 
-  // A storage can be restored only if doing so won't exceed the tier limit for its type
+  // Restore is allowed when the tier limit for the storage type won't be exceeded.
+  // Falls back to allowing when limits data is unavailable (-1 = unlimited).
   const canRestoreStorage = (storage: Storage): boolean => {
     const limit = limits[storage.type];
     if (limit === -1) return true;
@@ -113,7 +118,6 @@ export default function StoragesPage(): React.ReactElement {
 
   const isFiltered = filterStatus !== null || filterType !== null || searchQuery !== '';
   const hasStorages = storages.length > 0;
-  const hasFilteredResults = filteredStorages.length > 0;
 
   // ── Loading state ───────────────────────────────────────────────────────────
 
@@ -166,7 +170,7 @@ export default function StoragesPage(): React.ReactElement {
               { label: t('statuses.ACTIVE'), count: activeStorages.length, colorClass: 'text-green-600' },
               { label: t('statuses.FROZEN'), count: frozenStorages.length, colorClass: 'text-amber-600' },
               { label: t('statuses.ARCHIVED'), count: archivedStorages.length, colorClass: 'text-neutral-500' },
-              { label: t('stats.total'), count: storages.length, colorClass: 'text-neutral-900' },
+              { label: t('stats.total'), count: total, colorClass: 'text-neutral-900' },
             ] as const
           ).map(({ label, count, colorClass }) => (
             <div
@@ -242,9 +246,9 @@ export default function StoragesPage(): React.ReactElement {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}
         >
-          {sortOrder === 'asc' ? t('controls.sortAsc') : t('controls.sortDesc')}
+          {sortOrder === 'ASC' ? t('controls.sortAsc') : t('controls.sortDesc')}
         </Button>
       </div>
 
@@ -310,26 +314,49 @@ export default function StoragesPage(): React.ReactElement {
         </div>
       )}
 
-      {/* Empty state — filters returned no results */}
-      {error === null && hasStorages && !hasFilteredResults && (
-        <div className="py-16 text-center">
-          <p className="mb-1 text-base font-medium text-neutral-900">{t('empty.noResults')}</p>
-          <p className="text-sm text-muted-foreground">{t('empty.noResultsSubtitle')}</p>
-        </div>
-      )}
-
       {/* Card grid */}
-      {error === null && hasFilteredResults && (
+      {error === null && hasStorages && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredStorages.map((storage) => (
+          {storages.map((storage) => (
             <StorageCard
               key={storage.uuid}
               storage={storage}
               onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
-              onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
-              onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
+              onArchive={
+                canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined
+              }
+              onRestore={
+                canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined
+              }
             />
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+          >
+            {t('pagination.prev')}
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {t('pagination.pageOf', { page, totalPages })}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+          >
+            {t('pagination.next')}
+          </Button>
         </div>
       )}
 
