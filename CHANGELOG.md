@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.17](https://github.com/stocka-app/stocka-client/compare/v0.12.16...v0.12.17) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — increase avatar size to h-10 w-10 ([33d5838](https://github.com/stocka-app/stocka-client/commit/33d58380eef912d8ea57f3dce8515b436ed2fca1))
+
 ## [0.12.16](https://github.com/stocka-app/stocka-client/compare/v0.12.15...v0.12.16) (2026-03-26)
 
 ### 🐛 Bug Fixes
