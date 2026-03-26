@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.6](https://github.com/stocka-app/stocka-client/compare/v0.12.5...v0.12.6) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** business selector toggles open/close on click ([5e39b0e](https://github.com/stocka-app/stocka-client/commit/5e39b0e7e6a77a78b2b856d09d33a7b7bdb67abb))
+
 ## [0.12.5](https://github.com/stocka-app/stocka-client/compare/v0.12.4...v0.12.5) (2026-03-26)
 
 ### 🐛 Bug Fixes
