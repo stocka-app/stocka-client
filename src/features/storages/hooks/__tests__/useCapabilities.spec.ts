@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useCapabilities } from '../useCapabilities';
+import { useCapabilities, getFallbackLimits } from '../useCapabilities';
 import type { UserTierLimits } from '@/features/authentication/types/authentication.types';
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
-let mockUser: { tierLimits: UserTierLimits | null } | null = null;
+let mockUser: { role?: string; tierLimits: UserTierLimits | null } | null = null;
 
 vi.mock('@/features/authentication/store/authentication.store', () => ({
   useAuthenticationStore: (selector: (state: { user: typeof mockUser }) => unknown) =>
@@ -123,6 +123,57 @@ describe('Given the user is null', () => {
         CUSTOM_ROOM: 1,
         STORE_ROOM: 1,
         WAREHOUSE: 0,
+      });
+    });
+  });
+});
+
+describe('Given the user has a role but no tierLimits and the API fails', () => {
+  beforeEach(() => {
+    mockUser = { role: 'OWNER', tierLimits: null };
+    mockFetchCapabilities.mockClear();
+    mockFetchCapabilities.mockRejectedValue(new Error('Network error'));
+  });
+
+  describe('When the capabilities API is unavailable', () => {
+    it('Then it uses the user role path and falls back to FREE tier limits', async () => {
+      const { result } = renderHook(() => useCapabilities());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // user.tierLimits is null so tier is null → getFallbackLimits(null) → FREE
+      expect(result.current.limits).toEqual({
+        CUSTOM_ROOM: 1,
+        STORE_ROOM: 1,
+        WAREHOUSE: 0,
+      });
+    });
+  });
+});
+
+describe('Given getFallbackLimits is called with an unrecognized tier string', () => {
+  describe('When the tier is a value not in STORAGE_TIER_LIMITS', () => {
+    it('Then it falls back to FREE tier limits', () => {
+      const limits = getFallbackLimits('UNKNOWN_TIER');
+
+      expect(limits).toEqual({
+        CUSTOM_ROOM: 1,
+        STORE_ROOM: 1,
+        WAREHOUSE: 0,
+      });
+    });
+  });
+
+  describe('When the tier is a valid known tier string', () => {
+    it('Then it returns the limits for that tier without using the fallback', () => {
+      const limits = getFallbackLimits('GROWTH');
+
+      expect(limits).toEqual({
+        CUSTOM_ROOM: 10,
+        STORE_ROOM: 10,
+        WAREHOUSE: 10,
       });
     });
   });

@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { useStoragesStore } from '../../store/storages.store';
-import { mockStorages } from '../../api/storages.mock';
-import type { Storage } from '../../types/storages.types';
+import type { Storage, StoragesPage } from '../../types/storages.types';
 
 vi.mock('../../api/storages.service', () => ({
   storagesService: {
@@ -14,7 +13,14 @@ vi.mock('../../api/storages.service', () => ({
   },
 }));
 
-let mockPermissions: string[] = ['STORAGE_CREATE', 'STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE', 'STORAGE_FREEZE', 'STORAGE_ARCHIVE'];
+let mockPermissions: string[] = [
+  'STORAGE_CREATE',
+  'STORAGE_READ',
+  'STORAGE_UPDATE',
+  'STORAGE_DELETE',
+  'STORAGE_FREEZE',
+  'STORAGE_ARCHIVE',
+];
 
 vi.mock('@/store/rbac.store', () => ({
   useRBACStore: () => ({
@@ -25,8 +31,54 @@ vi.mock('@/store/rbac.store', () => ({
 import { useStorages } from '../useStorages';
 import { storagesService } from '../../api/storages.service';
 
+// ─── Mock data ────────────────────────────────────────────────────────────────
+
+const mockStoragesItems: Storage[] = [
+  {
+    uuid: 'storage-001',
+    name: 'Main Store Room',
+    type: 'STORE_ROOM',
+    status: 'ACTIVE',
+    address: null,
+    roomType: null,
+    archivedAt: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    uuid: 'storage-002',
+    name: 'Custom Room A',
+    type: 'CUSTOM_ROOM',
+    status: 'ACTIVE',
+    address: null,
+    roomType: null,
+    archivedAt: null,
+    createdAt: '2026-01-02T00:00:00.000Z',
+    updatedAt: '2026-01-02T00:00:00.000Z',
+  },
+  {
+    uuid: 'storage-003',
+    name: 'Old Room',
+    type: 'CUSTOM_ROOM',
+    status: 'ARCHIVED',
+    address: null,
+    roomType: null,
+    archivedAt: '2026-03-01T00:00:00.000Z',
+    createdAt: '2026-01-03T00:00:00.000Z',
+    updatedAt: '2026-03-01T00:00:00.000Z',
+  },
+];
+
+const mockPage: StoragesPage = {
+  items: mockStoragesItems,
+  total: mockStoragesItems.length,
+  page: 1,
+  limit: 50,
+  totalPages: 1,
+};
+
 // Extended mock data with FROZEN and varied types for filter tests
-const allStoragesMock: Storage[] = [
+const allStoragesItems: Storage[] = [
   {
     uuid: 'storage-active-1',
     name: 'Almacén Central',
@@ -73,15 +125,32 @@ const allStoragesMock: Storage[] = [
   },
 ];
 
+const allStoragesMockPage: StoragesPage = {
+  items: allStoragesItems,
+  total: allStoragesItems.length,
+  page: 1,
+  limit: 50,
+  totalPages: 1,
+};
+
 function resetStore(): void {
-  useStoragesStore.setState({ storages: [], isLoading: false, error: null });
+  useStoragesStore.setState({
+    storages: [],
+    total: 0,
+    page: 1,
+    totalPages: 0,
+    isLoading: false,
+    error: null,
+  });
 }
+
+// ─── Mount and data loading ───────────────────────────────────────────────────
 
 describe('Given useStorages orchestrates storage operations', () => {
   beforeEach(() => {
     resetStore();
     vi.clearAllMocks();
-    vi.mocked(storagesService.list).mockResolvedValue(mockStorages);
+    vi.mocked(storagesService.list).mockResolvedValue(mockPage);
   });
 
   describe('When the hook mounts', () => {
@@ -95,7 +164,16 @@ describe('Given useStorages orchestrates storage operations', () => {
     it('Then storages are populated from the API', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => {
-        expect(result.current.storages).toHaveLength(mockStorages.length);
+        expect(result.current.storages).toHaveLength(mockStoragesItems.length);
+      });
+    });
+
+    it('Then pagination state is populated from the API response', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => {
+        expect(result.current.total).toBe(mockPage.total);
+        expect(result.current.page).toBe(mockPage.page);
+        expect(result.current.totalPages).toBe(mockPage.totalPages);
       });
     });
 
@@ -133,7 +211,7 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When createStorage is called with valid data', () => {
     it('Then it calls the service and returns true on success', async () => {
-      vi.mocked(storagesService.create).mockResolvedValue(mockStorages[0]);
+      vi.mocked(storagesService.create).mockResolvedValue(mockStoragesItems[0]);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -160,7 +238,7 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When editStorage is called with a valid id and payload', () => {
     it('Then it calls the service and returns true on success', async () => {
-      vi.mocked(storagesService.update).mockResolvedValue({ ...mockStorages[0], name: 'Updated' });
+      vi.mocked(storagesService.update).mockResolvedValue({ ...mockStoragesItems[0], name: 'Updated' });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -180,7 +258,7 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When archiveStorage is called with a valid id', () => {
     it('Then it calls the service and returns true on success', async () => {
-      vi.mocked(storagesService.archive).mockResolvedValue({ ...mockStorages[0], status: 'ARCHIVED' });
+      vi.mocked(storagesService.archive).mockResolvedValue({ ...mockStoragesItems[0], status: 'ARCHIVED' });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -200,7 +278,7 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When restoreStorage is called with a valid id', () => {
     it('Then it calls the service and returns true on success', async () => {
-      vi.mocked(storagesService.restore).mockResolvedValue({ ...mockStorages[2], status: 'ACTIVE' });
+      vi.mocked(storagesService.restore).mockResolvedValue({ ...mockStoragesItems[2], status: 'ACTIVE' });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -219,108 +297,248 @@ describe('Given useStorages orchestrates storage operations', () => {
   });
 });
 
-// ─── Derived data and filter/search/sort ──────────────────────────────────────
+// ─── Server-side filtering, search and sort ───────────────────────────────────
 
 describe('Given useStorages with mixed-status storages (ACTIVE, FROZEN, ARCHIVED)', () => {
   beforeEach(() => {
-    mockPermissions = ['STORAGE_CREATE', 'STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE', 'STORAGE_FREEZE', 'STORAGE_ARCHIVE'];
-    useStoragesStore.setState({ storages: [], isLoading: false, error: null });
+    mockPermissions = [
+      'STORAGE_CREATE',
+      'STORAGE_READ',
+      'STORAGE_UPDATE',
+      'STORAGE_DELETE',
+      'STORAGE_FREEZE',
+      'STORAGE_ARCHIVE',
+    ];
+    resetStore();
     vi.clearAllMocks();
-    vi.mocked(storagesService.list).mockResolvedValue(allStoragesMock);
+    vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
   });
 
   describe('When the hook mounts', () => {
-    it('Then frozenStorages only includes FROZEN storages', async () => {
+    it('Then frozenStorages only includes FROZEN storages from the current page', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
       result.current.frozenStorages.forEach((s) => expect(s.status).toBe('FROZEN'));
       expect(result.current.frozenStorages).toHaveLength(1);
     });
 
-    it('Then filteredStorages defaults to all storages sorted A→Z', async () => {
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-      const names = result.current.filteredStorages.map((s) => s.name);
-      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    it('Then storagesService.list is called with default params on mount', async () => {
+      renderHook(() => useStorages());
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ page: 1, limit: 50, sortOrder: 'ASC' }),
+        );
+      });
     });
   });
 
   describe('When setFilterStatus is called with FROZEN', () => {
-    it('Then filteredStorages contains only FROZEN storages', async () => {
+    it('Then storagesService.list is called with status=FROZEN and page reset to 1', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       act(() => result.current.setFilterStatus('FROZEN'));
 
-      expect(result.current.filteredStorages.every((s) => s.status === 'FROZEN')).toBe(true);
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'FROZEN', page: 1 }),
+        );
+      });
     });
   });
 
   describe('When setFilterType is called with WAREHOUSE', () => {
-    it('Then filteredStorages contains only WAREHOUSE storages', async () => {
+    it('Then storagesService.list is called with type=WAREHOUSE and page reset to 1', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       act(() => result.current.setFilterType('WAREHOUSE'));
 
-      expect(result.current.filteredStorages.every((s) => s.type === 'WAREHOUSE')).toBe(true);
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'WAREHOUSE', page: 1 }),
+        );
+      });
     });
   });
 
-  describe('When setFilterStatus and setSearchQuery are both set', () => {
-    it('Then filteredStorages applies both criteria (AND logic)', async () => {
+  describe('When setSearchQuery is called with a search term', () => {
+    it('Then storagesService.list is called with the search param and page reset to 1', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      act(() => result.current.setSearchQuery('bodega'));
+
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ search: 'bodega', page: 1 }),
+        );
+      });
+    });
+  });
+
+  describe('When setSortOrder is set to DESC', () => {
+    it('Then storagesService.list is called with sortOrder=DESC and page reset to 1', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      act(() => result.current.setSortOrder('DESC'));
+
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ sortOrder: 'DESC', page: 1 }),
+        );
+      });
+    });
+  });
+
+  describe('When setFilterStatus is reset to null', () => {
+    it('Then storagesService.list is called without a status param', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      act(() => result.current.setFilterStatus('ACTIVE'));
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'ACTIVE' }),
+        );
+      });
+
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+
+      act(() => result.current.setFilterStatus(null));
+      await waitFor(() => {
+        const lastCall = vi.mocked(storagesService.list).mock.lastCall?.[0];
+        expect(lastCall).not.toHaveProperty('status');
+      });
+    });
+  });
+});
+
+// ─── Manual fetchStorages call ────────────────────────────────────────────────
+
+describe('Given useStorages exposes a manual fetchStorages function', () => {
+  beforeEach(() => {
+    resetStore();
+    vi.clearAllMocks();
+    vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+  });
+
+  describe('When fetchStorages is called directly without any active filters', () => {
+    it('Then it triggers a new API call with the current default params', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+
+      await act(async () => {
+        await result.current.fetchStorages();
+      });
+
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, sortOrder: 'ASC' }),
+      );
+    });
+  });
+
+  describe('When fetchStorages is called with status, type, and search filters active', () => {
+    it('Then it passes all active filters to the API', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       act(() => {
         result.current.setFilterStatus('ACTIVE');
-        result.current.setSearchQuery('alma');
+        result.current.setFilterType('WAREHOUSE');
+        result.current.setSearchQuery('almacén');
       });
 
-      // Only ACTIVE storages whose name contains 'alma' (case-insensitive)
-      expect(result.current.filteredStorages).toHaveLength(1);
-      expect(result.current.filteredStorages[0].uuid).toBe('storage-active-1');
-    });
-  });
-
-  describe('When filterByStatus FROZEN and filterByName bodega are both applied', () => {
-    it('Then filteredStorages returns only frozen storages whose name contains bodega', async () => {
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-
-      act(() => {
-        result.current.setFilterStatus('FROZEN');
-        result.current.setSearchQuery('bodega');
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'ACTIVE', type: 'WAREHOUSE', search: 'almacén' }),
+        );
       });
 
-      expect(result.current.filteredStorages).toHaveLength(1);
-      expect(result.current.filteredStorages[0].uuid).toBe('storage-frozen-1');
-      expect(result.current.filteredStorages[0].status).toBe('FROZEN');
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+
+      await act(async () => {
+        await result.current.fetchStorages();
+      });
+
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ACTIVE', type: 'WAREHOUSE', search: 'almacén' }),
+      );
+    });
+  });
+});
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+describe('Given useStorages with multi-page results', () => {
+  const pageOneMock: StoragesPage = {
+    items: [mockStoragesItems[0]],
+    total: 3,
+    page: 1,
+    limit: 1,
+    totalPages: 3,
+  };
+
+  const pageTwoMock: StoragesPage = {
+    items: [mockStoragesItems[1]],
+    total: 3,
+    page: 2,
+    limit: 1,
+    totalPages: 3,
+  };
+
+  beforeEach(() => {
+    resetStore();
+    vi.clearAllMocks();
+    vi.mocked(storagesService.list).mockResolvedValue(pageOneMock);
+  });
+
+  describe('When the hook mounts on page 1', () => {
+    it('Then totalPages is exposed from the paginated response', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => {
+        expect(result.current.totalPages).toBe(3);
+        expect(result.current.total).toBe(3);
+        expect(result.current.page).toBe(1);
+      });
     });
   });
 
-  describe('When setSortOrder is set to desc', () => {
-    it('Then filteredStorages is sorted Z→A by name', async () => {
+  describe('When setPage is called with page 2', () => {
+    it('Then storagesService.list is called with page=2', async () => {
+      vi.mocked(storagesService.list).mockResolvedValueOnce(pageOneMock).mockResolvedValue(pageTwoMock);
+
       const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+      await waitFor(() => expect(result.current.storages).toHaveLength(1));
 
-      act(() => result.current.setSortOrder('desc'));
+      act(() => result.current.setPage(2));
 
-      const names = result.current.filteredStorages.map((s) => s.name);
-      expect(names).toEqual([...names].sort((a, b) => b.localeCompare(a)));
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ page: 2 }),
+        );
+      });
     });
-  });
 
-  describe('When setFilterStatus is reset to null', () => {
-    it('Then filteredStorages returns all storages again', async () => {
+    it('Then storages are updated to the items of the new page', async () => {
+      vi.mocked(storagesService.list).mockResolvedValueOnce(pageOneMock).mockResolvedValue(pageTwoMock);
+
       const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+      await waitFor(() => expect(result.current.storages[0].uuid).toBe('storage-001'));
 
-      act(() => result.current.setFilterStatus('ACTIVE'));
-      expect(result.current.filteredStorages.length).toBeLessThan(allStoragesMock.length);
+      act(() => result.current.setPage(2));
 
-      act(() => result.current.setFilterStatus(null));
-      expect(result.current.filteredStorages).toHaveLength(allStoragesMock.length);
+      await waitFor(() => {
+        expect(result.current.storages[0].uuid).toBe('storage-002');
+        expect(result.current.page).toBe(2);
+      });
     });
   });
 });
@@ -329,14 +547,21 @@ describe('Given useStorages with mixed-status storages (ACTIVE, FROZEN, ARCHIVED
 
 describe('Given useStorages resolves permission flags from the RBAC store', () => {
   beforeEach(() => {
-    useStoragesStore.setState({ storages: [], isLoading: false, error: null });
+    resetStore();
     vi.clearAllMocks();
-    vi.mocked(storagesService.list).mockResolvedValue(mockStorages);
+    vi.mocked(storagesService.list).mockResolvedValue(mockPage);
   });
 
   describe('When the user has all storage permissions', () => {
     beforeEach(() => {
-      mockPermissions = ['STORAGE_CREATE', 'STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE', 'STORAGE_FREEZE', 'STORAGE_ARCHIVE'];
+      mockPermissions = [
+        'STORAGE_CREATE',
+        'STORAGE_READ',
+        'STORAGE_UPDATE',
+        'STORAGE_DELETE',
+        'STORAGE_FREEZE',
+        'STORAGE_ARCHIVE',
+      ];
     });
 
     it('Then canCreate, canUpdate, canFreeze, canArchive, canDelete are all true', async () => {

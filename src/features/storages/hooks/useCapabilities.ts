@@ -26,8 +26,10 @@ function toLimitsMap(caps: TenantCapabilities): StorageLimitsMap {
 /**
  * Returns a fallback StorageLimitsMap from the hardcoded constant,
  * keyed by tier name. Defaults to FREE if the tier is unrecognized.
+ *
+ * Exported for unit testing — not part of the public API of the feature.
  */
-function getFallbackLimits(tier: string | null): StorageLimitsMap {
+export function getFallbackLimits(tier: string | null): StorageLimitsMap {
   const effectiveTier = (tier ?? 'FREE') as TenantTier;
   return STORAGE_TIER_LIMITS[effectiveTier] ?? STORAGE_TIER_LIMITS.FREE;
 }

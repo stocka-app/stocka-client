@@ -38,5 +38,13 @@ export const updateStorageSchema = storageFormBaseSchema.partial().extend({
 
 export const storagesListSchema = z.array(storageSchema);
 
+export const storagesPageSchema = z.object({
+  items: z.array(storageSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  totalPages: z.number().int().nonnegative(),
+});
+
 export type CreateStorageFormData = z.infer<typeof createStorageSchema>;
 export type UpdateStorageFormData = z.infer<typeof updateStorageSchema>;

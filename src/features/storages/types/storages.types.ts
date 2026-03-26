@@ -1,10 +1,16 @@
 import type { z } from 'zod';
-import type { storageSchema, storageTypeSchema, storageStatusSchema } from '../schemas/storages.schema';
+import type {
+  storageSchema,
+  storageTypeSchema,
+  storageStatusSchema,
+  storagesPageSchema,
+} from '../schemas/storages.schema';
 import type { TenantTier } from '@/features/team/types/team.types';
 
 export type StorageType = z.infer<typeof storageTypeSchema>;
 export type StorageStatus = z.infer<typeof storageStatusSchema>;
 export type Storage = z.infer<typeof storageSchema>;
+export type StoragesPage = z.infer<typeof storagesPageSchema>;
 
 /**
  * Response from GET /tenants/me/capabilities.

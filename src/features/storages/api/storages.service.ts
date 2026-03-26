@@ -1,12 +1,21 @@
 import axiosInstance from '@/shared/lib/axios';
-import { storageSchema, storagesListSchema } from '../schemas/storages.schema';
+import { storageSchema, storagesPageSchema } from '../schemas/storages.schema';
 import type { CreateStorageFormData, UpdateStorageFormData } from '../schemas/storages.schema';
-import type { Storage, TenantCapabilities } from '../types/storages.types';
+import type { Storage, StoragesPage, StorageStatus, StorageType, TenantCapabilities } from '../types/storages.types';
+
+export interface ListStoragesParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  status?: StorageStatus;
+  type?: StorageType;
+}
 
 export const storagesService = {
-  async list(): Promise<Storage[]> {
-    const { data } = await axiosInstance.get('/storages');
-    return storagesListSchema.parse(data);
+  async list(params: ListStoragesParams = {}): Promise<StoragesPage> {
+    const { data } = await axiosInstance.get('/storages', { params });
+    return storagesPageSchema.parse(data);
   },
 
   async create(payload: CreateStorageFormData): Promise<Storage> {
