@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.1](https://github.com/stocka-app/stocka-client/compare/v0.12.0...v0.12.1) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** match reference sidebar typography — text-base, clearer active state ([c79dc86](https://github.com/stocka-app/stocka-client/commit/c79dc8648e192d0b4e8be48037b725911a6ad4f5))
+
 ## [0.12.0](https://github.com/stocka-app/stocka-client/compare/v0.11.10...v0.12.0) (2026-03-26)
 
 ### ✨ Features
