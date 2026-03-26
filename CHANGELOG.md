@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.15](https://github.com/stocka-app/stocka-client/compare/v0.12.14...v0.12.15) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — normalize bottom icon sizes to h-5 w-5 across Bell and LanguageSwitcher ([96089dc](https://github.com/stocka-app/stocka-client/commit/96089dc966163161ed6443fbb79615606e9d0bfa))
+
 ## [0.12.14](https://github.com/stocka-app/stocka-client/compare/v0.12.13...v0.12.14) (2026-03-26)
 
 ### 🐛 Bug Fixes
