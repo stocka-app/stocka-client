@@ -29,9 +29,9 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300"
+          className="h-9 w-9 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300"
         >
-          <Globe className="h-4 w-4" />
+          <Globe className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

@@ -228,9 +228,9 @@ export function AppLayout() {
             type="button"
             aria-label={t('sidebar.notifications')}
             title={t('sidebar.notifications')}
-            className="h-8 w-8 flex items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 transition-colors"
           >
-            <Bell className="h-4 w-4" />
+            <Bell className="h-5 w-5" />
           </button>
           <LanguageSwitcher />
           <ThemeToggle />
