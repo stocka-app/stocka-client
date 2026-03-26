@@ -2,15 +2,16 @@ import { z } from 'zod';
 
 export const spaceTypeSchema = z.enum(['CUSTOM_ROOM', 'STORE_ROOM', 'WAREHOUSE']);
 
-export const spaceStatusSchema = z.enum(['ACTIVE', 'ARCHIVED']);
+export const spaceStatusSchema = z.enum(['ACTIVE', 'FROZEN', 'ARCHIVED']);
 
 export const spaceSchema = z.object({
-  id: z.string().uuid(),
-  tenantId: z.string().uuid(),
+  uuid: z.string().uuid(),
   name: z.string().min(1).max(100),
   type: spaceTypeSchema,
   status: spaceStatusSchema,
-  address: z.string().max(255).nullable().optional(),
+  address: z.string().max(255).nullable(),
+  roomType: z.string().nullable(),
+  archivedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

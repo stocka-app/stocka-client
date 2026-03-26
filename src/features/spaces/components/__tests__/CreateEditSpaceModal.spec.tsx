@@ -70,12 +70,13 @@ describe('Given CreateEditSpaceModal handles space creation and editing', () => 
 
   describe('When the modal is open in edit mode', () => {
     const editSpace: Space = {
-      id: 'space-001',
-      tenantId: 'tenant-001',
+      uuid: 'space-001',
       name: 'Existing Space',
       type: 'STORE_ROOM',
       status: 'ACTIVE',
       address: null,
+      roomType: null,
+      archivedAt: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
@@ -178,12 +179,13 @@ describe('Given CreateEditSpaceModal handles space creation and editing', () => 
 
   describe('When the form has an invalid type value', () => {
     const invalidSpace = {
-      id: 'space-bad',
-      tenantId: 'tenant-001',
+      uuid: 'space-bad',
       name: 'Bad Space',
       type: 'INVALID_TYPE' as Space['type'],
       status: 'ACTIVE' as const,
       address: null,
+      roomType: null,
+      archivedAt: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };

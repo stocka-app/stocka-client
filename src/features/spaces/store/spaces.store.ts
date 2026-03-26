@@ -44,7 +44,7 @@ export const useSpacesStore = create<SpacesState & SpacesActions>()((set) => ({
 
   updateSpace: (space: Space): void =>
     set((state) => ({
-      spaces: state.spaces.map((s) => (s.id === space.id ? space : s)),
+      spaces: state.spaces.map((s) => (s.uuid === space.uuid ? space : s)),
     })),
 
   setLoading: (isLoading: boolean): void => set({ isLoading }),

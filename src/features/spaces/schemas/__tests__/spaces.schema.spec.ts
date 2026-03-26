@@ -1,17 +1,34 @@
 import { describe, expect, it } from 'vitest';
-import { createSpaceSchema, spaceSchema, spacesListSchema } from '../spaces.schema';
+import { createSpaceSchema, spaceSchema, spaceStatusSchema, spacesListSchema } from '../spaces.schema';
 
 describe('Given the spaces schemas validate domain data', () => {
+  // ─── spaceStatusSchema ───────────────────────────────────────────────────────
+
+  describe('When spaceStatusSchema receives FROZEN', () => {
+    it('Then it parses successfully', () => {
+      const result = spaceStatusSchema.safeParse('FROZEN');
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('When spaceStatusSchema receives an invalid value', () => {
+    it('Then it fails validation', () => {
+      const result = spaceStatusSchema.safeParse('DELETED');
+      expect(result.success).toBe(false);
+    });
+  });
+
   // ─── spaceSchema ────────────────────────────────────────────────────────────
 
   describe('When spaceSchema parses a valid space object', () => {
     const validSpace = {
-      id: '550e8400-e29b-41d4-a716-446655440001',
-      tenantId: '550e8400-e29b-41d4-a716-446655440002',
+      uuid: '550e8400-e29b-41d4-a716-446655440001',
       name: 'Main Warehouse',
       type: 'WAREHOUSE',
       status: 'ACTIVE',
       address: '123 Main St',
+      roomType: null,
+      archivedAt: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
@@ -22,14 +39,70 @@ describe('Given the spaces schemas validate domain data', () => {
     });
   });
 
+  describe('When spaceSchema parses a space with FROZEN status', () => {
+    it('Then it parses successfully', () => {
+      const result = spaceSchema.safeParse({
+        uuid: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Frozen Room',
+        type: 'CUSTOM_ROOM',
+        status: 'FROZEN',
+        address: null,
+        roomType: null,
+        archivedAt: null,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('When spaceSchema parses an archived space with archivedAt date', () => {
+    it('Then it parses successfully', () => {
+      const result = spaceSchema.safeParse({
+        uuid: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Old Room',
+        type: 'CUSTOM_ROOM',
+        status: 'ARCHIVED',
+        address: null,
+        roomType: null,
+        archivedAt: '2026-03-01T12:00:00.000Z',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-03-01T12:00:00.000Z',
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('When spaceSchema parses a CUSTOM_ROOM with a roomType', () => {
+    it('Then it parses successfully and preserves roomType', () => {
+      const result = spaceSchema.safeParse({
+        uuid: '550e8400-e29b-41d4-a716-446655440001',
+        name: 'Exhibition Hall',
+        type: 'CUSTOM_ROOM',
+        status: 'ACTIVE',
+        address: null,
+        roomType: 'Exhibition',
+        archivedAt: null,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.roomType).toBe('Exhibition');
+      }
+    });
+  });
+
   describe('When spaceSchema receives an invalid type', () => {
     it('Then it fails validation', () => {
       const result = spaceSchema.safeParse({
-        id: '550e8400-e29b-41d4-a716-446655440001',
-        tenantId: '550e8400-e29b-41d4-a716-446655440002',
+        uuid: '550e8400-e29b-41d4-a716-446655440001',
         name: 'Test',
         type: 'INVALID_TYPE',
         status: 'ACTIVE',
+        address: null,
+        roomType: null,
+        archivedAt: null,
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-01T00:00:00.000Z',
       });

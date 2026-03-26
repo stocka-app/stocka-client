@@ -15,14 +15,15 @@ vi.mock('react-i18next', () => ({
 import { RestoreSpaceModal } from '../RestoreSpaceModal';
 
 const space: Space = {
-  id: 'space-003',
-  tenantId: 'tenant-001',
+  uuid: 'space-003',
   name: 'Old Room',
   type: 'CUSTOM_ROOM',
   status: 'ARCHIVED',
   address: null,
+  roomType: null,
+  archivedAt: '2026-03-01T00:00:00.000Z',
   createdAt: '2026-01-03T00:00:00.000Z',
-  updatedAt: '2026-01-03T00:00:00.000Z',
+  updatedAt: '2026-03-01T00:00:00.000Z',
 };
 
 describe('Given RestoreSpaceModal confirms restoring an archived space', () => {

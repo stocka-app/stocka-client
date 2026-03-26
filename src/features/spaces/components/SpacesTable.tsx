@@ -62,7 +62,7 @@ export function SpacesTable({
           ) : (
             spaces.map((space) => (
               <tr
-                key={space.id}
+                key={space.uuid}
                 className="hover:bg-neutral-50 dark:hover:bg-neutral-100 transition-colors"
               >
                 <td className="px-4 py-3 font-medium text-neutral-900">

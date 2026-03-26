@@ -15,12 +15,13 @@ vi.mock('react-i18next', () => ({
 import { ArchiveSpaceModal } from '../ArchiveSpaceModal';
 
 const space: Space = {
-  id: 'space-001',
-  tenantId: 'tenant-001',
+  uuid: 'space-001',
   name: 'Main Store Room',
   type: 'STORE_ROOM',
   status: 'ACTIVE',
   address: null,
+  roomType: null,
+  archivedAt: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };

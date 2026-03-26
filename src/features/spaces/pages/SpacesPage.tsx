@@ -81,20 +81,20 @@ export default function SpacesPage(): React.ReactElement {
 
   const handleSave = async (data: CreateSpaceFormData): Promise<boolean> => {
     if (selectedSpace) {
-      return editSpace(selectedSpace.id, data);
+      return editSpace(selectedSpace.uuid, data);
     }
     return createSpace(data);
   };
 
   const handleArchiveConfirm = async (): Promise<void> => {
     if (selectedSpace) {
-      await archiveSpace(selectedSpace.id);
+      await archiveSpace(selectedSpace.uuid);
     }
   };
 
   const handleRestoreConfirm = async (): Promise<void> => {
     if (selectedSpace) {
-      await restoreSpace(selectedSpace.id);
+      await restoreSpace(selectedSpace.uuid);
     }
   };
 

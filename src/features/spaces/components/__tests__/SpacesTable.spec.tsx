@@ -19,22 +19,24 @@ import { SpacesTable } from '../SpacesTable';
 
 const activeSpaces: Space[] = [
   {
-    id: 'space-001',
-    tenantId: 'tenant-001',
+    uuid: 'space-001',
     name: 'Main Store Room',
     type: 'STORE_ROOM',
     status: 'ACTIVE',
     address: null,
+    roomType: null,
+    archivedAt: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
   {
-    id: 'space-002',
-    tenantId: 'tenant-001',
+    uuid: 'space-002',
     name: 'Custom Room A',
     type: 'CUSTOM_ROOM',
     status: 'ACTIVE',
     address: '123 Main St',
+    roomType: null,
+    archivedAt: null,
     createdAt: '2026-01-02T00:00:00.000Z',
     updatedAt: '2026-01-02T00:00:00.000Z',
   },
@@ -42,14 +44,15 @@ const activeSpaces: Space[] = [
 
 const archivedSpaces: Space[] = [
   {
-    id: 'space-003',
-    tenantId: 'tenant-001',
+    uuid: 'space-003',
     name: 'Old Room',
     type: 'CUSTOM_ROOM',
     status: 'ARCHIVED',
     address: null,
+    roomType: null,
+    archivedAt: '2026-03-01T00:00:00.000Z',
     createdAt: '2026-01-03T00:00:00.000Z',
-    updatedAt: '2026-01-03T00:00:00.000Z',
+    updatedAt: '2026-03-01T00:00:00.000Z',
   },
 ];
 

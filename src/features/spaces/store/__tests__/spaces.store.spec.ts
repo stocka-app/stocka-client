@@ -3,23 +3,25 @@ import { useSpacesStore } from '../spaces.store';
 import type { Space } from '../../types/spaces.types';
 
 const space1: Space = {
-  id: 'space-001',
-  tenantId: 'tenant-001',
+  uuid: 'space-001',
   name: 'Main Store Room',
   type: 'STORE_ROOM',
   status: 'ACTIVE',
   address: null,
+  roomType: null,
+  archivedAt: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
 const space2: Space = {
-  id: 'space-002',
-  tenantId: 'tenant-001',
+  uuid: 'space-002',
   name: 'Custom Room A',
   type: 'CUSTOM_ROOM',
   status: 'ACTIVE',
   address: null,
+  roomType: null,
+  archivedAt: null,
   createdAt: '2026-01-02T00:00:00.000Z',
   updatedAt: '2026-01-02T00:00:00.000Z',
 };
@@ -59,7 +61,7 @@ describe('Given the spaces store manages space state', () => {
       useSpacesStore.getState().setSpaces([space1]);
       useSpacesStore.getState().addSpace(space2);
       expect(useSpacesStore.getState().spaces).toHaveLength(2);
-      expect(useSpacesStore.getState().spaces[1].id).toBe('space-002');
+      expect(useSpacesStore.getState().spaces[1].uuid).toBe('space-002');
     });
   });
 

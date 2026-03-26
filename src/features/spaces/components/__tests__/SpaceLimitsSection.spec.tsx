@@ -29,22 +29,24 @@ import { SpaceLimitsSection } from '../SpaceLimitsSection';
 
 const activeSpaces: Space[] = [
   {
-    id: 'space-001',
-    tenantId: 'tenant-001',
+    uuid: 'space-001',
     name: 'Main Store Room',
     type: 'STORE_ROOM',
     status: 'ACTIVE',
     address: null,
+    roomType: null,
+    archivedAt: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
   {
-    id: 'space-002',
-    tenantId: 'tenant-001',
+    uuid: 'space-002',
     name: 'Custom Room A',
     type: 'CUSTOM_ROOM',
     status: 'ACTIVE',
     address: null,
+    roomType: null,
+    archivedAt: null,
     createdAt: '2026-01-02T00:00:00.000Z',
     updatedAt: '2026-01-02T00:00:00.000Z',
   },
@@ -140,22 +142,24 @@ describe('Given SpaceLimitsSection displays per-type space usage', () => {
     const highUsageSpaces: Space[] = [
       ...activeSpaces,
       {
-        id: 'space-003',
-        tenantId: 'tenant-001',
+        uuid: 'space-003',
         name: 'Custom Room B',
         type: 'CUSTOM_ROOM',
         status: 'ACTIVE',
         address: null,
+        roomType: null,
+        archivedAt: null,
         createdAt: '2026-01-03T00:00:00.000Z',
         updatedAt: '2026-01-03T00:00:00.000Z',
       },
       {
-        id: 'space-004',
-        tenantId: 'tenant-001',
+        uuid: 'space-004',
         name: 'Custom Room C',
         type: 'CUSTOM_ROOM',
         status: 'ACTIVE',
         address: null,
+        roomType: null,
+        archivedAt: null,
         createdAt: '2026-01-04T00:00:00.000Z',
         updatedAt: '2026-01-04T00:00:00.000Z',
       },
@@ -185,12 +189,13 @@ describe('Given SpaceLimitsSection displays per-type space usage', () => {
 
   describe('When the tenant is on GROWTH tier with medium usage', () => {
     const mediumUsageSpaces: Space[] = Array.from({ length: 5 }, (_, i) => ({
-      id: `space-m-${i}`,
-      tenantId: 'tenant-001',
+      uuid: `space-m-${i}`,
       name: `Custom Room ${i}`,
       type: 'CUSTOM_ROOM' as const,
       status: 'ACTIVE' as const,
       address: null,
+      roomType: null,
+      archivedAt: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     }));
