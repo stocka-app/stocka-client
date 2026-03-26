@@ -130,7 +130,7 @@ export function AppLayout() {
         </div>
 
         {/* Business selector — outside nav to avoid overflow-y-auto clipping the popover */}
-        <div ref={selectorRef} className={cn('relative flex-shrink-0 px-3 pt-6 pb-2', 'md:hidden', !isCollapsed && 'lg:block')}>
+        <div ref={selectorRef} className={cn('relative flex-shrink-0 px-3 pt-14 pb-2', 'md:hidden', !isCollapsed && 'lg:block')}>
           <button
             className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
             aria-label={t('sidebar.myBusiness')}
