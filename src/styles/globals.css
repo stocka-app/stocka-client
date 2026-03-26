@@ -104,8 +104,8 @@
   --color-surface-card:     #182437;
   --color-surface-sidebar:  #0d1526;
   --color-surface-header:   #182437;
-  --color-surface-raised:   #1e2d42;
-  --color-surface-overlay:  #253a56;
+  --color-surface-raised:   #1f3352;   /* clear delta from card (+7/+15/+27) */
+  --color-surface-overlay:  #273e5c;   /* clear delta from raised (+8/+11/+10) */
 
   /* Borders */
   --color-border:        #273d5c;
@@ -183,6 +183,12 @@
   --border:             var(--color-border);
   --input:              var(--color-border);
   --ring:               var(--color-brand-primary);
+}
+
+/* ─── DARK MODE OVERRIDES ────────────────────────────────── */
+/* shadow-sm (used by shadcn/ui Card) is invisible at rgba(0,0,0,0.05) in dark */
+.dark .shadow-sm {
+  box-shadow: var(--shadow-card);
 }
 
 /* ─── BASE STYLES ────────────────────────────────────────── */
