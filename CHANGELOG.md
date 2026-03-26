@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.7](https://github.com/stocka-app/stocka-client/compare/v0.12.6...v0.12.7) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — business selector as floating popover with click-outside dismiss ([6ee0bee](https://github.com/stocka-app/stocka-client/commit/6ee0beeae7893b815ce3eddf8a7da066d5206295))
+
 ## [0.12.6](https://github.com/stocka-app/stocka-client/compare/v0.12.5...v0.12.6) (2026-03-26)
 
 ### 🐛 Bug Fixes
