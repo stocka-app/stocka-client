@@ -64,8 +64,40 @@ describe('decodeJwtPayload', () => {
 // ---------------------------------------------------------------------------
 
 describe('extractTenantContext', () => {
-  describe('Given a valid JWT with tenantId, role and displayName', () => {
-    it('Then it returns the tenantId, role and displayName', () => {
+  describe('Given a valid JWT with tenantId, role, displayName and tierLimits', () => {
+    it('Then it returns all tenant context fields including tierLimits', () => {
+      const token = buildFakeJwt({
+        sub: 'user-1',
+        email: 'test@test.com',
+        tenantId: 'tenant-abc',
+        role: 'admin',
+        displayName: 'Roberto Medina',
+        tierLimits: {
+          tier: 'STARTER',
+          maxCustomRooms: 3,
+          maxStoreRooms: 3,
+          maxWarehouses: 1,
+        },
+        iat: 1700000000,
+        exp: 1700003600,
+      });
+
+      const result = extractTenantContext(token);
+
+      expect(result.tenantId).toBe('tenant-abc');
+      expect(result.role).toBe('admin');
+      expect(result.displayName).toBe('Roberto Medina');
+      expect(result.tierLimits).toEqual({
+        tier: 'STARTER',
+        maxCustomRooms: 3,
+        maxStoreRooms: 3,
+        maxWarehouses: 1,
+      });
+    });
+  });
+
+  describe('Given a valid JWT with tenantId and role but no tierLimits', () => {
+    it('Then it returns tierLimits as null', () => {
       const token = buildFakeJwt({
         sub: 'user-1',
         email: 'test@test.com',
@@ -80,7 +112,7 @@ describe('extractTenantContext', () => {
 
       expect(result.tenantId).toBe('tenant-abc');
       expect(result.role).toBe('admin');
-      expect(result.displayName).toBe('Roberto Medina');
+      expect(result.tierLimits).toBeNull();
     });
   });
 
@@ -98,6 +130,7 @@ describe('extractTenantContext', () => {
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
       expect(result.displayName).toBeNull();
+      expect(result.tierLimits).toBeNull();
     });
   });
 
@@ -108,6 +141,7 @@ describe('extractTenantContext', () => {
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
       expect(result.displayName).toBeNull();
+      expect(result.tierLimits).toBeNull();
     });
   });
 
@@ -118,6 +152,7 @@ describe('extractTenantContext', () => {
       expect(result.tenantId).toBeNull();
       expect(result.role).toBeNull();
       expect(result.displayName).toBeNull();
+      expect(result.tierLimits).toBeNull();
     });
   });
 });

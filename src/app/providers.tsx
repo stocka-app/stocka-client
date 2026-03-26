@@ -47,9 +47,9 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
         setAccessToken(accessToken);
 
         // Refresh tenant context from JWT on every silent refresh
-        const { tenantId, role, displayName } = extractTenantContext(accessToken);
+        const { tenantId, role, displayName, tierLimits } = extractTenantContext(accessToken);
         const currentUser = useAuthenticationStore.getState().user;
-        let updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName } : null;
+        let updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName, tierLimits } : null;
 
         // Fetch social name and avatar data from /me endpoint
         try {

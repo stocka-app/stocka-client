@@ -37,6 +37,17 @@ export type UserStatus =
   | 'blocked'; // Usuario bloqueado
 
 /**
+ * Tier limits extracted from JWT claims.
+ * Matches the JwtTierLimits shape from jwt.ts.
+ */
+export interface UserTierLimits {
+  tier: string;
+  maxCustomRooms: number;
+  maxStoreRooms: number;
+  maxWarehouses: number;
+}
+
+/**
  * Usuario con información completa (usado en el frontend)
  */
 export interface User {
@@ -51,6 +62,7 @@ export interface User {
   createdAt: string; // ISO 8601
   tenantId: string | null; // from JWT — null = onboarding not completed
   role: string | null; // from JWT — null = no tenant membership
+  tierLimits: UserTierLimits | null; // from JWT — null = no tenant or no limits
 }
 
 // =============================================================================

@@ -71,7 +71,7 @@ export const useAuthenticationStore = create<AuthStore>()(
           } = response.data;
 
           // Extract tenant context from JWT
-          const { tenantId, role, displayName } = extractTenantContext(accessToken);
+          const { tenantId, role, displayName, tierLimits } = extractTenantContext(accessToken);
 
           const user: User = {
             id: backendUser.id,
@@ -85,6 +85,7 @@ export const useAuthenticationStore = create<AuthStore>()(
             createdAt: backendUser.createdAt,
             tenantId,
             role,
+            tierLimits,
           };
 
           const needsVerification = emailVerificationRequired === true;
@@ -183,7 +184,7 @@ export const useAuthenticationStore = create<AuthStore>()(
           const { user: backendUser, accessToken, emailSent } = response.data;
 
           // Extract tenant context from JWT (will be null for new registrations)
-          const { tenantId, role, displayName } = extractTenantContext(accessToken);
+          const { tenantId, role, displayName, tierLimits } = extractTenantContext(accessToken);
 
           const user: User = {
             id: backendUser.id,
@@ -197,6 +198,7 @@ export const useAuthenticationStore = create<AuthStore>()(
             createdAt: backendUser.createdAt,
             tenantId,
             role,
+            tierLimits,
           };
 
           // Guardar el access token en memoria
@@ -348,8 +350,8 @@ export const useAuthenticationStore = create<AuthStore>()(
         setAccessToken(tokens.accessToken);
 
         // Enrich user with tenant context from JWT
-        const { tenantId, role, displayName } = extractTenantContext(tokens.accessToken);
-        const enrichedUser: User = { ...tokens.user, tenantId, role, displayName };
+        const { tenantId, role, displayName, tierLimits } = extractTenantContext(tokens.accessToken);
+        const enrichedUser: User = { ...tokens.user, tenantId, role, displayName, tierLimits };
 
         set({
           user: enrichedUser,
