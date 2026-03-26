@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.11](https://github.com/stocka-app/stocka-client/compare/v0.12.10...v0.12.11) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — restore spacing between logo and nav items ([de65b37](https://github.com/stocka-app/stocka-client/commit/de65b37715b52047d06086e4b889b15f10a8b99b))
+
 ## [0.12.10](https://github.com/stocka-app/stocka-client/compare/v0.12.9...v0.12.10) (2026-03-26)
 
 ### 🐛 Bug Fixes
