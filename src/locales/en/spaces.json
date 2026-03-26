@@ -31,6 +31,26 @@
     "unlimited": "Unlimited",
     "warehouseProBadge": "STARTER+"
   },
+  "stats": {
+    "total": "Total"
+  },
+  "controls": {
+    "search": "Search spaces...",
+    "allStatuses": "All statuses",
+    "allTypes": "All types",
+    "sortAsc": "A → Z",
+    "sortDesc": "Z → A"
+  },
+  "empty": {
+    "noSpaces": "No spaces yet",
+    "noSpacesSubtitle": "Create your first space to start managing your inventory",
+    "createFirst": "Create my first space",
+    "noResults": "No results",
+    "noResultsSubtitle": "Try adjusting your search or removing the active filters"
+  },
+  "error": {
+    "retry": "Retry"
+  },
   "actions": {
     "create": "New space",
     "view": "View",

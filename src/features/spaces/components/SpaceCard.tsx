@@ -24,6 +24,7 @@ interface SpaceCardProps {
   space: Space;
   onEdit?: (space: Space) => void;
   onArchive?: (space: Space) => void;
+  onRestore?: (space: Space) => void;
   onDelete?: (space: Space) => void;
 }
 
@@ -33,17 +34,20 @@ export function SpaceCard({
   space,
   onEdit,
   onArchive,
+  onRestore,
   onDelete,
 }: SpaceCardProps): React.ReactElement {
   const { t } = useTranslation('spaces');
   const { canDo } = useRBACStore();
 
+  const canCreate = canDo('STORAGE_CREATE');
   const canUpdate = canDo('STORAGE_UPDATE');
   const canArchive = canDo('STORAGE_DELETE');
   const canDelete = canDo('STORAGE_DELETE');
 
   const showEdit = canUpdate;
   const showArchive = canArchive && space.status === 'ACTIVE';
+  const showRestore = canCreate && space.status === 'ARCHIVED';
   const showDelete = canDelete && space.status === 'ARCHIVED';
 
   return (
@@ -88,6 +92,11 @@ export function SpaceCard({
         {showArchive && onArchive && (
           <Button type="button" variant="ghost" size="sm" onClick={() => onArchive(space)}>
             {t('actions.archive')}
+          </Button>
+        )}
+        {showRestore && onRestore && (
+          <Button type="button" variant="ghost" size="sm" onClick={() => onRestore(space)}>
+            {t('actions.restore')}
           </Button>
         )}
         {showDelete && onDelete && (

@@ -162,6 +162,31 @@ describe('Given SpaceCard renders a space with role-based actions', () => {
     });
   });
 
+  describe('When the space is archived and the user has STORAGE_CREATE permission', () => {
+    it('Then Restaurar action is shown when onRestore is provided', () => {
+      mockPermissions = ALL_STORAGE;
+      const onRestore = vi.fn();
+      render(<SpaceCard space={archivedRoom} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onDelete={onDelete} />);
+      expect(screen.getByText('actions.restore')).toBeInTheDocument();
+    });
+
+    it('Then Restaurar action is not shown when onRestore is not provided', () => {
+      mockPermissions = ALL_STORAGE;
+      render(<SpaceCard space={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
+      expect(screen.queryByText('actions.restore')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('When the user clicks the Restaurar button on an archived space', () => {
+    it('Then onRestore is called with the space', async () => {
+      mockPermissions = ALL_STORAGE;
+      const onRestore = vi.fn();
+      render(<SpaceCard space={archivedRoom} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onDelete={onDelete} />);
+      await user.click(screen.getByText('actions.restore'));
+      expect(onRestore).toHaveBeenCalledWith(archivedRoom);
+    });
+  });
+
   describe('When the user is an Observer (no write permissions)', () => {
     beforeEach(() => {
       mockPermissions = READ_ONLY;

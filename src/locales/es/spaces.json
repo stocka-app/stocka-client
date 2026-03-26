@@ -31,6 +31,26 @@
     "unlimited": "Ilimitado",
     "warehouseProBadge": "STARTER+"
   },
+  "stats": {
+    "total": "Total"
+  },
+  "controls": {
+    "search": "Buscar instalación...",
+    "allStatuses": "Todos los estados",
+    "allTypes": "Todos los tipos",
+    "sortAsc": "A → Z",
+    "sortDesc": "Z → A"
+  },
+  "empty": {
+    "noSpaces": "Aún no tienes instalaciones",
+    "noSpacesSubtitle": "Crea tu primera instalación para gestionar tu inventario",
+    "createFirst": "Crear mi primera instalación",
+    "noResults": "Sin resultados",
+    "noResultsSubtitle": "Intenta ajustar tu búsqueda o eliminar los filtros activos"
+  },
+  "error": {
+    "retry": "Reintentar"
+  },
   "actions": {
     "create": "Nuevo espacio",
     "view": "Ver más",
