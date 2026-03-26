@@ -51,11 +51,13 @@
   --color-status-low-stock:     #6B7280;
   --color-status-out-of-stock:  #6B7280;
 
-  /* Surfaces */
-  --color-surface-page:     #F3F4F6;
+  /* Surfaces — all white; raised = subtle grey for section elevation */
+  --color-surface-page:     #FFFFFF;
   --color-surface-card:     #FFFFFF;
   --color-surface-sidebar:  #FFFFFF;
   --color-surface-header:   #FFFFFF;
+  --color-surface-raised:   #F3F4F6;
+  --color-surface-overlay:  #FFFFFF;
 
   /* Borders */
   --color-border:        #E5E7EB;
