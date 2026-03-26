@@ -119,15 +119,13 @@ export function AppLayout() {
         </div>
 
         {/* Warehouse / Business selector */}
-        <div className="px-3 py-3 flex-shrink-0">
-          {/* Label: visible on mobile and desktop-expanded, hidden on tablet/collapsed */}
-          <p className={cn('text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-2 px-1', labelVisible)}>
-            {t('sidebar.selectBusiness')}
-          </p>
+        <div className="px-3 pb-1 flex-shrink-0">
           <button
             className={cn(
-              'w-full flex items-center gap-3 rounded-xl border border-border dark:border-white/[0.08] px-3 py-2.5 text-sm',
+              'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm',
               'hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors',
+              'md:justify-center md:px-0',
+              !isCollapsed ? 'lg:justify-start lg:px-3' : 'lg:justify-center lg:px-0',
             )}
             aria-label={t('sidebar.myBusiness')}
             type="button"
