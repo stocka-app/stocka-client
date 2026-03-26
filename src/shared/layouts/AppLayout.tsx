@@ -298,23 +298,27 @@ export function AppLayout() {
             </button>
           </div>
         </div>
-        {/* ── Desktop: collapse toggle — floating on sidebar right edge ── */}
-        <button
-          className={cn(
-            'absolute top-[200px] right-[-12px] hidden lg:flex',
-            'h-6 w-6 items-center justify-center rounded-full',
-            'bg-white dark:bg-[#0d1526] border border-border dark:border-white/[0.12] shadow-sm',
-            'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors',
-          )}
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-3 w-3" />
-          ) : (
-            <ChevronLeft className="h-3 w-3" />
-          )}
-        </button>
+        {/* ── Desktop: collapse toggle — integrated at sidebar bottom ── */}
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-center py-3 border-t border-border">
+          <button
+            className={cn(
+              'flex items-center justify-center gap-2 rounded-xl transition-colors',
+              'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-white/5',
+              isCollapsed ? 'h-10 w-10' : 'h-10 px-4 w-full mx-3',
+            )}
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <>
+                <ChevronLeft className="h-5 w-5" />
+                <span className="text-sm font-medium">{t('sidebar.collapse')}</span>
+              </>
+            )}
+          </button>
+        </div>
       </aside>
 
       {/* ── Mobile top bar (< 768px) ── */}
