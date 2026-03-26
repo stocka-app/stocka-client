@@ -130,59 +130,60 @@ export function AppLayout() {
 
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto pt-14 pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
-          {/* Business selector with floating popover */}
-          <div ref={selectorRef} className={cn('relative mb-4', 'md:hidden', !isCollapsed && 'lg:block')}>
-            <button
-              className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
-              aria-label={t('sidebar.myBusiness')}
-              type="button"
-              onClick={() => setIsSelectorOpen((prev) => !prev)}
-            >
-              <Warehouse className="h-5 w-5 text-brand flex-shrink-0" />
-              <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
-                {t('sidebar.myBusiness')}
-              </span>
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
-                  isSelectorOpen && 'rotate-180',
-                )}
-              />
-            </button>
+        {/* Business selector — outside nav to avoid overflow-y-auto clipping the popover */}
+        <div ref={selectorRef} className={cn('relative flex-shrink-0 px-3 pb-2', 'md:hidden', !isCollapsed && 'lg:block')}>
+          <button
+            className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
+            aria-label={t('sidebar.myBusiness')}
+            type="button"
+            onClick={() => setIsSelectorOpen((prev) => !prev)}
+          >
+            <Warehouse className="h-5 w-5 text-brand flex-shrink-0" />
+            <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
+              {t('sidebar.myBusiness')}
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
+                isSelectorOpen && 'rotate-180',
+              )}
+            />
+          </button>
 
-            {isSelectorOpen && (
-              <div className="absolute left-full top-0 ml-2 z-50 w-52 rounded-xl border border-border bg-surface-card shadow-dropdown overflow-hidden">
-                <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                  {t('sidebar.selectBusiness')}
-                </p>
-                <div className="p-1.5 space-y-0.5">
-                  {[
-                    { label: 'Mi Negocio', active: true },
-                    { label: 'Tienda Norte', active: false },
-                    { label: 'Sucursal Centro', active: false },
-                  ].map(({ label, active }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => setIsSelectorOpen(false)}
-                      className={cn(
-                        'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors flex items-center gap-2',
-                        active
-                          ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-semibold'
-                          : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
-                      )}
-                    >
-                      {active && <span className="h-1.5 w-1.5 rounded-full bg-brand flex-shrink-0" />}
-                      {!active && <span className="h-1.5 w-1.5 flex-shrink-0" />}
-                      {label}
-                    </button>
-                  ))}
-                </div>
+          {isSelectorOpen && (
+            <div className="absolute left-full top-0 ml-2 z-50 w-52 rounded-xl border border-border bg-surface-card shadow-dropdown overflow-hidden">
+              <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                {t('sidebar.selectBusiness')}
+              </p>
+              <div className="p-1.5 space-y-0.5">
+                {[
+                  { label: 'Mi Negocio', active: true },
+                  { label: 'Tienda Norte', active: false },
+                  { label: 'Sucursal Centro', active: false },
+                ].map(({ label, active }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setIsSelectorOpen(false)}
+                    className={cn(
+                      'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors flex items-center gap-2',
+                      active
+                        ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-semibold'
+                        : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
+                    )}
+                  >
+                    {active && <span className="h-1.5 w-1.5 rounded-full bg-brand flex-shrink-0" />}
+                    {!active && <span className="h-1.5 w-1.5 flex-shrink-0" />}
+                    {label}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
           {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
               key={key}
