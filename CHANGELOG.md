@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.19](https://github.com/stocka-app/stocka-client/compare/v0.12.18...v0.12.19) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — replace floating collapse toggle with integrated bottom button ([8f3c3e9](https://github.com/stocka-app/stocka-client/commit/8f3c3e99a93fe99f0cf6a9542a54dbd8424cfd98))
+
 ## [0.12.18](https://github.com/stocka-app/stocka-client/compare/v0.12.17...v0.12.18) (2026-03-26)
 
 ### 🐛 Bug Fixes
