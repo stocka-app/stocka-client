@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.10](https://github.com/stocka-app/stocka-client/compare/v0.12.9...v0.12.10) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — fix business selector arrow rotation to 180deg ([6578a97](https://github.com/stocka-app/stocka-client/commit/6578a979bf76dd7a778350b2d0a9042ba39dc52e))
+
 ## [0.12.9](https://github.com/stocka-app/stocka-client/compare/v0.12.8...v0.12.9) (2026-03-26)
 
 ### 🐛 Bug Fixes
