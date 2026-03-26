@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.11.4](https://github.com/stocka-app/stocka-client/compare/v0.11.3...v0.11.4) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **ui:** [dark-mode] increase surface-raised contrast and fix shadow-sm ([338618b](https://github.com/stocka-app/stocka-client/commit/338618b015e6c04598c9004f37bdccbacc5e0844)), closes [#1e2d42](https://github.com/stocka-app/stocka-client/issues/1e2d42) [#182437](https://github.com/stocka-app/stocka-client/issues/182437) [#1f3352](https://github.com/stocka-app/stocka-client/issues/1f3352)
+
 ## [0.11.3](https://github.com/stocka-app/stocka-client/compare/v0.11.2...v0.11.3) (2026-03-26)
 
 ### 🐛 Bug Fixes
