@@ -112,9 +112,9 @@ export default {
       },
 
       fontFamily: {
-        app:  ["var(--font-app)", "sans-serif"],
+        app:  ["Inter", "sans-serif"],
         authentication: ["var(--font-authentication)", "sans-serif"],
-        sans: ["var(--font-app)", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
       },
 
       borderRadius: {
