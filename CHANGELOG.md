@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.14](https://github.com/stocka-app/stocka-client/compare/v0.12.13...v0.12.14) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — move collapse toggle away from business selector arrow ([4855bb0](https://github.com/stocka-app/stocka-client/commit/4855bb0590e1245ba6695e59a6c0056f016b7cf3))
+
 ## [0.12.13](https://github.com/stocka-app/stocka-client/compare/v0.12.12...v0.12.13) (2026-03-26)
 
 ### 🐛 Bug Fixes
