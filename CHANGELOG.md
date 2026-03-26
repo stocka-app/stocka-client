@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.9](https://github.com/stocka-app/stocka-client/compare/v0.12.8...v0.12.9) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — replace ChevronDown with ChevronRight on business selector ([d27e236](https://github.com/stocka-app/stocka-client/commit/d27e236023afaf54d3fe2e8725a76882f8907804))
+
 ## [0.12.8](https://github.com/stocka-app/stocka-client/compare/v0.12.7...v0.12.8) (2026-03-26)
 
 ### 🐛 Bug Fixes
