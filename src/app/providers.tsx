@@ -6,6 +6,7 @@ import { authenticationService } from '@/features/authentication/api/authenticat
 import { setAccessToken } from '@/shared/lib/axios';
 import { extractTenantContext } from '@/shared/lib/jwt';
 import { useThemeStore } from '@/store/theme.store';
+import { Toaster } from 'sonner';
 
 // Import i18n configuration
 import '@/shared/lib/i18n';
@@ -127,6 +128,7 @@ export function Providers({ children }: ProvidersProps) {
     <ThemeInitializer>
       <AuthInitializer>
         <RouterProvider router={router} />
+        <Toaster richColors position="top-right" />
         {children}
       </AuthInitializer>
     </ThemeInitializer>

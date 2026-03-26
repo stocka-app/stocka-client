@@ -22,9 +22,9 @@ describe('ThemeToggle', () => {
 
   describe('Given the user is in light mode', () => {
     describe('When ThemeToggle renders', () => {
-      it('Then it shows the dark_mode icon', () => {
-        render(<ThemeToggle />);
-        expect(screen.getByText('dark_mode')).toBeInTheDocument();
+      it('Then it shows the Moon icon', () => {
+        const { container } = render(<ThemeToggle />);
+        expect(container.querySelector('svg')).toBeInTheDocument();
       });
 
       it('Then the aria-label says "Switch to dark mode"', () => {
@@ -48,9 +48,9 @@ describe('ThemeToggle', () => {
     });
 
     describe('When ThemeToggle renders', () => {
-      it('Then it shows the light_mode icon', () => {
-        render(<ThemeToggle />);
-        expect(screen.getByText('light_mode')).toBeInTheDocument();
+      it('Then it shows the Sun icon', () => {
+        const { container } = render(<ThemeToggle />);
+        expect(container.querySelector('svg')).toBeInTheDocument();
       });
 
       it('Then the aria-label says "Switch to light mode"', () => {
