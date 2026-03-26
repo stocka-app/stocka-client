@@ -119,10 +119,10 @@ export function AppLayout() {
         </div>
 
         {/* Warehouse / Business selector */}
-        <div className="px-3 pb-1 flex-shrink-0">
+        <div className="px-3 pb-2 flex-shrink-0">
           <button
             className={cn(
-              'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm',
+              'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-base',
               'hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors',
               'md:justify-center md:px-0',
               !isCollapsed ? 'lg:justify-start lg:px-3' : 'lg:justify-center lg:px-0',
@@ -130,10 +130,10 @@ export function AppLayout() {
             aria-label={t('sidebar.myBusiness')}
             type="button"
           >
-            <Warehouse className="h-4 w-4 text-brand flex-shrink-0" />
+            <Warehouse className="h-5 w-5 text-brand flex-shrink-0" />
             <span
               className={cn(
-                'text-neutral-700 dark:text-neutral-200 font-semibold truncate flex-1 text-left',
+                'text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -142,7 +142,7 @@ export function AppLayout() {
             </span>
             <ChevronDown
               className={cn(
-                'h-3.5 w-3.5 text-neutral-400 flex-shrink-0',
+                'h-4 w-4 text-neutral-400 flex-shrink-0',
                 'md:hidden',
                 !isCollapsed && 'lg:block',
               )}
@@ -151,7 +151,7 @@ export function AppLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto pt-2 pb-3 space-y-0.5 px-3" aria-label={t('sidebar.nav')}>
+        <nav className="flex-1 overflow-y-auto pt-1 pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
           {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
               key={key}
@@ -159,12 +159,12 @@ export function AppLayout() {
               title={isCollapsed ? t(`nav.${key}`) : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-4 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
+                  'flex items-center gap-4 rounded-xl px-4 py-3 text-base transition-colors',
                   'md:justify-center md:gap-0 md:px-0',
                   !isCollapsed ? 'lg:justify-start lg:gap-4 lg:px-4' : 'lg:justify-center lg:gap-0 lg:px-0',
                   isActive
-                    ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
+                    ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-semibold'
+                    : 'font-normal text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
                 )
               }
             >
@@ -175,7 +175,7 @@ export function AppLayout() {
               {hasSubNav && (
                 <ChevronRight
                   className={cn(
-                    'h-3.5 w-3.5 flex-shrink-0 text-neutral-400',
+                    'h-4 w-4 flex-shrink-0 text-neutral-400',
                     'md:hidden',
                     !isCollapsed && 'lg:block',
                   )}
