@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.16](https://github.com/stocka-app/stocka-client/compare/v0.12.15...v0.12.16) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — normalize avatar and logout to design system tokens and icon sizes ([5715aa3](https://github.com/stocka-app/stocka-client/commit/5715aa3f5d2ad84a3da1c33549d8f45553824108))
+
 ## [0.12.15](https://github.com/stocka-app/stocka-client/compare/v0.12.14...v0.12.15) (2026-03-26)
 
 ### 🐛 Bug Fixes
