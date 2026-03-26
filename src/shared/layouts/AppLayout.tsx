@@ -49,6 +49,8 @@ export function AppLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState('Mi Negocio');
+  const businesses = ['Mi Negocio', 'Tienda Norte', 'Sucursal Centro'];
   const selectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,23 +132,30 @@ export function AppLayout() {
         </div>
 
         {/* Business selector — outside nav to avoid overflow-y-auto clipping the popover */}
-        <div ref={selectorRef} className={cn('relative flex-shrink-0 px-3 pt-2 pb-2', 'md:hidden', !isCollapsed && 'lg:block')}>
+        <div ref={selectorRef} className={cn('relative flex-shrink-0 px-3 pt-2 pb-2', 'md:hidden', 'lg:block')}>
           <button
-            className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
-            aria-label={t('sidebar.myBusiness')}
+            className={cn(
+              'w-full flex items-center rounded-xl py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors',
+              isCollapsed ? 'justify-center px-0' : 'gap-3 px-3',
+            )}
+            aria-label={selectedBusiness}
             type="button"
             onClick={() => setIsSelectorOpen((prev) => !prev)}
           >
             <Warehouse className="h-5 w-5 text-brand flex-shrink-0" />
-            <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
-              {t('sidebar.myBusiness')}
-            </span>
-            <ChevronRight
-              className={cn(
-                'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
-                isSelectorOpen && 'rotate-180',
-              )}
-            />
+            {!isCollapsed && (
+              <>
+                <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
+                  {selectedBusiness}
+                </span>
+                <ChevronRight
+                  className={cn(
+                    'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
+                    isSelectorOpen && 'rotate-180',
+                  )}
+                />
+              </>
+            )}
           </button>
 
           {isSelectorOpen && (
@@ -155,27 +164,25 @@ export function AppLayout() {
                 {t('sidebar.selectBusiness')}
               </p>
               <div className="p-1.5 space-y-0.5">
-                {[
-                  { label: 'Mi Negocio', active: true },
-                  { label: 'Tienda Norte', active: false },
-                  { label: 'Sucursal Centro', active: false },
-                ].map(({ label, active }) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setIsSelectorOpen(false)}
-                    className={cn(
-                      'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors flex items-center gap-2',
-                      active
-                        ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-semibold'
-                        : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
-                    )}
-                  >
-                    {active && <span className="h-1.5 w-1.5 rounded-full bg-brand flex-shrink-0" />}
-                    {!active && <span className="h-1.5 w-1.5 flex-shrink-0" />}
-                    {label}
-                  </button>
-                ))}
+                {businesses.map((label) => {
+                  const isActive = label === selectedBusiness;
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => { setSelectedBusiness(label); setIsSelectorOpen(false); }}
+                      className={cn(
+                        'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors flex items-center gap-2',
+                        isActive
+                          ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-semibold'
+                          : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
+                      )}
+                    >
+                      <span className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', isActive ? 'bg-brand' : 'bg-transparent')} />
+                      {label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
