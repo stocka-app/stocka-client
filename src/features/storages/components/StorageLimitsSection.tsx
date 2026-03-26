@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
 import { useRBACStore } from '@/store/rbac.store';
 import { useTierGate } from '@/shared/hooks/useTierGate';
-import { STORAGE_TIER_LIMITS } from '../types/storages.types';
+import { useCapabilities } from '../hooks/useCapabilities';
 import type { Storage, StorageType } from '../types/storages.types';
 
 interface StorageLimitsSectionProps {
@@ -33,9 +33,9 @@ export function StorageLimitsSection({ storages }: StorageLimitsSectionProps): R
   const { t } = useTranslation('storages');
   const { tier } = useRBACStore();
   const { openUpgradeModal } = useTierGate();
+  const { limits } = useCapabilities();
 
   const effectiveTier = tier ?? 'FREE';
-  const limits = STORAGE_TIER_LIMITS[effectiveTier];
 
   return (
     <div className="rounded-lg border border-border bg-surface-card p-4">

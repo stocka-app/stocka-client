@@ -1,7 +1,7 @@
 import axiosInstance from '@/shared/lib/axios';
 import { storageSchema, storagesListSchema } from '../schemas/storages.schema';
 import type { CreateStorageFormData, UpdateStorageFormData } from '../schemas/storages.schema';
-import type { Storage } from '../types/storages.types';
+import type { Storage, TenantCapabilities } from '../types/storages.types';
 
 export const storagesService = {
   async list(): Promise<Storage[]> {
@@ -27,5 +27,10 @@ export const storagesService = {
   async restore(id: string): Promise<Storage> {
     const { data } = await axiosInstance.post(`/storages/${id}/restore`);
     return storageSchema.parse(data);
+  },
+
+  async fetchCapabilities(): Promise<TenantCapabilities> {
+    const { data } = await axiosInstance.get<TenantCapabilities>('/tenants/me/capabilities');
+    return data;
   },
 };
