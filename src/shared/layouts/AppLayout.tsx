@@ -91,14 +91,14 @@ export function AppLayout() {
         aria-label={t('sidebar.ariaLabel')}
       >
         {/* Logo + collapse toggle */}
-        <div className="flex h-16 items-center justify-between px-4 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 pt-6 pb-4 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-8 w-8 bg-brand rounded-lg flex items-center justify-center flex-shrink-0 dark:shadow-glow-brand">
-              <StockaIcon className="h-[18px] w-[18px] text-white" />
+            <div className="h-10 w-10 bg-brand rounded-xl flex items-center justify-center flex-shrink-0 dark:shadow-glow-brand">
+              <StockaIcon className="h-[22px] w-[22px] text-white" />
             </div>
             <span
               className={cn(
-                'text-lg font-bold tracking-tight text-neutral-900 dark:text-white truncate',
+                'text-xl font-bold tracking-tight text-neutral-900 dark:text-white truncate',
                 'md:hidden',
                 !isCollapsed && 'lg:inline',
               )}
@@ -151,7 +151,7 @@ export function AppLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-3" aria-label={t('sidebar.nav')}>
+        <nav className="flex-1 overflow-y-auto pt-2 pb-3 space-y-0.5 px-3" aria-label={t('sidebar.nav')}>
           {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
               key={key}
