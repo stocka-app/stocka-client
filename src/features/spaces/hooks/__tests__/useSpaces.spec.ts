@@ -283,6 +283,22 @@ describe('Given useSpaces with mixed-status spaces (ACTIVE, FROZEN, ARCHIVED)', 
     });
   });
 
+  describe('When filterByStatus FROZEN and filterByName bodega are both applied', () => {
+    it('Then filteredSpaces returns only frozen spaces whose name contains bodega', async () => {
+      const { result } = renderHook(() => useSpaces());
+      await waitFor(() => expect(result.current.spaces.length).toBeGreaterThan(0));
+
+      act(() => {
+        result.current.setFilterStatus('FROZEN');
+        result.current.setSearchQuery('bodega');
+      });
+
+      expect(result.current.filteredSpaces).toHaveLength(1);
+      expect(result.current.filteredSpaces[0].uuid).toBe('space-frozen-1');
+      expect(result.current.filteredSpaces[0].status).toBe('FROZEN');
+    });
+  });
+
   describe('When setSortOrder is set to desc', () => {
     it('Then filteredSpaces is sorted Z→A by name', async () => {
       const { result } = renderHook(() => useSpaces());
