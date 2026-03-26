@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.8](https://github.com/stocka-app/stocka-client/compare/v0.12.7...v0.12.8) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** [STOC-255](https://austins-industries.atlassian.net/browse/STOC-255) — move business selector outside nav to fix popover overflow clipping ([705222f](https://github.com/stocka-app/stocka-client/commit/705222fa8694747d2a15562e259d8bade3949655))
+
 ## [0.12.7](https://github.com/stocka-app/stocka-client/compare/v0.12.6...v0.12.7) (2026-03-26)
 
 ### 🐛 Bug Fixes
