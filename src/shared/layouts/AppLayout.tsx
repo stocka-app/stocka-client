@@ -238,7 +238,7 @@ export function AppLayout() {
             type="button"
             onClick={handleLogout}
             title={t('sidebar.logout')}
-            className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all overflow-hidden"
+            className="h-9 w-9 rounded-full bg-brand/10 dark:bg-brand/20 text-brand flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-brand/50 transition-all overflow-hidden"
             aria-label={t('sidebar.logout')}
           >
             <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
@@ -258,7 +258,7 @@ export function AppLayout() {
             <button
               type="button"
               aria-label={t('sidebar.notifications')}
-              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              className="h-9 w-9 flex items-center justify-center rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
             >
               <Bell className="h-5 w-5" />
             </button>
@@ -268,7 +268,7 @@ export function AppLayout() {
 
           {/* User row */}
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
+            <div className="h-9 w-9 rounded-full bg-brand/10 dark:bg-brand/20 text-brand flex items-center justify-center text-xs font-bold flex-shrink-0 overflow-hidden">
               <AvatarWithFallback avatarUrl={user?.avatarUrl} initials={userInitials} className="h-9 w-9" />
             </div>
             <div className="flex-1 min-w-0">
@@ -284,10 +284,10 @@ export function AppLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
+              className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors"
               aria-label={t('sidebar.logout')}
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-5 w-5" />
             </button>
           </div>
         </div>
