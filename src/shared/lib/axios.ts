@@ -27,6 +27,25 @@ export function getAccessToken(): string | null {
 // Nombre de la clave de persistencia de Zustand
 const AUTH_STORAGE_KEY = 'authentication-storage';
 
+// ─── Refresh lock ──────────────────────────────────────────────────────────────
+// Prevents concurrent 401 errors from each triggering their own refresh.
+// All requests that fail with 401 while a refresh is in flight are queued and
+// retried together once the single refresh completes.
+
+let isRefreshing = false;
+let refreshQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}> = [];
+
+function processRefreshQueue(error: unknown, token: string | null): void {
+  refreshQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token as string);
+  });
+  refreshQueue = [];
+}
+
 /**
  * Cliente HTTP configurado para el backend de Stocka
  * withCredentials: true → el navegador envía la cookie httpOnly refresh_token automáticamente
@@ -137,6 +156,22 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
+      // If a refresh is already in flight, queue this request and wait.
+      if (isRefreshing) {
+        return new Promise<string>((resolve, reject) => {
+          refreshQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
+          .catch((err: unknown) => Promise.reject(err));
+      }
+
+      isRefreshing = true;
+
       try {
         // La cookie refresh_token se envía automáticamente por el navegador.
         // No incluir Authorization header — este endpoint es público.
@@ -148,8 +183,11 @@ api.interceptors.response.use(
 
         // El backend devuelve { data: { accessToken }, success: true }
         const responseData = response.data?.data ?? response.data;
-        const { accessToken } = responseData;
+        const { accessToken } = responseData as { accessToken: string };
         inMemoryAccessToken = accessToken;
+
+        // Unblock all queued requests with the fresh token.
+        processRefreshQueue(null, accessToken);
 
         // Reintentar la petición original con el nuevo access token
         if (originalRequest.headers) {
@@ -158,9 +196,12 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         // Refresh falló (cookie expirada o inválida) → limpiar estado y redirigir a login
+        processRefreshQueue(refreshError, null);
         clearAuthStorage();
         window.location.href = '/authentication/sign-in';
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
