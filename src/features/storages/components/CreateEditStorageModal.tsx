@@ -31,7 +31,7 @@ export function CreateEditStorageModal({
   onClose,
   onSave,
 }: CreateEditStorageModalProps): React.ReactElement | null {
-  const { t } = useTranslation('installations');
+  const { t } = useTranslation('storages');
   const { tier } = useRBACStore();
   const { openUpgradeModal } = useTierGate();
   const isEdit = Boolean(storage);

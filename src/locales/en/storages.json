@@ -1,7 +1,7 @@
 {
   "page": {
-    "title": "Installations",
-    "subtitle": "Manage your storage installations"
+    "title": "Storages",
+    "subtitle": "Manage your storages"
   },
   "tabs": {
     "active": "Active",
@@ -12,8 +12,8 @@
     "type": "Type",
     "address": "Address",
     "actions": "Actions",
-    "empty": "No installations found",
-    "emptyArchived": "No archived installations"
+    "empty": "No storages found",
+    "emptyArchived": "No archived storages"
   },
   "types": {
     "CUSTOM_ROOM": "Custom Room",
@@ -26,7 +26,7 @@
     "ARCHIVED": "Archived"
   },
   "limits": {
-    "title": "Installation limits",
+    "title": "Storage limits",
     "used": "{{used}} of {{max}}",
     "unlimited": "Unlimited",
     "warehouseProBadge": "STARTER+"
@@ -35,16 +35,16 @@
     "total": "Total"
   },
   "controls": {
-    "search": "Search installations...",
+    "search": "Search storages...",
     "allStatuses": "All statuses",
     "allTypes": "All types",
     "sortAsc": "A → Z",
     "sortDesc": "Z → A"
   },
   "empty": {
-    "noInstallations": "No installations yet",
-    "noInstallationsSubtitle": "Create your first installation to start managing your inventory",
-    "createFirst": "Create my first installation",
+    "noStorages": "No storages yet",
+    "noStoragesSubtitle": "Create your first storage to start managing your inventory",
+    "createFirst": "Create my first storage",
     "noResults": "No results",
     "noResultsSubtitle": "Try adjusting your search or removing the active filters"
   },
@@ -52,11 +52,11 @@
     "retry": "Retry"
   },
   "upgrade": {
-    "title": "Upgrade your plan to unlock more installations",
+    "title": "Upgrade your plan to unlock more storages",
     "cta": "Upgrade now"
   },
   "actions": {
-    "create": "New installation",
+    "create": "New storage",
     "view": "View",
     "edit": "Edit",
     "archive": "Archive",
@@ -64,8 +64,8 @@
     "delete": "Delete"
   },
   "createModal": {
-    "titleCreate": "New installation",
-    "titleEdit": "Edit installation",
+    "titleCreate": "New storage",
+    "titleEdit": "Edit storage",
     "name": "Name",
     "namePlaceholder": "e.g. Main Warehouse",
     "type": "Type",
@@ -77,28 +77,28 @@
     "cancel": "Cancel"
   },
   "archiveModal": {
-    "title": "Archive installation",
+    "title": "Archive storage",
     "description": "Are you sure you want to archive {{name}}? It will no longer appear in active views.",
-    "lastActiveWarning": "This is the last active {{type}} installation. You cannot archive it.",
+    "lastActiveWarning": "This is the last active {{type}} storage. You cannot archive it.",
     "confirm": "Archive",
     "cancel": "Cancel"
   },
   "restoreModal": {
-    "title": "Restore installation",
+    "title": "Restore storage",
     "description": "Restore {{name}} to active status?",
-    "tierLimitWarning": "Restoring this installation would exceed your tier limit for {{type}}.",
+    "tierLimitWarning": "Restoring this storage would exceed your tier limit for {{type}}.",
     "confirm": "Restore",
     "cancel": "Cancel"
   },
   "errors": {
-    "nameTaken": "An installation with this name already exists",
-    "loadFailed": "Failed to load installations",
-    "saveFailed": "Failed to save installation",
-    "archiveFailed": "Failed to archive installation",
-    "restoreFailed": "Failed to restore installation"
+    "nameTaken": "A storage with this name already exists",
+    "loadFailed": "Failed to load storages",
+    "saveFailed": "Failed to save storage",
+    "archiveFailed": "Failed to archive storage",
+    "restoreFailed": "Failed to restore storage"
   },
   "toast": {
     "restored": "{{name}} restored",
-    "restoreFailed": "Could not restore installation"
+    "restoreFailed": "Could not restore storage"
   }
 }

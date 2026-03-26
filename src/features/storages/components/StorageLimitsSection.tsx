@@ -30,7 +30,7 @@ function getProgressPercent(used: number, max: number): number {
  * opens the UpgradeModal instead of showing a progress bar.
  */
 export function StorageLimitsSection({ storages }: StorageLimitsSectionProps): React.ReactElement {
-  const { t } = useTranslation('installations');
+  const { t } = useTranslation('storages');
   const { tier } = useRBACStore();
   const { openUpgradeModal } = useTierGate();
 

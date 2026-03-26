@@ -9,7 +9,7 @@ import enLayout from '@/locales/en/layout.json';
 import enOnboarding from '@/locales/en/onboarding.json';
 import enOrganization from '@/locales/en/organization.json';
 import enTeam from '@/locales/en/team.json';
-import enInstallations from '@/locales/en/installations.json';
+import enStorages from '@/locales/en/storages.json';
 import enPrivacy from '@/locales/en/privacy.json';
 import esCommon from '@/locales/es/common.json';
 import esAuthentication from '@/locales/es/authentication.json';
@@ -17,7 +17,7 @@ import esLayout from '@/locales/es/layout.json';
 import esOnboarding from '@/locales/es/onboarding.json';
 import esOrganization from '@/locales/es/organization.json';
 import esTeam from '@/locales/es/team.json';
-import esInstallations from '@/locales/es/installations.json';
+import esStorages from '@/locales/es/storages.json';
 import esPrivacy from '@/locales/es/privacy.json';
 
 const resources = {
@@ -28,7 +28,7 @@ const resources = {
     onboarding: enOnboarding,
     organization: enOrganization,
     team: enTeam,
-    installations: enInstallations,
+    storages: enStorages,
     privacy: enPrivacy,
   },
   es: {
@@ -38,7 +38,7 @@ const resources = {
     onboarding: esOnboarding,
     organization: esOrganization,
     team: esTeam,
-    installations: esInstallations,
+    storages: esStorages,
     privacy: esPrivacy,
   },
 };
@@ -50,7 +50,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'common',
-    ns: ['common', 'authentication', 'layout', 'onboarding', 'organization', 'team', 'installations', 'privacy'],
+    ns: ['common', 'authentication', 'layout', 'onboarding', 'organization', 'team', 'storages', 'privacy'],
     interpolation: {
       escapeValue: false,
     },

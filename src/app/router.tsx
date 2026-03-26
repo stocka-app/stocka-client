@@ -182,7 +182,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/installations',
+        path: '/storages',
         element: (
           <ErrorBoundary context="inline">
             <Suspense fallback={<PageLoader />}>

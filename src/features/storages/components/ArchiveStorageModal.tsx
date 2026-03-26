@@ -5,7 +5,7 @@ import type { Storage } from '../types/storages.types';
 interface ArchiveStorageModalProps {
   open: boolean;
   storage: Storage | null;
-  /** False if this is the last active installation of its type — blocks archiving */
+  /** False if this is the last active storage of its type — blocks archiving */
   canArchive: boolean;
   onClose: () => void;
   onConfirm: () => Promise<void>;
@@ -14,7 +14,7 @@ interface ArchiveStorageModalProps {
 /**
  * ArchiveStorageModal
  *
- * Confirms archiving a installation. Shows a blocking warning when the installation is the
+ * Confirms archiving a storage. Shows a blocking warning when the storage is the
  * last active one of its type, preventing accidental data isolation.
  */
 export function ArchiveStorageModal({
@@ -24,7 +24,7 @@ export function ArchiveStorageModal({
   onClose,
   onConfirm,
 }: ArchiveStorageModalProps): React.ReactElement | null {
-  const { t } = useTranslation('installations');
+  const { t } = useTranslation('storages');
 
   if (!open || !storage) return null;
 
