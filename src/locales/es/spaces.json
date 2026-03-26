@@ -20,6 +20,11 @@
     "STORE_ROOM": "Cuarto de almacén",
     "WAREHOUSE": "Bodega"
   },
+  "statuses": {
+    "ACTIVE": "Activo",
+    "FROZEN": "Congelado",
+    "ARCHIVED": "Archivado"
+  },
   "limits": {
     "title": "Límites de espacios",
     "used": "{{used}} de {{max}}",
@@ -28,9 +33,11 @@
   },
   "actions": {
     "create": "Nuevo espacio",
+    "view": "Ver más",
     "edit": "Editar",
     "archive": "Archivar",
-    "restore": "Restaurar"
+    "restore": "Restaurar",
+    "delete": "Eliminar"
   },
   "createModal": {
     "titleCreate": "Nuevo espacio",

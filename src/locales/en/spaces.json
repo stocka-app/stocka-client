@@ -20,6 +20,11 @@
     "STORE_ROOM": "Store Room",
     "WAREHOUSE": "Warehouse"
   },
+  "statuses": {
+    "ACTIVE": "Active",
+    "FROZEN": "Frozen",
+    "ARCHIVED": "Archived"
+  },
   "limits": {
     "title": "Space limits",
     "used": "{{used}} of {{max}}",
@@ -28,9 +33,11 @@
   },
   "actions": {
     "create": "New space",
+    "view": "View",
     "edit": "Edit",
     "archive": "Archive",
-    "restore": "Restore"
+    "restore": "Restore",
+    "delete": "Delete"
   },
   "createModal": {
     "titleCreate": "New space",
