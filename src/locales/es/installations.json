@@ -1,0 +1,104 @@
+{
+  "page": {
+    "title": "Instalaciones",
+    "subtitle": "Gestiona tus instalaciones de almacenamiento"
+  },
+  "tabs": {
+    "active": "Activos",
+    "archived": "Archivados"
+  },
+  "table": {
+    "name": "Nombre",
+    "type": "Tipo",
+    "address": "Dirección",
+    "actions": "Acciones",
+    "empty": "No hay instalaciones",
+    "emptyArchived": "No hay instalaciones archivadas"
+  },
+  "types": {
+    "CUSTOM_ROOM": "Cuarto personalizado",
+    "STORE_ROOM": "Cuarto de almacén",
+    "WAREHOUSE": "Bodega"
+  },
+  "statuses": {
+    "ACTIVE": "Activo",
+    "FROZEN": "Congelado",
+    "ARCHIVED": "Archivado"
+  },
+  "limits": {
+    "title": "Límites de instalaciones",
+    "used": "{{used}} de {{max}}",
+    "unlimited": "Ilimitado",
+    "warehouseProBadge": "STARTER+"
+  },
+  "stats": {
+    "total": "Total"
+  },
+  "controls": {
+    "search": "Buscar instalación...",
+    "allStatuses": "Todos los estados",
+    "allTypes": "Todos los tipos",
+    "sortAsc": "A → Z",
+    "sortDesc": "Z → A"
+  },
+  "empty": {
+    "noInstallations": "Aún no tienes instalaciones",
+    "noInstallationsSubtitle": "Crea tu primera instalación para gestionar tu inventario",
+    "createFirst": "Crear mi primera instalación",
+    "noResults": "Sin resultados",
+    "noResultsSubtitle": "Intenta ajustar tu búsqueda o eliminar los filtros activos"
+  },
+  "error": {
+    "retry": "Reintentar"
+  },
+  "upgrade": {
+    "title": "Actualiza tu plan para desbloquear más instalaciones",
+    "cta": "Actualizar plan"
+  },
+  "actions": {
+    "create": "Nueva instalación",
+    "view": "Ver más",
+    "edit": "Editar",
+    "archive": "Archivar",
+    "restore": "Restaurar",
+    "delete": "Eliminar"
+  },
+  "createModal": {
+    "titleCreate": "Nueva instalación",
+    "titleEdit": "Editar instalación",
+    "name": "Nombre",
+    "namePlaceholder": "p. ej. Bodega Principal",
+    "type": "Tipo",
+    "address": "Dirección",
+    "addressPlaceholder": "Calle, Ciudad, CP",
+    "addressRequired": "Requerida para Bodega",
+    "warehouseDisabled": "Disponible en STARTER o superior",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "archiveModal": {
+    "title": "Archivar instalación",
+    "description": "¿Deseas archivar {{name}}? Dejará de aparecer en las vistas activas.",
+    "lastActiveWarning": "Esta es la última instalación activa de tipo {{type}}. No puedes archivarla.",
+    "confirm": "Archivar",
+    "cancel": "Cancelar"
+  },
+  "restoreModal": {
+    "title": "Restaurar instalación",
+    "description": "¿Restaurar {{name}} a estado activo?",
+    "tierLimitWarning": "Restaurar esta instalación excedería el límite de tu plan para {{type}}.",
+    "confirm": "Restaurar",
+    "cancel": "Cancelar"
+  },
+  "errors": {
+    "nameTaken": "Ya existe una instalación con ese nombre",
+    "loadFailed": "Error al cargar las instalaciones",
+    "saveFailed": "Error al guardar la instalación",
+    "archiveFailed": "Error al archivar la instalación",
+    "restoreFailed": "Error al restaurar la instalación"
+  },
+  "toast": {
+    "restored": "{{name}} restaurada",
+    "restoreFailed": "No se pudo restaurar la instalación"
+  }
+}
