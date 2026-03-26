@@ -4,6 +4,13 @@ import { api } from '@/shared/lib/axios';
 import type { RBACAction, TenantRole, TenantTier, TenantStatus } from '@/features/team/types/team.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// In-flight guard — prevents concurrent loadPermissions calls.
+// Same pattern as hydrationStarted in providers.tsx.
+// Reset to false in finally so subsequent calls (e.g. after role change) work.
+// ─────────────────────────────────────────────────────────────────────────────
+let permissionsInflight = false;
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Store interface
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -82,6 +89,8 @@ export const useRBACStore = create<RBACStore>()(
        * GET /api/rbac/my-permissions
        */
       loadPermissions: async (): Promise<void> => {
+        if (permissionsInflight) return;
+        permissionsInflight = true;
         try {
           const response = await api.get('/rbac/my-permissions');
           const data = response.data as {
@@ -100,6 +109,8 @@ export const useRBACStore = create<RBACStore>()(
           });
         } catch {
           // Graceful degradation: if API is unavailable, keep existing state
+        } finally {
+          permissionsInflight = false;
         }
       },
 
