@@ -10,11 +10,12 @@ export interface ListStoragesParams {
   sortOrder?: 'ASC' | 'DESC';
   status?: StorageStatus;
   type?: StorageType;
+  signal?: AbortSignal;
 }
 
 export const storagesService = {
-  async list(params: ListStoragesParams = {}): Promise<StoragesPage> {
-    const { data } = await axiosInstance.get('/storages', { params });
+  async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
+    const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
     return storagesPageSchema.parse(data);
   },
 
