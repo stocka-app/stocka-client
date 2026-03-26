@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.12.5](https://github.com/stocka-app/stocka-client/compare/v0.12.4...v0.12.5) (2026-03-26)
+
+### 🐛 Bug Fixes
+
+* **layout:** move business selector into nav, add visual options preview ([635f862](https://github.com/stocka-app/stocka-client/commit/635f86215f914189d9ed3ffac47439bb01a28b6e))
+
 ## [0.12.4](https://github.com/stocka-app/stocka-client/compare/v0.12.3...v0.12.4) (2026-03-26)
 
 ### 🐛 Bug Fixes
