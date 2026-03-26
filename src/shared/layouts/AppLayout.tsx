@@ -294,7 +294,7 @@ export function AppLayout() {
         {/* ── Desktop: collapse toggle — floating on sidebar right edge ── */}
         <button
           className={cn(
-            'absolute top-[96px] right-[-12px] hidden lg:flex',
+            'absolute top-[200px] right-[-12px] hidden lg:flex',
             'h-6 w-6 items-center justify-center rounded-full',
             'bg-white dark:bg-[#0d1526] border border-border dark:border-white/[0.12] shadow-sm',
             'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors',
