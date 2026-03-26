@@ -49,6 +49,7 @@ export function AppLayout() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -120,40 +121,48 @@ export function AppLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto pt-14 pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
-          {/* Business selector with options */}
+          {/* Business selector */}
           <div className={cn('mb-4', 'md:hidden', !isCollapsed && 'lg:block')}>
             <button
               className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
               aria-label={t('sidebar.myBusiness')}
               type="button"
+              onClick={() => setIsSelectorOpen((prev) => !prev)}
             >
               <Warehouse className="h-5 w-5 text-brand flex-shrink-0" />
               <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
                 {t('sidebar.myBusiness')}
               </span>
-              <ChevronDown className="h-4 w-4 text-neutral-400 flex-shrink-0" />
+              <ChevronDown
+                className={cn(
+                  'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
+                  isSelectorOpen && 'rotate-180',
+                )}
+              />
             </button>
-            {/* Selector options (visual preview) */}
-            <div className="mt-1 ml-2 pl-6 border-l border-border space-y-0.5">
-              {[
-                { label: 'Mi Negocio', active: true },
-                { label: 'Tienda Norte', active: false },
-                { label: 'Sucursal Centro', active: false },
-              ].map(({ label, active }) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={cn(
-                    'w-full text-left rounded-lg px-3 py-2 text-sm transition-colors',
-                    active
-                      ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-medium'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+
+            {isSelectorOpen && (
+              <div className="mt-1 ml-2 pl-6 border-l border-border space-y-0.5">
+                {[
+                  { label: 'Mi Negocio', active: true },
+                  { label: 'Tienda Norte', active: false },
+                  { label: 'Sucursal Centro', active: false },
+                ].map(({ label, active }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className={cn(
+                      'w-full text-left rounded-lg px-3 py-2 text-sm transition-colors',
+                      active
+                        ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-medium'
+                        : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
