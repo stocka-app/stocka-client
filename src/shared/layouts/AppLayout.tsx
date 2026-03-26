@@ -144,7 +144,7 @@ export function AppLayout() {
             <ChevronRight
               className={cn(
                 'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
-                isSelectorOpen && 'rotate-90',
+                isSelectorOpen && 'rotate-180',
               )}
             />
           </button>
