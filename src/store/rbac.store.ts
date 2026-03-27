@@ -93,12 +93,17 @@ export const useRBACStore = create<RBACStore>()(
         permissionsInflight = true;
         try {
           const response = await api.get('/rbac/my-permissions');
-          const data = response.data as {
-            role: TenantRole;
-            tier: TenantTier;
-            actions: RBACAction[];
-            grants: RBACAction[];
+          // Backend wraps all responses in { data: T, success: boolean }
+          const envelope = response.data as {
+            data: {
+              role: TenantRole;
+              tier: TenantTier;
+              actions: RBACAction[];
+              grants: RBACAction[];
+            };
+            success: boolean;
           };
+          const data = envelope.data;
 
           set({
             role: data.role,

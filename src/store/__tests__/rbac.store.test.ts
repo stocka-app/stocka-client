@@ -577,10 +577,13 @@ describe('Given the RBAC store manages permissions', () => {
     beforeEach(async () => {
       vi.mocked(api.get).mockResolvedValue({
         data: {
-          role: 'MANAGER',
-          tier: 'STARTER',
-          actions: ['PRODUCT_READ', 'PRODUCT_CREATE', 'STORAGE_READ'],
-          grants: ['REPORT_ADVANCED'],
+          data: {
+            role: 'MANAGER',
+            tier: 'STARTER',
+            actions: ['PRODUCT_READ', 'PRODUCT_CREATE', 'STORAGE_READ'],
+            grants: ['REPORT_ADVANCED'],
+          },
+          success: true,
         },
       });
 
@@ -606,6 +609,37 @@ describe('Given the RBAC store manages permissions', () => {
     it('Then canDo denies actions not in permissions or grants', () => {
       const { canDo } = useRBACStore.getState();
       expect(canDo('MEMBER_INVITE')).toBe(false);
+    });
+  });
+
+  describe('When loadPermissions is called while a previous call is already in flight', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(api.get).mockResolvedValue({
+        data: {
+          data: {
+            role: 'MANAGER' as const,
+            tier: 'FREE' as const,
+            actions: [] as RBACAction[],
+            grants: [] as RBACAction[],
+          },
+          success: true,
+        },
+      });
+    });
+
+    it('Then the second call is a no-op and does not trigger a duplicate API request', async () => {
+      // Start first call without awaiting — permissionsInflight is set synchronously
+      // before api.get is called, so calling again immediately hits the guard.
+      const firstCall = useRBACStore.getState().loadPermissions();
+
+      // Second call: permissionsInflight is still true → returns immediately
+      await useRBACStore.getState().loadPermissions();
+
+      expect(vi.mocked(api.get)).toHaveBeenCalledTimes(1);
+
+      // Await the first call so permissionsInflight resets for subsequent tests
+      await firstCall;
     });
   });
 
