@@ -161,28 +161,8 @@ test.describe('Given a new verified user on the Onboarding page', () => {
       await onboarding.selectCurrencyAndContinue('MXN');
       await expect(onboarding.businessNameInput).toBeVisible({ timeout: 10_000 });
 
-      // Step 3 — Fill business profile
-      await onboarding.businessNameInput.fill('Mi Tienda Test');
-
-      // Select business type (click the first type button available — "Retail")
-      const retailButton = onboardingPage.getByRole('button', { name: /retail/i }).first();
-      if (await retailButton.isVisible()) {
-        await retailButton.click();
-      }
-
-      // Select state
-      const stateSelect = onboardingPage.getByLabel(/state/i);
-      if (await stateSelect.isVisible()) {
-        // Get first available option
-        const options = stateSelect.locator('option');
-        const count = await options.count();
-        if (count > 1) {
-          const value = await options.nth(1).getAttribute('value');
-          if (value) await stateSelect.selectOption(value);
-        }
-      }
-
-      await onboarding.continueButton.click();
+      // Step 3 — Fill business profile (name + type + country are required)
+      await onboarding.fillBusinessProfileAndContinue('Mi Tienda Test', 'retail', 'MX');
 
       // Step 4 — Spaces (skip)
       const skipSpacesBtn = onboardingPage.getByRole('button', { name: /skip/i });

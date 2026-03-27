@@ -207,7 +207,7 @@ test.describe('Given a Viewer member calls DELETE /storages', () => {
 
         await new Promise<void>((r) => setTimeout(r, 500));
         await verifyUserEmail(pool, viewerEmail);
-        await addMemberToTenant(pool, tenantUuid, signUpResult.userId, 'viewer');
+        await addMemberToTenant(pool, tenantUuid, signUpResult.userId, 'VIEWER');
 
         // Sign in as viewer to obtain access token
         await new Promise<void>((r) => setTimeout(r, 500));
