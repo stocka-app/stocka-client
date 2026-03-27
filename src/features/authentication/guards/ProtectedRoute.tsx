@@ -10,7 +10,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
   const { isAuthenticated, isInitializing } = useAuthenticationStore();
 
-  // Esperar a que el silent refresh on mount complete antes de decidir
   if (isInitializing) {
     return <PageLoader />;
   }
