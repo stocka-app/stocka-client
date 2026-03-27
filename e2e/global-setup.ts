@@ -4,14 +4,17 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { apiSignUp, apiCompleteOnboarding } from './helpers/api.helper';
-import { verifyUserEmail } from './helpers/db.helper';
+import { verifyUserEmail, addMemberToTenant } from './helpers/db.helper';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const AUTH_DIR = resolve(__dirname, '.auth');
 
 export const USERS_FILE = resolve(AUTH_DIR, 'users.json');
 export const STORAGE_STATE_FILE = resolve(AUTH_DIR, 'user.json');
-
+/** storageState for the first onboarding spec (onboarding-create) */
+export const ONBOARDING_A_STATE_FILE = resolve(AUTH_DIR, 'onboarding-a.json');
+/** storageState for the second onboarding spec (onboarding-resume) */
+export const ONBOARDING_B_STATE_FILE = resolve(AUTH_DIR, 'onboarding-b.json');
 const DB_URL =
   process.env.PW_DATABASE_URL ??
   'postgresql://stocka:stocka_dev_password@localhost:5434/stocka_playwright';
@@ -41,8 +44,9 @@ export default async function globalSetup(): Promise<void> {
   mkdirSync(AUTH_DIR, { recursive: true });
 
   try {
-    // ── 1. Create the shared verified user (used by auth + storage tests) ─────
     const ts = Date.now();
+
+    // ── 1. Create the shared verified user (auth + storage tests) ─────────────
     const verifiedUser = {
       email: `pw_auth_${ts}@stocka.test`,
       username: `pw_auth_${ts}`,
@@ -57,34 +61,125 @@ export default async function globalSetup(): Promise<void> {
     });
     verifiedUser.userId = signUpResult.userId;
 
-    await new Promise<void>((r) => setTimeout(r, 500));
+    await new Promise<void>((r) => setTimeout(r, 300));
     await verifyUserEmail(pool, verifiedUser.email);
 
-    // Brief pause to avoid short-window throttle before the onboarding call
-    await new Promise<void>((r) => setTimeout(r, 1000));
-    await apiCompleteOnboarding(signUpResult.accessToken);
+    await new Promise<void>((r) => setTimeout(r, 500));
+    const { tenantId } = await apiCompleteOnboarding(signUpResult.accessToken);
 
-    // ── 2. Save credentials for fixtures to load ───────────────────────────────
-    writeFileSync(USERS_FILE, JSON.stringify({ verifiedUser }, null, 2));
-    console.log('[PW] verifiedUser pre-seeded ✓');
+    // ── 2. Create onboarding users (no tenant — redirected to /onboarding) ────
+    //   Two users: one per onboarding spec file (fixtures are worker-scoped and
+    //   recycled between spec files, so each spec needs its own fresh user).
+    const onboardingUserA = {
+      email: `pw_onboard_a_${ts}@stocka.test`,
+      username: `pw_onboard_a_${ts}`,
+      password: 'TestPass1!',
+      userId: '',
+    };
+    const onboardingUserB = {
+      email: `pw_onboard_b_${ts}@stocka.test`,
+      username: `pw_onboard_b_${ts}`,
+      password: 'TestPass1!',
+      userId: '',
+    };
 
-    // ── 3. Save authenticated browser state (rolling storageState) ────────────
-    //   Fixtures restore this state instead of doing a full UI sign-in per test.
-    //   The state is updated after each authenticatedPage/preAuthPage test so the
-    //   refresh token stays current (backend rotates it on every POST /refresh-session).
+    await new Promise<void>((r) => setTimeout(r, 300));
+    const signUpA = await apiSignUp({
+      email: onboardingUserA.email,
+      username: onboardingUserA.username,
+      password: onboardingUserA.password,
+    });
+    onboardingUserA.userId = signUpA.userId;
+    await verifyUserEmail(pool, onboardingUserA.email);
+
+    await new Promise<void>((r) => setTimeout(r, 300));
+    const signUpB = await apiSignUp({
+      email: onboardingUserB.email,
+      username: onboardingUserB.username,
+      password: onboardingUserB.password,
+    });
+    onboardingUserB.userId = signUpB.userId;
+    await verifyUserEmail(pool, onboardingUserB.email);
+
+    // ── 3. Create viewer user for storage-rbac API 403 test ───────────────────
+    const viewerUser = {
+      email: `pw_viewer_${ts}@stocka.test`,
+      username: `pw_viewer_${ts}`,
+      password: 'TestPass1!',
+      userId: '',
+    };
+
+    await new Promise<void>((r) => setTimeout(r, 300));
+    const signUpViewer = await apiSignUp({
+      email: viewerUser.email,
+      username: viewerUser.username,
+      password: viewerUser.password,
+    });
+    viewerUser.userId = signUpViewer.userId;
+    await verifyUserEmail(pool, viewerUser.email);
+    await addMemberToTenant(pool, tenantId, viewerUser.userId, 'VIEWER');
+
+    // ── 4. Save credentials for fixtures to load (zero API calls at test time) ─
+    writeFileSync(
+      USERS_FILE,
+      JSON.stringify(
+        {
+          verifiedUser,
+          onboardingUsers: [onboardingUserA, onboardingUserB],
+          viewerUser,
+        },
+        null,
+        2,
+      ),
+    );
+    console.log('[PW] Users pre-seeded: verifiedUser + 2×onboarding + viewer ✓');
+
+    // ── 5. Save browser storageStates via UI sign-in ──────────────────────────
+    //   Fixtures restore these states instead of doing a full UI sign-in per test.
+    //   States are rolled forward after each test so refresh tokens stay current.
     const browser = await chromium.launch();
     try {
-      const ctx = await browser.newContext({ baseURL: BASE_URL });
-      const page = await ctx.newPage();
+      const signInAndSave = async (
+        email: string,
+        password: string,
+        expectedUrlPattern: string,
+        stateFile: string,
+        label: string,
+      ): Promise<void> => {
+        const ctx = await browser.newContext({ baseURL: BASE_URL });
+        const page = await ctx.newPage();
+        await page.goto('/authentication/sign-in');
+        await page.getByLabel('Enter your username or email address').fill(email);
+        await page.getByLabel('Enter your Password').fill(password);
+        await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+        await page.waitForURL(expectedUrlPattern, { timeout: 30_000 });
+        await ctx.storageState({ path: stateFile });
+        await ctx.close();
+        console.log(`[PW] ${label} storageState saved ✓`);
+      };
 
-      await page.goto('/authentication/sign-in');
-      await page.getByLabel('Enter your username or email address').fill(verifiedUser.email);
-      await page.getByLabel('Enter your Password').fill(verifiedUser.password);
-      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-      await page.waitForURL('**/dashboard', { timeout: 30_000 });
-
-      await ctx.storageState({ path: STORAGE_STATE_FILE });
-      console.log('[PW] storageState saved ✓\n');
+      await signInAndSave(
+        verifiedUser.email,
+        verifiedUser.password,
+        '**/dashboard',
+        STORAGE_STATE_FILE,
+        'verifiedUser',
+      );
+      await signInAndSave(
+        onboardingUserA.email,
+        onboardingUserA.password,
+        '**/onboarding',
+        ONBOARDING_A_STATE_FILE,
+        'onboardingUserA',
+      );
+      await signInAndSave(
+        onboardingUserB.email,
+        onboardingUserB.password,
+        '**/onboarding',
+        ONBOARDING_B_STATE_FILE,
+        'onboardingUserB',
+      );
+      console.log('');
     } finally {
       await browser.close();
     }

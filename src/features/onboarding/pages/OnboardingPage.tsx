@@ -124,6 +124,13 @@ export default function OnboardingPage(): React.ReactElement {
     );
   }
 
+  // Auto-advance: path 'create' already selected, go to preferences
+  // This handles resuming from a session where path was saved but step wasn't advanced to 2.
+  if (currentStep === 1 && path === 'create') {
+    goToStep(2);
+    return null;
+  }
+
   // Step 1 — Path selection (owner or invited)
   if (currentStep === 1 && !path) {
     return (

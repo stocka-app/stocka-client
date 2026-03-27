@@ -72,6 +72,8 @@ export class OnboardingPage {
   // ── Step 0 helpers ──
 
   async acceptTermsAndContinue(): Promise<void> {
+    // If terms were already accepted (worker-scoped user), step 0 is skipped — bail out early
+    if (!(await this.termsCheckbox.isVisible({ timeout: 2_000 }).catch(() => false))) return;
     await this.termsCheckbox.check();
     await this.getStartedButton.click();
   }

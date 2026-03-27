@@ -1,42 +1,55 @@
 import { expect, type Page } from '@playwright/test';
-import { Pool } from 'pg';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { test } from '../../fixtures/auth.fixture';
 import { SpacesPage } from '../../pages/spaces.page';
-import { apiSignUp, apiSignIn } from '../../helpers/api.helper';
-import { verifyUserEmail, addMemberToTenant, findTenantByUserUuid } from '../../helpers/db.helper';
+import { apiSignIn } from '../../helpers/api.helper';
 
-const DB_URL =
-  process.env.PW_DATABASE_URL ??
-  'postgresql://stocka:stocka_dev_password@localhost:5434/stocka_playwright';
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const USERS_FILE = resolve(__dirname, '../../.auth/users.json');
 
 const API_BASE = process.env.PW_API_URL ?? 'http://localhost:3002/api';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
-const MOCK_SPACES = [
-  {
-    uuid: 'e2e-space-active-001',
-    name: 'E2E Active Warehouse',
-    type: 'WAREHOUSE',
-    status: 'ACTIVE',
-    address: 'Calle Test 1',
-    roomType: null,
-    archivedAt: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
+// Backend always wraps responses in { data: T, success: boolean }.
+// The storages service unwraps with `envelope.data` and parses via storagesPageSchema,
+// which expects { items, total, page, limit, totalPages }.
+// UUIDs must be valid v4/v7 strings to pass z.string().uuid() validation.
+const MOCK_STORAGES_RESPONSE = {
+  success: true,
+  data: {
+    items: [
+      {
+        uuid: '12345678-0000-4000-8000-000000000001',
+        name: 'E2E Active Warehouse',
+        type: 'WAREHOUSE',
+        status: 'ACTIVE',
+        address: 'Calle Test 1',
+        roomType: null,
+        archivedAt: null,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        uuid: '12345678-0000-4000-8000-000000000002',
+        name: 'E2E Archived Room',
+        type: 'CUSTOM_ROOM',
+        status: 'ARCHIVED',
+        address: null,
+        roomType: null,
+        archivedAt: '2026-03-01T00:00:00.000Z',
+        createdAt: '2026-01-02T00:00:00.000Z',
+        updatedAt: '2026-03-01T00:00:00.000Z',
+      },
+    ],
+    total: 2,
+    page: 1,
+    limit: 50,
+    totalPages: 1,
   },
-  {
-    uuid: 'e2e-space-archived-001',
-    name: 'E2E Archived Room',
-    type: 'CUSTOM_ROOM',
-    status: 'ARCHIVED',
-    address: null,
-    roomType: null,
-    archivedAt: '2026-03-01T00:00:00.000Z',
-    createdAt: '2026-01-02T00:00:00.000Z',
-    updatedAt: '2026-03-01T00:00:00.000Z',
-  },
-];
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -51,28 +64,42 @@ interface RbacPayload {
  * Mocks must be registered BEFORE navigation so they intercept the first requests.
  */
 async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
-  await page.route('**/rbac/my-permissions', (route) => {
-    void route.fulfill({
+  // Clear stale RBAC from localStorage so each test starts with a clean slate.
+  // Without this, the Viewer test's persisted 'rbac-storage' leaks into Manager/Owner
+  // tests via the rolling storageState saved at the end of each preAuthPage fixture.
+  await page.addInitScript(() => {
+    localStorage.removeItem('rbac-storage');
+  });
+
+  // RBAC store does: response.data → envelope; envelope.data → payload
+  // So the network response must be { success: true, data: { role, tier, actions, grants } }
+  await page.route('**/rbac/my-permissions', async (route) => {
+    await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        role: rbac.role,
-        tier: 'FREE',
-        actions: rbac.actions,
-        grants: [],
+        success: true,
+        data: {
+          role: rbac.role,
+          tier: 'FREE',
+          actions: rbac.actions,
+          grants: [],
+        },
       }),
     });
   });
 
-  await page.route(/\/api\/storages$/, (route) => {
+  // Storages service does: unwrap(response.data) → data.data → parse storagesPageSchema
+  // Match storages endpoint with or without query params (e.g. ?page=1&limit=50&sortOrder=ASC)
+  await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
     if (route.request().method() === 'GET') {
-      void route.fulfill({
+      await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(MOCK_SPACES),
+        body: JSON.stringify(MOCK_STORAGES_RESPONSE),
       });
     } else {
-      void route.continue();
+      await route.continue();
     }
   });
 
@@ -117,13 +144,13 @@ test.describe('Given a Viewer (STORAGE_READ only) on the Spaces page', () => {
 });
 
 test.describe(
-  'Given a Manager (STORAGE_READ + STORAGE_UPDATE + STORAGE_DELETE) on the Spaces page',
+  'Given a Manager (STORAGE_READ + STORAGE_UPDATE + STORAGE_ARCHIVE + STORAGE_DELETE) on the Spaces page',
   () => {
     test.describe('When they view the active space card', () => {
       test('Then Edit and Archive actions are shown', async ({ preAuthPage: page }) => {
         await setupAndNavigate(page, {
           role: 'manager',
-          actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
+          actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_ARCHIVE', 'STORAGE_DELETE'],
         });
 
         const spacesPage = new SpacesPage(page);
@@ -135,16 +162,17 @@ test.describe(
     });
 
     test.describe('When they view the archived space card', () => {
-      test('Then Edit and Delete actions are shown', async ({ preAuthPage: page }) => {
+      test('Then Edit and Restore actions are shown', async ({ preAuthPage: page }) => {
         await setupAndNavigate(page, {
           role: 'manager',
-          actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
+          actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_ARCHIVE', 'STORAGE_DELETE'],
         });
 
         const spacesPage = new SpacesPage(page);
         await spacesPage.waitForContent('E2E Archived Room');
 
-        await expect(spacesPage.deleteButtons().first()).toBeVisible();
+        await expect(spacesPage.editButtons().first()).toBeVisible();
+        await expect(spacesPage.restoreButtons().first()).toBeVisible();
       });
     });
   },
@@ -155,7 +183,7 @@ test.describe('Given an Owner with full storage permissions on the Spaces page',
     test('Then the New space button is visible', async ({ preAuthPage: page }) => {
       await setupAndNavigate(page, {
         role: 'owner',
-        actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
+        actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_ARCHIVE', 'STORAGE_DELETE'],
       });
 
       const spacesPage = new SpacesPage(page);
@@ -169,7 +197,7 @@ test.describe('Given an Owner with full storage permissions on the Spaces page',
     }) => {
       await setupAndNavigate(page, {
         role: 'owner',
-        actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
+        actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_ARCHIVE', 'STORAGE_DELETE'],
       });
 
       const spacesPage = new SpacesPage(page);
@@ -186,49 +214,28 @@ test.describe('Given an Owner with full storage permissions on the Spaces page',
 
 test.describe('Given a Viewer member calls DELETE /storages', () => {
   test.describe('When the request reaches the backend', () => {
-    test('Then the API returns 403 Forbidden', async ({ verifiedUser }) => {
-      const pool = new Pool({ connectionString: DB_URL });
+    test('Then the API returns 403 Forbidden', async () => {
+      // Load the viewer user pre-seeded by globalSetup — no runtime sign-up needed.
+      const { viewerUser } = JSON.parse(readFileSync(USERS_FILE, 'utf-8')) as {
+        viewerUser: { email: string; password: string };
+      };
 
-      try {
-        // Find the owner's tenant
-        const tenantUuid = await findTenantByUserUuid(pool, verifiedUser.userId);
-        if (!tenantUuid) throw new Error('[storage-rbac] No tenant found for verifiedUser');
+      // Sign in as viewer to obtain a fresh access token
+      const { accessToken } = await apiSignIn(viewerUser.email, viewerUser.password);
 
-        // Create and prepare a viewer user
-        const ts = Date.now();
-        const viewerEmail = `pw_viewer_${ts}@stocka.test`;
-        const viewerPassword = 'TestPass1!';
-
-        const signUpResult = await apiSignUp({
-          email: viewerEmail,
-          username: `pw_viewer_${ts}`,
-          password: viewerPassword,
-        });
-
-        await new Promise<void>((r) => setTimeout(r, 500));
-        await verifyUserEmail(pool, viewerEmail);
-        await addMemberToTenant(pool, tenantUuid, signUpResult.userId, 'VIEWER');
-
-        // Sign in as viewer to obtain access token
-        await new Promise<void>((r) => setTimeout(r, 500));
-        const { accessToken } = await apiSignIn(viewerEmail, viewerPassword);
-
-        // Attempt to DELETE a storage — RBAC guard must deny before any DB lookup
-        const response = await fetch(
-          `${API_BASE}/storages/00000000-0000-0000-0000-000000000000`,
-          {
-            method: 'DELETE',
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
+      // Attempt to DELETE a storage — RBAC guard must deny before any DB lookup
+      const response = await fetch(
+        `${API_BASE}/storages/00000000-0000-0000-0000-000000000000`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
           },
-        );
+        },
+      );
 
-        expect(response.status).toBe(403);
-      } finally {
-        await pool.end();
-      }
+      expect(response.status).toBe(403);
     });
   });
 });

@@ -63,6 +63,11 @@ export const test = base.extend<AuthTestFixtures, AuthWorkerFixtures>({
 
     await page.goto('/dashboard');
     await page.waitForURL('**/dashboard', { timeout: 15_000 });
+    // Wait for hydrateAuth() (executeRefresh + getMe + loadPermissions) to complete
+    // before handing the page to the test. Without this, the test might navigate away
+    // while executeRefresh is still in-flight, causing the backend to rotate the token
+    // but the browser to discard the Set-Cookie response — invalidating the session.
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
 
     await use(page);
 
