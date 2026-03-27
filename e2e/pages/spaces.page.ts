@@ -14,7 +14,7 @@ export class SpacesPage {
     this.page = page;
 
     this.heading = page.getByRole('heading', { name: /Spaces/i });
-    this.createButton = page.getByRole('button', { name: /New space/i });
+    this.createButton = page.getByRole('button', { name: /New storage/i });
   }
 
   async goto(): Promise<void> {

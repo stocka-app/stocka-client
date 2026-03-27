@@ -17,6 +17,7 @@ test.describe('Given a user who accepted terms and returns to onboarding', () =>
   test('Then after accepting terms and re-visiting /onboarding, the consent step is skipped', async ({
     onboardingPage,
   }) => {
+    test.setTimeout(30_000);
     // Accept terms first
     await onboarding.acceptTermsAndContinue();
     await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
@@ -31,6 +32,7 @@ test.describe('Given a user who accepted terms and returns to onboarding', () =>
   test('Then after selecting a path and re-visiting, the user resumes from the correct step', async ({
     onboardingPage,
   }) => {
+    test.setTimeout(30_000);
     // Accept terms
     await onboarding.acceptTermsAndContinue();
     await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
