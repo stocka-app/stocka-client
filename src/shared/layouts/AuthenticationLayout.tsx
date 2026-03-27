@@ -38,7 +38,7 @@ export function AuthenticationLayout() {
               <h2 className="text-4xl font-bold mb-4 leading-tight drop-shadow-md text-white">
                 {t('layout.heroTitle', 'Welcome to Stocka')}
               </h2>
-              <p className="text-lg text-white/95 dark:text-slate-300 font-medium max-w-sm leading-relaxed drop-shadow-md">
+              <p className="text-lg text-white/95 dark:text-neutral-600 font-medium max-w-sm leading-relaxed drop-shadow-md">
                 {t(
                   'layout.heroSubtitle',
                   'Streamline your inventory, optimize your logistics, and scale your business with intelligent insights.',

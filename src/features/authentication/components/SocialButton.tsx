@@ -53,7 +53,7 @@ const providerIcons = {
 
 // Estilo outline uniforme para todos los providers
 const buttonStyle =
-  'border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-authentication-input-bg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-slate-700 dark:hover:text-white dark:hover:border-slate-600';
+  'border border-neutral-200 dark:border-neutral-200 bg-authentication-surface dark:bg-authentication-input-bg text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-200 dark:hover:text-neutral-900 dark:hover:border-neutral-300';
 
 export function SocialButton({
   provider,

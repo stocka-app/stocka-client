@@ -21,7 +21,7 @@ import { useAuthentication } from '../hooks/useAuthentication';
 import { useOAuthPopup } from '../hooks/useOAuthPopup';
 import { cn } from '@/shared/lib/utils';
 
-const inputClassName = 'h-10 sm:h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border';
+const inputClassName = 'h-10 sm:h-12 rounded-lg pl-10 bg-authentication-surface dark:bg-authentication-input-bg border-border dark:border-authentication-input-border';
 
 export function RegisterForm() {
   const { t } = useTranslation('authentication');

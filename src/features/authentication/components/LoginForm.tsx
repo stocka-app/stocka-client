@@ -207,7 +207,7 @@ export function LoginForm() {
                   <Input
                     placeholder={t('emailOrUsernamePlaceholder')}
                     disabled={isFormDisabled}
-                    className="h-10 sm:h-12 rounded-lg pl-10 bg-white dark:bg-authentication-input-bg border-slate-300 dark:border-authentication-input-border"
+                    className="h-10 sm:h-12 rounded-lg pl-10 bg-authentication-surface dark:bg-authentication-input-bg border-border dark:border-authentication-input-border"
                     {...field}
                   />
                 </FormControl>
