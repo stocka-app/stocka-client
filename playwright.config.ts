@@ -1,14 +1,33 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+// Load .env.e2e — only sets vars that are not already in the environment
+// so that explicit shell exports always take precedence.
+try {
+  const envContent = readFileSync(resolve(__dirname, '.env.e2e'), 'utf8');
+  for (const line of envContent.split('\n')) {
+    const match = /^([^#=\s][^=]*)=(.*)$/.exec(line.trim());
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
+} catch {
+  // .env.e2e not found — fall back to defaults in config below
+}
 
 /**
  * Playwright E2E configuration for stocka-client.
  *
- * Required env vars (see .env.e2e.example):
- *   PW_DATABASE_URL   – PostgreSQL connection to stocka_playwright DB
- *   PW_BASE_URL       – Frontend base URL (default: http://localhost:5173)
+ * Environment variables are loaded from .env.e2e (see .env.e2e.example).
+ * Shell exports always take precedence over the file.
  *
- * The backend must be running against stocka_playwright before running e2e:
- *   DB_DATABASE=stocka_playwright npm run start:dev  (in stocka-server)
+ * The E2E backend must be running before tests:
+ *   DB_DATABASE=stocka_playwright PORT=3002 npm run start:dev  (in stocka-server)
  */
 export default defineConfig({
   testDir: './e2e/specs',
@@ -46,8 +65,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: 'vite --config vite.e2e.config.ts',
+    url: process.env.PW_BASE_URL ?? 'http://localhost:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

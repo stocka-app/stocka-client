@@ -23,7 +23,6 @@ import { StockaIcon } from '@/shared/components/StockaIcon';
 import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
 import { AvatarWithFallback, getInitials } from '@/shared/components/AvatarWithFallback';
-import { useRBACStore } from '@/store/rbac.store';
 
 interface NavItem {
   key: string;
@@ -53,10 +52,6 @@ export function AppLayout() {
   const [selectedBusiness, setSelectedBusiness] = useState('Mi Negocio');
   const businesses = ['Mi Negocio', 'Tienda Norte', 'Sucursal Centro'];
   const selectorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    void useRBACStore.getState().loadPermissions();
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent): void => {

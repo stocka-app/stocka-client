@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { authenticationService } from '../api/authentication.service';
 import { setAccessToken } from '@/shared/lib/axios';
 import { extractTenantContext } from '@/shared/lib/jwt';
+import { useRBACStore } from '@/store/rbac.store';
 import type { SignInRequest, SignUpRequest } from '../schemas/authentication.schema';
 import type {
   AuthStore,
@@ -104,6 +105,9 @@ export const useAuthenticationStore = create<AuthStore>()(
             });
             return { requiresVerification: true, requiresOnboarding: false };
           }
+
+          // Pre-load permissions before navigating — token is fresh so no 401 risk
+          await useRBACStore.getState().loadPermissions();
 
           set({
             user,

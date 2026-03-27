@@ -27,6 +27,72 @@ export function getAccessToken(): string | null {
 // Nombre de la clave de persistencia de Zustand
 const AUTH_STORAGE_KEY = 'authentication-storage';
 
+// ─── Refresh lock ──────────────────────────────────────────────────────────────
+// Single lock shared by BOTH the 401 interceptor AND proactive callers
+// (hydrateAuth). Guarantees that at most one POST /refresh-session is in-flight
+// at any time, regardless of which code path triggered it.
+
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+let refreshQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}> = [];
+
+function processRefreshQueue(error: unknown, token: string | null): void {
+  refreshQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token as string);
+  });
+  refreshQueue = [];
+}
+
+/**
+ * Executes a single refresh-session call, or joins an in-flight one.
+ *
+ * This is the ONLY function in the app that actually calls POST /refresh-session.
+ * Both the 401 interceptor and proactive callers (hydrateAuth) go through here,
+ * ensuring the isRefreshing lock is shared and cookie rotation never collides.
+ *
+ * @returns The fresh access token.
+ */
+export async function executeRefresh(): Promise<string> {
+  // If a refresh is already in flight, piggyback on it
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+
+  isRefreshing = true;
+
+  refreshPromise = (async (): Promise<string> => {
+    try {
+      // The httpOnly refresh_token cookie is sent automatically.
+      // Use raw axios (not `api`) to avoid triggering our own interceptors.
+      const response = await axios.post(
+        `${API_URL}/authentication/refresh-session`,
+        {},
+        { withCredentials: true },
+      );
+
+      // Backend envelope: { data: { accessToken }, success: true }
+      const responseData = response.data?.data ?? response.data;
+      const { accessToken } = responseData as { accessToken: string };
+      inMemoryAccessToken = accessToken;
+
+      processRefreshQueue(null, accessToken);
+      return accessToken;
+    } catch (refreshError) {
+      processRefreshQueue(refreshError, null);
+      throw refreshError;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
 /**
  * Cliente HTTP configurado para el backend de Stocka
  * withCredentials: true → el navegador envía la cookie httpOnly refresh_token automáticamente
@@ -112,6 +178,13 @@ function resolveErrorCode(error: AxiosError<ApiError>): AuthenticationErrorCode 
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiError>) => {
+    // Re-throw cancelled requests without transformation — callers use
+    // axios.isCancel() to detect AbortController cancellations and must
+    // receive the original CanceledError, not a transformed ApiError.
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
@@ -138,24 +211,19 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // La cookie refresh_token se envía automáticamente por el navegador.
-        // No incluir Authorization header — este endpoint es público.
-        const response = await axios.post(
-          `${API_URL}/authentication/refresh-session`,
-          {},
-          { withCredentials: true },
-        );
+        // executeRefresh() is the single entry point for ALL refresh calls.
+        // If hydrateAuth or another 401 already started a refresh, this call
+        // piggybacks on the in-flight promise — no duplicate POST.
+        const accessToken = await executeRefresh();
 
-        // El backend devuelve { data: { accessToken }, success: true }
-        const responseData = response.data?.data ?? response.data;
-        const { accessToken } = responseData;
-        inMemoryAccessToken = accessToken;
-
-        // Reintentar la petición original con el nuevo access token
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Strip the original AbortSignal before retrying — in React 19 StrictMode
+        // the signal from the first mount's AbortController is already aborted by the
+        // time the refresh completes, causing the retry to fail with CanceledError.
+        const retryConfig = { ...originalRequest, signal: undefined };
+        if (retryConfig.headers) {
+          retryConfig.headers.Authorization = `Bearer ${accessToken}`;
         }
-        return api(originalRequest);
+        return api(retryConfig);
       } catch (refreshError) {
         // Refresh falló (cookie expirada o inválida) → limpiar estado y redirigir a login
         clearAuthStorage();

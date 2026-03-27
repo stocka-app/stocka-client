@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
+import axios from 'axios';
 import { useStoragesStore } from '../../store/storages.store';
 import type { Storage, StoragesPage } from '../../types/storages.types';
 
@@ -539,6 +540,52 @@ describe('Given useStorages with multi-page results', () => {
         expect(result.current.storages[0].uuid).toBe('storage-002');
         expect(result.current.page).toBe(2);
       });
+    });
+  });
+});
+
+// ─── Fetch cancellation and signal abort guards ────────────────────────────────
+
+describe('Given useStorages handles fetch cancellation', () => {
+  beforeEach(() => {
+    resetStore();
+    vi.clearAllMocks();
+  });
+
+  describe('When the fetch is cancelled via a CanceledError (axios.isCancel)', () => {
+    it('Then error state is not set (cancel is silently ignored)', async () => {
+      vi.mocked(storagesService.list).mockRejectedValue(new axios.CanceledError('aborted'));
+
+      const { result } = renderHook(() => useStorages());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('When the fetch fails with a generic error but the AbortController signal is already aborted', () => {
+    it('Then error state is not set (aborted signal guard short-circuits before setError)', async () => {
+      let rejectWith!: (e: Error) => void;
+      vi.mocked(storagesService.list).mockImplementation(
+        () => new Promise<StoragesPage>((_, reject) => { rejectWith = reject; }),
+      );
+
+      const { unmount } = renderHook(() => useStorages());
+
+      // Unmounting triggers cleanup: controller.abort() → signal.aborted = true
+      unmount();
+
+      // Reject with a non-cancel error — the aborted signal guard should catch it
+      rejectWith(new Error('Generic error after abort'));
+
+      // Allow the catch block to execute
+      await new Promise<void>((resolve) => setTimeout(resolve, 50));
+
+      // Error must NOT be set (the aborted signal guard short-circuited before setError)
+      expect(useStoragesStore.getState().error).toBeNull();
     });
   });
 });

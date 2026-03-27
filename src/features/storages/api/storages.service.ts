@@ -10,36 +10,46 @@ export interface ListStoragesParams {
   sortOrder?: 'ASC' | 'DESC';
   status?: StorageStatus;
   type?: StorageType;
+  signal?: AbortSignal;
+}
+
+/**
+ * Unwraps the standard backend envelope { data: T, success: boolean }.
+ * The TransformInterceptor on the server wraps every response in this shape,
+ * so every service method must peel it off before Zod-parsing the payload.
+ */
+function unwrap<T>(envelope: { data: T; success: boolean }): T {
+  return envelope.data;
 }
 
 export const storagesService = {
-  async list(params: ListStoragesParams = {}): Promise<StoragesPage> {
-    const { data } = await axiosInstance.get('/storages', { params });
-    return storagesPageSchema.parse(data);
+  async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
+    const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
+    return storagesPageSchema.parse(unwrap(data));
   },
 
   async create(payload: CreateStorageFormData): Promise<Storage> {
     const { data } = await axiosInstance.post('/storages', payload);
-    return storageSchema.parse(data);
+    return storageSchema.parse(unwrap(data));
   },
 
   async update(id: string, payload: UpdateStorageFormData): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/${id}`, payload);
-    return storageSchema.parse(data);
+    return storageSchema.parse(unwrap(data));
   },
 
   async archive(id: string): Promise<Storage> {
     const { data } = await axiosInstance.delete(`/storages/${id}`);
-    return storageSchema.parse(data);
+    return storageSchema.parse(unwrap(data));
   },
 
   async restore(id: string): Promise<Storage> {
     const { data } = await axiosInstance.post(`/storages/${id}/restore`);
-    return storageSchema.parse(data);
+    return storageSchema.parse(unwrap(data));
   },
 
-  async fetchCapabilities(): Promise<TenantCapabilities> {
-    const { data } = await axiosInstance.get<TenantCapabilities>('/tenants/me/capabilities');
-    return data;
+  async fetchCapabilities(signal?: AbortSignal): Promise<TenantCapabilities> {
+    const { data } = await axiosInstance.get('/tenants/me/capabilities', { signal });
+    return unwrap(data) as TenantCapabilities;
   },
 };

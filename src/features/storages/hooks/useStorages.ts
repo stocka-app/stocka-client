@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import { useStoragesStore } from '../store/storages.store';
 import { useRBACStore } from '@/store/rbac.store';
 import { storagesService } from '../api/storages.service';
@@ -84,7 +85,14 @@ export function useStorages(): {
         const result = await storagesService.list(params);
         setStorages(result.items);
         setPagination(result.total, result.page, result.totalPages);
-      } catch {
+      } catch (err) {
+        // AbortController cleanup (StrictMode) — ignore silently, don't set error.
+        // Also ignore errors that arrive after the signal was already aborted:
+        // the 401 interceptor may retry a request whose signal was concurrently
+        // aborted; that retry can fail, but the component has already moved on.
+        if (axios.isCancel(err)) return;
+        if (overrides.signal?.aborted) return;
+        console.error('[useStorages] fetchStorages error (will set loadFailed):', err);
         setError('loadFailed');
       } finally {
         setLoading(false);
@@ -94,9 +102,13 @@ export function useStorages(): {
   );
 
   // Re-fetch whenever any filter/page state changes.
-  // fetchStorages is stable (store actions are stable), so it's safe to include.
+  // AbortController ensures the in-flight request from the prior render (or
+  // StrictMode's simulated unmount) is cancelled before the new one fires,
+  // preventing duplicate requests and 401-cascade from concurrent calls.
   useEffect(() => {
-    void fetchStorages();
+    const controller = new AbortController();
+    void fetchStorages({ signal: controller.signal });
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterType, searchQuery, sortOrder, currentPage]);
 

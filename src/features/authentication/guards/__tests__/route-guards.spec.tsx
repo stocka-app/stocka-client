@@ -123,6 +123,28 @@ describe('ProtectedRoute', () => {
     });
   });
 
+  describe('Given the app is still initializing AND the user is already authenticated', () => {
+    // This tests the 4th state combination: isInitializing=true + isAuthenticated=true.
+    // It ensures the loader is shown regardless of isAuthenticated — the guard must wait
+    // for initialization to complete before rendering protected content.
+    // A condition like `isInitializing && !isAuthenticated` would fail this test by
+    // skipping the loader and prematurely rendering children.
+    beforeEach(() => {
+      vi.mocked(useAuthenticationStore).mockReturnValue(
+        buildStoreState({ isInitializing: true, isAuthenticated: true }),
+      );
+    });
+
+    it('Then it still renders the page loader (initialization must complete first)', () => {
+      const { container } = renderWithRouter(
+        <ProtectedRoute>
+          <div>Protected Content</div>
+        </ProtectedRoute>,
+      );
+      expect(container.textContent).not.toContain('Protected Content');
+    });
+  });
+
   describe('Given the user is authenticated', () => {
     beforeEach(() => {
       vi.mocked(useAuthenticationStore).mockReturnValue(

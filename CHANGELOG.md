@@ -3,6 +3,34 @@
 All notable changes to this project are documented here.
 
 
+## [0.13.0](https://github.com/stocka-app/stocka-client/compare/v0.12.19...v0.13.0) (2026-03-26)
+
+### ✨ Features
+
+* **auth:** [STOC-401](https://austins-industries.atlassian.net/browse/STOC-401) — add tierLimits to JWT payload + User type ([c8c214b](https://github.com/stocka-app/stocka-client/commit/c8c214b310673e28129bcf2ad6b53db6e7ef3124))
+* **spaces:** [STOC-328](https://austins-industries.atlassian.net/browse/STOC-328) — align Space schema with BE StorageOutDto ([fc9420e](https://github.com/stocka-app/stocka-client/commit/fc9420ef26a99a265c03bf73acb2164dc6ddc94e))
+* **spaces:** [STOC-329](https://austins-industries.atlassian.net/browse/STOC-329) — extend useSpaces with filter/search/sort/permissions ([e10d9e3](https://github.com/stocka-app/stocka-client/commit/e10d9e3fd3db99ab097b34729fdf0181c88c9dc0))
+* **spaces:** [STOC-330](https://austins-industries.atlassian.net/browse/STOC-330) — add SpaceCard component with type badge and role-based actions ([60acdae](https://github.com/stocka-app/stocka-client/commit/60acdaec691c4b2ec671bf9d2978183309acb996))
+* **spaces:** [STOC-331](https://austins-industries.atlassian.net/browse/STOC-331) — refactor SpacesPage with stats panel, filter bar, card grid, and all empty/error states ([2951a2c](https://github.com/stocka-app/stocka-client/commit/2951a2c1624317e88f8c4c409df4754f2d9f226d))
+* **spaces:** [STOC-332](https://austins-industries.atlassian.net/browse/STOC-332) — add remaining i18n keys for spaces list view ([0c4429d](https://github.com/stocka-app/stocka-client/commit/0c4429df6b8c16eea2202b75186a1425e44cae6e))
+* **spaces:** [STOC-398](https://austins-industries.atlassian.net/browse/STOC-398) — add E2E RBAC visibility tests + wire loadPermissions in AppLayout ([42c3a11](https://github.com/stocka-app/stocka-client/commit/42c3a111109db9d18c7815eafdd5991c9cadac94))
+* **storages:** [STOC-401](https://austins-industries.atlassian.net/browse/STOC-401) — add useCapabilities hook with JWT > API > fallback resolution ([d50af17](https://github.com/stocka-app/stocka-client/commit/d50af170dc017abbb9e30de3f268f8d7977a0a13))
+* **storages:** [STOC-413](https://austins-industries.atlassian.net/browse/STOC-413) — move filter, search, sort to server-side; add pagination UI ([a450ba9](https://github.com/stocka-app/stocka-client/commit/a450ba9228ecb500403801b840be51ec78d91ab9))
+
+### 🐛 Bug Fixes
+
+* **storages:** [STOC-401](https://austins-industries.atlassian.net/browse/STOC-401) — resolve H-01 technical debt (STOC-404,405,407,408,411) ([dd85079](https://github.com/stocka-app/stocka-client/commit/dd8507995330927368aefd7dcb1e7f7996d6f497))
+
+### 🔧 Refactoring
+
+* **storages:** [STOC-401](https://austins-industries.atlassian.net/browse/STOC-401) — rename installation → storage in code + EN locale; ES keeps instalación ([6ff7b4a](https://github.com/stocka-app/stocka-client/commit/6ff7b4a4ff1e2c3b9294de17645985518f69b208))
+* **storages:** [STOC-401](https://austins-industries.atlassian.net/browse/STOC-401) — wire StoragesPage to useCapabilities for restore limit check ([37ca224](https://github.com/stocka-app/stocka-client/commit/37ca22420419ccbf1f2361965d9a14803972dec9))
+* **storages:** [STOC-403](https://austins-industries.atlassian.net/browse/STOC-403) — rename feature spaces → storages at code domain level ([14d76f3](https://github.com/stocka-app/stocka-client/commit/14d76f33cc2f62003e6fa8bd4b6e93c01cb1155f))
+
+### ✅ Tests
+
+* **spaces:** [STOC-333](https://austins-industries.atlassian.net/browse/STOC-333) — add FE-UH2 scenario for FROZEN + search AND logic in useSpaces ([6548dbf](https://github.com/stocka-app/stocka-client/commit/6548dbfff585063b3e7718b8a28d491759552aaf))
+
 ## [0.12.19](https://github.com/stocka-app/stocka-client/compare/v0.12.18...v0.12.19) (2026-03-26)
 
 ### 🐛 Bug Fixes
