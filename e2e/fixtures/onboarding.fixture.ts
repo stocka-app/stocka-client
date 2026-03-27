@@ -15,18 +15,21 @@ export interface TestUser {
   userId: string;
 }
 
-interface OnboardingFixtures {
-  /**
-   * A pre-created, email-verified user WITHOUT a tenant.
-   * Sign-in will redirect to /onboarding (because tenantId is null in the JWT).
-   */
-  verifiedUser: TestUser;
-
+interface OnboardingTestFixtures {
   /**
    * A page authenticated as a verified user who has NOT completed onboarding.
    * After sign-in, the app redirects to /onboarding (because tenantId is null).
    */
   onboardingPage: Page;
+}
+
+interface OnboardingWorkerFixtures {
+  /**
+   * A pre-created, email-verified user WITHOUT a tenant.
+   * Sign-in will redirect to /onboarding (because tenantId is null in the JWT).
+   * Worker-scoped: created once per spec file to avoid rate-limit exhaustion.
+   */
+  verifiedUser: TestUser;
 }
 
 /**
@@ -35,33 +38,36 @@ interface OnboardingFixtures {
  * Unlike auth.fixture, this fixture creates a verified user WITHOUT a tenant,
  * so sign-in redirects to /onboarding instead of /dashboard.
  */
-export const test = base.extend<OnboardingFixtures>({
-  verifiedUser: async ({}, use) => {
-    const pool = new Pool({ connectionString: DB_URL });
-    const timestamp = Date.now();
-    const user: TestUser = {
-      email: `pw_test_${timestamp}@stocka.test`,
-      username: `pw_user_${timestamp}`,
-      password: 'TestPass1',
-      userId: '',
-    };
+export const test = base.extend<OnboardingTestFixtures, OnboardingWorkerFixtures>({
+  verifiedUser: [
+    async ({}, use) => {
+      const pool = new Pool({ connectionString: DB_URL });
+      const timestamp = Date.now();
+      const user: TestUser = {
+        email: `pw_test_${timestamp}@stocka.test`,
+        username: `pw_user_${timestamp}`,
+        password: 'TestPass1!',
+        userId: '',
+      };
 
-    try {
-      const result = await apiSignUp({
-        email: user.email,
-        username: user.username,
-        password: user.password,
-      });
-      user.userId = result.userId;
+      try {
+        const result = await apiSignUp({
+          email: user.email,
+          username: user.username,
+          password: user.password,
+        });
+        user.userId = result.userId;
 
-      await verifyUserEmail(pool, user.email);
-      // NOTE: No tenant is created — user will be redirected to /onboarding
-    } finally {
-      await pool.end();
-    }
+        await verifyUserEmail(pool, user.email);
+        // NOTE: No tenant is created — user will be redirected to /onboarding
+      } finally {
+        await pool.end();
+      }
 
-    await use(user);
-  },
+      await use(user);
+    },
+    { scope: 'worker' },
+  ],
 
   onboardingPage: async ({ page, verifiedUser }, use) => {
     const loginPage = new LoginPage(page);

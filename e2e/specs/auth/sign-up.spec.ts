@@ -34,7 +34,7 @@ test.describe('Given a new user on the Sign Up page', () => {
         fullName: `Test User ${ts}`,
         email: `test_${ts}@stocka.test`,
         username: `testuser_${ts}`,
-        password: 'TestPass1',
+        password: 'TestPass1!',
       });
 
       await page.waitForURL('**/verify-email');
@@ -49,7 +49,7 @@ test.describe('Given a new user on the Sign Up page', () => {
         fullName: `Test User ${ts}`,
         email,
         username: `testuser_${ts}`,
-        password: 'TestPass1',
+        password: 'TestPass1!',
       });
 
       await page.waitForURL('**/verify-email');
@@ -64,7 +64,7 @@ test.describe('Given a new user on the Sign Up page', () => {
         fullName: `Test User ${ts}`,
         email,
         username: `testuser_${ts}`,
-        password: 'TestPass1',
+        password: 'TestPass1!',
       });
 
       await page.waitForURL('**/verify-email');
@@ -87,7 +87,7 @@ test.describe('Given a new user on the Sign Up page', () => {
       test.setTimeout(60_000);
       const ts = unique();
       const email = `test_${ts}@stocka.test`;
-      const password = 'TestPass1';
+      const password = 'TestPass1!';
       const username = `testuser_${ts}`;
 
       // Register via API to avoid rate-limit accumulation from UI sign-ups
@@ -109,14 +109,14 @@ test.describe('Given a new user on the Sign Up page', () => {
       const email = `test_${ts}@stocka.test`;
 
       // First registration via API to avoid rate-limit accumulation
-      await apiSignUp({ email, username: `testuser_${ts}`, password: 'TestPass1' });
+      await apiSignUp({ email, username: `testuser_${ts}`, password: 'TestPass1!' });
 
       // Second registration attempt with same email via UI
       await registerPage.signUp({
         fullName: `Test User ${ts}`,
         email,
         username: `testuser2_${ts}`,
-        password: 'TestPass1',
+        password: 'TestPass1!',
       });
 
       await expect(registerPage.errorAlert).toBeVisible();
