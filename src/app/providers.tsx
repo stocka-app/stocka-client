@@ -3,9 +3,10 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
 import { authenticationService } from '@/features/authentication/api/authentication.service';
-import { setAccessToken } from '@/shared/lib/axios';
+import { setAccessToken, executeRefresh } from '@/shared/lib/axios';
 import { extractTenantContext } from '@/shared/lib/jwt';
 import { useThemeStore } from '@/store/theme.store';
+import { useRBACStore } from '@/store/rbac.store';
 import { Toaster } from 'sonner';
 
 // Import i18n configuration
@@ -41,9 +42,13 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
       const { emailVerificationRequired } = useAuthenticationStore.getState();
 
       try {
-        const response = await authenticationService.refreshSession();
-        const { accessToken } = response.data;
+        // Use the centralized executeRefresh() — shares the isRefreshing lock
+        // with the 401 interceptor, preventing duplicate refresh-session calls
+        // if a concurrent request triggers the interceptor before we finish.
+        const accessToken = await executeRefresh();
 
+        // setAccessToken is already called inside executeRefresh, but we keep
+        // the explicit call so the rest of hydrateAuth has the token in scope.
         setAccessToken(accessToken);
 
         // Refresh tenant context from JWT on every silent refresh
@@ -51,20 +56,24 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
         const currentUser = useAuthenticationStore.getState().user;
         let updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName, tierLimits } : null;
 
-        // Fetch social name and avatar data from /me endpoint
-        try {
-          const meResponse = await authenticationService.getMe();
+        // Fetch social data and permissions in parallel — neither is blocking
+        const [meResult] = await Promise.allSettled([
+          authenticationService.getMe(),
+          useRBACStore.getState().loadPermissions(),
+        ]);
+
+        if (meResult.status === 'fulfilled') {
           const socialData = {
-            givenName: meResponse.data.givenName ?? null,
-            familyName: meResponse.data.familyName ?? null,
-            avatarUrl: meResponse.data.avatarUrl ?? null,
+            givenName: meResult.value.data.givenName ?? null,
+            familyName: meResult.value.data.familyName ?? null,
+            avatarUrl: meResult.value.data.avatarUrl ?? null,
           };
           if (updatedUser) {
             updatedUser = { ...updatedUser, ...socialData };
           }
-        } catch (err) {
+        } else {
           // Non-critical — social data is optional, but log to aid debugging
-          console.error('[Stocka] getMe() failed during silent refresh:', err);
+          console.error('[Stocka] getMe() failed during silent refresh:', meResult.reason);
         }
 
         if (emailVerificationRequired) {
