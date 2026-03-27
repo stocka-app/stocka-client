@@ -210,7 +210,7 @@ test.describe('Given a Viewer member calls DELETE /storages', () => {
         // Create and prepare a viewer user
         const ts = Date.now();
         const viewerEmail = `pw_viewer_${ts}@stocka.test`;
-        const viewerPassword = 'TestPass1';
+        const viewerPassword = 'TestPass1!';
 
         const signUpResult = await apiSignUp({
           email: viewerEmail,
