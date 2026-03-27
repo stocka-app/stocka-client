@@ -56,13 +56,13 @@ export function useCapabilities(): UseCapabilitiesResult {
   const [apiLimits, setApiLimits] = useState<StorageLimitsMap | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchFromAPI = useCallback(async (): Promise<void> => {
+  const fetchFromAPI = useCallback(async (signal?: AbortSignal): Promise<void> => {
     setIsLoading(true);
     try {
-      const caps = await storagesService.fetchCapabilities();
+      const caps = await storagesService.fetchCapabilities(signal);
       setApiLimits(toLimitsMap(caps));
     } catch {
-      // API unavailable — will fall back to hardcoded limits
+      // API unavailable or request aborted — will fall back to hardcoded limits
       setApiLimits(null);
     } finally {
       setIsLoading(false);
@@ -72,8 +72,11 @@ export function useCapabilities(): UseCapabilitiesResult {
   useEffect(() => {
     // Only call the API if JWT doesn't have tierLimits
     if (!tierLimits) {
-      void fetchFromAPI();
+      const controller = new AbortController();
+      void fetchFromAPI(controller.signal);
+      return () => controller.abort();
     }
+    return undefined;
   }, [tierLimits, fetchFromAPI]);
 
   // Priority: JWT claim > API response > hardcoded fallback

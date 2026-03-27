@@ -86,8 +86,13 @@ export function useStorages(): {
         setStorages(result.items);
         setPagination(result.total, result.page, result.totalPages);
       } catch (err) {
-        // AbortController cleanup (StrictMode) — ignore silently, don't set error
+        // AbortController cleanup (StrictMode) — ignore silently, don't set error.
+        // Also ignore errors that arrive after the signal was already aborted:
+        // the 401 interceptor may retry a request whose signal was concurrently
+        // aborted; that retry can fail, but the component has already moved on.
         if (axios.isCancel(err)) return;
+        if (overrides.signal?.aborted) return;
+        console.error('[useStorages] fetchStorages error (will set loadFailed):', err);
         setError('loadFailed');
       } finally {
         setLoading(false);
