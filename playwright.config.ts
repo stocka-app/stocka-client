@@ -38,17 +38,17 @@ export default defineConfig({
 
   // CI behaviour
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1,
+  retries: process.env.CI ? 2 : 0,
 
   reporter: [['html', { open: 'never' }], ['list']],
 
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
 
-  // Increased timeout to accommodate backend rate-limit retries during fixture setup.
-  // The backend's short throttle (1 sign-in/s) and medium throttle (5 sign-in/60s)
-  // can delay fixture setup when tests run back-to-back.
-  timeout: 60_000,
+  // 20s covers fixture setup (storageState restore + navigation) + test assertions.
+  // Long-running tests (full onboarding flow, token refresh scenarios) call
+  // test.setTimeout(60_000) inline.
+  timeout: 20_000,
 
   use: {
     baseURL: process.env.PW_BASE_URL ?? 'http://localhost:5173',

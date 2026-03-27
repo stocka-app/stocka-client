@@ -99,7 +99,7 @@ export async function createTenantForUser(
   // Add user as an active member with 'owner' role
   await pool.query(
     `INSERT INTO tenants.tenant_members (uuid, tenant_id, user_id, user_uuid, role, status, joined_at, created_at, updated_at)
-     VALUES (gen_random_uuid(), $1, $2, $3, 'owner', 'active', NOW(), NOW(), NOW())`,
+     VALUES (gen_random_uuid(), $1, $2, $3, 'OWNER', 'active', NOW(), NOW(), NOW())`,
     [tenantId, userId, userUuid],
   );
 

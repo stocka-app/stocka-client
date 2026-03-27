@@ -72,6 +72,7 @@ test.describe('Given a new verified user on the Onboarding page', () => {
 
   test.describe('Step 1 — Path Selection', () => {
     test.beforeEach(async () => {
+      test.setTimeout(25_000);
       await onboarding.acceptTermsAndContinue();
       await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
     });
@@ -94,6 +95,9 @@ test.describe('Given a new verified user on the Onboarding page', () => {
 
   test.describe('Step 2 — Currency', () => {
     test.beforeEach(async () => {
+      test.setTimeout(30_000);
+      // User may have already advanced to this step in a prior test (worker-scoped user)
+      if (await onboarding.currencyMXN.isVisible({ timeout: 2_000 }).catch(() => false)) return;
       await onboarding.acceptTermsAndContinue();
       await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
       await onboarding.selectCreateBusiness();
@@ -118,10 +122,16 @@ test.describe('Given a new verified user on the Onboarding page', () => {
 
   test.describe('Step 3 — Business Profile', () => {
     test.beforeEach(async () => {
-      await onboarding.acceptTermsAndContinue();
-      await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
-      await onboarding.selectCreateBusiness();
-      await expect(onboarding.currencyMXN).toBeVisible({ timeout: 10_000 });
+      test.setTimeout(40_000);
+      // User may have already advanced to this step in a prior test (worker-scoped user)
+      if (await onboarding.businessNameInput.isVisible({ timeout: 2_000 }).catch(() => false)) return;
+      // User may already be at the currency step — skip path selection if so
+      if (!(await onboarding.currencyMXN.isVisible({ timeout: 2_000 }).catch(() => false))) {
+        await onboarding.acceptTermsAndContinue();
+        await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
+        await onboarding.selectCreateBusiness();
+        await expect(onboarding.currencyMXN).toBeVisible({ timeout: 10_000 });
+      }
       await onboarding.selectCurrencyAndContinue();
       await expect(onboarding.businessNameInput).toBeVisible({ timeout: 10_000 });
     });
@@ -149,40 +159,22 @@ test.describe('Given a new verified user on the Onboarding page', () => {
       // Extend timeout for the full flow (many API calls)
       test.setTimeout(60_000);
 
-      // Step 0 — Accept terms
+      // Step 0 — Accept terms (skipped automatically if already accepted by prior tests)
       await onboarding.acceptTermsAndContinue();
-      await expect(onboarding.createBusinessButton).toBeVisible({ timeout: 10_000 });
 
-      // Step 1 — Select "Create my business"
-      await onboarding.selectCreateBusiness();
-      await expect(onboarding.currencyMXN).toBeVisible({ timeout: 10_000 });
+      // Step 1 — Select "Create my business" (skipped if prior tests already advanced past path selection)
+      if (await onboarding.createBusinessButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
+        await onboarding.selectCreateBusiness();
+      }
 
-      // Step 2 — Select currency and continue
-      await onboarding.selectCurrencyAndContinue('MXN');
+      // Step 2 — Select currency and continue (skipped if prior tests already advanced to step 3)
+      if (await onboarding.currencyMXN.isVisible({ timeout: 5_000 }).catch(() => false)) {
+        await onboarding.selectCurrencyAndContinue('MXN');
+      }
       await expect(onboarding.businessNameInput).toBeVisible({ timeout: 10_000 });
 
-      // Step 3 — Fill business profile
-      await onboarding.businessNameInput.fill('Mi Tienda Test');
-
-      // Select business type (click the first type button available — "Retail")
-      const retailButton = onboardingPage.getByRole('button', { name: /retail/i }).first();
-      if (await retailButton.isVisible()) {
-        await retailButton.click();
-      }
-
-      // Select state
-      const stateSelect = onboardingPage.getByLabel(/state/i);
-      if (await stateSelect.isVisible()) {
-        // Get first available option
-        const options = stateSelect.locator('option');
-        const count = await options.count();
-        if (count > 1) {
-          const value = await options.nth(1).getAttribute('value');
-          if (value) await stateSelect.selectOption(value);
-        }
-      }
-
-      await onboarding.continueButton.click();
+      // Step 3 — Fill business profile (name + type + country are required)
+      await onboarding.fillBusinessProfileAndContinue('Mi Tienda Test', 'retail', 'MX');
 
       // Step 4 — Spaces (skip)
       const skipSpacesBtn = onboardingPage.getByRole('button', { name: /skip/i });

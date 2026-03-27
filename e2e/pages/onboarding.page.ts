@@ -26,7 +26,7 @@ export class OnboardingPage {
 
   // ── Step 3 — Business Profile ──
   readonly businessNameInput: Locator;
-  readonly stateSelect: Locator;
+  readonly countrySelect: Locator;
 
   // ── Shared ──
   readonly continueButton: Locator;
@@ -55,7 +55,7 @@ export class OnboardingPage {
 
     // Step 3 — Business Profile
     this.businessNameInput = page.getByLabel(/business name/i);
-    this.stateSelect = page.getByLabel(/state/i);
+    this.countrySelect = page.getByLabel(/country/i);
 
     // Shared
     this.continueButton = page.getByRole('button', { name: 'Continue', exact: true });
@@ -72,6 +72,8 @@ export class OnboardingPage {
   // ── Step 0 helpers ──
 
   async acceptTermsAndContinue(): Promise<void> {
+    // If terms were already accepted (worker-scoped user), step 0 is skipped — bail out early
+    if (!(await this.termsCheckbox.isVisible({ timeout: 2_000 }).catch(() => false))) return;
     await this.termsCheckbox.check();
     await this.getStartedButton.click();
   }
@@ -95,7 +97,7 @@ export class OnboardingPage {
   async fillBusinessProfileAndContinue(
     name: string,
     businessType: string,
-    state: string,
+    country: string,
   ): Promise<void> {
     await this.businessNameInput.fill(name);
 
@@ -103,8 +105,8 @@ export class OnboardingPage {
     const typeButton = this.page.getByRole('button', { name: new RegExp(businessType, 'i') });
     await typeButton.click();
 
-    // Select state from dropdown
-    await this.stateSelect.selectOption(state);
+    // Select country from dropdown
+    await this.countrySelect.selectOption(country);
 
     await this.continueButton.click();
   }
