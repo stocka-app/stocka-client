@@ -4,6 +4,30 @@
  * Wraps direct HTTP calls to the backend API so that test setup can create
  * users and seed state without going through the browser UI.
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Load .env.e2e into process.env so worker processes have the correct API URL.
+// Playwright config sets process.env in the main process but that does NOT
+// propagate to test worker processes — helpers must load it themselves.
+// ESM: use import.meta.url instead of __dirname.
+try {
+  const dir = fileURLToPath(new URL('.', import.meta.url));
+  const envContent = readFileSync(resolve(dir, '../../.env.e2e'), 'utf8');
+  for (const line of envContent.split('\n')) {
+    const match = /^([^#=\s][^=]*)=(.*)$/.exec(line.trim());
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
+} catch {
+  // .env.e2e not found — fall back to defaults below
+}
 
 const API_BASE = process.env.PW_API_URL ?? 'http://localhost:3001/api';
 

@@ -1,4 +1,27 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
+
+// Load .env.e2e into process.env — same reason as api.helper.ts:
+// Playwright worker processes do not inherit process.env changes from the main process.
+// ESM: use import.meta.url instead of __dirname.
+try {
+  const dir = fileURLToPath(new URL('.', import.meta.url));
+  const envContent = readFileSync(resolve(dir, '../../.env.e2e'), 'utf8');
+  for (const line of envContent.split('\n')) {
+    const match = /^([^#=\s][^=]*)=(.*)$/.exec(line.trim());
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
+} catch {
+  // .env.e2e not found — fall back to defaults below
+}
 
 const DB_URL =
   process.env.PW_DATABASE_URL ??

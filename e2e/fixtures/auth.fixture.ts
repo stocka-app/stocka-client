@@ -41,7 +41,7 @@ export const test = base.extend<AuthFixtures>({
     const user: TestUser = {
       email: `pw_test_${timestamp}@stocka.test`,
       username: `pw_user_${timestamp}`,
-      password: 'TestPass1',
+      password: 'TestPass1!',
       userId: '',
     };
 
