@@ -71,6 +71,16 @@ async function fetchWithRetry(
       const retryAfterMedium = Number(response.headers.get('retry-after-medium') ?? '0');
       const retryAfterShort = Number(response.headers.get('x-ratelimit-reset-short') ?? '1');
       const delaySeconds = Math.max(retryAfterMedium, retryAfterShort, 2);
+      // Fail fast if the backend wants us to wait more than 30 seconds — waiting that long
+      // would exceed the Playwright test timeout. The fix is to restart the E2E backend
+      // (clears in-memory rate limit counters) or start it with E2E_MODE=true.
+      if (delaySeconds > 30) {
+        throw new Error(
+          `[api.helper] Rate limited on ${url} — Retry-After: ${delaySeconds}s. ` +
+            `Restart the E2E backend to clear in-memory rate limit counters, ` +
+            `or start it with E2E_MODE=true to disable progressive blocking.`,
+        );
+      }
       await new Promise((r) => setTimeout(r, delaySeconds * 1000));
       continue;
     }

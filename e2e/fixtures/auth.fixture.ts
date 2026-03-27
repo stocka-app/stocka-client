@@ -1,11 +1,19 @@
 import { test as base, type Page } from '@playwright/test';
-import { Pool } from 'pg';
-import { apiSignUp, apiCompleteOnboarding } from '../helpers/api.helper';
-import { verifyUserEmail } from '../helpers/db.helper';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const DB_URL =
-  process.env.PW_DATABASE_URL ??
-  'postgresql://stocka:stocka_dev_password@localhost:5434/stocka_playwright';
+const AUTH_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../.auth');
+
+/** Path to the credentials file written by globalSetup. */
+export const USERS_FILE = resolve(AUTH_DIR, 'users.json');
+
+/**
+ * Path to the storageState file (localStorage + cookies) for the verifiedUser.
+ * Written by globalSetup after sign-in; rolled forward after each authenticated test
+ * so the refresh token stays current (the backend rotates it on every /refresh-session).
+ */
+export const STORAGE_STATE_FILE = resolve(AUTH_DIR, 'user.json');
 
 export interface TestUser {
   email: string;
@@ -15,88 +23,63 @@ export interface TestUser {
 }
 
 interface AuthTestFixtures {
-  /** A page already authenticated as verifiedUser (storageState pre-loaded at /dashboard). */
+  /**
+   * A page authenticated as verifiedUser, already at /dashboard.
+   * Restores storageState from file — no UI sign-in needed.
+   */
   authenticatedPage: Page;
+
+  /**
+   * A page authenticated as verifiedUser with storageState pre-loaded,
+   * but WITHOUT initial navigation. Use when the test must register route
+   * mocks before the first navigation (e.g. storage-rbac tests).
+   */
+  preAuthPage: Page;
 }
 
 interface AuthWorkerFixtures {
   /**
-   * A pre-created, email-verified user with a tenant. Ready for sign-in to /dashboard.
-   * Worker-scoped: created once per worker process, shared across all tests in the file.
-   * This prevents rate-limit exhaustion from creating a new user for every test.
+   * Pre-created, email-verified user with a tenant.
+   * Loaded from the credentials file written by globalSetup — zero API calls.
+   * Worker-scoped: shared across all tests in the spec file.
    */
   verifiedUser: TestUser;
 }
 
-/**
- * Extended test fixture that provides a verified user and an authenticated page.
- *
- * The verifiedUser fixture (worker-scoped):
- *   1. Calls POST /authentication/sign-up to create the user
- *   2. Directly updates the DB to mark the email as verified
- *   3. Creates a tenant + membership so the JWT includes a tenantId
- *   This avoids needing a real email inbox during testing and ensures sign-in
- *   redirects to /dashboard (not /onboarding).
- *   Being worker-scoped means only 1 sign-up call per spec file, not 1 per test —
- *   which prevents hitting the backend's medium-window sign-up rate limit.
- *
- * The authenticatedPage fixture (test-scoped) navigates to /authentication/sign-in
- * and completes the sign-in flow so the page has a valid session (cookies + localStorage state).
- */
 export const test = base.extend<AuthTestFixtures, AuthWorkerFixtures>({
   verifiedUser: [
     async ({}, use) => {
-      const pool = new Pool({ connectionString: DB_URL });
-      const timestamp = Date.now();
-      const user: TestUser = {
-        email: `pw_test_${timestamp}@stocka.test`,
-        username: `pw_user_${timestamp}`,
-        password: 'TestPass1!',
-        userId: '',
+      const { verifiedUser } = JSON.parse(readFileSync(USERS_FILE, 'utf-8')) as {
+        verifiedUser: TestUser;
       };
-
-      let accessToken = '';
-
-      try {
-        const result = await apiSignUp({
-          email: user.email,
-          username: user.username,
-          password: user.password,
-        });
-        user.userId = result.userId;
-        accessToken = result.accessToken;
-
-        // Small delay to ensure the backend has fully committed the sign-up transaction
-        await new Promise((r) => setTimeout(r, 500));
-        await verifyUserEmail(pool, user.email);
-      } finally {
-        await pool.end();
-      }
-
-      // Brief pause to avoid hitting the backend's per-second throttle
-      // (the sign-up request already consumed 1 of 3 allowed requests per second).
-      await new Promise((r) => setTimeout(r, 1000));
-
-      // Complete onboarding via the API to create a tenant.
-      // This uses the sign-up access token (the user is verified now).
-      await apiCompleteOnboarding(accessToken);
-
-      await use(user);
+      await use(verifiedUser);
     },
     { scope: 'worker' },
   ],
 
-  authenticatedPage: async ({ page, verifiedUser }, use) => {
-    // verifiedUser fixture already created a tenant for this user
-    await page.goto('/authentication/sign-in');
+  authenticatedPage: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: STORAGE_STATE_FILE });
+    const page = await ctx.newPage();
 
-    await page.getByLabel('Enter your username or email address').fill(verifiedUser.email);
-    await page.getByLabel('Enter your Password').fill(verifiedUser.password);
-    await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-
-    await page.waitForURL('**/dashboard');
+    await page.goto('/dashboard');
+    await page.waitForURL('**/dashboard', { timeout: 15_000 });
 
     await use(page);
+
+    // Roll the storageState forward so the next test has a valid refresh token.
+    await ctx.storageState({ path: STORAGE_STATE_FILE });
+    await ctx.close();
+  },
+
+  preAuthPage: async ({ browser }, use) => {
+    const ctx = await browser.newContext({ storageState: STORAGE_STATE_FILE });
+    const page = await ctx.newPage();
+
+    await use(page);
+
+    // Roll the storageState forward.
+    await ctx.storageState({ path: STORAGE_STATE_FILE });
+    await ctx.close();
   },
 });
 

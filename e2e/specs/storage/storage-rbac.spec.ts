@@ -1,8 +1,7 @@
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { Pool } from 'pg';
 import { test } from '../../fixtures/auth.fixture';
 import { SpacesPage } from '../../pages/spaces.page';
-import { LoginPage } from '../../pages/login.page';
 import { apiSignUp, apiSignIn } from '../../helpers/api.helper';
 import { verifyUserEmail, addMemberToTenant, findTenantByUserUuid } from '../../helpers/db.helper';
 
@@ -10,7 +9,7 @@ const DB_URL =
   process.env.PW_DATABASE_URL ??
   'postgresql://stocka:stocka_dev_password@localhost:5434/stocka_playwright';
 
-const API_BASE = process.env.PW_API_URL ?? 'http://localhost:3001/api';
+const API_BASE = process.env.PW_API_URL ?? 'http://localhost:3002/api';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -47,14 +46,11 @@ interface RbacPayload {
 }
 
 /**
- * Set up route mocks (RBAC + storages list) and sign in as verifiedUser.
- * Must be called BEFORE AppLayout mounts so the RBAC mock is intercepted.
+ * Set up route mocks (RBAC + storages list) then navigate directly to /storages.
+ * The preAuthPage fixture pre-loads storageState so no UI sign-in is needed.
+ * Mocks must be registered BEFORE navigation so they intercept the first requests.
  */
-async function setupAndSignIn(
-  page: ConstructorParameters<typeof LoginPage>[0],
-  verifiedUser: { email: string; password: string },
-  rbac: RbacPayload,
-): Promise<void> {
+async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
   await page.route('**/rbac/my-permissions', (route) => {
     void route.fulfill({
       status: 200,
@@ -80,10 +76,9 @@ async function setupAndSignIn(
     }
   });
 
-  const loginPage = new LoginPage(page);
-  await loginPage.goto();
-  await loginPage.signIn(verifiedUser.email, verifiedUser.password);
-  await page.waitForURL('**/dashboard');
+  // storageState already loaded in context — navigate directly (no sign-in needed)
+  await page.goto('/storages');
+  await page.waitForURL('**/storages', { timeout: 15_000 });
 }
 
 // ─── Role-based UI visibility ─────────────────────────────────────────────────
@@ -91,16 +86,14 @@ async function setupAndSignIn(
 test.describe('Given a Viewer (STORAGE_READ only) on the Spaces page', () => {
   test.describe('When they view the space cards', () => {
     test('Then only the View action is shown — no Edit, Archive, or Delete', async ({
-      page,
-      verifiedUser,
+      preAuthPage: page,
     }) => {
-      await setupAndSignIn(page, verifiedUser, {
+      await setupAndNavigate(page, {
         role: 'viewer',
         actions: ['STORAGE_READ'],
       });
 
       const spacesPage = new SpacesPage(page);
-      await spacesPage.goto();
       await spacesPage.waitForContent('E2E Active Warehouse');
 
       await expect(spacesPage.viewButtons().first()).toBeVisible();
@@ -109,14 +102,13 @@ test.describe('Given a Viewer (STORAGE_READ only) on the Spaces page', () => {
       await expect(spacesPage.deleteButtons()).not.toBeVisible();
     });
 
-    test('Then the New space button is not shown', async ({ page, verifiedUser }) => {
-      await setupAndSignIn(page, verifiedUser, {
+    test('Then the New space button is not shown', async ({ preAuthPage: page }) => {
+      await setupAndNavigate(page, {
         role: 'viewer',
         actions: ['STORAGE_READ'],
       });
 
       const spacesPage = new SpacesPage(page);
-      await spacesPage.goto();
       await spacesPage.waitForContent('E2E Active Warehouse');
 
       await expect(spacesPage.createButton).not.toBeVisible();
@@ -128,14 +120,13 @@ test.describe(
   'Given a Manager (STORAGE_READ + STORAGE_UPDATE + STORAGE_DELETE) on the Spaces page',
   () => {
     test.describe('When they view the active space card', () => {
-      test('Then Edit and Archive actions are shown', async ({ page, verifiedUser }) => {
-        await setupAndSignIn(page, verifiedUser, {
+      test('Then Edit and Archive actions are shown', async ({ preAuthPage: page }) => {
+        await setupAndNavigate(page, {
           role: 'manager',
           actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
         });
 
         const spacesPage = new SpacesPage(page);
-        await spacesPage.goto();
         await spacesPage.waitForContent('E2E Active Warehouse');
 
         await expect(spacesPage.editButtons().first()).toBeVisible();
@@ -144,14 +135,13 @@ test.describe(
     });
 
     test.describe('When they view the archived space card', () => {
-      test('Then Edit and Delete actions are shown', async ({ page, verifiedUser }) => {
-        await setupAndSignIn(page, verifiedUser, {
+      test('Then Edit and Delete actions are shown', async ({ preAuthPage: page }) => {
+        await setupAndNavigate(page, {
           role: 'manager',
           actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
         });
 
         const spacesPage = new SpacesPage(page);
-        await spacesPage.goto();
         await spacesPage.waitForContent('E2E Archived Room');
 
         await expect(spacesPage.deleteButtons().first()).toBeVisible();
@@ -162,30 +152,27 @@ test.describe(
 
 test.describe('Given an Owner with full storage permissions on the Spaces page', () => {
   test.describe('When they view the page', () => {
-    test('Then the New space button is visible', async ({ page, verifiedUser }) => {
-      await setupAndSignIn(page, verifiedUser, {
+    test('Then the New space button is visible', async ({ preAuthPage: page }) => {
+      await setupAndNavigate(page, {
         role: 'owner',
         actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
       });
 
       const spacesPage = new SpacesPage(page);
-      await spacesPage.goto();
       await spacesPage.waitForContent('E2E Active Warehouse');
 
       await expect(spacesPage.createButton).toBeVisible();
     });
 
     test('Then Edit, Archive, and View are all shown for the active space', async ({
-      page,
-      verifiedUser,
+      preAuthPage: page,
     }) => {
-      await setupAndSignIn(page, verifiedUser, {
+      await setupAndNavigate(page, {
         role: 'owner',
         actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_DELETE'],
       });
 
       const spacesPage = new SpacesPage(page);
-      await spacesPage.goto();
       await spacesPage.waitForContent('E2E Active Warehouse');
 
       await expect(spacesPage.viewButtons().first()).toBeVisible();
