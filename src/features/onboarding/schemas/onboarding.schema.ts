@@ -79,7 +79,7 @@ export const businessProfileSchema = z.object({
     .min(2, 'step3.businessNameTooShort')
     .max(100, 'step3.businessNameTooLong'),
   businessType: z.enum(BusinessTypeSchema.options, {
-    errorMap: () => ({ message: 'step3.businessTypeRequired' }),
+    error: 'step3.businessTypeRequired',
   }),
   otherBusinessType: z.string().max(100).optional(),
   country: z.string().min(1, 'step3.countryRequired'),

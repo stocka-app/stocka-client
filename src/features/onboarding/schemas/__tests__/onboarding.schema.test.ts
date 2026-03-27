@@ -213,6 +213,21 @@ describe('businessProfileSchema', () => {
         expect(result.success).toBe(false);
       });
     });
+
+    describe('When businessType is an unrecognized string', () => {
+      it('Then the schema rejects it with the custom error message', () => {
+        const result = businessProfileSchema.safeParse({
+          businessName: 'Mi Negocio',
+          businessType: 'INVALID_TYPE',
+          country: 'MX',
+        });
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          const issue = result.error.issues.find((i) => i.path[0] === 'businessType');
+          expect(issue?.message).toBe('step3.businessTypeRequired');
+        }
+      });
+    });
   });
 
   describe('Given the user omits the country', () => {
