@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
-import { authenticationService } from '@/features/authentication/api/authentication.service';
-import { setAccessToken, executeRefresh } from '@/shared/lib/axios';
+import { setAccessToken, executeRefresh, getLastRefreshData } from '@/shared/lib/axios';
 import { extractTenantContext } from '@/shared/lib/jwt';
 import { useThemeStore } from '@/store/theme.store';
 import { useRBACStore } from '@/store/rbac.store';
@@ -51,29 +50,31 @@ function AuthInitializer({ children }: { readonly children: React.ReactNode }) {
         // the explicit call so the rest of hydrateAuth has the token in scope.
         setAccessToken(accessToken);
 
+        // Refresh-session now returns enriched data (social + onboarding status)
+        // so we no longer need a separate getMe() call.
+        const refreshData = getLastRefreshData();
+
         // Refresh tenant context from JWT on every silent refresh
         const { tenantId, role, displayName, tierLimits } = extractTenantContext(accessToken);
         const currentUser = useAuthenticationStore.getState().user;
-        let updatedUser = currentUser ? { ...currentUser, tenantId, role, displayName, tierLimits } : null;
+        const updatedUser = currentUser
+          ? {
+              ...currentUser,
+              tenantId,
+              role,
+              displayName,
+              tierLimits,
+              username: refreshData?.username ?? currentUser.username,
+              givenName: refreshData?.givenName ?? currentUser.givenName,
+              familyName: refreshData?.familyName ?? currentUser.familyName,
+              avatarUrl: refreshData?.avatarUrl ?? currentUser.avatarUrl,
+            }
+          : null;
 
-        // Fetch social data and permissions in parallel — neither is blocking
-        const [meResult] = await Promise.allSettled([
-          authenticationService.getMe(),
-          useRBACStore.getState().loadPermissions(),
-        ]);
-
-        if (meResult.status === 'fulfilled') {
-          const socialData = {
-            givenName: meResult.value.data.givenName ?? null,
-            familyName: meResult.value.data.familyName ?? null,
-            avatarUrl: meResult.value.data.avatarUrl ?? null,
-          };
-          if (updatedUser) {
-            updatedUser = { ...updatedUser, ...socialData };
-          }
-        } else {
-          // Non-critical — social data is optional, but log to aid debugging
-          console.error('[Stocka] getMe() failed during silent refresh:', meResult.reason);
+        // Only load permissions if user has a tenant (not during onboarding)
+        const onboardingCompleted = refreshData?.onboardingStatus === 'COMPLETED';
+        if (onboardingCompleted) {
+          useRBACStore.getState().loadPermissions().catch(() => {});
         }
 
         if (emailVerificationRequired) {

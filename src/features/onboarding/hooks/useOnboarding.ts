@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOnboardingStore } from '../store/onboarding.store';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
@@ -15,6 +15,15 @@ import type {
 } from '../types/onboarding.types';
 import type { SpaceConfig } from '../components/steps/Step4Spaces';
 import type { InvitationDetails } from '../schemas/onboarding.schema';
+
+// Module-level flag to prevent duplicate initialization caused by React StrictMode
+// double-mount. Same pattern as `hydrationStarted` in providers.tsx.
+let onboardingInitStarted = false;
+
+/** @internal Exposed for testing — resets the StrictMode guard flag. */
+export function _resetOnboardingInitFlag(): void {
+  onboardingInitStarted = false;
+}
 
 /**
  * useOnboarding
@@ -71,7 +80,6 @@ export function useOnboarding(): {
   reset: () => void;
 } {
   const navigate = useNavigate();
-  const initRef = useRef(false);
   const {
     step,
     path,
@@ -104,9 +112,9 @@ export function useOnboarding(): {
   } = useOnboardingStore();
 
   const initializeOnboarding = useCallback(async (): Promise<void> => {
-    // Prevent double initialization within the same mount cycle
-    if (initRef.current) return;
-    initRef.current = true;
+    // Prevent double initialization caused by StrictMode double-mount
+    if (onboardingInitStarted) return;
+    onboardingInitStarted = true;
 
     // Reset store to initial state before hydrating from backend.
     // This prevents stale in-memory state from a previous session
@@ -114,10 +122,9 @@ export function useOnboarding(): {
     reset();
 
     try {
-      // Ensure a session exists (idempotent)
-      await onboardingService.startOnboarding();
-      // Fetch full status with stepData
-      const response = await onboardingService.getOnboardingStatus();
+      // Start (or resume) session — now returns stepData, so we hydrate directly
+      // without a separate GET /status call.
+      const response = await onboardingService.startOnboarding();
       hydrateFromBackend(response.data);
     } catch {
       // If initialization fails, still mark hydrated to unblock UI
@@ -377,6 +384,11 @@ export function useOnboarding(): {
     setError(null);
   };
 
+  const resetWithFlag = (): void => {
+    onboardingInitStarted = false;
+    reset();
+  };
+
   return {
     currentStep: step,
     path,
@@ -406,6 +418,6 @@ export function useOnboarding(): {
     acceptInvitation,
     setInvitationSubStep,
     clearError,
-    reset,
+    reset: resetWithFlag,
   };
 }

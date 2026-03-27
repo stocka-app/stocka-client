@@ -69,6 +69,7 @@ export const useAuthenticationStore = create<AuthStore>()(
             user: backendUser,
             accessToken,
             emailVerificationRequired,
+            onboardingStatus,
           } = response.data;
 
           // Extract tenant context from JWT
@@ -79,9 +80,9 @@ export const useAuthenticationStore = create<AuthStore>()(
             email: backendUser.email,
             username: backendUser.username,
             displayName,
-            givenName: null,
-            familyName: null,
-            avatarUrl: null,
+            givenName: backendUser.givenName ?? null,
+            familyName: backendUser.familyName ?? null,
+            avatarUrl: backendUser.avatarUrl ?? null,
             status: emailVerificationRequired ? 'pending_verification' : 'active',
             createdAt: backendUser.createdAt,
             tenantId,
@@ -106,8 +107,12 @@ export const useAuthenticationStore = create<AuthStore>()(
             return { requiresVerification: true, requiresOnboarding: false };
           }
 
-          // Pre-load permissions before navigating — token is fresh so no 401 risk
-          await useRBACStore.getState().loadPermissions();
+          const requiresOnboarding = onboardingStatus !== 'COMPLETED';
+
+          // Only pre-load permissions when heading to the dashboard (not onboarding)
+          if (!requiresOnboarding) {
+            await useRBACStore.getState().loadPermissions();
+          }
 
           set({
             user,
@@ -119,7 +124,7 @@ export const useAuthenticationStore = create<AuthStore>()(
             error: null,
             errorCode: null,
           });
-          return { requiresVerification: false, requiresOnboarding: tenantId === null };
+          return { requiresVerification: false, requiresOnboarding };
         } catch (error) {
           let errorMessage = 'UNKNOWN_ERROR';
           let errorCode: ApiError['error'] = 'UNKNOWN_ERROR';

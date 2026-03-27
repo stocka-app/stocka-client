@@ -141,11 +141,18 @@ export const SignUpResponseSchema = z.object({
  * Estructura real del backend: { data: { user, accessToken, emailVerificationRequired }, success: true }
  * El refreshToken ya no viene en el body — viaja en httpOnly cookie
  */
+const SignInUserSchema = BackendUserSchema.extend({
+  givenName: z.string().nullable().optional(),
+  familyName: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
+});
+
 export const SignInResponseSchema = z.object({
   data: z.object({
-    user: BackendUserSchema,
+    user: SignInUserSchema,
     accessToken: z.string(),
     emailVerificationRequired: z.boolean(),
+    onboardingStatus: z.enum(['IN_PROGRESS', 'COMPLETED']).nullable().optional(),
   }),
   success: z.boolean(),
 });

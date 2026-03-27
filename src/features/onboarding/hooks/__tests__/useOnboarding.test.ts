@@ -3,6 +3,7 @@ import { useOnboardingStore } from '@/features/onboarding/store/onboarding.store
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
 import { onboardingService } from '@/features/onboarding/api/onboarding.service';
 import { authenticationService } from '@/features/authentication/api/authentication.service';
+import { _resetOnboardingInitFlag } from '@/features/onboarding/hooks/useOnboarding';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -73,6 +74,7 @@ describe('useOnboarding', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetStore();
+    _resetOnboardingInitFlag();
   });
 
   // =========================================================================
@@ -83,10 +85,6 @@ describe('useOnboarding', () => {
     describe('Given the user has an in-progress session on step 2', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'IN_PROGRESS', currentStep: 2, path: 'CREATE' },
-          success: true,
-        });
-        vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
           data: {
             status: 'IN_PROGRESS',
             currentStep: 2,
@@ -1713,6 +1711,7 @@ describe('useOnboarding', () => {
 describe('Onboarding flow — exhaustive scenarios', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetOnboardingInitFlag();
     useOnboardingStore.setState({
       step: 0,
       path: null,
@@ -1935,10 +1934,6 @@ describe('Onboarding flow — exhaustive scenarios', () => {
     describe('C3 — Backend returns path=JOIN with invitation code', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'IN_PROGRESS', currentStep: 1, path: 'JOIN' },
-          success: true,
-        });
-        vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
           data: {
             status: 'IN_PROGRESS',
             currentStep: 1,
@@ -2005,10 +2000,6 @@ describe('Onboarding flow — exhaustive scenarios', () => {
     describe('C — Rehydration step=3 with full stepData', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'IN_PROGRESS', currentStep: 3, path: 'CREATE' },
-          success: true,
-        });
-        vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
           data: {
             status: 'IN_PROGRESS',
             currentStep: 3,

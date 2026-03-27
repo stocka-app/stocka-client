@@ -3,7 +3,7 @@ import { useOAuthPopup } from '@/features/authentication/hooks/useOAuthPopup';
 import { authenticationService } from '@/features/authentication/api/authentication.service';
 import { openOAuthPopup } from '@/features/authentication/api/oauth-popup.helper';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
-import { setAccessToken } from '@/shared/lib/axios';
+import { setAccessToken, executeRefresh, getLastRefreshData } from '@/shared/lib/axios';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -22,12 +22,13 @@ vi.mock('@/features/authentication/api/oauth-popup.helper', () => ({
 vi.mock('@/features/authentication/api/authentication.service', () => ({
   authenticationService: {
     getOAuthUrl: vi.fn(),
-    getMe: vi.fn(),
   },
 }));
 
 vi.mock('@/shared/lib/axios', () => ({
   setAccessToken: vi.fn(),
+  executeRefresh: vi.fn(),
+  getLastRefreshData: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -82,19 +83,15 @@ describe('useOAuthPopup', () => {
     setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
 
     vi.mocked(authenticationService.getOAuthUrl).mockReturnValue(OAUTH_URL);
-    vi.mocked(authenticationService.getMe).mockResolvedValue({
-      data: {
-        id: '00000000-0000-0000-0000-000000000001',
-        email: 'oauth@test.com',
-        username: 'oauth',
-        status: 'email_verified_by_provider',
-        createdAt: new Date().toISOString(),
-        givenName: 'Roberto',
-        familyName: 'Medina',
-        avatarUrl: 'https://example.com/avatar.jpg',
-      },
-      success: true,
-    } as never);
+    vi.mocked(executeRefresh).mockResolvedValue(FAKE_JWT);
+    vi.mocked(getLastRefreshData).mockReturnValue({
+      accessToken: FAKE_JWT,
+      username: 'oauth',
+      givenName: 'Roberto',
+      familyName: 'Medina',
+      avatarUrl: 'https://example.com/avatar.jpg',
+      onboardingStatus: null,
+    });
 
     // Reset auth store to clean state
     useAuthenticationStore.setState({
@@ -199,20 +196,15 @@ describe('useOAuthPopup', () => {
         expect(storeState.user!.avatarUrl).toBe('https://example.com/avatar.jpg');
       });
 
-      it('Then it keeps social fields as null when getMe returns null values', async () => {
-        vi.mocked(authenticationService.getMe).mockResolvedValueOnce({
-          data: {
-            id: '00000000-0000-0000-0000-000000000001',
-            email: 'oauth@test.com',
-            username: 'oauth',
-            status: 'email_verified_by_provider',
-            createdAt: new Date().toISOString(),
-            givenName: null,
-            familyName: null,
-            avatarUrl: null,
-          },
-          success: true,
-        } as never);
+      it('Then it keeps social fields as null when refresh returns null values', async () => {
+        vi.mocked(getLastRefreshData).mockReturnValueOnce({
+          accessToken: FAKE_JWT,
+          username: 'oauth',
+          givenName: null,
+          familyName: null,
+          avatarUrl: null,
+          onboardingStatus: null,
+        });
 
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -228,11 +220,11 @@ describe('useOAuthPopup', () => {
         expect(storeState.user!.givenName).toBeNull();
         expect(storeState.user!.familyName).toBeNull();
         expect(storeState.user!.avatarUrl).toBeNull();
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
       });
 
-      it('Then it calls getMe to enrich social data even when getMe fails', async () => {
-        vi.mocked(authenticationService.getMe).mockRejectedValueOnce(new Error('network error'));
+      it('Then it still navigates when executeRefresh fails', async () => {
+        vi.mocked(executeRefresh).mockRejectedValueOnce(new Error('network error'));
 
         const { result } = renderHook(() => useOAuthPopup());
 
@@ -244,9 +236,9 @@ describe('useOAuthPopup', () => {
           dispatchStorageEvent(FAKE_JWT);
         });
 
-        // Still navigates despite getMe failure
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
-        // User is set from JWT (avatarUrl null since getMe failed)
+        // Still navigates despite executeRefresh failure
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
+        // User is set from JWT (avatarUrl null since refresh failed)
         const storeState = useAuthenticationStore.getState();
         expect(storeState.user).toBeTruthy();
         expect(storeState.user!.avatarUrl).toBeNull();
@@ -268,7 +260,7 @@ describe('useOAuthPopup', () => {
         expect(storeState.accessToken).toBe(FAKE_JWT);
       });
 
-      it('Then it navigates to the dashboard', async () => {
+      it('Then it navigates based on onboarding status', async () => {
         const { result } = renderHook(() => useOAuthPopup());
 
         act(() => {
@@ -279,7 +271,8 @@ describe('useOAuthPopup', () => {
           dispatchStorageEvent(FAKE_JWT);
         });
 
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+        // onboardingStatus is null → user needs onboarding
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
       });
 
       it('Then it removes the token from localStorage after processing', async () => {
@@ -386,7 +379,7 @@ describe('useOAuthPopup', () => {
         });
 
         expect(setAccessToken).toHaveBeenCalledWith(FAKE_JWT);
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
       });
     });
   });

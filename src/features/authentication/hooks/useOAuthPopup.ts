@@ -1,10 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAccessToken } from '@/shared/lib/axios';
+import { setAccessToken, executeRefresh, getLastRefreshData } from '@/shared/lib/axios';
 import { decodeJwtPayload, type StockaJwtPayload } from '@/shared/lib/jwt';
 import { authenticationService } from '../api/authentication.service';
 import { openOAuthPopup } from '../api/oauth-popup.helper';
 import { useAuthenticationStore } from '../store/authentication.store';
+import { useRBACStore } from '@/store/rbac.store';
 import type { OAuthProvider, User } from '../types/authentication.types';
 
 const OAUTH_STORAGE_KEY = 'stocka-oauth-result';
@@ -66,21 +67,38 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
 
       handleOAuthCallback({ accessToken, user });
 
-      // Enrich with social name and avatar from /me before navigating
+      // Rotate token via refresh-session — returns social data + onboarding status
+      let requiresOnboarding = user.tenantId === null;
       try {
-        const meResponse = await authenticationService.getMe();
-        const enriched = {
-          givenName: meResponse.data.givenName ?? null,
-          familyName: meResponse.data.familyName ?? null,
-          avatarUrl: meResponse.data.avatarUrl ?? null,
-        };
-        const current = useAuthenticationStore.getState().user;
-        if (current) useAuthenticationStore.setState({ user: { ...current, ...enriched } });
+        const freshToken = await executeRefresh();
+        setAccessToken(freshToken);
+        const refreshData = getLastRefreshData();
+        if (refreshData) {
+          const current = useAuthenticationStore.getState().user;
+          if (current) {
+            useAuthenticationStore.setState({
+              accessToken: freshToken,
+              user: {
+                ...current,
+                username: refreshData.username ?? current.username,
+                givenName: refreshData.givenName ?? current.givenName,
+                familyName: refreshData.familyName ?? current.familyName,
+                avatarUrl: refreshData.avatarUrl ?? current.avatarUrl,
+              },
+            });
+          }
+          requiresOnboarding = refreshData.onboardingStatus !== 'COMPLETED';
+        }
       } catch {
-        // Non-critical — avatar and name will load on next silent refresh
+        // Non-critical — social data will load on next silent refresh
       }
 
-      navigate('/dashboard', { replace: true });
+      if (!requiresOnboarding) {
+        useRBACStore.getState().loadPermissions().catch(() => {});
+      }
+
+      const destination = requiresOnboarding ? '/onboarding' : '/dashboard';
+      navigate(destination, { replace: true });
     },
     [cleanup, handleOAuthCallback, navigate],
   );

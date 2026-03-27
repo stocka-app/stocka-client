@@ -5,8 +5,9 @@ import type { TFunction } from 'i18next';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuthenticationStore } from '../store/authentication.store';
 import { authenticationService } from '../api/authentication.service';
-import { setAccessToken } from '@/shared/lib/axios';
+import { setAccessToken, executeRefresh, getLastRefreshData } from '@/shared/lib/axios';
 import { decodeJwtPayload, type StockaJwtPayload } from '@/shared/lib/jwt';
+import { useRBACStore } from '@/store/rbac.store';
 import { Button } from '@/shared/components/ui/button';
 import type { User, OAuthProvider } from '../types/authentication.types';
 
@@ -159,27 +160,46 @@ function OAuthCallbackPage() {
 
         handleOAuthCallback({ accessToken, user });
 
-        // Enrich user with social name and avatar from /me — runs after saga commits social profile
+        // Rotate token via refresh-session — returns social data + onboarding status,
+        // eliminating the need for a separate getMe() call.
+        let requiresOnboarding = user.tenantId === null;
         try {
-          const meResponse = await authenticationService.getMe();
-          const enriched = {
-            givenName: meResponse.data.givenName ?? null,
-            familyName: meResponse.data.familyName ?? null,
-            avatarUrl: meResponse.data.avatarUrl ?? null,
-          };
-          const current = useAuthenticationStore.getState().user;
-          if (current) useAuthenticationStore.setState({ user: { ...current, ...enriched } });
+          const freshToken = await executeRefresh();
+          setAccessToken(freshToken);
+          const refreshData = getLastRefreshData();
+          if (refreshData) {
+            const current = useAuthenticationStore.getState().user;
+            if (current) {
+              useAuthenticationStore.setState({
+                accessToken: freshToken,
+                user: {
+                  ...current,
+                  username: refreshData.username ?? current.username,
+                  givenName: refreshData.givenName ?? current.givenName,
+                  familyName: refreshData.familyName ?? current.familyName,
+                  avatarUrl: refreshData.avatarUrl ?? current.avatarUrl,
+                },
+              });
+            }
+            requiresOnboarding = refreshData.onboardingStatus !== 'COMPLETED';
+          }
         } catch {
-          // Non-critical — avatar and name will be fetched on next silent refresh
+          // Non-critical — social data will load on next silent refresh
+        }
+
+        // Only pre-load permissions when heading to the dashboard
+        if (!requiresOnboarding) {
+          useRBACStore.getState().loadPermissions().catch(() => {});
         }
 
         // Limpiar el provider almacenado al completar exitosamente
         sessionStorage.removeItem('lastOAuthProvider');
         setStatus('success');
 
-        // Redirigir al dashboard después de un breve momento
+        // Redirigir según estado del onboarding
+        const destination = requiresOnboarding ? '/onboarding' : '/dashboard';
         setTimeout(() => {
-          navigate('/dashboard', { replace: true });
+          navigate(destination, { replace: true });
         }, 1500);
       } catch {
         setErrorInfo(resolveOAuthError('connection_error', t));

@@ -127,6 +127,7 @@ export const StartOnboardingResponseSchema = z.object({
     status: z.enum(['IN_PROGRESS', 'COMPLETED']),
     currentStep: z.number(),
     path: z.enum(['CREATE', 'JOIN']).nullable(),
+    stepData: z.record(z.string(), z.unknown()).nullable(),
   }),
   success: z.boolean(),
 });

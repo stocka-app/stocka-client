@@ -56,6 +56,31 @@ function processRefreshQueue(error: unknown, token: string | null): void {
  *
  * @returns The fresh access token.
  */
+export interface RefreshResponseData {
+  accessToken: string;
+  username: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  avatarUrl: string | null;
+  onboardingStatus: string | null;
+}
+
+// Stores the full refresh response so hydrateAuth can read it after executeRefresh()
+let lastRefreshData: RefreshResponseData | null = null;
+
+export function getLastRefreshData(): RefreshResponseData | null {
+  return lastRefreshData;
+}
+
+/**
+ * Executes a single refresh-session call, or joins an in-flight one.
+ *
+ * This is the ONLY function in the app that actually calls POST /refresh-session.
+ * Both the 401 interceptor and proactive callers (hydrateAuth) go through here,
+ * ensuring the isRefreshing lock is shared and cookie rotation never collides.
+ *
+ * @returns The fresh access token.
+ */
 export async function executeRefresh(): Promise<string> {
   // If a refresh is already in flight, piggyback on it
   if (isRefreshing && refreshPromise) {
@@ -74,14 +99,16 @@ export async function executeRefresh(): Promise<string> {
         { withCredentials: true },
       );
 
-      // Backend envelope: { data: { accessToken }, success: true }
+      // Backend envelope: { data: { accessToken, ... }, success: true }
       const responseData = response.data?.data ?? response.data;
-      const { accessToken } = responseData as { accessToken: string };
+      const { accessToken } = responseData as RefreshResponseData;
       inMemoryAccessToken = accessToken;
+      lastRefreshData = responseData as RefreshResponseData;
 
       processRefreshQueue(null, accessToken);
       return accessToken;
     } catch (refreshError) {
+      lastRefreshData = null;
       processRefreshQueue(refreshError, null);
       throw refreshError;
     } finally {
