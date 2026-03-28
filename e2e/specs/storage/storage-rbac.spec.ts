@@ -64,16 +64,28 @@ interface RbacPayload {
  * Mocks must be registered BEFORE navigation so they intercept the first requests.
  */
 async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
-  // Clear stale RBAC from localStorage so each test starts with a clean slate.
-  // Without this, the Viewer test's persisted 'rbac-storage' leaks into Manager/Owner
-  // tests via the rolling storageState saved at the end of each preAuthPage fixture.
-  await page.addInitScript(() => {
-    localStorage.removeItem('rbac-storage');
+  // Pre-seed the RBAC store in localStorage with the desired permissions BEFORE
+  // navigation. The Zustand persist middleware rehydrates synchronously from
+  // localStorage on module load, so we must write the correct mock data here —
+  // merely removing the key would race with rehydration.
+  const rbacStorageValue = JSON.stringify({
+    state: {
+      role: rbac.role,
+      tier: 'FREE',
+      tenantStatus: 'ACTIVE',
+      permissions: rbac.actions,
+      grants: [],
+      loaded: true,
+    },
+    version: 0,
   });
+  await page.addInitScript((value: string) => {
+    localStorage.setItem('rbac-storage', value);
+  }, rbacStorageValue);
 
   // RBAC store does: response.data → envelope; envelope.data → payload
   // So the network response must be { success: true, data: { role, tier, actions, grants } }
-  await page.route('**/rbac/my-permissions', async (route) => {
+  await page.route(/\/api\/rbac\/my-permissions(\?.*)?$/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

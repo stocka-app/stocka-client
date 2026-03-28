@@ -119,22 +119,67 @@ export async function apiSignUp(payload: SignUpPayload): Promise<SignUpResult> {
 }
 
 /**
- * Completes onboarding by creating a tenant for the authenticated user.
- * Requires a valid access token from sign-up or sign-in.
+ * Completes the full onboarding flow via API calls, mirroring what the UI does:
+ *   1. POST /onboarding/start          — create onboarding session
+ *   2. PATCH /onboarding/progress       — save consents (step 0)
+ *   3. POST /users/me/consents          — legal audit trail
+ *   4. PATCH /onboarding/progress       — save path selection (step 1)
+ *   5. PATCH /onboarding/progress       — save businessProfile (step 3)
+ *   6. POST /onboarding/complete        — create tenant + mark session COMPLETED
+ *
+ * This ensures the onboarding session has all required stepData so the frontend
+ * skips the onboarding flow and redirects straight to /dashboard after sign-in.
  */
 export async function apiCompleteOnboarding(accessToken: string): Promise<{ tenantId: string }> {
-  const response = await fetchWithRetry(`${API_BASE}/tenant/onboarding/complete`, {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+  };
+
+  const saveProgress = async (section: string, data: Record<string, unknown>, currentStep: number): Promise<void> => {
+    const res = await fetchWithRetry(`${API_BASE}/onboarding/progress`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ section, data, currentStep }),
+    });
+    if (!res.ok) {
+      const body = (await res.json()) as { message?: string };
+      throw new Error(`[api.helper] save-progress(${section}) failed (${res.status}): ${body.message ?? 'unknown'}`);
+    }
+  };
+
+  // 1. Start onboarding session
+  await fetchWithRetry(`${API_BASE}/onboarding/start`, { method: 'POST', headers });
+
+  // 2. Save consents to onboarding session (frontend reads stepData, not user_consents)
+  await saveProgress('consents', { terms: true, marketing: false, analytics: false }, 0);
+
+  // 3. Record legal consent audit trail
+  const consentsRes = await fetchWithRetry(`${API_BASE}/users/me/consents`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      name: `PW Test Business ${Date.now()}`,
-      businessType: 'retail',
-      country: 'MX',
-      timezone: 'America/Mexico_City',
-    }),
+    headers,
+    body: JSON.stringify({ terms: true, marketing: false, analytics: false }),
+  });
+  if (!consentsRes.ok) {
+    const body = (await consentsRes.json()) as { message?: string };
+    throw new Error(`[api.helper] record-consents failed (${consentsRes.status}): ${body.message ?? 'unknown'}`);
+  }
+
+  // 4. Save path selection (CREATE)
+  await saveProgress('path', { path: 'CREATE' }, 1);
+
+  // 5. Save business profile (required by CompleteOnboardingHandler)
+  await saveProgress('businessProfile', {
+    name: `PW Test Business ${Date.now()}`,
+    businessType: 'retail',
+    country: 'MX',
+    timezone: 'America/Mexico_City',
+  }, 3);
+
+  // 6. Complete onboarding (creates tenant + marks session COMPLETED)
+  const response = await fetchWithRetry(`${API_BASE}/onboarding/complete`, {
+    method: 'POST',
+    headers,
   });
 
   if (!response.ok) {

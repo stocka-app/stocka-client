@@ -146,8 +146,12 @@ export default async function globalSetup(): Promise<void> {
         stateFile: string,
         label: string,
       ): Promise<void> => {
-        const ctx = await browser.newContext({ baseURL: BASE_URL });
+        const ctx = await browser.newContext({ baseURL: BASE_URL, locale: 'en-US' });
         const page = await ctx.newPage();
+        // Force i18next to use English (LanguageDetector checks localStorage first)
+        await page.addInitScript(() => {
+          localStorage.setItem('i18nextLng', 'en');
+        });
         await page.goto('/authentication/sign-in');
         await page.getByLabel('Enter your username or email address').fill(email);
         await page.getByLabel('Enter your Password').fill(password);
