@@ -3,7 +3,7 @@
     "ariaLabel": "Navegación principal",
     "nav": "Menú de navegación",
     "myBusiness": "Mi Negocio",
-    "selectBusiness": "Seleccionar Almacén",
+    "selectBusiness": "Seleccionar Instalación",
     "notifications": "Notificaciones",
     "collapse": "Contraer barra lateral",
     "expand": "Expandir barra lateral",
@@ -14,7 +14,7 @@
   "nav": {
     "dashboard": "Inicio",
     "categories": "Categorías",
-    "warehouse": "Almacén",
+    "storages": "Instalaciones",
     "products": "Productos",
     "suppliers": "Proveedores",
     "settings": "Configuración"

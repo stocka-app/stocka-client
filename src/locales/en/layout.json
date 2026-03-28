@@ -3,7 +3,7 @@
     "ariaLabel": "Main navigation",
     "nav": "Navigation menu",
     "myBusiness": "My Business",
-    "selectBusiness": "Select Warehouse",
+    "selectBusiness": "Select Storage",
     "notifications": "Notifications",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
@@ -14,7 +14,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "categories": "Categories",
-    "warehouse": "Warehouse",
+    "storages": "Storages",
     "products": "Products",
     "suppliers": "Suppliers",
     "settings": "Settings"

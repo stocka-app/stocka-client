@@ -5,7 +5,11 @@
   },
   "tabs": {
     "active": "Activos",
-    "archived": "Archivados"
+    "archived": "Archivados",
+    "all": "Todos",
+    "warehouses": "Almacenes",
+    "storeRooms": "Bodegas",
+    "customRooms": "Áreas personalizadas"
   },
   "table": {
     "name": "Nombre",
@@ -32,7 +36,10 @@
     "warehouseProBadge": "STARTER+"
   },
   "stats": {
-    "total": "Total"
+    "total": "Total",
+    "active": "Activas",
+    "frozen": "Congeladas",
+    "occupancy": "Ocupación"
   },
   "controls": {
     "search": "Buscar instalación...",
@@ -42,21 +49,69 @@
     "sortDesc": "Z → A"
   },
   "empty": {
+    "title": "Aún no tienes instalaciones",
+    "description": "Crea tu primera instalación para centralizar tu inventario y optimizar las operaciones de tu negocio.",
+    "createFirst": "Crear mi primera instalación",
+    "whatIsStorage": "¿Qué es una instalación?",
     "noStorages": "Aún no tienes instalaciones",
     "noStoragesSubtitle": "Crea tu primera instalación para gestionar tu inventario",
-    "createFirst": "Crear mi primera instalación",
-    "noResults": "Sin resultados",
-    "noResultsSubtitle": "Intenta ajustar tu búsqueda o eliminar los filtros activos"
+    "noResults": "No encontramos instalaciones con ese nombre",
+    "noResultsSubtitle": "Revisa que el término de búsqueda sea correcto o intenta con un filtro diferente.",
+    "noFilterResults": "No hay instalaciones con ese filtro activo",
+    "noFilterResultsSubtitle": "Prueba seleccionar otro estado o tipo de instalación.",
+    "clearSearch": "Limpiar búsqueda",
+    "viewAll": "Ver todas",
+    "valueCards": {
+      "centralization": "Centralización",
+      "centralizationDesc": "Todo tu inventario en un solo lugar, accesible desde cualquier parte.",
+      "optimization": "Optimización",
+      "optimizationDesc": "Automatiza el resurtido y reduce desperdicios con alertas inteligentes.",
+      "rolesPermissions": "Roles y Permisos",
+      "rolesPermissionsDesc": "Controla quién puede ver y gestionar cada área de almacenamiento."
+    },
+    "suggestionCards": {
+      "checkSpelling": "Revisa la ortografía",
+      "checkSpellingDesc": "Asegúrate de que los términos de búsqueda estén bien escritos.",
+      "adjustFilters": "Ajusta los filtros",
+      "adjustFiltersDesc": "Intenta quitar algunos filtros activos para ampliar los resultados.",
+      "createNew": "Crear nueva",
+      "createNewDesc": "Si aún no existe, crea una nueva instalación ahora."
+    }
   },
   "error": {
-    "retry": "Reintentar"
+    "title": "No pudimos cargar tus instalaciones",
+    "description": "Ocurrió un error al cargar tus instalaciones. Puede ser un problema temporal.",
+    "retry": "Reintentar",
+    "getHelp": "Obtener ayuda",
+    "troubleshooting": {
+      "connection": "Revisa tu conexión",
+      "connectionDesc": "Asegúrate de estar conectado a internet.",
+      "refresh": "Actualiza la página",
+      "refreshDesc": "A veces una simple recarga soluciona el problema.",
+      "support": "Contacta a soporte",
+      "supportDesc": "Si el problema persiste, nuestro equipo puede ayudarte."
+    }
   },
   "upgrade": {
     "title": "Actualiza tu plan para desbloquear más instalaciones",
-    "cta": "Actualizar plan"
+    "cta": "Actualizar plan",
+    "tierLimit": {
+      "title": "Límite de plan alcanzado",
+      "description": "Actualiza para crear más instalaciones de este tipo.",
+      "cta": "Actualizar plan"
+    },
+    "banner": {
+      "title": "Desbloquea todo el potencial de tus instalaciones",
+      "description": "Obtén instalaciones ilimitadas, roles avanzados y más con un plan premium.",
+      "cta": "Ver planes"
+    }
+  },
+  "loader": {
+    "loading": "Cargando instalaciones..."
   },
   "actions": {
     "create": "Nueva instalación",
+    "createInline": "Crear instalación",
     "view": "Ver más",
     "edit": "Editar",
     "archive": "Archivar",
@@ -104,6 +159,9 @@
   },
   "toast": {
     "restored": "{{name}} restaurada",
-    "restoreFailed": "No se pudo restaurar la instalación"
-  }
+    "restoreFailed": "No se pudo restaurar la instalación",
+    "deleted": "{{name}} eliminada permanentemente",
+    "deleteFailed": "No se pudo eliminar la instalación"
+  },
+  "productCount": "productos"
 }

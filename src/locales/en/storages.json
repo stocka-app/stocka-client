@@ -5,7 +5,11 @@
   },
   "tabs": {
     "active": "Active",
-    "archived": "Archived"
+    "archived": "Archived",
+    "all": "All",
+    "warehouses": "Warehouses",
+    "storeRooms": "Store Rooms",
+    "customRooms": "Custom Rooms"
   },
   "table": {
     "name": "Name",
@@ -32,7 +36,10 @@
     "warehouseProBadge": "STARTER+"
   },
   "stats": {
-    "total": "Total"
+    "total": "Total",
+    "active": "Active",
+    "frozen": "Frozen",
+    "occupancy": "Occupancy"
   },
   "controls": {
     "search": "Search storages...",
@@ -42,21 +49,69 @@
     "sortDesc": "Z → A"
   },
   "empty": {
+    "title": "You don't have any storages yet",
+    "description": "Create your first storage to centralize your inventory and optimize operations across your business.",
+    "createFirst": "Create my first storage",
+    "whatIsStorage": "What is a storage?",
     "noStorages": "No storages yet",
     "noStoragesSubtitle": "Create your first storage to start managing your inventory",
-    "createFirst": "Create my first storage",
-    "noResults": "No results",
-    "noResultsSubtitle": "Try adjusting your search or removing the active filters"
+    "noResults": "No storages found with that name",
+    "noResultsSubtitle": "Check that the search term is correct or try a different filter.",
+    "noFilterResults": "No storages match this filter",
+    "noFilterResultsSubtitle": "Try selecting a different status or storage type.",
+    "clearSearch": "Clear search",
+    "viewAll": "View all",
+    "valueCards": {
+      "centralization": "Centralization",
+      "centralizationDesc": "All your inventory in one place, accessible from anywhere.",
+      "optimization": "Optimization",
+      "optimizationDesc": "Automate restocking and reduce waste with smart alerts.",
+      "rolesPermissions": "Roles & Permissions",
+      "rolesPermissionsDesc": "Control who can see and manage each storage area."
+    },
+    "suggestionCards": {
+      "checkSpelling": "Check spelling",
+      "checkSpellingDesc": "Make sure the search terms are spelled correctly.",
+      "adjustFilters": "Adjust filters",
+      "adjustFiltersDesc": "Try removing some active filters to broaden results.",
+      "createNew": "Create new",
+      "createNewDesc": "If it doesn't exist yet, create a new storage now."
+    }
   },
   "error": {
-    "retry": "Retry"
+    "title": "We couldn't load your storages",
+    "description": "Something went wrong while loading your storages. This may be a temporary issue.",
+    "retry": "Retry",
+    "getHelp": "Get help",
+    "troubleshooting": {
+      "connection": "Check your connection",
+      "connectionDesc": "Make sure you're connected to the internet.",
+      "refresh": "Refresh the page",
+      "refreshDesc": "Sometimes a simple refresh solves the problem.",
+      "support": "Contact support",
+      "supportDesc": "If the problem persists, our team can help."
+    }
   },
   "upgrade": {
     "title": "Upgrade your plan to unlock more storages",
-    "cta": "Upgrade now"
+    "cta": "Upgrade now",
+    "tierLimit": {
+      "title": "Plan limit reached",
+      "description": "Upgrade to create more storages of this type.",
+      "cta": "Upgrade plan"
+    },
+    "banner": {
+      "title": "Unlock the full potential of your storages",
+      "description": "Get unlimited storages, advanced roles, and more with a premium plan.",
+      "cta": "See plans"
+    }
+  },
+  "loader": {
+    "loading": "Loading storages..."
   },
   "actions": {
     "create": "New storage",
+    "createInline": "Create storage",
     "view": "View",
     "edit": "Edit",
     "archive": "Archive",
@@ -104,6 +159,9 @@
   },
   "toast": {
     "restored": "{{name}} restored",
-    "restoreFailed": "Could not restore storage"
-  }
+    "restoreFailed": "Could not restore storage",
+    "deleted": "{{name}} permanently deleted",
+    "deleteFailed": "Could not delete storage"
+  },
+  "productCount": "products"
 }
