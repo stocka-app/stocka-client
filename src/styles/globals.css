@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import 'material-symbols/outlined.css';
 
 @tailwind base;
 @tailwind components;
@@ -59,6 +59,41 @@
   --color-surface-raised:   #F3F4F6;
   --color-surface-overlay:  #FFFFFF;
 
+  /* Brand — extended */
+  --color-brand-primary-subtle: #dbeafe;
+  --color-brand-primary-ring:   #3b82f633;
+
+  /* Category pastels */
+  --color-cat-blue-bg:       #E0F2FE;
+  --color-cat-blue-icon:     #2563eb;
+  --color-cat-blue-icon-bg:  #dbeafe;
+  --color-cat-green-bg:      #DCFCE7;
+  --color-cat-green-icon:    #16a34a;
+  --color-cat-green-icon-bg: #dcfce7;
+  --color-cat-orange-bg:      #FFEDD5;
+  --color-cat-orange-icon:    #ea580c;
+  --color-cat-orange-icon-bg: #ffedd5;
+  --color-cat-purple-bg:      #F3E8FF;
+  --color-cat-purple-icon:    #9333ea;
+  --color-cat-purple-icon-bg: #f3e8ff;
+  --color-cat-pink-bg:        #FCE7F3;
+  --color-cat-pink-icon:      #db2777;
+  --color-cat-pink-icon-bg:   #fce7f3;
+  --color-cat-yellow-bg:      #FEF9C3;
+  --color-cat-yellow-icon:    #ca8a04;
+  --color-cat-yellow-icon-bg: #fef9c3;
+
+  /* Installation accents */
+  --color-inst-almacen-accent:  #3b82f6;
+  --color-inst-almacen-subtle:  #dbeafe;
+  --color-inst-almacen-text:    #1e40af;
+  --color-inst-bodega-accent:   #d97706;
+  --color-inst-bodega-subtle:   #fef3c7;
+  --color-inst-bodega-text:     #92400e;
+  --color-inst-custom-accent:   #6b7280;
+  --color-inst-custom-subtle:   #e5e7eb;
+  --color-inst-custom-text:     #4b5563;
+
   /* Borders */
   --color-border:        #E5E7EB;
   --color-border-strong: #D1D5DB;
@@ -100,6 +135,41 @@
   --color-authentication-right-panel:     #0F172A;
   --color-authentication-input-bg:        #1e293b;
   --color-authentication-input-border:    #334155;
+
+  /* Brand — extended */
+  --color-brand-primary-subtle: #0d3330;
+  --color-brand-primary-ring:   #14B8A633;
+
+  /* Category pastels (dark — low opacity tints) */
+  --color-cat-blue-bg:       rgba(37,99,235,0.19);
+  --color-cat-blue-icon:     #60a5fa;
+  --color-cat-blue-icon-bg:  rgba(37,99,235,0.25);
+  --color-cat-green-bg:      rgba(22,163,74,0.19);
+  --color-cat-green-icon:    #34d399;
+  --color-cat-green-icon-bg: rgba(22,163,74,0.25);
+  --color-cat-orange-bg:      rgba(234,88,12,0.19);
+  --color-cat-orange-icon:    #fb923c;
+  --color-cat-orange-icon-bg: rgba(234,88,12,0.25);
+  --color-cat-purple-bg:      rgba(147,51,234,0.19);
+  --color-cat-purple-icon:    #c084fc;
+  --color-cat-purple-icon-bg: rgba(147,51,234,0.25);
+  --color-cat-pink-bg:        rgba(219,39,119,0.19);
+  --color-cat-pink-icon:      #f472b6;
+  --color-cat-pink-icon-bg:   rgba(219,39,119,0.25);
+  --color-cat-yellow-bg:      rgba(202,138,4,0.19);
+  --color-cat-yellow-icon:    #fbbf24;
+  --color-cat-yellow-icon-bg: rgba(202,138,4,0.25);
+
+  /* Installation accents (dark) */
+  --color-inst-almacen-accent:  #60a5fa;
+  --color-inst-almacen-subtle:  rgba(96,165,250,0.25);
+  --color-inst-almacen-text:    #93bbfd;
+  --color-inst-bodega-accent:   #fbbf24;
+  --color-inst-bodega-subtle:   rgba(251,191,36,0.25);
+  --color-inst-bodega-text:     #fde68a;
+  --color-inst-custom-accent:   #9ca3af;
+  --color-inst-custom-subtle:   rgba(156,163,175,0.25);
+  --color-inst-custom-text:     #d1d5db;
 
   /* Surfaces (6-layer hierarchy — DS-003) */
   --color-surface-page:     #0b1221;

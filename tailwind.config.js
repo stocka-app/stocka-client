@@ -46,6 +46,25 @@ export default {
           DEFAULT: "var(--color-brand-primary)",
           hover:   "var(--color-brand-primary-hover)",
           light:   "var(--color-brand-primary-light)",
+          subtle:  "var(--color-brand-primary-subtle)",
+          ring:    "var(--color-brand-primary-ring)",
+        },
+
+        // ── Category pastel tokens ───────────────────────────────────────
+        cat: {
+          blue:   { bg: "var(--color-cat-blue-bg)",   icon: "var(--color-cat-blue-icon)",   "icon-bg": "var(--color-cat-blue-icon-bg)" },
+          green:  { bg: "var(--color-cat-green-bg)",  icon: "var(--color-cat-green-icon)",  "icon-bg": "var(--color-cat-green-icon-bg)" },
+          orange: { bg: "var(--color-cat-orange-bg)", icon: "var(--color-cat-orange-icon)", "icon-bg": "var(--color-cat-orange-icon-bg)" },
+          purple: { bg: "var(--color-cat-purple-bg)", icon: "var(--color-cat-purple-icon)", "icon-bg": "var(--color-cat-purple-icon-bg)" },
+          pink:   { bg: "var(--color-cat-pink-bg)",   icon: "var(--color-cat-pink-icon)",   "icon-bg": "var(--color-cat-pink-icon-bg)" },
+          yellow: { bg: "var(--color-cat-yellow-bg)", icon: "var(--color-cat-yellow-icon)", "icon-bg": "var(--color-cat-yellow-icon-bg)" },
+        },
+
+        // ── Installation accent tokens ───────────────────────────────────
+        inst: {
+          almacen: { accent: "var(--color-inst-almacen-accent)", subtle: "var(--color-inst-almacen-subtle)", text: "var(--color-inst-almacen-text)" },
+          bodega:  { accent: "var(--color-inst-bodega-accent)",  subtle: "var(--color-inst-bodega-subtle)",  text: "var(--color-inst-bodega-text)" },
+          custom:  { accent: "var(--color-inst-custom-accent)",  subtle: "var(--color-inst-custom-subtle)",  text: "var(--color-inst-custom-text)" },
         },
 
         // ── Surface hierarchy ──────────────────────────────────────────────
