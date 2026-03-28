@@ -48,6 +48,10 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
+  async destroy(id: string): Promise<void> {
+    await axiosInstance.delete(`/storages/${id}/permanent`);
+  },
+
   async fetchCapabilities(signal?: AbortSignal): Promise<TenantCapabilities> {
     const { data } = await axiosInstance.get('/tenants/me/capabilities', { signal });
     return unwrap(data) as TenantCapabilities;

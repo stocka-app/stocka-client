@@ -33,7 +33,7 @@ const initialState: StoragesState = {
   total: 0,
   page: 1,
   totalPages: 0,
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
