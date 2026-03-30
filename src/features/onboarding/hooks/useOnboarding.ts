@@ -167,7 +167,7 @@ export function useOnboarding(): {
     setError(null);
     try {
       // Persist consents to onboarding session
-      await onboardingService.saveProgress('consents', data, 0);
+      await onboardingService.saveProgress('consents', data as unknown as Record<string, unknown>, 0);
       // Also record consents in the user domain (legal requirement)
       // Non-blocking: don't let consent recording failure prevent onboarding progress
       onboardingService.recordConsents(data).catch((err) => {

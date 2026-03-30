@@ -18,7 +18,7 @@ import { Step6QuickStart } from '../components/steps/Step6QuickStart';
 import { InvitationCodeEntry } from '../components/invitation/InvitationCodeEntry';
 import { InvitationConfirmation } from '../components/invitation/InvitationConfirmation';
 
-export default function OnboardingPage(): React.ReactElement {
+export default function OnboardingPage(): React.ReactElement | null {
   const { t } = useTranslation('onboarding');
   const navigate = useNavigate();
   const { user, logout } = useAuthentication();

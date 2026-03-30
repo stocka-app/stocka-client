@@ -13,6 +13,9 @@ import { Checkbox } from '@/shared/components/ui/checkbox';
 import { Button } from '@/shared/components/ui/button';
 import { consentSchema, type ConsentFormData } from '../../schemas/onboarding.schema';
 import type { OnboardingConsents } from '../../types/onboarding.types';
+import type { z } from 'zod';
+
+type ConsentFormInput = z.input<typeof consentSchema>;
 
 interface Step1WelcomeProps {
   onSubmit: (consents: OnboardingConsents) => Promise<void>;
@@ -31,7 +34,7 @@ export function Step1Welcome({
 }: Step1WelcomeProps): React.ReactElement {
   const { t } = useTranslation('onboarding');
 
-  const form = useForm<ConsentFormData>({
+  const form = useForm<ConsentFormInput, unknown, ConsentFormData>({
     resolver: zodResolver(consentSchema),
     defaultValues: {
       terms: defaultValues?.terms ?? false,

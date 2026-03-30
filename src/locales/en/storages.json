@@ -116,7 +116,8 @@
     "edit": "Edit",
     "archive": "Archive",
     "restore": "Restore",
-    "delete": "Delete"
+    "delete": "Delete",
+    "menu": "Actions menu"
   },
   "createModal": {
     "titleCreate": "New storage",

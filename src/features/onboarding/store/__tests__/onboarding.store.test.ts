@@ -146,7 +146,7 @@ describe('useOnboardingStore', () => {
 
   describe('setConsents action', () => {
     describe('When the user accepts terms and opts into marketing', () => {
-      const consents = { terms: true as const, marketing: true };
+      const consents = { terms: true as const, marketing: true, analytics: false };
 
       beforeEach(() => {
         act(() => {
@@ -160,7 +160,7 @@ describe('useOnboardingStore', () => {
     });
 
     describe('When the user accepts terms but opts out of marketing', () => {
-      const consents = { terms: true as const, marketing: false };
+      const consents = { terms: true as const, marketing: false, analytics: false };
 
       beforeEach(() => {
         act(() => {

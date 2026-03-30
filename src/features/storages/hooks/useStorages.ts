@@ -5,15 +5,15 @@ import { useRBACStore } from '@/store/rbac.store';
 import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
 import type { CreateStorageFormData, UpdateStorageFormData } from '../schemas/storages.schema';
-import type { StorageStatus, StorageType } from '../types/storages.types';
+import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
 
 const STORAGES_PAGE_LIMIT = 50;
 
 export function useStorages(): {
-  storages: ReturnType<typeof useStoragesStore>['storages'];
-  activeStorages: ReturnType<typeof useStoragesStore>['storages'];
-  frozenStorages: ReturnType<typeof useStoragesStore>['storages'];
-  archivedStorages: ReturnType<typeof useStoragesStore>['storages'];
+  storages: Storage[];
+  activeStorages: Storage[];
+  frozenStorages: Storage[];
+  archivedStorages: Storage[];
   total: number;
   page: number;
   totalPages: number;

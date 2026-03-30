@@ -138,7 +138,7 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleUpgrade = (): void => {
-    openUpgradeModal('FEATURE_NOT_IN_TIER', 'WAREHOUSE');
+    openUpgradeModal('FEATURE_NOT_IN_TIER', filterType ?? 'WAREHOUSE');
   };
 
   const isAtTypeLimit = (type: StorageType): boolean => {
@@ -530,7 +530,7 @@ export default function StoragesPage(): React.ReactElement {
               storage={storage}
               onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
               onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
-              onRestore={canDo('STORAGE_UPDATE') && !canDo('STORAGE_DELETE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
+              onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
               onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
             />
           ))}
@@ -603,6 +603,7 @@ function StatsBar({ activeCount, frozenCount }: { activeCount: number; frozenCou
         <span className="material-symbols-outlined text-[20px] text-neutral-500">inventory_2</span>
         <span className="text-xs font-medium text-neutral-500">{t('stats.occupancy')}</span>
       </div>
+
     </div>
   );
 }

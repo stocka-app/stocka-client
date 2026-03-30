@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu';
 import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
 
 // ─── Visual mappings ──────────────────────────────────────────────────────────
@@ -136,42 +141,50 @@ export function StorageCard({
           <span className="text-xs text-neutral-500">{t(`statuses.${storage.status}`)}</span>
         </div>
 
+        {/* Room type (CUSTOM_ROOM only) */}
+        {storage.type === 'CUSTOM_ROOM' && storage.roomType && (
+          <p className="mb-1 text-xs text-neutral-400">{storage.roomType}</p>
+        )}
+
         {/* Address */}
         {storage.address !== null && (
           <p className="mb-3 truncate text-sm text-neutral-600">{storage.address}</p>
         )}
 
-        {/* Product count — placeholder until Sprint 3 */}
-        <div className="mb-3 flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[16px] text-neutral-400">inventory_2</span>
-          <span className="text-xs text-neutral-500">— {t('productCount')}</span>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2 border-t border-border pt-2">
-          <Button type="button" variant="ghost" size="sm" className="min-h-[44px] active:bg-neutral-100">
-            {t('actions.view')}
-          </Button>
-          {showEdit && onEdit && (
-            <Button type="button" variant="ghost" size="sm" className="min-h-[44px] active:bg-neutral-100" onClick={() => onEdit(storage)}>
-              {t('actions.edit')}
-            </Button>
-          )}
-          {showArchive && onArchive && (
-            <Button type="button" variant="ghost" size="sm" className="min-h-[44px] active:bg-neutral-100" onClick={() => onArchive(storage)}>
-              {t('actions.archive')}
-            </Button>
-          )}
-          {showRestore && onRestore && (
-            <Button type="button" variant="ghost" size="sm" className="min-h-[44px] active:bg-neutral-100" onClick={() => onRestore(storage)}>
-              {t('actions.restore')}
-            </Button>
-          )}
-          {showDelete && onDelete && (
-            <Button type="button" variant="ghost" size="sm" className="min-h-[44px] active:bg-neutral-100" onClick={() => onDelete(storage)}>
-              {t('actions.delete')}
-            </Button>
-          )}
+        {/* Context menu */}
+        <div className="flex items-center justify-between border-t border-border pt-2">
+          <div className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-neutral-400">inventory_2</span>
+            <span className="text-xs text-neutral-500">— {t('productCount')}</span>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
+                aria-label={t('actions.menu')}
+              >
+                <span className="material-symbols-outlined text-[18px]">more_horiz</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[140px]">
+              <DropdownMenuItem>{t('actions.view')}</DropdownMenuItem>
+              {showEdit && onEdit && (
+                <DropdownMenuItem onClick={() => onEdit(storage)}>{t('actions.edit')}</DropdownMenuItem>
+              )}
+              {showArchive && onArchive && (
+                <DropdownMenuItem onClick={() => onArchive(storage)}>{t('actions.archive')}</DropdownMenuItem>
+              )}
+              {showRestore && onRestore && (
+                <DropdownMenuItem onClick={() => onRestore(storage)}>{t('actions.restore')}</DropdownMenuItem>
+              )}
+              {showDelete && onDelete && (
+                <DropdownMenuItem className="text-destructive" onClick={() => onDelete(storage)}>
+                  {t('actions.delete')}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

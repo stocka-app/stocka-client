@@ -116,7 +116,8 @@
     "edit": "Editar",
     "archive": "Archivar",
     "restore": "Restaurar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "menu": "Menú de acciones"
   },
   "createModal": {
     "titleCreate": "Nueva instalación",

@@ -1,3 +1,5 @@
+import type { OnboardingStatusResponse as _OnboardingStatusResponse } from '../schemas/onboarding.schema';
+
 export type {
   BusinessType,
   OnboardingPath,
@@ -16,6 +18,8 @@ export type {
   ContextFormData,
   OnboardingStatusResponse,
 } from '../schemas/onboarding.schema';
+
+type OnboardingStatusResponse = _OnboardingStatusResponse;
 
 // =============================================================================
 // ONBOARDING STEPS

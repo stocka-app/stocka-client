@@ -6,7 +6,7 @@ export const storageStatusSchema = z.enum(['ACTIVE', 'FROZEN', 'ARCHIVED']);
 
 export const storageSchema = z.object({
   uuid: z.string().uuid(),
-  name: z.string().min(1).max(100),
+  name: z.string().min(2).max(80),
   type: storageTypeSchema,
   status: storageStatusSchema,
   address: z.string().max(255).nullable(),
@@ -17,7 +17,7 @@ export const storageSchema = z.object({
 });
 
 const storageFormBaseSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
+  name: z.string().min(2, 'Name is required').max(80, 'Name too long'),
   type: storageTypeSchema,
   address: z.string().max(255).optional(),
 });
@@ -33,7 +33,7 @@ export const createStorageSchema = storageFormBaseSchema.superRefine((data, ctx)
 });
 
 export const updateStorageSchema = storageFormBaseSchema.partial().extend({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(2).max(80).optional(),
 });
 
 export const storagesListSchema = z.array(storageSchema);

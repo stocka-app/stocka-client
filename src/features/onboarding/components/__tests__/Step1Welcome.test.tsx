@@ -9,7 +9,7 @@ vi.mock('react-i18next', async () => {
   return {
     ...i18nMock,
     // Override Trans to render its components prop so link onClick handlers are exercised
-    Trans: ({ i18nKey, components }: { i18nKey: string; components?: Record<string, React.ReactElement> }) => {
+    Trans: ({ i18nKey, components }: { i18nKey: string; components?: Record<string, React.ReactElement<Record<string, unknown>>> }) => {
       if (!components) return i18nKey;
       return React.createElement(
         'span',

@@ -139,7 +139,7 @@ describe('useOnboarding', () => {
     describe('Given initializeOnboarding has already been called once', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'IN_PROGRESS', currentStep: 0, path: null },
+          data: { status: 'IN_PROGRESS', currentStep: 0, path: null, stepData: null },
           success: true,
         });
         vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
@@ -174,7 +174,7 @@ describe('useOnboarding', () => {
     describe('Given the user has no existing session', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'IN_PROGRESS', currentStep: 0, path: null },
+          data: { status: 'IN_PROGRESS', currentStep: 0, path: null, stepData: null },
           success: true,
         });
         vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
@@ -1102,6 +1102,7 @@ describe('useOnboarding', () => {
             createdAt: '2026-01-01T00:00:00.000Z',
             tenantId: null,
             role: null,
+            tierLimits: null,
           },
           isAuthenticated: true,
         });
@@ -1646,7 +1647,7 @@ describe('useOnboarding', () => {
     describe('Given the store has an invitation error on step 1', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'IN_PROGRESS', currentStep: 0, path: null },
+          data: { status: 'IN_PROGRESS', currentStep: 0, path: null, stepData: null },
           success: true,
         });
         vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
@@ -1965,7 +1966,7 @@ describe('Onboarding flow — exhaustive scenarios', () => {
     describe('C4 — Backend returns COMPLETED status', () => {
       beforeEach(() => {
         vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-          data: { status: 'COMPLETED', currentStep: 7, path: 'CREATE' },
+          data: { status: 'COMPLETED', currentStep: 7, path: 'CREATE', stepData: null },
           success: true,
         });
         vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
@@ -2459,7 +2460,7 @@ describe('Onboarding flow — exhaustive scenarios', () => {
   describe('I. localStorage cleanup on initialization', () => {
     beforeEach(() => {
       vi.mocked(onboardingService.startOnboarding).mockResolvedValue({
-        data: { status: 'IN_PROGRESS', currentStep: 0, path: null },
+        data: { status: 'IN_PROGRESS', currentStep: 0, path: null, stepData: null },
         success: true,
       });
       vi.mocked(onboardingService.getOnboardingStatus).mockResolvedValue({
@@ -2544,12 +2545,12 @@ describe('Onboarding flow — exhaustive scenarios', () => {
           const { result } = renderHook(() => useOnboarding());
 
           await act(async () => {
-            await result.current.submitSpaces([{ name: 'Almacen 1', type: 'warehouse' }]);
+            await result.current.submitSpaces([{ name: 'Almacen 1', type: 'WAREHOUSE' }]);
           });
 
           expect(onboardingService.saveProgress).toHaveBeenCalledWith(
             'spaces',
-            { spaces: [{ name: 'Almacen 1', type: 'warehouse' }] },
+            { spaces: [{ name: 'Almacen 1', type: 'WAREHOUSE' }] },
             4,
           );
           expect(result.current.currentStep).toBe(5);
@@ -2570,7 +2571,7 @@ describe('Onboarding flow — exhaustive scenarios', () => {
           const { result } = renderHook(() => useOnboarding());
 
           await act(async () => {
-            await result.current.submitSpaces([{ name: 'Almacen 1', type: 'warehouse' }]);
+            await result.current.submitSpaces([{ name: 'Almacen 1', type: 'WAREHOUSE' }]);
           });
 
           expect(result.current.error).toBe('errors.profileUpdateFailed');
@@ -2592,11 +2593,16 @@ describe('Onboarding flow — exhaustive scenarios', () => {
           user: {
             id: 'user-1',
             email: 'test@example.com',
-            firstName: 'Test',
-            lastName: 'User',
+            username: 'test-user',
+            displayName: 'Test User',
+            givenName: 'Test',
+            familyName: 'User',
+            avatarUrl: null,
+            status: 'active',
+            createdAt: '2026-01-01T00:00:00.000Z',
             tenantId: null,
             role: 'OWNER',
-            emailVerified: true,
+            tierLimits: null,
           },
         });
         vi.mocked(onboardingService.completeOnboarding).mockResolvedValue({
@@ -2633,11 +2639,16 @@ describe('Onboarding flow — exhaustive scenarios', () => {
           user: {
             id: 'user-1',
             email: 'test@example.com',
-            firstName: 'Test',
-            lastName: 'User',
+            username: 'test-user',
+            displayName: 'Test User',
+            givenName: 'Test',
+            familyName: 'User',
+            avatarUrl: null,
+            status: 'active',
+            createdAt: '2026-01-01T00:00:00.000Z',
             tenantId: null,
             role: 'OWNER',
-            emailVerified: true,
+            tierLimits: null,
           },
         });
         vi.mocked(onboardingService.completeOnboarding).mockResolvedValue({
@@ -2673,11 +2684,16 @@ describe('Onboarding flow — exhaustive scenarios', () => {
           user: {
             id: 'user-1',
             email: 'test@example.com',
-            firstName: 'Test',
-            lastName: 'User',
+            username: 'test-user',
+            displayName: 'Test User',
+            givenName: 'Test',
+            familyName: 'User',
+            avatarUrl: null,
+            status: 'active',
+            createdAt: '2026-01-01T00:00:00.000Z',
             tenantId: null,
             role: 'EMPLOYEE',
-            emailVerified: true,
+            tierLimits: null,
           },
         });
         vi.mocked(onboardingService.completeOnboarding).mockResolvedValue({
@@ -2727,6 +2743,7 @@ describe('Onboarding flow — exhaustive scenarios', () => {
             createdAt: '2026-01-01T00:00:00.000Z',
             tenantId: null,
             role: null,
+            tierLimits: null,
           },
         });
         vi.mocked(onboardingService.completeOnboarding).mockResolvedValue({
