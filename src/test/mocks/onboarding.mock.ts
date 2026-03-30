@@ -35,5 +35,8 @@ export const mockUseOnboarding: ReturnType<typeof useOnboarding> = {
   acceptInvitation: vi.fn().mockResolvedValue(undefined),
   setInvitationSubStep: vi.fn(),
   clearError: vi.fn(),
+  isHydrated: false,
+  initializeOnboarding: vi.fn().mockResolvedValue(undefined),
+  submitSpaces: vi.fn().mockResolvedValue(undefined),
   reset: vi.fn(),
 };

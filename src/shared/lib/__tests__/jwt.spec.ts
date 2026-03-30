@@ -24,11 +24,12 @@ describe('decodeJwtPayload', () => {
         tenantId: 'tenant-123',
         role: 'owner',
         displayName: 'Roberto Medina',
+        tierLimits: null,
         iat: 1700000000,
         exp: 1700003600,
       };
 
-      const token = buildFakeJwt(payload);
+      const token = buildFakeJwt(payload as unknown as Record<string, unknown>);
       const result = decodeJwtPayload<StockaJwtPayload>(token);
 
       expect(result.sub).toBe(payload.sub);

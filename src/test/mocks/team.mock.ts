@@ -60,7 +60,6 @@ export const mockUseTeam = (): ReturnType<typeof import('@/features/team/hooks/u
   resendInvitation: vi.fn().mockResolvedValue(undefined),
   cancelInvitation: vi.fn().mockResolvedValue(undefined),
   selectMember: vi.fn(),
-  selectMember: vi.fn(),
   fetchGrants: vi.fn().mockResolvedValue(undefined),
   addGrant: vi.fn().mockResolvedValue(undefined),
   removeGrant: vi.fn().mockResolvedValue(undefined),

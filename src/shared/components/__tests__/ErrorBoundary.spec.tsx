@@ -1,3 +1,4 @@
+import type React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
@@ -37,7 +38,7 @@ vi.mock('@/shared/lib/i18n', () => ({
   },
 }));
 
-function BrokenChild() {
+function BrokenChild(): React.ReactNode {
   throw new Error('Test render error');
 }
 
