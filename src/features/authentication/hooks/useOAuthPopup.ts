@@ -63,6 +63,7 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
         createdAt: new Date().toISOString(),
         tenantId: payload.tenantId ?? null,
         role: payload.role ?? null,
+        tierLimits: null,
       };
 
       handleOAuthCallback({ accessToken, user });

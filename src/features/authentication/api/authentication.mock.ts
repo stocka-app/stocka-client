@@ -63,6 +63,7 @@ export async function mockRegister(credentials: SignUpRequest): Promise<SignUpRe
         createdAt: new Date().toISOString(),
       },
       accessToken: 'mock-jwt-token-' + Date.now(),
+      emailSent: true,
     },
     success: true,
   };

@@ -155,14 +155,15 @@ function OAuthCallbackPage() {
             createdAt: new Date().toISOString(),
             tenantId: payload.tenantId ?? null,
             role: payload.role ?? null,
+            tierLimits: null,
           };
         }
 
-        handleOAuthCallback({ accessToken, user });
+        handleOAuthCallback({ accessToken, user: user! });
 
         // Rotate token via refresh-session — returns social data + onboarding status,
         // eliminating the need for a separate getMe() call.
-        let requiresOnboarding = user.tenantId === null;
+        let requiresOnboarding = user!.tenantId === null;
         try {
           const freshToken = await executeRefresh();
           setAccessToken(freshToken);

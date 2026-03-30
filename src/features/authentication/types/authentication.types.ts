@@ -2,6 +2,10 @@
 // RE-EXPORT CONTRACT TYPES FROM ZOD SCHEMAS
 // =============================================================================
 
+import type { SignInRequest as _SignInRequest, SignUpRequest as _SignUpRequest } from '../schemas/authentication.schema';
+type SignInRequest = _SignInRequest;
+type SignUpRequest = _SignUpRequest;
+
 export type {
   // Request types — usar estos en lugar de LoginCredentials / RegisterCredentials
   SignInRequest,
@@ -95,6 +99,7 @@ export type AuthenticationErrorCode =
   | 'INTERNAL_SERVER_ERROR'
   | 'VALIDATION_ERROR'
   | 'TOO_MANY_REQUESTS'
+  | 'SOCIAL_ACCOUNT_REQUIRED'
   | 'UNKNOWN_ERROR';
 
 /**
