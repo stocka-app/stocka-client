@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 
@@ -30,72 +30,34 @@ export default defineConfig({
       // Blacklist strategy: include everything, exclude only what is truly not unit-testable
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        // Bootstrap / entry points
+        // ── BOOTSTRAP (not exercisable in unit tests) ──────────────────────
         'src/main.tsx',
         'src/app/App.tsx',
         'src/app/router.tsx',
-        // Complex integration: router + silent-refresh on mount
-        'src/app/providers.tsx',
-        // Module-level side effects that execute on import (import.meta.env, i18next init)
+
+        // ── MODULE-LEVEL SIDE EFFECTS (execute on import) ──────────────────
         'src/shared/lib/env.ts',
         'src/shared/lib/i18n.ts',
-        // HTTP interceptors — integration scope (requires live server or axios-mock-adapter)
-        'src/shared/lib/axios.ts',
-        // Barrel re-export files (no logic)
+
+        // ── BOILERPLATE (no runtime logic) ─────────────────────────────────
         'src/**/index.ts',
-        // Type-only files
         'src/**/*.types.ts',
         'src/shared/types/**',
-        // shadcn/ui generated components (third-party wrappers)
+
+        // ── GENERATED / THIRD-PARTY (not our code) ─────────────────────────
         'src/shared/components/ui/**',
-        // SVG illustration components
         'src/shared/components/illustrations/**',
-        // Test utility component (intentionally throws)
-        'src/shared/components/ThrowError.tsx',
-        // Legacy / dead code folder (superseded by features/authentication)
-        'src/features/auth/**',
-        // Test infrastructure
+
+        // ── TEST INFRASTRUCTURE ────────────────────────────────────────────
         'src/test/**',
-        'src/features/authentication/api/authentication.mock.ts',
-        // HTTP service — integration scope (calls real API)
-        'src/features/authentication/api/authentication.service.ts',
-        // Onboarding: HTTP service + mock + pages (integration scope)
-        'src/features/onboarding/api/onboarding.service.ts',
-        'src/features/onboarding/api/onboarding.mock.ts',
-        'src/features/onboarding/pages/**',
-        // Organization: HTTP service + mock + pages (integration scope)
-        'src/features/organization/api/organization.service.ts',
-        'src/features/organization/api/organization.mock.ts',
-        'src/features/organization/pages/**',
-        // Complex stateful form component with file upload — integration scope
-        'src/features/organization/components/OrgEditForm.tsx',
-        // Team: HTTP service + mock + pages (integration scope)
-        'src/features/team/api/team.service.ts',
-        'src/features/team/api/team.mock.ts',
-        'src/features/team/pages/**',
-        // Storages: HTTP service + mock + pages (integration scope)
-        'src/features/storages/api/storages.service.ts',
-        'src/features/storages/api/storages.mock.ts',
-        'src/features/storages/pages/**',
-        // Placeholder feature with no real logic
-        'src/features/dashboard/**',
-        // Complex stateful form components — integration / e2e scope
-        'src/features/authentication/components/LoginForm.tsx',
-        'src/features/authentication/components/RegisterForm.tsx',
-        'src/features/authentication/components/VerifyEmailForm.tsx',
-        'src/features/authentication/components/ExpirationTimer.tsx',
-        'src/features/authentication/components/ResendButton.tsx',
-        'src/features/authentication/components/VerificationCodeInput.tsx',
-        // Pages — complex forms + routing, integration scope
-        'src/features/authentication/pages/**',
-        // Layout wrappers — pure structural UI with Outlet, no business logic to unit test
-        'src/shared/layouts/**',
+        'src/shared/components/ThrowError.tsx',
+        'src/features/*/api/*.mock.ts',
       ],
       thresholds: {
-        statements: 100,
-        branches: 100,
-        functions: 100,
-        lines: 100,
+        statements: 85,
+        branches: 80,
+        functions: 84,
+        lines: 85,
       },
     },
   },
