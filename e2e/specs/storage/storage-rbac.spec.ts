@@ -134,6 +134,7 @@ test.describe('Given a Viewer (STORAGE_READ only) on the Spaces page', () => {
 
       const spacesPage = new SpacesPage(page);
       await spacesPage.waitForContent('E2E Active Warehouse');
+      await spacesPage.openCardMenu('E2E Active Warehouse');
 
       await expect(spacesPage.viewButtons().first()).toBeVisible();
       await expect(spacesPage.editButtons()).not.toBeVisible();
@@ -167,6 +168,7 @@ test.describe(
 
         const spacesPage = new SpacesPage(page);
         await spacesPage.waitForContent('E2E Active Warehouse');
+        await spacesPage.openCardMenu('E2E Active Warehouse');
 
         await expect(spacesPage.editButtons().first()).toBeVisible();
         await expect(spacesPage.archiveButtons().first()).toBeVisible();
@@ -182,6 +184,7 @@ test.describe(
 
         const spacesPage = new SpacesPage(page);
         await spacesPage.waitForContent('E2E Archived Room');
+        await spacesPage.openCardMenu('E2E Archived Room');
 
         await expect(spacesPage.editButtons().first()).toBeVisible();
         await expect(spacesPage.restoreButtons().first()).toBeVisible();
@@ -214,6 +217,7 @@ test.describe('Given an Owner with full storage permissions on the Spaces page',
 
       const spacesPage = new SpacesPage(page);
       await spacesPage.waitForContent('E2E Active Warehouse');
+      await spacesPage.openCardMenu('E2E Active Warehouse');
 
       await expect(spacesPage.viewButtons().first()).toBeVisible();
       await expect(spacesPage.editButtons().first()).toBeVisible();

@@ -30,23 +30,29 @@ export class SpacesPage {
     await this.page.getByText(spaceName).waitFor({ state: 'visible' });
   }
 
+  /** Open the three-dot context menu on a card containing the given text */
+  async openCardMenu(cardText: string): Promise<void> {
+    const card = this.page.getByText(cardText).locator('..').locator('..');
+    await card.getByLabel('Actions menu').click();
+  }
+
   editButtons(): Locator {
-    return this.page.getByRole('button', { name: 'Edit' });
+    return this.page.getByRole('menuitem', { name: 'Edit' });
   }
 
   archiveButtons(): Locator {
-    return this.page.getByRole('button', { name: 'Archive' });
+    return this.page.getByRole('menuitem', { name: 'Archive' });
   }
 
   deleteButtons(): Locator {
-    return this.page.getByRole('button', { name: 'Delete' });
+    return this.page.getByRole('menuitem', { name: 'Delete' });
   }
 
   restoreButtons(): Locator {
-    return this.page.getByRole('button', { name: 'Restore' });
+    return this.page.getByRole('menuitem', { name: 'Restore' });
   }
 
   viewButtons(): Locator {
-    return this.page.getByRole('button', { name: 'View' });
+    return this.page.getByRole('menuitem', { name: 'View' });
   }
 }
