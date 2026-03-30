@@ -167,10 +167,10 @@ describe('Given the storages schemas validate domain data', () => {
     });
   });
 
-  describe('When createStorageSchema receives a name exceeding 100 characters', () => {
+  describe('When createStorageSchema receives a name exceeding 80 characters', () => {
     it('Then it fails validation', () => {
       const result = createStorageSchema.safeParse({
-        name: 'a'.repeat(101),
+        name: 'a'.repeat(81),
         type: 'STORE_ROOM',
       });
       expect(result.success).toBe(false);

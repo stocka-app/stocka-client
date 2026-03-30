@@ -23,7 +23,14 @@ vi.mock('@/shared/lib/axios', () => ({
 }));
 
 vi.mock('@/shared/lib/jwt', () => ({
-  extractTenantContext: vi.fn(() => ({ tenantId: null, role: null, displayName: null })),
+  extractTenantContext: vi.fn(() => ({ tenantId: null, role: null, displayName: null, tierLimits: null })),
+}));
+
+const mockLoadPermissions = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/store/rbac.store', () => ({
+  useRBACStore: {
+    getState: () => ({ loadPermissions: mockLoadPermissions }),
+  },
 }));
 
 // ---------------------------------------------------------------------------
@@ -323,7 +330,6 @@ describe('useAuthenticationStore', () => {
             {
               code: 'invalid_type',
               expected: 'string',
-              received: 'number',
               path: ['data', 'accessToken'],
               message: 'Expected string, received number',
             },
@@ -340,6 +346,37 @@ describe('useAuthenticationStore', () => {
           });
 
           expect(result.current.errorCode).toBe('UNKNOWN_ERROR');
+        });
+      });
+    });
+
+    describe('Given the user has completed onboarding', () => {
+      beforeEach(() => {
+        vi.mocked(authenticationService.signIn).mockResolvedValue({
+          data: {
+            user: validBackendUser,
+            accessToken: 'access-token-123',
+            emailVerificationRequired: false,
+            onboardingStatus: 'COMPLETED',
+          },
+          success: true,
+        });
+      });
+
+      describe('When login is called', () => {
+        it('Then it pre-loads RBAC permissions before resolving', async () => {
+          const { result } = renderHook(() => useAuthenticationStore());
+
+          let loginResult: { requiresVerification: boolean; requiresOnboarding: boolean } | undefined;
+          await act(async () => {
+            loginResult = await result.current.login({
+              emailOrUsername: 'user@test.com',
+              password: 'Password1',
+            });
+          });
+
+          expect(mockLoadPermissions).toHaveBeenCalledOnce();
+          expect(loginResult).toEqual({ requiresVerification: false, requiresOnboarding: false });
         });
       });
     });
@@ -532,7 +569,6 @@ describe('useAuthenticationStore', () => {
             {
               code: 'invalid_type',
               expected: 'string',
-              received: 'number',
               path: ['data', 'accessToken'],
               message: 'Expected string, received number',
             },
@@ -615,6 +651,9 @@ describe('useAuthenticationStore', () => {
             avatarUrl: null,
             status: 'pending_verification',
             createdAt: '2024-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+            tierLimits: null,
           },
         });
       });
@@ -872,6 +911,9 @@ describe('useAuthenticationStore', () => {
             avatarUrl: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+            tierLimits: null,
           },
           isAuthenticated: true,
           accessToken: 'token-123',
@@ -916,6 +958,9 @@ describe('useAuthenticationStore', () => {
             avatarUrl: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+            tierLimits: null,
           },
           isAuthenticated: true,
         });
@@ -956,6 +1001,7 @@ describe('useAuthenticationStore', () => {
             avatarUrl: null,
             status: 'email_verified_by_provider' as const,
             createdAt: '2024-01-01T00:00:00.000Z',
+            tierLimits: null,
           };
 
           act(() => {
@@ -990,6 +1036,7 @@ describe('useAuthenticationStore', () => {
                 createdAt: '2024-01-01T00:00:00.000Z',
                 tenantId: null,
                 role: null,
+                tierLimits: null,
               },
             });
           });
@@ -1020,6 +1067,7 @@ describe('useAuthenticationStore', () => {
           createdAt: '2024-01-01T00:00:00.000Z',
           tenantId: null,
           role: null,
+          tierLimits: null,
         };
 
         act(() => {
@@ -1043,6 +1091,9 @@ describe('useAuthenticationStore', () => {
             avatarUrl: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+            tierLimits: null,
           },
         });
         const { result } = renderHook(() => useAuthenticationStore());
@@ -1176,6 +1227,9 @@ describe('useAuthenticationStore', () => {
             avatarUrl: null,
             status: 'active',
             createdAt: '2024-01-01T00:00:00.000Z',
+            tenantId: null,
+            role: null,
+            tierLimits: null,
           },
           isAuthenticated: true,
           error: 'Something went wrong',

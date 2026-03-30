@@ -111,7 +111,7 @@ describe('Given the storages store manages storage state', () => {
       useStoragesStore.getState().reset();
       const { storages, isLoading, error } = useStoragesStore.getState();
       expect(storages).toEqual([]);
-      expect(isLoading).toBe(false);
+      expect(isLoading).toBe(true);
       expect(error).toBeNull();
     });
   });

@@ -47,6 +47,15 @@ const archivedRoom: Storage = {
   updatedAt: '2026-03-01T00:00:00.000Z',
 };
 
+/**
+ * Opens the three-dot context menu and returns a scoped container for querying menu items.
+ * Radix DropdownMenu renders content in a portal, so we query the full document body.
+ */
+async function openContextMenu(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+  const trigger = screen.getByRole('button', { name: 'actions.menu' });
+  await user.click(trigger);
+}
+
 describe('Given StorageCard renders a storage with role-based actions', () => {
   let user: ReturnType<typeof userEvent.setup>;
   const onEdit = vi.fn();
@@ -88,16 +97,19 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
   });
 
   describe('When the storage is active and all action handlers are provided (Manager role)', () => {
-    it('Then Ver más, Editar, and Archivar actions are shown', () => {
+    it('Then Ver más, Editar, and Archivar actions are shown', async () => {
       render(<StorageCard storage={activeWarehouse} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.getByText('actions.view')).toBeInTheDocument();
-      expect(screen.getByText('actions.edit')).toBeInTheDocument();
-      expect(screen.getByText('actions.archive')).toBeInTheDocument();
+      await openContextMenu(user);
+      expect(await screen.findByRole('menuitem', { name: 'actions.view' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'actions.edit' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'actions.archive' })).toBeInTheDocument();
     });
 
-    it('Then the Eliminar action is not shown for an active storage', () => {
+    it('Then the Eliminar action is not shown for an active storage', async () => {
       render(<StorageCard storage={activeWarehouse} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.queryByText('actions.delete')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      await screen.findByRole('menuitem', { name: 'actions.view' });
+      expect(screen.queryByRole('menuitem', { name: 'actions.delete' })).not.toBeInTheDocument();
     });
   });
 
@@ -107,19 +119,24 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       expect(screen.getByText('statuses.FROZEN')).toBeInTheDocument();
     });
 
-    it('Then the archive action is not shown for a frozen storage', () => {
+    it('Then the archive action is not shown for a frozen storage', async () => {
       render(<StorageCard storage={frozenStoreRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.queryByText('actions.archive')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      await screen.findByRole('menuitem', { name: 'actions.view' });
+      expect(screen.queryByRole('menuitem', { name: 'actions.archive' })).not.toBeInTheDocument();
     });
 
-    it('Then the delete action is not shown for a frozen storage', () => {
+    it('Then the delete action is not shown for a frozen storage', async () => {
       render(<StorageCard storage={frozenStoreRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.queryByText('actions.delete')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      await screen.findByRole('menuitem', { name: 'actions.view' });
+      expect(screen.queryByRole('menuitem', { name: 'actions.delete' })).not.toBeInTheDocument();
     });
 
-    it('Then Ver más is still shown for a frozen storage', () => {
+    it('Then Ver más is still shown for a frozen storage', async () => {
       render(<StorageCard storage={frozenStoreRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.getByText('actions.view')).toBeInTheDocument();
+      await openContextMenu(user);
+      expect(await screen.findByRole('menuitem', { name: 'actions.view' })).toBeInTheDocument();
     });
   });
 
@@ -129,29 +146,35 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       expect(screen.getByText('statuses.ARCHIVED')).toBeInTheDocument();
     });
 
-    it('Then Ver más, Editar, and Eliminar actions are shown', () => {
+    it('Then Ver más, Editar, and Eliminar actions are shown', async () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.getByText('actions.view')).toBeInTheDocument();
-      expect(screen.getByText('actions.edit')).toBeInTheDocument();
-      expect(screen.getByText('actions.delete')).toBeInTheDocument();
+      await openContextMenu(user);
+      expect(await screen.findByRole('menuitem', { name: 'actions.view' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'actions.edit' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'actions.delete' })).toBeInTheDocument();
     });
 
-    it('Then the Archivar action is not shown for an archived storage', () => {
+    it('Then the Archivar action is not shown for an archived storage', async () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.queryByText('actions.archive')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      await screen.findByRole('menuitem', { name: 'actions.view' });
+      expect(screen.queryByRole('menuitem', { name: 'actions.archive' })).not.toBeInTheDocument();
     });
   });
 
   describe('When the storage is archived and the restore handler is provided', () => {
-    it('Then Restaurar action is shown when onRestore is provided', () => {
+    it('Then Restaurar action is shown when onRestore is provided', async () => {
       const onRestore = vi.fn();
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onDelete={onDelete} />);
-      expect(screen.getByText('actions.restore')).toBeInTheDocument();
+      await openContextMenu(user);
+      expect(await screen.findByRole('menuitem', { name: 'actions.restore' })).toBeInTheDocument();
     });
 
-    it('Then Restaurar action is not shown when onRestore is not provided', () => {
+    it('Then Restaurar action is not shown when onRestore is not provided', async () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.queryByText('actions.restore')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      await screen.findByRole('menuitem', { name: 'actions.view' });
+      expect(screen.queryByRole('menuitem', { name: 'actions.restore' })).not.toBeInTheDocument();
     });
   });
 
@@ -159,33 +182,39 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
     it('Then onRestore is called with the storage', async () => {
       const onRestore = vi.fn();
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onRestore={onRestore} onDelete={onDelete} />);
-      await user.click(screen.getByText('actions.restore'));
+      await openContextMenu(user);
+      const restoreItem = await screen.findByRole('menuitem', { name: 'actions.restore' });
+      await user.click(restoreItem);
       expect(onRestore).toHaveBeenCalledWith(archivedRoom);
     });
   });
 
   describe('When no action handlers are provided (Observer role)', () => {
-    it('Then only the Ver más action is shown', () => {
+    it('Then only the Ver más action is shown', async () => {
       render(<StorageCard storage={activeWarehouse} />);
-      expect(screen.getByText('actions.view')).toBeInTheDocument();
-      expect(screen.queryByText('actions.edit')).not.toBeInTheDocument();
-      expect(screen.queryByText('actions.archive')).not.toBeInTheDocument();
-      expect(screen.queryByText('actions.delete')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      expect(await screen.findByRole('menuitem', { name: 'actions.view' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'actions.edit' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'actions.archive' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'actions.delete' })).not.toBeInTheDocument();
     });
   });
 
   describe('When only the edit handler is provided (Warehouse Keeper role)', () => {
-    it('Then Editar is shown but Archivar is not shown for active storages', () => {
+    it('Then Editar is shown but Archivar is not shown for active storages', async () => {
       render(<StorageCard storage={activeWarehouse} onEdit={onEdit} />);
-      expect(screen.getByText('actions.edit')).toBeInTheDocument();
-      expect(screen.queryByText('actions.archive')).not.toBeInTheDocument();
+      await openContextMenu(user);
+      expect(await screen.findByRole('menuitem', { name: 'actions.edit' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'actions.archive' })).not.toBeInTheDocument();
     });
   });
 
   describe('When the user clicks the Editar button', () => {
     it('Then onEdit is called with the storage', async () => {
       render(<StorageCard storage={activeWarehouse} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      await user.click(screen.getByText('actions.edit'));
+      await openContextMenu(user);
+      const editItem = await screen.findByRole('menuitem', { name: 'actions.edit' });
+      await user.click(editItem);
       expect(onEdit).toHaveBeenCalledWith(activeWarehouse);
     });
   });
@@ -193,7 +222,9 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
   describe('When the user clicks the Archivar button', () => {
     it('Then onArchive is called with the storage', async () => {
       render(<StorageCard storage={activeWarehouse} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      await user.click(screen.getByText('actions.archive'));
+      await openContextMenu(user);
+      const archiveItem = await screen.findByRole('menuitem', { name: 'actions.archive' });
+      await user.click(archiveItem);
       expect(onArchive).toHaveBeenCalledWith(activeWarehouse);
     });
   });
@@ -201,7 +232,9 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
   describe('When the user clicks the Eliminar button on an archived storage', () => {
     it('Then onDelete is called with the storage', async () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      await user.click(screen.getByText('actions.delete'));
+      await openContextMenu(user);
+      const deleteItem = await screen.findByRole('menuitem', { name: 'actions.delete' });
+      await user.click(deleteItem);
       expect(onDelete).toHaveBeenCalledWith(archivedRoom);
     });
   });
@@ -217,6 +250,36 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
     it('Then the CUSTOM_ROOM type badge label is shown', () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
       expect(screen.getByText('types.CUSTOM_ROOM')).toBeInTheDocument();
+    });
+  });
+
+  describe('When a CUSTOM_ROOM storage has a roomType value', () => {
+    it('Then the roomType label is rendered', () => {
+      const roomWithType: Storage = {
+        ...archivedRoom,
+        type: 'CUSTOM_ROOM',
+        roomType: 'Exhibition',
+      };
+      render(<StorageCard storage={roomWithType} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
+      expect(screen.getByText('Exhibition')).toBeInTheDocument();
+    });
+  });
+
+  describe('When a CUSTOM_ROOM storage has a null roomType', () => {
+    it('Then no roomType label is rendered', () => {
+      render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
+      expect(screen.queryByText('Exhibition')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('When a non-CUSTOM_ROOM storage has a roomType value', () => {
+    it('Then the roomType label is not rendered', () => {
+      const warehouseWithRoomType: Storage = {
+        ...activeWarehouse,
+        roomType: 'SomeType',
+      };
+      render(<StorageCard storage={warehouseWithRoomType} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
+      expect(screen.queryByText('SomeType')).not.toBeInTheDocument();
     });
   });
 });

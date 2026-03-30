@@ -31,6 +31,13 @@ vi.mock('@/shared/lib/axios', () => ({
   getLastRefreshData: vi.fn(),
 }));
 
+const mockLoadPermissions = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/store/rbac.store', () => ({
+  useRBACStore: {
+    getState: () => ({ loadPermissions: mockLoadPermissions }),
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -536,6 +543,272 @@ describe('useOAuthPopup', () => {
         });
 
         expect(setIntervalSpy).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  // =========================================================================
+  // Completed onboarding → navigates to /dashboard and loads permissions
+  // =========================================================================
+
+  describe('Given onboardingStatus is COMPLETED after refresh', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+      vi.mocked(getLastRefreshData).mockReturnValue({
+        accessToken: FAKE_JWT,
+        username: 'oauth',
+        givenName: 'Roberto',
+        familyName: 'Medina',
+        avatarUrl: 'https://example.com/avatar.jpg',
+        onboardingStatus: 'COMPLETED',
+      });
+    });
+
+    it('Then it navigates to /dashboard and calls loadPermissions', async () => {
+      const { result } = renderHook(() => useOAuthPopup());
+
+      act(() => {
+        result.current.initiateOAuthPopup('google');
+      });
+
+      await act(async () => {
+        dispatchStorageEvent(FAKE_JWT);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+      expect(mockLoadPermissions).toHaveBeenCalled();
+    });
+
+    it('Then it still navigates to /dashboard when loadPermissions rejects', async () => {
+      mockLoadPermissions.mockRejectedValueOnce(new Error('RBAC unavailable'));
+
+      const { result } = renderHook(() => useOAuthPopup());
+
+      act(() => {
+        result.current.initiateOAuthPopup('google');
+      });
+
+      await act(async () => {
+        dispatchStorageEvent(FAKE_JWT);
+      });
+
+      expect(mockLoadPermissions).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+    });
+  });
+
+  // =========================================================================
+  // Happy path: refreshData AND current user both truthy → social data merged
+  // =========================================================================
+
+  describe('Given the user is already set in the auth store when the refresh completes', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+      vi.mocked(getLastRefreshData).mockReturnValue({
+        accessToken: FAKE_JWT,
+        username: 'social-username',
+        givenName: 'SocialGiven',
+        familyName: 'SocialFamily',
+        avatarUrl: 'https://cdn.example.com/social-avatar.jpg',
+        onboardingStatus: 'COMPLETED',
+      });
+
+      // Pre-seed the store with a user so that `current` is guaranteed truthy
+      // at line 77, covering the branch where refreshData AND current are both truthy
+      useAuthenticationStore.setState({
+        user: {
+          id: '00000000-0000-0000-0000-000000000001',
+          email: 'oauth@test.com',
+          username: 'oauth',
+          displayName: null,
+          givenName: null,
+          familyName: null,
+          avatarUrl: null,
+          status: 'active',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          tenantId: null,
+          role: null,
+          tierLimits: null,
+        },
+        isAuthenticated: true,
+      });
+    });
+
+    describe('When the OAuth popup completes and refresh returns social data', () => {
+      it('Then it merges social fields (username, givenName, familyName, avatarUrl) into the store user', async () => {
+        const setStateSpy = vi.spyOn(useAuthenticationStore, 'setState');
+
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        const storeState = useAuthenticationStore.getState();
+        expect(storeState.user).not.toBeNull();
+        expect(storeState.user!.username).toBe('social-username');
+        expect(storeState.user!.givenName).toBe('SocialGiven');
+        expect(storeState.user!.familyName).toBe('SocialFamily');
+        expect(storeState.user!.avatarUrl).toBe('https://cdn.example.com/social-avatar.jpg');
+        expect(storeState.accessToken).toBe(FAKE_JWT);
+
+        // Verify setState was called with the merged social data (lines 79-88)
+        expect(setStateSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            user: expect.objectContaining({
+              username: 'social-username',
+              givenName: 'SocialGiven',
+              familyName: 'SocialFamily',
+              avatarUrl: 'https://cdn.example.com/social-avatar.jpg',
+            }),
+          }),
+        );
+
+        setStateSpy.mockRestore();
+      });
+
+      it('Then it falls back to existing user fields when refreshData fields are null', async () => {
+        vi.mocked(getLastRefreshData).mockReturnValueOnce({
+          accessToken: FAKE_JWT,
+          username: null,
+          givenName: null,
+          familyName: null,
+          avatarUrl: null,
+          onboardingStatus: 'COMPLETED',
+        });
+
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        const storeState = useAuthenticationStore.getState();
+        expect(storeState.user).not.toBeNull();
+        // Falls back to the pre-seeded user values via ?? operator
+        expect(storeState.user!.username).toBe('oauth');
+        expect(storeState.user!.givenName).toBeNull();
+        expect(storeState.user!.familyName).toBeNull();
+        expect(storeState.user!.avatarUrl).toBeNull();
+      });
+
+      it('Then it navigates to /dashboard since onboarding is completed', async () => {
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+      });
+    });
+  });
+
+  // =========================================================================
+  // refreshData is null → no merge attempted (if (refreshData) false branch)
+  // =========================================================================
+
+  describe('Given getLastRefreshData returns null after refresh', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+      vi.mocked(getLastRefreshData).mockReturnValue(null);
+    });
+
+    describe('When the OAuth popup completes', () => {
+      it('Then it skips the social data merge and navigates to onboarding', async () => {
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        // tenantId is null in FAKE_JWT → requiresOnboarding remains true
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
+      });
+    });
+  });
+
+  // =========================================================================
+  // refreshData truthy but current user null → no merge attempted
+  // =========================================================================
+
+  describe('Given refreshData is available but the store user was cleared before merge', () => {
+    let fakePopup: { closed: boolean };
+
+    beforeEach(() => {
+      fakePopup = { closed: false };
+      vi.mocked(openOAuthPopup).mockReturnValue(fakePopup as Window);
+
+      // Make executeRefresh resolve, but clear the store user before
+      // getState().user is read (simulates a race where logout fires
+      // between handleOAuthCallback and the refresh resolution)
+      vi.mocked(executeRefresh).mockImplementation(async () => {
+        // Clear the user that handleOAuthCallback just set
+        useAuthenticationStore.setState({ user: null });
+        return FAKE_JWT;
+      });
+
+      vi.mocked(getLastRefreshData).mockReturnValue({
+        accessToken: FAKE_JWT,
+        username: 'oauth',
+        givenName: 'Roberto',
+        familyName: 'Medina',
+        avatarUrl: 'https://example.com/avatar.jpg',
+        onboardingStatus: null,
+      });
+    });
+
+    describe('When the OAuth popup completes', () => {
+      it('Then it skips the social data merge without crashing', async () => {
+        const setStateSpy = vi.spyOn(useAuthenticationStore, 'setState');
+
+        const { result } = renderHook(() => useOAuthPopup());
+
+        act(() => {
+          result.current.initiateOAuthPopup('google');
+        });
+
+        await act(async () => {
+          dispatchStorageEvent(FAKE_JWT);
+        });
+
+        // setState should NOT have been called with merged social fields
+        const mergedCall = setStateSpy.mock.calls.find((call) => {
+          const arg = call[0] as unknown as Record<string, unknown>;
+          return arg && typeof arg === 'object' && 'user' in arg &&
+            (arg.user as Record<string, unknown>)?.givenName === 'Roberto';
+        });
+        expect(mergedCall).toBeUndefined();
+
+        // Still navigates despite the race condition
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
+
+        setStateSpy.mockRestore();
       });
     });
   });

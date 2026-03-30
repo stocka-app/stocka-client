@@ -558,10 +558,15 @@ describe('Given useStorages handles fetch cancellation', () => {
 
       const { result } = renderHook(() => useStorages());
 
+      // Cancel returns early without changing loading state, so wait for
+      // the mock to have been called to confirm the fetch was attempted.
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(storagesService.list).toHaveBeenCalled();
       });
 
+      // isLoading stays true because cancel intentionally avoids flashing
+      // empty state between StrictMode unmount/remount cycles.
+      expect(result.current.isLoading).toBe(true);
       expect(result.current.error).toBeNull();
     });
   });
