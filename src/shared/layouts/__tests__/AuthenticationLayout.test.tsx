@@ -25,20 +25,27 @@ vi.mock('@/shared/components/StockaIcon', () => ({
   StockaIcon: () => <div data-testid="stocka-icon">Icon</div>,
 }));
 
+const { mockIllustration } = vi.hoisted(() => ({
+  mockIllustration: { isDark: false },
+}));
+
 vi.mock('@/shared/components/illustrations', () => ({
-  IsometricCubesIllustration: () => <div data-testid="illustration">Cubes</div>,
+  IsometricCubesIllustration: ({ variant }: { variant: string }) => (
+    <div data-testid="illustration" data-variant={variant}>Cubes</div>
+  ),
 }));
 
 vi.mock('@/shared/hooks/useTheme', () => ({
-  useTheme: () => ({ isDark: false }),
+  useTheme: () => ({ isDark: mockIllustration.isDark }),
 }));
 
 describe('AuthenticationLayout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIllustration.isDark = false;
   });
 
-  describe('Given the layout renders', () => {
+  describe('Given the layout renders in light mode', () => {
     beforeEach(() => {
       render(<AuthenticationLayout />);
     });
@@ -73,6 +80,21 @@ describe('AuthenticationLayout', () => {
 
     it('Then the theme toggle is present', () => {
       expect(screen.getAllByTestId('theme-toggle').length).toBeGreaterThan(0);
+    });
+
+    it('Then the illustration uses the light variant', () => {
+      expect(screen.getByTestId('illustration')).toHaveAttribute('data-variant', 'light');
+    });
+  });
+
+  describe('Given the layout renders in dark mode', () => {
+    beforeEach(() => {
+      mockIllustration.isDark = true;
+      render(<AuthenticationLayout />);
+    });
+
+    it('Then the illustration uses the dark variant', () => {
+      expect(screen.getByTestId('illustration')).toHaveAttribute('data-variant', 'dark');
     });
   });
 });

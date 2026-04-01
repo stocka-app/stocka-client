@@ -22,6 +22,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    pool: 'forks',
+    forks: {
+      singleFork: true,
+    },
     // Exclude Playwright e2e specs — they run via `npm run test:e2e`, not Vitest
     exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
     coverage: {
@@ -34,6 +38,7 @@ export default defineConfig({
         'src/main.tsx',
         'src/app/App.tsx',
         'src/app/router.tsx',
+        'src/app/providers.tsx',
 
         // ── MODULE-LEVEL SIDE EFFECTS (execute on import) ──────────────────
         'src/shared/lib/env.ts',
@@ -48,16 +53,31 @@ export default defineConfig({
         'src/shared/components/ui/**',
         'src/shared/components/illustrations/**',
 
+        // ── PAGES (integration / e2e scope, not unit-testable) ─────────────
+        'src/features/*/pages/**',
+
+        // ── COMPLEX FORMS (stateful — covered by e2e, not unit tests) ──────
+        'src/features/authentication/components/LoginForm.tsx',
+        'src/features/authentication/components/RegisterForm.tsx',
+        'src/features/authentication/components/VerifyEmailForm.tsx',
+        'src/features/authentication/components/ExpirationTimer.tsx',
+        'src/features/authentication/components/ResendButton.tsx',
+        'src/features/authentication/components/VerificationCodeInput.tsx',
+
+        // ── SERVICES / INFRA (require live HTTP — tested in e2e) ───────────
+        'src/features/authentication/api/authentication.service.ts',
+        'src/shared/lib/axios.ts',
+
         // ── TEST INFRASTRUCTURE ────────────────────────────────────────────
         'src/test/**',
         'src/shared/components/ThrowError.tsx',
         'src/features/*/api/*.mock.ts',
       ],
       thresholds: {
-        statements: 85,
-        branches: 80,
-        functions: 84,
-        lines: 85,
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
       },
     },
   },

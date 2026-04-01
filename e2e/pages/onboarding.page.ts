@@ -120,6 +120,6 @@ export class OnboardingPage {
   /** Get the visible step title text */
   async getStepTitle(): Promise<string> {
     const heading = this.page.getByRole('heading', { level: 1 });
-    return heading.textContent() ?? '';
+    return (await heading.textContent()) ?? '';
   }
 }

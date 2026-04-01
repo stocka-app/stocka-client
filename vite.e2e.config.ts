@@ -4,7 +4,23 @@ import path from 'node:path';
 
 /** Vite config for Playwright E2E — proxies /api to the dedicated stocka_playwright backend on port 3002. */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      ...(process.env.COVERAGE === 'true' && {
+        babel: {
+          plugins: [
+            [
+              'istanbul',
+              {
+                include: ['src/**/*.{ts,tsx}'],
+                exclude: ['src/test/**', 'src/**/*.types.ts', 'src/**/index.ts'],
+              },
+            ],
+          ],
+        },
+      }),
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

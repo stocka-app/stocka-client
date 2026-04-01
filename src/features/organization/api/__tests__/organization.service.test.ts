@@ -56,7 +56,7 @@ describe('organizationService', () => {
 
   describe('getOrgProfile', () => {
     it('calls GET /tenants/me/profile and returns Zod-parsed response', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: orgProfile });
+      mockedApi.get.mockResolvedValueOnce({ data: { success: true, data: orgProfile } });
 
       const result = await organizationService.getOrgProfile();
 
@@ -75,7 +75,7 @@ describe('organizationService', () => {
 
   describe('updateOrgProfile', () => {
     it('calls PATCH /tenants/me/profile with update data', async () => {
-      mockedApi.patch.mockResolvedValueOnce({ data: orgProfile });
+      mockedApi.patch.mockResolvedValueOnce({ data: { success: true, data: orgProfile } });
 
       const updateData = { name: 'Nuevo Nombre', businessType: 'RESTAURANT' as const };
       const result = await organizationService.updateOrgProfile(updateData);
@@ -90,7 +90,7 @@ describe('organizationService', () => {
   describe('uploadLogo', () => {
     it('calls POST /tenants/me/logo with FormData and multipart header', async () => {
       const logoUrl = 'https://cdn.stocka.mx/logos/tenant-1.png';
-      mockedApi.post.mockResolvedValueOnce({ data: { logoUrl } });
+      mockedApi.post.mockResolvedValueOnce({ data: { success: true, data: { logoUrl } } });
 
       const file = new File(['logo-bytes'], 'logo.png', { type: 'image/png' });
       const result = await organizationService.uploadLogo(file);
@@ -108,7 +108,7 @@ describe('organizationService', () => {
 
   describe('checkNameAvailability', () => {
     it('calls GET /tenants/check-name with name as query param', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: { available: true } });
+      mockedApi.get.mockResolvedValueOnce({ data: { success: true, data: { available: true } } });
 
       const result = await organizationService.checkNameAvailability('Mi Tienda');
 
@@ -117,7 +117,7 @@ describe('organizationService', () => {
     });
 
     it('returns available: false when the name is taken', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: { available: false } });
+      mockedApi.get.mockResolvedValueOnce({ data: { success: true, data: { available: false } } });
 
       const result = await organizationService.checkNameAvailability('Taken Name');
 
@@ -129,7 +129,7 @@ describe('organizationService', () => {
 
   describe('getTierQuotas', () => {
     it('calls GET /tenants/me/quotas and returns Zod-parsed response', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: tierQuotas });
+      mockedApi.get.mockResolvedValueOnce({ data: { success: true, data: tierQuotas } });
 
       const result = await organizationService.getTierQuotas();
 
@@ -142,7 +142,7 @@ describe('organizationService', () => {
 
   describe('getAuditLog', () => {
     it('calls GET /tenants/me/audit-log and returns Zod-parsed response', async () => {
-      mockedApi.get.mockResolvedValueOnce({ data: auditLog });
+      mockedApi.get.mockResolvedValueOnce({ data: { success: true, data: auditLog } });
 
       const result = await organizationService.getAuditLog();
 
@@ -155,7 +155,7 @@ describe('organizationService', () => {
 
   describe('transferOwnership', () => {
     it('calls POST /tenants/me/transfer-ownership with newOwnerId', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: {} });
+      mockedApi.post.mockResolvedValueOnce({ data: { success: true, data: {} } });
 
       await organizationService.transferOwnership('new-owner-uuid');
 
@@ -175,7 +175,7 @@ describe('organizationService', () => {
 
   describe('cancelOrganization', () => {
     it('calls POST /tenants/me/cancel', async () => {
-      mockedApi.post.mockResolvedValueOnce({ data: {} });
+      mockedApi.post.mockResolvedValueOnce({ data: { success: true, data: {} } });
 
       await organizationService.cancelOrganization();
 

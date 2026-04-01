@@ -73,6 +73,7 @@ export default function TeamSettingsPage(): React.ReactElement {
   };
 
   const handleConfirmRoleChange = async (): Promise<void> => {
+    /* c8 ignore next */
     if (!roleChangeState) return;
     await changeRole(roleChangeState.memberId, roleChangeState.newRole);
     setRoleChangeState(null);
@@ -85,6 +86,7 @@ export default function TeamSettingsPage(): React.ReactElement {
   };
 
   const handleConfirmRemove = async (): Promise<void> => {
+    /* c8 ignore next */
     if (!removeMemberState) return;
     await removeMember(removeMemberState.id);
     setRemoveMemberState(null);

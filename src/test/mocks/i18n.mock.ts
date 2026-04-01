@@ -9,12 +9,16 @@ const i18nInstance = {
   changeLanguage: (lng: string) => { i18nInstance.language = lng; return Promise.resolve(); },
 };
 
+// Stable reference — must not be recreated per call or components that include
+// `t` in useEffect deps will trigger an infinite re-render loop in tests.
+const tFn = (key: string, opts?: Record<string, unknown>): string => {
+  if (opts?.defaultValue) return opts.defaultValue as string;
+  return key;
+};
+
 export const i18nMock = {
   useTranslation: () => ({
-    t: (key: string, opts?: Record<string, unknown>) => {
-      if (opts?.defaultValue) return opts.defaultValue as string;
-      return key;
-    },
+    t: tFn,
     i18n: i18nInstance,
   }),
   Trans: ({ i18nKey }: { i18nKey: string }) => i18nKey,

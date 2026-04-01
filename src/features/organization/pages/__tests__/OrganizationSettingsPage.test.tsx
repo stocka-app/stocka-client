@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import OrganizationSettingsPage from '../OrganizationSettingsPage';
 
@@ -10,8 +10,12 @@ vi.mock('react-i18next', async () => {
   return i18nMock;
 });
 
+const { mockPermission } = vi.hoisted(() => ({
+  mockPermission: { value: true },
+}));
+
 vi.mock('@/features/team', () => ({
-  usePermission: () => true,
+  usePermission: () => mockPermission.value,
 }));
 
 const mockFetchProfile = vi.fn();
@@ -42,12 +46,20 @@ vi.mock('../../components/TenantStatusBanner', () => ({
   ),
 }));
 
+let profileCardProps: Record<string, unknown> = {};
 vi.mock('../../components/OrgProfileCard', () => ({
-  OrgProfileCard: () => <div data-testid="profile-card">ProfileCard</div>,
+  OrgProfileCard: (props: Record<string, unknown>) => {
+    profileCardProps = props;
+    return <div data-testid="profile-card">ProfileCard</div>;
+  },
 }));
 
+let editFormProps: Record<string, unknown> = {};
 vi.mock('../../components/OrgEditForm', () => ({
-  OrgEditForm: () => <div data-testid="edit-form">EditForm</div>,
+  OrgEditForm: (props: Record<string, unknown>) => {
+    editFormProps = props;
+    return <div data-testid="edit-form">EditForm</div>;
+  },
 }));
 
 vi.mock('../../components/TierQuotasSection', () => ({
@@ -68,6 +80,9 @@ describe('OrganizationSettingsPage', () => {
   beforeEach(() => {
     user = userEvent.setup();
     vi.clearAllMocks();
+    mockPermission.value = true;
+    profileCardProps = {};
+    editFormProps = {};
     mocks.profile = {
       id: 'tenant-1',
       name: 'Mi Negocio',
@@ -178,6 +193,81 @@ describe('OrganizationSettingsPage', () => {
 
     it('Then the status banner is shown', () => {
       expect(screen.getByTestId('status-banner')).toHaveTextContent('SUSPENDED');
+    });
+  });
+
+  // ── Edit mode ─────────────────────────────────────────────────────
+
+  describe('Given the user clicks the edit button on the profile card', () => {
+    beforeEach(async () => {
+      render(<OrganizationSettingsPage />);
+      // Trigger onEdit from the profile card stub
+      await act(async () => {
+        (profileCardProps.onEdit as () => void)();
+      });
+    });
+
+    it('Then the edit form is shown instead of the profile card', () => {
+      expect(screen.getByTestId('edit-form')).toBeInTheDocument();
+      expect(screen.queryByTestId('profile-card')).not.toBeInTheDocument();
+    });
+
+    describe('When the user cancels editing', () => {
+      beforeEach(async () => {
+        await act(async () => {
+          (editFormProps.onCancel as () => void)();
+        });
+      });
+
+      it('Then the profile card is shown again', () => {
+        expect(screen.getByTestId('profile-card')).toBeInTheDocument();
+        expect(screen.queryByTestId('edit-form')).not.toBeInTheDocument();
+      });
+    });
+
+    describe('When the user saves the form', () => {
+      beforeEach(async () => {
+        await act(async () => {
+          (editFormProps.onSaved as () => void)();
+        });
+      });
+
+      it('Then the profile card is shown again', () => {
+        expect(screen.getByTestId('profile-card')).toBeInTheDocument();
+        expect(screen.queryByTestId('edit-form')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  // ── Audit tab: fetchAuditLog called only once ─────────────────────
+
+  describe('Given the user clicks the audit tab twice', () => {
+    beforeEach(async () => {
+      render(<OrganizationSettingsPage />);
+      await user.click(screen.getByText('tabs.audit'));
+      await user.click(screen.getByText('tabs.audit'));
+    });
+
+    it('Then fetchAuditLog is called only once', () => {
+      expect(mockFetchAuditLog).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ── Audit tab: no permission ──────────────────────────────────────
+
+  describe('Given the user does not have permission to view the audit log', () => {
+    beforeEach(async () => {
+      mockPermission.value = false;
+      render(<OrganizationSettingsPage />);
+      await user.click(screen.getByText('tabs.audit'));
+    });
+
+    it('Then the no permission message is shown', () => {
+      expect(screen.getByText('audit.noPermission')).toBeInTheDocument();
+    });
+
+    it('Then the audit log table is not shown', () => {
+      expect(screen.queryByTestId('audit-log')).not.toBeInTheDocument();
     });
   });
 });

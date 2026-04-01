@@ -236,6 +236,20 @@ describe('TeamSettingsPage', () => {
     });
   });
 
+  // ── InviteMemberModal: role fallback when role is null ────────────
+
+  describe('Given the RBAC store has no role and the user opens the invite modal', () => {
+    beforeEach(async () => {
+      mocks.role = null;
+      render(<TeamSettingsPage />);
+      await user.click(screen.getByText('members.inviteButton'));
+    });
+
+    it('should pass VIEWER as currentUserRole to InviteMemberModal', () => {
+      expect(inviteModalProps.currentUserRole).toBe('VIEWER');
+    });
+  });
+
   // ── Tab navigation: Invitations ───────────────────────────────────
 
   describe('Given the user clicks the invitations tab', () => {
@@ -348,8 +362,10 @@ describe('TeamSettingsPage', () => {
     beforeEach(async () => {
       render(<TeamSettingsPage />);
       await user.click(screen.getByText('members.inviteButton'));
-      // Trigger the onClose callback
-      (inviteModalProps.onClose as () => void)();
+      // Trigger the onClose callback — wrapping in act so React flushes the state update
+      await act(async () => {
+        (inviteModalProps.onClose as () => void)();
+      });
     });
 
     it('should hide the invite modal', () => {
@@ -363,9 +379,11 @@ describe('TeamSettingsPage', () => {
     beforeEach(async () => {
       render(<TeamSettingsPage />);
       await user.click(screen.getByText('members.inviteButton'));
-      await (inviteModalProps.onSubmit as (data: { email: string; role: string }) => Promise<void>)({
-        email: 'new@test.com',
-        role: 'VIEWER',
+      await act(async () => {
+        await (inviteModalProps.onSubmit as (data: { email: string; role: string }) => Promise<void>)({
+          email: 'new@test.com',
+          role: 'VIEWER',
+        });
       });
     });
 
@@ -520,10 +538,12 @@ describe('TeamSettingsPage', () => {
   // ── Remove member flow ────────────────────────────────────────────
 
   describe('Given the user initiates member removal', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       render(<TeamSettingsPage />);
-      const onRemove = membersTableProps.onRemove as (id: string) => void;
-      onRemove('2');
+      await act(async () => {
+        const onRemove = membersTableProps.onRemove as (id: string) => void;
+        onRemove('2');
+      });
     });
 
     it('should show the remove member confirmation modal', () => {
@@ -538,10 +558,12 @@ describe('TeamSettingsPage', () => {
   // ── Remove member: member not found ───────────────────────────────
 
   describe('Given onRemove is called with a non-existent member ID', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       render(<TeamSettingsPage />);
-      const onRemove = membersTableProps.onRemove as (id: string) => void;
-      onRemove('nonexistent');
+      await act(async () => {
+        const onRemove = membersTableProps.onRemove as (id: string) => void;
+        onRemove('nonexistent');
+      });
     });
 
     it('should not show the remove modal', () => {
@@ -554,9 +576,13 @@ describe('TeamSettingsPage', () => {
   describe('Given the user confirms member removal', () => {
     beforeEach(async () => {
       render(<TeamSettingsPage />);
-      const onRemove = membersTableProps.onRemove as (id: string) => void;
-      onRemove('2');
-      await (removeModalProps.onConfirm as () => void)();
+      await act(async () => {
+        const onRemove = membersTableProps.onRemove as (id: string) => void;
+        onRemove('2');
+      });
+      await act(async () => {
+        await (removeModalProps.onConfirm as () => Promise<void>)();
+      });
     });
 
     it('should call removeMember with the correct ID', () => {
@@ -571,11 +597,15 @@ describe('TeamSettingsPage', () => {
   // ── Remove member: cancel ─────────────────────────────────────────
 
   describe('Given the user cancels member removal', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       render(<TeamSettingsPage />);
-      const onRemove = membersTableProps.onRemove as (id: string) => void;
-      onRemove('2');
-      (removeModalProps.onCancel as () => void)();
+      await act(async () => {
+        const onRemove = membersTableProps.onRemove as (id: string) => void;
+        onRemove('2');
+      });
+      await act(async () => {
+        (removeModalProps.onCancel as () => void)();
+      });
     });
 
     it('should close the remove modal', () => {

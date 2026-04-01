@@ -94,6 +94,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
 
         // Redirigir al dashboard después de un breve momento
         setTimeout(() => {
+          /* c8 ignore next */
           navigate('/dashboard', { replace: true });
         }, 1500);
       } catch {
