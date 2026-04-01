@@ -48,7 +48,7 @@ async function getUseOrganizationMock(): Promise<ReturnType<typeof vi.fn>> {
 describe('OrgEditForm', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     user = userEvent.setup();
     vi.clearAllMocks();
     mocks.isSaving = false;
@@ -57,6 +57,17 @@ describe('OrgEditForm', () => {
     mocks.updateProfile = vi.fn().mockResolvedValue(undefined);
     mocks.uploadLogo = vi.fn().mockResolvedValue(undefined);
     mocks.checkNameAvailability = vi.fn();
+    // Reset the mock to the default dynamic factory so that tests that call
+    // useOrganizationMock.mockReturnValue() don't leak into subsequent tests.
+    const { useOrganization } = await import('@/features/organization/hooks/useOrganization');
+    (useOrganization as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+      isSaving: mocks.isSaving,
+      isCheckingName: mocks.isCheckingName,
+      nameAvailable: mocks.nameAvailable,
+      updateProfile: mocks.updateProfile,
+      uploadLogo: mocks.uploadLogo,
+      checkNameAvailability: mocks.checkNameAvailability,
+    }));
   });
 
   // =========================================================================
@@ -267,6 +278,73 @@ describe('OrgEditForm', () => {
         const img = screen.getByRole('img');
         expect(img).toHaveAttribute('src', 'https://cdn.example.com/logo.png');
       });
+    });
+  });
+
+  // =========================================================================
+  // Logo upload
+  // =========================================================================
+
+  describe('Given the user selects a logo file', () => {
+    describe('When the file input changes', () => {
+      it('Then uploadLogo is called with the selected file', async () => {
+        render(<OrgEditForm profile={mockProfile} onCancel={vi.fn()} onSaved={vi.fn()} />);
+
+        const file = new File(['logo content'], 'logo.png', { type: 'image/png' });
+        const fileInput = screen.getByLabelText('profile.fields.logo');
+        await user.upload(fileInput, file);
+
+        expect(mocks.uploadLogo).toHaveBeenCalledWith(file);
+      });
+    });
+  });
+
+  // =========================================================================
+  // Validation errors
+  // =========================================================================
+
+  describe('Given the profile has no RFC', () => {
+    it('Then the RFC field defaults to empty string', () => {
+      render(
+        <OrgEditForm profile={{ ...mockProfile, rfc: null }} onCancel={vi.fn()} onSaved={vi.fn()} />,
+      );
+      const rfcInput = screen.getByRole('textbox', { name: 'profile.fields.rfc' });
+      expect(rfcInput).toHaveValue('');
+    });
+  });
+
+  describe('Given the user submits with an empty business name', () => {
+    beforeEach(async () => {
+      render(<OrgEditForm profile={mockProfile} onCancel={vi.fn()} onSaved={vi.fn()} />);
+      await user.clear(screen.getByRole('textbox', { name: 'profile.fields.name' }));
+      await user.click(screen.getByRole('button', { name: 'profile.saveButton' }));
+    });
+
+    it('Then shows the name field validation error', () => {
+      expect(document.getElementById('org-name-error')).toBeInTheDocument();
+    });
+
+    it('Then the name input shows error border styling', () => {
+      const nameInput = screen.getByRole('textbox', { name: 'profile.fields.name' });
+      expect(nameInput.className).toContain('border-red');
+    });
+  });
+
+  describe('Given the user selects no business type and submits', () => {
+    beforeEach(async () => {
+      render(<OrgEditForm profile={mockProfile} onCancel={vi.fn()} onSaved={vi.fn()} />);
+      const select = screen.getByRole('combobox', { name: 'profile.fields.businessType' });
+      await user.selectOptions(select, '');
+      await user.click(screen.getByRole('button', { name: 'profile.saveButton' }));
+    });
+
+    it('Then the business type select shows error border styling', () => {
+      const select = screen.getByRole('combobox', { name: 'profile.fields.businessType' });
+      expect(select.className).toContain('border-red');
+    });
+
+    it('Then updateProfile is not called', () => {
+      expect(mocks.updateProfile).not.toHaveBeenCalled();
     });
   });
 

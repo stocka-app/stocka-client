@@ -683,6 +683,14 @@ describe('OnboardingPage', () => {
     it('should have the correct aria-label', () => {
       expect(screen.getByLabelText('Switch to English')).toBeInTheDocument();
     });
+
+    describe('When the user clicks the language toggle button', () => {
+      it('should trigger language change without errors', async () => {
+        await user.click(screen.getByLabelText('Switch to English'));
+        // Page continues to render normally after language toggle
+        expect(screen.getByTestId('step-preferences')).toBeInTheDocument();
+      });
+    });
   });
 
   // ── Footer action: theme toggle (light mode) ─────────────────────

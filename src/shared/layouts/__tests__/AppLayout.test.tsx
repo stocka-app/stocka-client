@@ -23,26 +23,37 @@ vi.mock('react-router-dom', () => ({
     to: string;
     title?: string;
     className?: ((props: { isActive: boolean }) => string) | string;
-  }) => (
-    <a href={to} data-testid={`nav-${to}`} title={title ?? undefined}>
-      {typeof children === 'function' ? children({ isActive: to === '/dashboard' }) : children}
-    </a>
-  ),
+  }) => {
+    const isActive = to === '/dashboard';
+    const resolvedClass = typeof className === 'function' ? className({ isActive }) : className;
+    return (
+      <a href={to} data-testid={`nav-${to}`} title={title ?? undefined} className={resolvedClass}>
+        {typeof children === 'function' ? children({ isActive }) : children}
+      </a>
+    );
+  },
   useNavigate: () => mockNavigate,
 }));
 
 const mockLogout = vi.fn().mockResolvedValue(undefined);
+
+const { mockAuthState } = vi.hoisted(() => ({
+  mockAuthState: {
+    user: {
+      username: 'carlos' as string | null,
+      email: 'carlos@stocka.mx',
+      givenName: 'Carlos' as string | null,
+      familyName: 'Garcia' as string | null,
+      displayName: 'Carlos Garcia' as string | null,
+      avatarUrl: null as string | null,
+      role: 'OWNER' as string | null,
+    } as Record<string, unknown> | null,
+  },
+}));
+
 vi.mock('@/features/authentication', () => ({
   useAuthentication: () => ({
-    user: {
-      username: 'carlos',
-      email: 'carlos@stocka.mx',
-      givenName: 'Carlos',
-      familyName: 'Garcia',
-      displayName: 'Carlos Garcia',
-      avatarUrl: null,
-      role: 'OWNER',
-    },
+    user: mockAuthState.user,
     logout: mockLogout,
   }),
 }));
@@ -81,6 +92,15 @@ describe('AppLayout', () => {
   beforeEach(() => {
     user = userEvent.setup();
     vi.clearAllMocks();
+    mockAuthState.user = {
+      username: 'carlos',
+      email: 'carlos@stocka.mx',
+      givenName: 'Carlos',
+      familyName: 'Garcia',
+      displayName: 'Carlos Garcia',
+      avatarUrl: null,
+      role: 'OWNER',
+    };
   });
 
   // ══════════════════════════════════════════════════════════════════
@@ -374,29 +394,39 @@ describe('AppLayout', () => {
 
   describe('Given a user with no role', () => {
     beforeEach(() => {
-      // Override the authentication mock for this test
-      vi.doMock('@/features/authentication', () => ({
-        useAuthentication: () => ({
-          user: {
-            username: 'guest',
-            email: 'guest@stocka.mx',
-            givenName: null,
-            familyName: null,
-            displayName: null,
-            avatarUrl: null,
-            role: null,
-          },
-          logout: mockLogout,
-        }),
-      }));
+      mockAuthState.user = {
+        username: 'guest',
+        email: 'guest@stocka.mx',
+        givenName: null,
+        familyName: null,
+        displayName: null,
+        avatarUrl: null,
+        role: null,
+      };
+      render(<AppLayout />);
     });
 
-    // Note: doMock requires re-import which is complex in this setup.
-    // The role fallback is tested through the existing mock.
     it('should display the role fallback as Member', () => {
+      expect(screen.getByText('Member')).toBeInTheDocument();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // Null user (unauthenticated render)
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the user is null', () => {
+    beforeEach(() => {
+      mockAuthState.user = null;
       render(<AppLayout />);
-      // The existing mock has role: 'OWNER' which renders as 'Owner'
-      expect(screen.getByText('Owner')).toBeInTheDocument();
+    });
+
+    it('should render the layout without crashing', () => {
+      expect(screen.getByTestId('outlet')).toBeInTheDocument();
+    });
+
+    it('should show dash as username fallback', () => {
+      expect(screen.getAllByText('—').length).toBeGreaterThan(0);
     });
   });
 });

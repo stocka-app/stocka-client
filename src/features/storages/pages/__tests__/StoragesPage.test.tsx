@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StoragesPage from '../StoragesPage';
 
@@ -10,19 +10,27 @@ vi.mock('react-i18next', async () => {
   return i18nMock;
 });
 
-const mockToastSuccess = vi.fn();
-const mockToastError = vi.fn();
+const { mockToastSuccess, mockToastError } = vi.hoisted(() => ({
+  mockToastSuccess: vi.fn(),
+  mockToastError: vi.fn(),
+}));
 vi.mock('sonner', () => ({
   toast: { success: mockToastSuccess, error: mockToastError },
 }));
 
+const { mockCanDo } = vi.hoisted(() => ({
+  mockCanDo: vi.fn(() => true),
+}));
+
 vi.mock('@/store/rbac.store', () => ({
   useRBACStore: () => ({
-    canDo: () => true,
+    canDo: mockCanDo,
   }),
 }));
 
-const mockOpenUpgradeModal = vi.fn();
+const { mockOpenUpgradeModal } = vi.hoisted(() => ({
+  mockOpenUpgradeModal: vi.fn(),
+}));
 vi.mock('@/shared/hooks/useTierGate', () => ({
   useTierGate: () => ({
     openUpgradeModal: mockOpenUpgradeModal,
@@ -45,16 +53,29 @@ const mocks = vi.hoisted(() => ({
   canCreate: true,
 }));
 
-const mockFetchStorages = vi.fn();
-const mockSetFilterType = vi.fn();
-const mockSetSearchQuery = vi.fn();
-const mockSetFilterStatus = vi.fn();
-const mockSetSortOrder = vi.fn();
-const mockSetPage = vi.fn();
-const mockCreateStorage = vi.fn().mockResolvedValue(true);
-const mockEditStorage = vi.fn().mockResolvedValue(true);
-const mockArchiveStorage = vi.fn().mockResolvedValue(true);
-const mockRestoreStorage = vi.fn().mockResolvedValue(true);
+const {
+  mockFetchStorages,
+  mockSetFilterType,
+  mockSetSearchQuery,
+  mockSetFilterStatus,
+  mockSetSortOrder,
+  mockSetPage,
+  mockCreateStorage,
+  mockEditStorage,
+  mockArchiveStorage,
+  mockRestoreStorage,
+} = vi.hoisted(() => ({
+  mockFetchStorages: vi.fn(),
+  mockSetFilterType: vi.fn(),
+  mockSetSearchQuery: vi.fn(),
+  mockSetFilterStatus: vi.fn(),
+  mockSetSortOrder: vi.fn(),
+  mockSetPage: vi.fn(),
+  mockCreateStorage: vi.fn().mockResolvedValue(true),
+  mockEditStorage: vi.fn().mockResolvedValue(true),
+  mockArchiveStorage: vi.fn().mockResolvedValue(true),
+  mockRestoreStorage: vi.fn().mockResolvedValue(true),
+}));
 
 vi.mock('../../hooks/useStorages', () => ({
   useStorages: () => ({
@@ -90,7 +111,9 @@ vi.mock('../../hooks/useCapabilities', () => ({
   }),
 }));
 
-const mockDestroy = vi.fn().mockResolvedValue(undefined);
+const { mockDestroy } = vi.hoisted(() => ({
+  mockDestroy: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('../../api/storages.service', () => ({
   storagesService: { destroy: mockDestroy },
 }));
@@ -169,6 +192,7 @@ describe('StoragesPage', () => {
   beforeEach(() => {
     user = userEvent.setup();
     vi.clearAllMocks();
+    mockCanDo.mockReturnValue(true);
     mocks.storages = [];
     mocks.activeStorages = [];
     mocks.frozenStorages = [];
@@ -221,15 +245,15 @@ describe('StoragesPage', () => {
 
   describe('Given the page is loading with existing data (overlay spinner)', () => {
     beforeEach(() => {
-      // First render with data to set hadData = true
+      // First render with data — sets everHadDataRef.current = true inside the component
       setSuccessState();
-      const { unmount } = render(<StoragesPage />);
-      unmount();
+      const { rerender } = render(<StoragesPage />);
 
-      // Second render: loading again with same data
+      // Second render on same instance: loading again with same data.
+      // rerender preserves the component's useRef so hadData stays true.
       mocks.isLoading = true;
       setSuccessState();
-      render(<StoragesPage />);
+      rerender(<StoragesPage />);
     });
 
     it('should show the spinner overlay', () => {
@@ -617,12 +641,11 @@ describe('StoragesPage', () => {
     });
 
     it('should show the status filter chip', () => {
-      expect(screen.getByText('statuses.ACTIVE')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /statuses\.ACTIVE/ })).toBeInTheDocument();
     });
 
     it('should call setFilterStatus null when chip is dismissed', async () => {
-      const chip = screen.getByText('statuses.ACTIVE').closest('button')!;
-      await user.click(chip);
+      await user.click(screen.getByRole('button', { name: /statuses\.ACTIVE/ }));
       expect(mockSetFilterStatus).toHaveBeenCalledWith(null);
     });
   });
@@ -743,9 +766,8 @@ describe('StoragesPage', () => {
     beforeEach(async () => {
       setSuccessState();
       render(<StoragesPage />);
-      // Trigger onEdit from a storage card
       const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
-      firstCard?.onEdit?.(firstCard.storage);
+      await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
     });
 
     it('should open the modal in edit mode', () => {
@@ -764,7 +786,7 @@ describe('StoragesPage', () => {
       setSuccessState();
       render(<StoragesPage />);
       await user.click(screen.getByText('actions.create'));
-      (createEditModalProps.onClose as () => void)();
+      await act(async () => { (createEditModalProps.onClose as () => void)(); });
     });
 
     it('should close the modal', () => {
@@ -775,13 +797,13 @@ describe('StoragesPage', () => {
   // ── Archive modal flow ─────────────────────────────────────────────
 
   describe('Given a storage card archive triggers the modal', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       setSuccessState();
       render(<StoragesPage />);
       const activeCard = storageCardInstances.find(
         c => (c.storage as { status: string }).status === 'ACTIVE',
       );
-      activeCard?.onArchive?.(activeCard.storage);
+      await act(async () => { activeCard?.onArchive?.(activeCard.storage); });
     });
 
     it('should open the archive modal', () => {
@@ -800,8 +822,8 @@ describe('StoragesPage', () => {
       const activeCard = storageCardInstances.find(
         c => (c.storage as { status: string }).status === 'ACTIVE',
       );
-      activeCard?.onArchive?.(activeCard.storage);
-      await (archiveModalProps.onConfirm as () => Promise<void>)();
+      await act(async () => { activeCard?.onArchive?.(activeCard.storage); });
+      await act(async () => { await (archiveModalProps.onConfirm as () => Promise<void>)(); });
     });
 
     it('should call archiveStorage with the storage UUID', () => {
@@ -992,12 +1014,42 @@ describe('StoragesPage', () => {
       setSuccessState();
       render(<StoragesPage />);
       const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
-      firstCard?.onEdit?.(firstCard.storage);
-      await (createEditModalProps.onSave as (data: { name: string }) => Promise<boolean>)({ name: 'Updated' });
+      await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
+      await act(async () => { await (createEditModalProps.onSave as (data: { name: string }) => Promise<boolean>)({ name: 'Updated' }); });
     });
 
     it('should call editStorage with the UUID and data', () => {
       expect(mockEditStorage).toHaveBeenCalledWith('1', { name: 'Updated' });
+    });
+  });
+
+  // ── Archive confirm with no selected storage ─────────────────────
+
+  describe('Given archive confirm is triggered before a storage is selected', () => {
+    beforeEach(async () => {
+      setSuccessState();
+      render(<StoragesPage />);
+      // Call onConfirm on archive modal while selectedStorage is still null
+      await act(async () => { await (archiveModalProps.onConfirm as () => Promise<void>)(); });
+    });
+
+    it('should not call archiveStorage', () => {
+      expect(mockArchiveStorage).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── onEdit is undefined when canDo returns false ──────────────────
+
+  describe('Given the user does not have STORAGE_UPDATE permission', () => {
+    beforeEach(() => {
+      mockCanDo.mockImplementation((action: string) => action !== 'STORAGE_UPDATE');
+      setSuccessState();
+      render(<StoragesPage />);
+    });
+
+    it('should not pass onEdit to any storage card', () => {
+      const hasEdit = storageCardInstances.some(c => c.onEdit !== undefined);
+      expect(hasEdit).toBe(false);
     });
   });
 });

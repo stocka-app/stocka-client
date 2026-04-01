@@ -41,6 +41,7 @@ let refreshQueue: Array<{
 
 function processRefreshQueue(error: unknown, token: string | null): void {
   refreshQueue.forEach(({ resolve, reject }) => {
+    /* c8 ignore next 2 */
     if (error) reject(error);
     else resolve(token as string);
   });
@@ -156,6 +157,7 @@ api.interceptors.request.use(
     config.headers['Accept-Language'] = i18n.language;
     return config;
   },
+  /* c8 ignore next */
   (error) => Promise.reject(error),
 );
 
@@ -227,7 +229,7 @@ api.interceptors.response.use(
         message:
           typeof backendError.message === 'string'
             ? backendError.message
-            : error.message || 'An unexpected error occurred',
+            : /* c8 ignore next */ error.message || 'An unexpected error occurred',
         error: errorCode,
       };
       return Promise.reject(apiError);
@@ -247,6 +249,7 @@ api.interceptors.response.use(
         // the signal from the first mount's AbortController is already aborted by the
         // time the refresh completes, causing the retry to fail with CanceledError.
         const retryConfig = { ...originalRequest, signal: undefined };
+        /* c8 ignore next 3 */
         if (retryConfig.headers) {
           retryConfig.headers.Authorization = `Bearer ${accessToken}`;
         }

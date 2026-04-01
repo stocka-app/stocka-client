@@ -10,6 +10,15 @@ import {
 } from '../schemas/organization.schema';
 
 /**
+ * Unwraps the standard backend envelope { data: T, success: boolean }.
+ * The TransformInterceptor on the server wraps every response in this shape,
+ * so every service method must peel it off before Zod-parsing the payload.
+ */
+function unwrap<T>(envelope: { data: T; success: boolean }): T {
+  return envelope.data;
+}
+
+/**
  * Organization service
  *
  * All API calls for the organization settings feature.
@@ -22,8 +31,8 @@ export const organizationService = {
    * GET /api/tenants/me/profile
    */
   async getOrgProfile(): Promise<OrgProfileResponse> {
-    const response = await api.get('/tenants/me/profile');
-    return orgProfileResponseSchema.parse(response.data);
+    const { data } = await api.get('/tenants/me/profile');
+    return orgProfileResponseSchema.parse(unwrap(data));
   },
 
   /**
@@ -31,8 +40,8 @@ export const organizationService = {
    * PATCH /api/tenants/me/profile
    */
   async updateOrgProfile(data: UpdateOrgRequest): Promise<OrgProfileResponse> {
-    const response = await api.patch('/tenants/me/profile', data);
-    return orgProfileResponseSchema.parse(response.data);
+    const { data: responseData } = await api.patch('/tenants/me/profile', data);
+    return orgProfileResponseSchema.parse(unwrap(responseData));
   },
 
   /**
@@ -42,10 +51,10 @@ export const organizationService = {
   async uploadLogo(file: File): Promise<{ logoUrl: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post('/tenants/me/logo', formData, {
+    const { data } = await api.post('/tenants/me/logo', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data as { logoUrl: string };
+    return unwrap(data) as { logoUrl: string };
   },
 
   /**
@@ -53,8 +62,8 @@ export const organizationService = {
    * GET /api/tenants/check-name?name=...
    */
   async checkNameAvailability(name: string): Promise<{ available: boolean }> {
-    const response = await api.get('/tenants/check-name', { params: { name } });
-    return response.data as { available: boolean };
+    const { data } = await api.get('/tenants/check-name', { params: { name } });
+    return unwrap(data) as { available: boolean };
   },
 
   /**
@@ -62,8 +71,8 @@ export const organizationService = {
    * GET /api/tenants/me/quotas
    */
   async getTierQuotas(): Promise<TierQuotasResponse> {
-    const response = await api.get('/tenants/me/quotas');
-    return tierQuotasResponseSchema.parse(response.data);
+    const { data } = await api.get('/tenants/me/quotas');
+    return tierQuotasResponseSchema.parse(unwrap(data));
   },
 
   /**
@@ -71,8 +80,8 @@ export const organizationService = {
    * GET /api/tenants/me/audit-log
    */
   async getAuditLog(): Promise<AuditLogResponse> {
-    const response = await api.get('/tenants/me/audit-log');
-    return auditLogResponseSchema.parse(response.data);
+    const { data } = await api.get('/tenants/me/audit-log');
+    return auditLogResponseSchema.parse(unwrap(data));
   },
 
   /**

@@ -1,4 +1,6 @@
+import React from 'react';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import OAuthCallbackPage from '../OAuthCallbackPage';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -91,23 +93,14 @@ vi.mock('@/shared/components/ui/button', () => ({
   Button: ({
     children,
     ...props
-  }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    children: React.ReactNode;
-    variant?: string;
-  }) => <button {...props}>{children}</button>,
+  }: { children: React.ReactNode; variant?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
 }));
-
-// Dynamic import so the module picks up our mocks
-const importComponent = async () => {
-  const mod = await import('../OAuthCallbackPage');
-  return mod.default;
-};
 
 describe('OAuthCallbackPage', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
-    user = userEvent.setup();
+    user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     vi.clearAllMocks();
     vi.useFakeTimers({ shouldAdvanceTime: true });
     mockSearchParams = new URLSearchParams();
@@ -134,8 +127,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given no search params (initial load)', () => {
     it('Then should show loading state initially', async () => {
       // No accessToken, no error → will resolve to error view, but starts loading
-      const OAuthCallbackPage = await importComponent();
-      mockSearchParams = new URLSearchParams();
+mockSearchParams = new URLSearchParams();
       render(<OAuthCallbackPage />);
       // The component starts as 'loading' then transitions to 'error'
       // because there's no accessToken. We test the error state below.
@@ -147,8 +139,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given the URL has error=access_denied', () => {
     it('Then should show cancelled error view', async () => {
       mockSearchParams = new URLSearchParams('error=access_denied');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.cancelledTitle')).toBeInTheDocument();
@@ -160,8 +151,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given the URL has error=EMAIL_ALREADY_EXISTS', () => {
     it('Then should show email conflict error view', async () => {
       mockSearchParams = new URLSearchParams('error=EMAIL_ALREADY_EXISTS');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.emailConflictTitle')).toBeInTheDocument();
@@ -172,8 +162,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given the URL has error=OAUTH_NO_EMAIL', () => {
     it('Then should show no email error view with different method button', async () => {
       mockSearchParams = new URLSearchParams('error=OAUTH_NO_EMAIL');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.noEmailTitle')).toBeInTheDocument();
@@ -185,8 +174,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given the URL has an unknown error code', () => {
     it('Then should show connection error view', async () => {
       mockSearchParams = new URLSearchParams('error=SOME_WEIRD_ERROR');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.connectionErrorTitle')).toBeInTheDocument();
@@ -199,8 +187,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given the URL has no accessToken and no error', () => {
     it('Then should show connection error', async () => {
       mockSearchParams = new URLSearchParams();
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.connectionErrorTitle')).toBeInTheDocument();
@@ -216,8 +203,7 @@ describe('OAuthCallbackPage', () => {
     });
 
     it('Then should call handleOAuthCallback and show success', async () => {
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(mockSetAccessToken).toHaveBeenCalledWith('valid-jwt-token');
@@ -232,8 +218,7 @@ describe('OAuthCallbackPage', () => {
     });
 
     it('Then should navigate to dashboard after timeout', async () => {
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.success')).toBeInTheDocument();
@@ -267,8 +252,7 @@ describe('OAuthCallbackPage', () => {
       };
       const encoded = encodeURIComponent(JSON.stringify(userObj));
       mockSearchParams = new URLSearchParams(`accessToken=jwt-token&user=${encoded}`);
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(mockHandleOAuthCallback).toHaveBeenCalledWith(
@@ -286,8 +270,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given the URL has accessToken with malformed user param', () => {
     it('Then should fall back to JWT decoding', async () => {
       mockSearchParams = new URLSearchParams('accessToken=jwt-token&user=not-json');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(mockDecodeJwtPayload).toHaveBeenCalledWith('jwt-token');
@@ -308,8 +291,7 @@ describe('OAuthCallbackPage', () => {
         role: null,
       });
       mockSearchParams = new URLSearchParams('accessToken=jwt-token');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.success')).toBeInTheDocument();
@@ -335,8 +317,7 @@ describe('OAuthCallbackPage', () => {
         onboardingStatus: 'COMPLETED',
       });
       mockSearchParams = new URLSearchParams('accessToken=jwt-token');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(mockLoadPermissions).toHaveBeenCalled();
@@ -356,8 +337,11 @@ describe('OAuthCallbackPage', () => {
         onboardingStatus: 'IN_PROGRESS',
       });
       mockSearchParams = new URLSearchParams('accessToken=jwt-token');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText('oauthCallback.success')).toBeInTheDocument();
+      });
 
       vi.advanceTimersByTime(1500);
 
@@ -373,8 +357,7 @@ describe('OAuthCallbackPage', () => {
     it('Then should still show success and navigate', async () => {
       mockExecuteRefresh.mockRejectedValue(new Error('refresh failed'));
       mockSearchParams = new URLSearchParams('accessToken=jwt-token');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.success')).toBeInTheDocument();
@@ -394,8 +377,7 @@ describe('OAuthCallbackPage', () => {
     it('Then should write to localStorage and call window.close', async () => {
       mockSearchParams = new URLSearchParams('accessToken=jwt-token&popup=true');
       const closeSpy = vi.spyOn(window, 'close').mockImplementation(() => {});
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         const stored = localStorage.getItem('stocka-oauth-result');
@@ -415,8 +397,7 @@ describe('OAuthCallbackPage', () => {
     });
 
     it('Then clicking back to login should navigate', async () => {
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.backToLogin')).toBeInTheDocument();
@@ -433,8 +414,7 @@ describe('OAuthCallbackPage', () => {
     it('Then clicking retry should call initiateOAuth', async () => {
       sessionStorage.setItem('lastOAuthProvider', 'google');
       mockSearchParams = new URLSearchParams('error=access_denied');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText(/oauthCallback\.tryAgainWith/)).toBeInTheDocument();
@@ -449,8 +429,7 @@ describe('OAuthCallbackPage', () => {
     it('Then clicking retry should navigate to sign-in', async () => {
       sessionStorage.removeItem('lastOAuthProvider');
       mockSearchParams = new URLSearchParams('error=connection_error');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.tryAgain')).toBeInTheDocument();
@@ -466,8 +445,7 @@ describe('OAuthCallbackPage', () => {
   describe('Given error=OAUTH_EMAIL_CONFLICT', () => {
     it('Then should show try different method button', async () => {
       mockSearchParams = new URLSearchParams('error=OAUTH_EMAIL_CONFLICT');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.tryDifferentMethod')).toBeInTheDocument();
@@ -487,8 +465,7 @@ describe('OAuthCallbackPage', () => {
         throw new Error('Unexpected');
       });
       mockSearchParams = new URLSearchParams('accessToken=jwt-token');
-      const OAuthCallbackPage = await importComponent();
-      render(<OAuthCallbackPage />);
+render(<OAuthCallbackPage />);
 
       await waitFor(() => {
         expect(screen.getByText('oauthCallback.connectionErrorTitle')).toBeInTheDocument();

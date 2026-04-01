@@ -267,10 +267,13 @@ describe('ForgotPasswordPage', () => {
       // Initially the cooldown is 60, resend button should show resendIn
       expect(screen.getByText(/forgotPasswordPage\.resendIn/)).toBeInTheDocument();
 
-      // After 60 seconds, resend should be available
-      act(() => {
-        vi.advanceTimersByTime(61_000);
-      });
+      // After 60 seconds, resend should be available — advance one tick at a time so each
+      // chained setTimeout re-registers correctly between React re-renders
+      for (let i = 0; i < 61; i++) {
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+        });
+      }
 
       await waitFor(() => {
         expect(screen.getByText('forgotPasswordPage.resend')).toBeInTheDocument();
@@ -294,10 +297,13 @@ describe('ForgotPasswordPage', () => {
         expect(screen.getByText('forgotPasswordPage.success')).toBeInTheDocument();
       });
 
-      // Wait for cooldown to expire
-      act(() => {
-        vi.advanceTimersByTime(61_000);
-      });
+      // Wait for cooldown to expire — advance one tick at a time so each chained
+      // setTimeout re-registers correctly between React re-renders
+      for (let i = 0; i < 61; i++) {
+        await act(async () => {
+          vi.advanceTimersByTime(1000);
+        });
+      }
 
       await waitFor(() => {
         expect(screen.getByText('forgotPasswordPage.resend')).toBeInTheDocument();
