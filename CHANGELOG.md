@@ -3,6 +3,73 @@
 All notable changes to this project are documented here.
 
 
+## [0.15.0](https://github.com/stocka-app/stocka-client/compare/v0.13.0...v0.15.0) (2026-04-01)
+
+### ✨ Features
+
+* **auth,onboarding:** optimize login requests — eliminate getMe, merge start+status ([ea6a30d](https://github.com/stocka-app/stocka-client/commit/ea6a30d7b16b77476a8f51b62b6a1afd89e53895))
+* **authentication:** enhance OAuth popup flow and extend types ([144f6c8](https://github.com/stocka-app/stocka-client/commit/144f6c8d87bfa7edd5df45748941ea2ef2880c34))
+* **i18n:** update storages and layout locales for all states ([43eb1bc](https://github.com/stocka-app/stocka-client/commit/43eb1bc7c38809ac80c2a73c83df570cc1811798))
+* **storages:** implement all 7 visual states from Pencil design system ([958279b](https://github.com/stocka-app/stocka-client/commit/958279b0121eaf6570d94e51a0e863ccaa15c63f))
+* **storages:** redesign card with dropdown menu and update validation ([27a3860](https://github.com/stocka-app/stocka-client/commit/27a386074441dc485f32a44b99af84a1830fd7c5))
+* **storages:** redesign StorageCard with bracket, tokens, and responsive layout ([8cf6621](https://github.com/stocka-app/stocka-client/commit/8cf66219daaf79c4ca3bbe6bc8cbe4bd25690bf0))
+* **tokens:** add category, installation, and brand-subtle design tokens ([3b6bf01](https://github.com/stocka-app/stocka-client/commit/3b6bf01b36a46454e809c9079d7718225bf54cd6))
+* **ui:** add StateComposition, DoubleRingSpinner, and ProgressBar components ([115ce47](https://github.com/stocka-app/stocka-client/commit/115ce472ea13a79d8d1dd5b3c27fa17f238f4c04))
+
+### 🐛 Bug Fixes
+
+* **auth:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — add refresh lock to prevent concurrent 401 refresh race condition ([8ab3216](https://github.com/stocka-app/stocka-client/commit/8ab3216fcb311eb9a2305624e43354cfb852a00e))
+* **auth:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — revert unnecessary ProtectedRoute condition and add missing 4th boolean guard combination ([3e7e40c](https://github.com/stocka-app/stocka-client/commit/3e7e40cb4598c1ab04bacf436097144d7dda3e43))
+* **e2e:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — fix 500 on viewer sign-in and onboarding happy path ([eface7f](https://github.com/stocka-app/stocka-client/commit/eface7fd4ed015169aae568555cce2336d6f6e9a))
+* **e2e:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — fix refresh token race and onboarding happy path resume ([7fefc7a](https://github.com/stocka-app/stocka-client/commit/7fefc7a8ba41936a2165d3d11848ce9eb32096d3))
+* **e2e:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — fix viewer password missing special char in rbac spec ([466af86](https://github.com/stocka-app/stocka-client/commit/466af86cc3d0daf2e4bc5a8fc0640185d114f8c1))
+* **e2e:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — scope verifiedUser fixture to worker and fix passwords ([30cd1a2](https://github.com/stocka-app/stocka-client/commit/30cd1a235a07732994fed10d1146a17a9750cc91))
+* **e2e:** fix global setup, i18n locale, onboarding flow, and RBAC race condition ([0b6f40d](https://github.com/stocka-app/stocka-client/commit/0b6f40dd4fc2a4a410c886006add1785ef493a38))
+* **onboarding:** [STOC-415](https://austins-industries.atlassian.net/browse/STOC-415) — fix businessType showing raw Zod enum error instead of localized message ([6d0353b](https://github.com/stocka-app/stocka-client/commit/6d0353bade6982fb7c036057d75f822905954390))
+* **onboarding:** [STOC-415](https://austins-industries.atlassian.net/browse/STOC-415) — fix dead Zod v3 errorMap syntax and add coverage test for enum error message ([fd8db77](https://github.com/stocka-app/stocka-client/commit/fd8db7757fcca7fa75d71edbc68e9b7957edec92))
+* **rbac:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — add permissionsInflight guard to prevent concurrent loadPermissions calls ([e555bfb](https://github.com/stocka-app/stocka-client/commit/e555bfb10abfa794a30872ef710f476e9c6c21dd))
+* **shared:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — centralize refresh lock into executeRefresh shared by interceptor and hydrateAuth ([30836e3](https://github.com/stocka-app/stocka-client/commit/30836e36ee10ae674b6db81ac4fd2bdc0882d16d))
+* **shared:** fix type errors in LanguageSwitcher, ErrorBoundary, and jwt ([77f69a1](https://github.com/stocka-app/stocka-client/commit/77f69a180f638539417dac0d9d5b9cb32e908079))
+* **storages:** [STOC-415](https://austins-industries.atlassian.net/browse/STOC-415) — add AbortController to useStorages to cancel StrictMode duplicate requests ([2e7a2ec](https://github.com/stocka-app/stocka-client/commit/2e7a2ecf0b8f5194d38a6815c5594aafef52b9f4))
+* **ui:** use semantic tokens for auth inputs and button variants ([54dea60](https://github.com/stocka-app/stocka-client/commit/54dea60770f6aa87e6e9351e214882106153a5e3))
+
+### ⚡ Performance
+
+* **e2e:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — pre-seed users in globalSetup and eliminate UI sign-in per test ([e983ab1](https://github.com/stocka-app/stocka-client/commit/e983ab13671dfb718340732f47fdcbc11731a896))
+
+### 🔧 Refactoring
+
+* **app:** replace PageLoader skeleton with DoubleRingSpinner and eager-load StoragesPage ([6a157ff](https://github.com/stocka-app/stocka-client/commit/6a157ffb88c2935c00a7f315bf7ece4035adbf06))
+* **auth:** remove legacy auth feature replaced by authentication module ([baed199](https://github.com/stocka-app/stocka-client/commit/baed19914e02c3a59b90cc19ec6a27fa781c7b2d))
+
+### 📚 Documentation
+
+* **e2e:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — add Playwright optimization plan checklist ([0aeecf9](https://github.com/stocka-app/stocka-client/commit/0aeecf96a745322fe093008235644465e2ac0333))
+* **e2e:** add storages list E2E test plan with 105 scenarios ([7941fd8](https://github.com/stocka-app/stocka-client/commit/7941fd8ad1d3ca85dd26e94efd63828c864ae3a1))
+
+### 🧹 Chores
+
+* **layout:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — remove debug console.log from AppLayout ([95ca761](https://github.com/stocka-app/stocka-client/commit/95ca761ca475451f28850088d500ff9febd0cb23))
+* **release:** [skip ci] 0.14.0 ([c6e843a](https://github.com/stocka-app/stocka-client/commit/c6e843ab78e42409bf0bc0c6018a318ee2798711))
+
+### ✅ Tests
+
+* **client:** expand unit test coverage across all features ([efe05dd](https://github.com/stocka-app/stocka-client/commit/efe05dd148bec7dd0050e2a8b38a0e470fb2e0a5))
+* **coverage:** [Sprint 1] expand unit + E2E coverage across org, team, storages, layouts, auth ([4c0d2c0](https://github.com/stocka-app/stocka-client/commit/4c0d2c05079b4f27203154403fc5ce1e660abc3d))
+* **e2e:** [STOC-414-415] | Sprint 2 | add Playwright E2E token refresh spec with abort deduplication validation ([bef9379](https://github.com/stocka-app/stocka-client/commit/bef9379927ac7276644a0ff821e2029ab6c91b08))
+* **e2e:** add storages list E2E specs with page objects and helpers ([dc7c350](https://github.com/stocka-app/stocka-client/commit/dc7c350e9f289dc6dc8cf7d2c664ee68228a7bc8))
+* **rbac:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — add coverage test for permissionsInflight deduplication guard ([bd6c2da](https://github.com/stocka-app/stocka-client/commit/bd6c2dae2685729640ea3fccfbe3db8f820e2f9e))
+* **shared:** [STOC-414](https://austins-industries.atlassian.net/browse/STOC-414) — add cross-layer integration tests for axios executeRefresh and CanceledError boundary ([9a6faf2](https://github.com/stocka-app/stocka-client/commit/9a6faf22dcd12917ae5bbecb663a0312b138769b))
+* **storages:** [STOC-415](https://austins-industries.atlassian.net/browse/STOC-415) — add cancel/abort guard unit tests and cover useStorages boundary with CanceledError ([0d122c2](https://github.com/stocka-app/stocka-client/commit/0d122c26e061ae2219caa2a7708a8aedac78d876))
+
+### 🏗️ Build System
+
+* **client:** migrate to Tailwind v4, Vite 8, and upgrade dependencies ([5e84be6](https://github.com/stocka-app/stocka-client/commit/5e84be64f391eb1edbe6b3184902291a76190fda))
+
+### deps
+
+* **fonts:** install material-symbols locally ([a90f13c](https://github.com/stocka-app/stocka-client/commit/a90f13c115fe0e46672d39e316199c236f1a0d4c))
+
 ## [0.14.0](https://github.com/stocka-app/stocka-client/compare/v0.13.0...v0.14.0) (2026-03-27)
 
 ### ✨ Features
