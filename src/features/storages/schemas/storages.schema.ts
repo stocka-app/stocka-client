@@ -11,7 +11,11 @@ export const storageSchema = z.object({
   status: storageStatusSchema,
   address: z.string().max(255).nullable(),
   roomType: z.string().nullable(),
+  icon: z.string(),
+  color: z.string(),
+  description: z.string().nullable(),
   archivedAt: z.string().nullable(),
+  frozenAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -46,5 +50,60 @@ export const storagesPageSchema = z.object({
   totalPages: z.number().int().nonnegative(),
 });
 
+// ── Create drawer schemas ────────────────────────────────────────────────────
+
+export const createWarehouseFormSchema = z.object({
+  name: z
+    .string()
+    .min(3, 'Name must be at least 3 characters')
+    .max(80, 'Name must be 80 characters or less'),
+  address: z.string().min(1, 'Address is required').max(200, 'Address must be 200 characters or less'),
+  description: z
+    .string()
+    .max(300, 'Description must be 300 characters or less')
+    .optional()
+    .transform((val) => (val === '' ? undefined : val))
+    .refine((val) => val === undefined || val.length >= 5, {
+      message: 'Description must be at least 5 characters if provided',
+    }),
+});
+
+export const createStoreRoomFormSchema = z.object({
+  name: z
+    .string()
+    .min(3, 'Name must be at least 3 characters')
+    .max(80, 'Name must be 80 characters or less'),
+  address: z.string().min(1, 'Address is required').max(200, 'Address must be 200 characters or less'),
+  description: z
+    .string()
+    .max(300, 'Description must be 300 characters or less')
+    .optional()
+    .transform((val) => (val === '' ? undefined : val))
+    .refine((val) => val === undefined || val.length >= 5, {
+      message: 'Description must be at least 5 characters if provided',
+    }),
+});
+
+export const createCustomRoomFormSchema = z.object({
+  name: z
+    .string()
+    .min(3, 'Name must be at least 3 characters')
+    .max(80, 'Name must be 80 characters or less'),
+  address: z.string().min(1, 'Address is required').max(200, 'Address must be 200 characters or less'),
+  description: z
+    .string()
+    .max(300, 'Description must be 300 characters or less')
+    .optional()
+    .transform((val) => (val === '' ? undefined : val))
+    .refine((val) => val === undefined || val.length >= 5, {
+      message: 'Description must be at least 5 characters if provided',
+    }),
+  icon: z.string().default('restaurant'),
+  color: z.string().default('#0D9488'),
+});
+
 export type CreateStorageFormData = z.infer<typeof createStorageSchema>;
 export type UpdateStorageFormData = z.infer<typeof updateStorageSchema>;
+export type CreateWarehouseFormData = z.infer<typeof createWarehouseFormSchema>;
+export type CreateStoreRoomFormData = z.infer<typeof createStoreRoomFormSchema>;
+export type CreateCustomRoomFormData = z.infer<typeof createCustomRoomFormSchema>;
