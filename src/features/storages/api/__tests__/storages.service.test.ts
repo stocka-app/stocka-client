@@ -24,7 +24,11 @@ const storageFixture = {
   status: 'ACTIVE' as const,
   address: 'Av. Reforma 123',
   roomType: null,
+  icon: 'warehouse',
+  color: '#3B82F6',
+  description: null,
   archivedAt: null,
+  frozenAt: null,
   createdAt: '2026-01-15T00:00:00Z',
   updatedAt: '2026-03-20T10:00:00Z',
 };
@@ -112,6 +116,54 @@ describe('storagesService', () => {
 
       expect(mockedAxios.post).toHaveBeenCalledWith('/storages', payload);
       expect(result).toEqual(storageFixture);
+    });
+  });
+
+  // ── createWarehouse ──────────────────────────────────────────────────────
+
+  describe('createWarehouse', () => {
+    it('calls POST /storages/warehouses with payload and returns storageUUID', async () => {
+      mockedAxios.post.mockResolvedValueOnce(envelope({ storageUUID: 'new-uuid-1' }));
+
+      const payload = { name: 'Main Warehouse', address: 'Av. Industrial 1' };
+      const result = await storagesService.createWarehouse(payload);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/warehouses', payload);
+      expect(result).toEqual({ storageUUID: 'new-uuid-1' });
+    });
+  });
+
+  // ── createStoreRoom ───────────────────────────────────────────────────────
+
+  describe('createStoreRoom', () => {
+    it('calls POST /storages/store-rooms with payload and returns storageUUID', async () => {
+      mockedAxios.post.mockResolvedValueOnce(envelope({ storageUUID: 'new-uuid-2' }));
+
+      const payload = { name: 'Back Store', address: 'Calle 5' };
+      const result = await storagesService.createStoreRoom(payload);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/store-rooms', payload);
+      expect(result).toEqual({ storageUUID: 'new-uuid-2' });
+    });
+  });
+
+  // ── createCustomRoom ──────────────────────────────────────────────────────
+
+  describe('createCustomRoom', () => {
+    it('calls POST /storages/custom-rooms with payload and returns storageUUID', async () => {
+      mockedAxios.post.mockResolvedValueOnce(envelope({ storageUUID: 'new-uuid-3' }));
+
+      const payload = {
+        name: 'Kitchen',
+        roomType: 'restaurant',
+        address: 'Floor 1',
+        icon: 'restaurant',
+        color: '#0D9488',
+      };
+      const result = await storagesService.createCustomRoom(payload);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/custom-rooms', payload);
+      expect(result).toEqual({ storageUUID: 'new-uuid-3' });
     });
   });
 

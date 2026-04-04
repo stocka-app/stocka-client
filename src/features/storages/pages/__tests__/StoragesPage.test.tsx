@@ -25,6 +25,7 @@ const { mockCanDo } = vi.hoisted(() => ({
 vi.mock('@/store/rbac.store', () => ({
   useRBACStore: () => ({
     canDo: mockCanDo,
+    tier: 'STARTER',
   }),
 }));
 
@@ -61,6 +62,9 @@ const {
   mockSetSortOrder,
   mockSetPage,
   mockCreateStorage,
+  mockCreateWarehouse,
+  mockCreateStoreRoom,
+  mockCreateCustomRoom,
   mockEditStorage,
   mockArchiveStorage,
   mockRestoreStorage,
@@ -72,6 +76,9 @@ const {
   mockSetSortOrder: vi.fn(),
   mockSetPage: vi.fn(),
   mockCreateStorage: vi.fn().mockResolvedValue(true),
+  mockCreateWarehouse: vi.fn().mockResolvedValue({ error: null }),
+  mockCreateStoreRoom: vi.fn().mockResolvedValue({ error: null }),
+  mockCreateCustomRoom: vi.fn().mockResolvedValue({ error: null }),
   mockEditStorage: vi.fn().mockResolvedValue(true),
   mockArchiveStorage: vi.fn().mockResolvedValue(true),
   mockRestoreStorage: vi.fn().mockResolvedValue(true),
@@ -99,10 +106,18 @@ vi.mock('../../hooks/useStorages', () => ({
     canCreate: mocks.canCreate,
     fetchStorages: mockFetchStorages,
     createStorage: mockCreateStorage,
+    createWarehouse: mockCreateWarehouse,
+    createStoreRoom: mockCreateStoreRoom,
+    createCustomRoom: mockCreateCustomRoom,
     editStorage: mockEditStorage,
     archiveStorage: mockArchiveStorage,
     restoreStorage: mockRestoreStorage,
   }),
+}));
+
+vi.mock('../../components/CreateStorageDrawer', () => ({
+  CreateStorageDrawer: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="create-storage-drawer" /> : null,
 }));
 
 vi.mock('../../hooks/useCapabilities', () => ({
@@ -341,7 +356,7 @@ describe('StoragesPage', () => {
     });
   });
 
-  // ── Empty state: create first click opens modal ───────────────────
+  // ── Empty state: create first click opens drawer ─────────────────
 
   describe('Given the user clicks create first in empty state', () => {
     beforeEach(async () => {
@@ -350,12 +365,8 @@ describe('StoragesPage', () => {
       await user.click(screen.getByRole('button', { name: /empty\.createFirst/ }));
     });
 
-    it('should open the create/edit modal', () => {
-      expect(screen.getByTestId('create-edit-modal')).toBeInTheDocument();
-    });
-
-    it('should pass null storage (create mode)', () => {
-      expect(createEditModalProps.storage).toBeNull();
+    it('Then the create storage drawer opens', () => {
+      expect(screen.getByTestId('create-storage-drawer')).toBeInTheDocument();
     });
   });
 
@@ -489,9 +500,8 @@ describe('StoragesPage', () => {
       await user.click(screen.getByText('actions.create'));
     });
 
-    it('should open the create/edit modal in create mode', () => {
-      expect(screen.getByTestId('create-edit-modal')).toBeInTheDocument();
-      expect(createEditModalProps.storage).toBeNull();
+    it('Then the create storage drawer opens', () => {
+      expect(screen.getByTestId('create-storage-drawer')).toBeInTheDocument();
     });
   });
 
@@ -504,8 +514,8 @@ describe('StoragesPage', () => {
       await user.click(screen.getByText('actions.createInline'));
     });
 
-    it('should open the create/edit modal', () => {
-      expect(screen.getByTestId('create-edit-modal')).toBeInTheDocument();
+    it('Then the create storage drawer opens', () => {
+      expect(screen.getByTestId('create-storage-drawer')).toBeInTheDocument();
     });
   });
 
@@ -744,19 +754,21 @@ describe('StoragesPage', () => {
     });
   });
 
-  // ── Modal: save in create mode ─────────────────────────────────────
+  // ── Modal: save in edit mode via onSave ─────────────────────────────
 
-  describe('Given the create modal is open and user saves', () => {
+  describe('Given the edit modal is open and user saves changes', () => {
     beforeEach(async () => {
       setSuccessState();
       render(<StoragesPage />);
-      await user.click(screen.getByText('actions.create'));
-      // Trigger the onSave callback
-      const result = await (createEditModalProps.onSave as (data: { name: string; type: string }) => Promise<boolean>)({ name: 'New', type: 'WAREHOUSE' });
+      const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
+      await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
+      await act(async () => {
+        await (createEditModalProps.onSave as (data: { name: string; type: string }) => Promise<boolean>)({ name: 'Updated', type: 'WAREHOUSE' });
+      });
     });
 
-    it('should call createStorage', () => {
-      expect(mockCreateStorage).toHaveBeenCalledWith({ name: 'New', type: 'WAREHOUSE' });
+    it('Then editStorage is called with the selected storage uuid', () => {
+      expect(mockEditStorage).toHaveBeenCalledWith('1', { name: 'Updated', type: 'WAREHOUSE' });
     });
   });
 
@@ -779,17 +791,18 @@ describe('StoragesPage', () => {
     });
   });
 
-  // ── Modal: close ──────────────────────────────────────────────────
+  // ── Edit modal: close ─────────────────────────────────────────────
 
-  describe('Given the create/edit modal is open and user closes it', () => {
+  describe('Given the edit modal is open and user closes it', () => {
     beforeEach(async () => {
       setSuccessState();
       render(<StoragesPage />);
-      await user.click(screen.getByText('actions.create'));
+      const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
+      await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
       await act(async () => { (createEditModalProps.onClose as () => void)(); });
     });
 
-    it('should close the modal', () => {
+    it('Then the edit modal closes', () => {
       expect(screen.queryByTestId('create-edit-modal')).not.toBeInTheDocument();
     });
   });
