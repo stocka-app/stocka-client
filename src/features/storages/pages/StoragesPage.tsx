@@ -13,6 +13,7 @@ import { useCapabilities } from '../hooks/useCapabilities';
 import type { Storage, StorageType } from '../types/storages.types';
 import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
+import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
 import { CreateEditStorageModal } from '../components/CreateEditStorageModal';
 import { ArchiveStorageModal } from '../components/ArchiveStorageModal';
 import type { CreateStorageFormData } from '../schemas/storages.schema';
@@ -44,7 +45,7 @@ const SKEL_BADGE2 = ['w-11', 'w-13', 'w-10', 'w-12', 'w-11', 'w-14'];
 
 export default function StoragesPage(): React.ReactElement {
   const { t } = useTranslation('storages');
-  const { canDo } = useRBACStore();
+  const { canDo, tier } = useRBACStore();
   const { limits } = useCapabilities();
   const { openUpgradeModal } = useTierGate();
   const {
@@ -67,13 +68,16 @@ export default function StoragesPage(): React.ReactElement {
     setPage,
     canCreate,
     fetchStorages,
-    createStorage,
+    createWarehouse,
+    createStoreRoom,
+    createCustomRoom,
     editStorage,
     archiveStorage,
     restoreStorage,
   } = useStorages();
 
-  const [isCreateEditOpen, setIsCreateEditOpen] = useState(false);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
 
@@ -91,13 +95,12 @@ export default function StoragesPage(): React.ReactElement {
   // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleCreateClick = (): void => {
-    setSelectedStorage(null);
-    setIsCreateEditOpen(true);
+    setIsCreateDrawerOpen(true);
   };
 
   const handleEditClick = (storage: Storage): void => {
     setSelectedStorage(storage);
-    setIsCreateEditOpen(true);
+    setIsEditOpen(true);
   };
 
   const handleArchiveClick = (storage: Storage): void => {
@@ -118,7 +121,7 @@ export default function StoragesPage(): React.ReactElement {
     if (selectedStorage) {
       return editStorage(selectedStorage.uuid, data);
     }
-    return createStorage(data);
+    return false;
   };
 
   const handleArchiveConfirm = async (): Promise<void> => {
@@ -178,10 +181,25 @@ export default function StoragesPage(): React.ReactElement {
 
   const modals = (
     <>
+      {/* Create flow — new drawer */}
+      <CreateStorageDrawer
+        open={isCreateDrawerOpen}
+        onClose={() => setIsCreateDrawerOpen(false)}
+        storages={storages}
+        limits={limits}
+        tier={tier ?? 'FREE'}
+        onCreateWarehouse={createWarehouse}
+        onCreateStoreRoom={createStoreRoom}
+        onCreateCustomRoom={createCustomRoom}
+      />
+      {/* Edit flow — existing modal */}
       <CreateEditStorageModal
-        open={isCreateEditOpen}
+        open={isEditOpen}
         storage={selectedStorage}
-        onClose={() => setIsCreateEditOpen(false)}
+        onClose={() => {
+          setIsEditOpen(false);
+          setSelectedStorage(null);
+        }}
         onSave={handleSave}
       />
       <ArchiveStorageModal
