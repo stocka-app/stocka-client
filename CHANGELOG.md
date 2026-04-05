@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 
 
+## [0.16.0](https://github.com/stocka-app/stocka-client/compare/v0.15.0...v0.16.0) (2026-04-05)
+
+### ✨ Features
+
+* **shared:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — add reusable Drawer component ([ddef97f](https://github.com/stocka-app/stocka-client/commit/ddef97fa9d7bb058098648cf09455326ee4f74ca))
+* **storages:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — add createWarehouse, createStoreRoom, createCustomRoom to useStorages ([c9f81cf](https://github.com/stocka-app/stocka-client/commit/c9f81cf8f7af432ca7b805aff347c77926ced8bc))
+* **storages:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — add type-specific create schemas and service methods ([6de8a5f](https://github.com/stocka-app/stocka-client/commit/6de8a5f595e4ae8943ee48d2e35d667219c5863f))
+* **storages:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — implement Crear Instalacion 2-step drawer ([7f0cb03](https://github.com/stocka-app/stocka-client/commit/7f0cb0374567b49476fc35d573f16c2c96b562f8))
+* **storages:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — refactor CreateStorageDrawer — live icon picker, dark mode, Drawer shell ([179a3b1](https://github.com/stocka-app/stocka-client/commit/179a3b1c35ad28973290fa6197a4cbb451881959))
+
+### ✅ Tests
+
+* **storages-e2e:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — add Playwright E2E suite for CreateStorageDrawer ([e8c91e6](https://github.com/stocka-app/stocka-client/commit/e8c91e6fd83b14957d6607205feb00e905d88f6d))
+* **storages:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — add tests for new create methods and schemas, exclude drawer from coverage ([fa9a2e3](https://github.com/stocka-app/stocka-client/commit/fa9a2e385caef974fe5d96094a3f7048f659b4bd))
+
 ## [0.15.0](https://github.com/stocka-app/stocka-client/compare/v0.13.0...v0.15.0) (2026-04-01)
 
 ### ✨ Features
