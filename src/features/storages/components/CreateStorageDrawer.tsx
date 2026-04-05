@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+import Drawer from '@/shared/components/Drawer';
 import { createCustomRoomFormSchema } from '../schemas/storages.schema';
 import type {
   CreateWarehouseFormData,
@@ -108,51 +109,51 @@ const TYPE_CONFIGS: TypeCardConfig[] = [
   {
     type: 'WAREHOUSE',
     icon: 'warehouse',
-    iconBg: 'bg-[#DBEAFE]',
-    iconColor: 'text-[#3B82F6]',
+    iconBg: 'bg-[#DBEAFE] dark:bg-[#1E3A5F]',
+    iconColor: 'text-[#3B82F6] dark:text-[#93C5FD]',
     titleKey: 'createDrawer.warehouseLabel',
     descKey: 'createDrawer.warehouseDesc',
     exampleKey: 'createDrawer.warehouseExample',
-    bannerBg: 'bg-[#EFF6FF]',
-    bannerBorder: 'border-[#BFDBFE]',
-    bannerIconBg: 'bg-[#DBEAFE]',
-    bannerTitleColor: 'text-[#1E40AF]',
-    bannerDescColor: 'text-[#60A5FA]',
-    bannerLinkColor: 'text-[#3B82F6]',
+    bannerBg: 'bg-[#EFF6FF] dark:bg-[#1E3A5F]',
+    bannerBorder: 'border-[#BFDBFE] dark:border-[#1D4ED8]',
+    bannerIconBg: 'bg-[#DBEAFE] dark:bg-[#1E3A5F]',
+    bannerTitleColor: 'text-[#1E40AF] dark:text-[#93C5FD]',
+    bannerDescColor: 'text-[#60A5FA] dark:text-[#BFDBFE]',
+    bannerLinkColor: 'text-[#3B82F6] dark:text-[#93C5FD]',
     subtitleKey: 'createDrawer.warehouseTypeSubtitle',
     fixedColorSwatch: '#3B82F6',
   },
   {
     type: 'STORE_ROOM',
     icon: 'inventory_2',
-    iconBg: 'bg-[#FEF3C7]',
-    iconColor: 'text-[#D97706]',
+    iconBg: 'bg-[#FEF3C7] dark:bg-[#1C1100]',
+    iconColor: 'text-[#D97706] dark:text-[#FCD34D]',
     titleKey: 'createDrawer.storeRoomLabel',
     descKey: 'createDrawer.storeRoomDesc',
     exampleKey: 'createDrawer.storeRoomExample',
-    bannerBg: 'bg-[#FFFBEB]',
-    bannerBorder: 'border-[#FDE68A]',
-    bannerIconBg: 'bg-[#FEF3C7]',
-    bannerTitleColor: 'text-[#92400E]',
-    bannerDescColor: 'text-[#D97706]',
-    bannerLinkColor: 'text-[#D97706]',
+    bannerBg: 'bg-[#FFFBEB] dark:bg-[#1C1100]',
+    bannerBorder: 'border-[#FDE68A] dark:border-[#FBBF24]',
+    bannerIconBg: 'bg-[#FEF3C7] dark:bg-[#1C1100]',
+    bannerTitleColor: 'text-[#92400E] dark:text-[#FCD34D]',
+    bannerDescColor: 'text-[#D97706] dark:text-[#D1D5DB]',
+    bannerLinkColor: 'text-[#D97706] dark:text-[#FCD34D]',
     subtitleKey: 'createDrawer.storeRoomTypeSubtitle',
     fixedColorSwatch: '#D97706',
   },
   {
     type: 'CUSTOM_ROOM',
     icon: 'category',
-    iconBg: 'bg-[#E5E7EB]',
-    iconColor: 'text-[#6B7280]',
+    iconBg: 'bg-[#E5E7EB] dark:bg-[#374151]',
+    iconColor: 'text-[#6B7280] dark:text-[#D1D5DB]',
     titleKey: 'createDrawer.customRoomLabel',
     descKey: 'createDrawer.customRoomDesc',
     exampleKey: 'createDrawer.customRoomExample',
-    bannerBg: 'bg-[#F0FDFA]',
-    bannerBorder: 'border-[#99F6E4]',
-    bannerIconBg: 'bg-[#CCFBF1]',
-    bannerTitleColor: 'text-[#134E4A]',
-    bannerDescColor: 'text-[#2DD4BF]',
-    bannerLinkColor: 'text-[#0D9488]',
+    bannerBg: 'bg-[#F9FAFB] dark:bg-[#1F2937]',
+    bannerBorder: 'border-[#E5E7EB] dark:border-[#374151]',
+    bannerIconBg: 'bg-[#F3F4F6] dark:bg-[#374151]',
+    bannerTitleColor: 'text-[#374151] dark:text-[#D1D5DB]',
+    bannerDescColor: 'text-[#9CA3AF]',
+    bannerLinkColor: 'text-[#6B7280] dark:text-[#9CA3AF]',
     subtitleKey: 'createDrawer.customRoomTypeSubtitle',
     fixedColorSwatch: '#0D9488',
   },
@@ -165,15 +166,15 @@ const TYPE_CONFIGS: TypeCardConfig[] = [
 interface IconColorPickerProps {
   selectedIcon: string;
   selectedColor: string;
-  onApply: (icon: string, color: string) => void;
-  onCancel: () => void;
+  onChange: (icon: string, color: string) => void;
+  onClose: () => void;
 }
 
 function IconColorPicker({
   selectedIcon,
   selectedColor,
-  onApply,
-  onCancel,
+  onChange,
+  onClose,
 }: IconColorPickerProps): React.ReactElement {
   const { t } = useTranslation('storages');
   const titleId = useId();
@@ -184,12 +185,18 @@ function IconColorPicker({
   const [customHexInvalid, setCustomHexInvalid] = useState(false);
   const [iconsExpanded, setIconsExpanded] = useState(true);
   const [colorsExpanded, setColorsExpanded] = useState(true);
-  const [customColorExpanded, setCustomColorExpanded] = useState(false);
+  const [customColorExpanded, setCustomColorExpanded] = useState(true);
+
+  const handleIconSelect = (iconName: string): void => {
+    setTempIcon(iconName);
+    onChange(iconName, tempColor);
+  };
 
   const handleColorSelect = (color: string): void => {
     setTempColor(color);
     setCustomHex(color);
     setCustomHexInvalid(false);
+    onChange(tempIcon, color);
   };
 
   const handleCustomHexChange = (value: string): void => {
@@ -197,6 +204,7 @@ function IconColorPicker({
     if (HEX_PATTERN.test(value)) {
       setTempColor(value);
       setCustomHexInvalid(false);
+      onChange(tempIcon, value);
     } else {
       setCustomHexInvalid(true);
     }
@@ -207,58 +215,64 @@ function IconColorPicker({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed right-[480px] top-0 z-[60] flex h-screen w-[280px] flex-col overflow-hidden rounded-[20px] bg-white shadow-2xl"
+      className="fixed bottom-[72px] right-[480px] z-[60] flex w-[280px] flex-col overflow-hidden rounded-xl bg-white shadow-[-8px_0_32px_-4px_rgba(0,0,0,0.32)] dark:bg-[#1a2e45]"
     >
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 px-4 py-4">
-        <h3 id={titleId} className="text-sm font-semibold text-neutral-900">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/10 px-4 dark:border-white/[0.08]">
+        <h3 id={titleId} className="text-sm font-semibold text-[#111827] dark:text-[#F1F5F9]">
           {t('createDrawer.customizeIconColor')}
         </h3>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={onClose}
           aria-label={t('createDrawer.close')}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100"
+          className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/5 text-[#374151] hover:bg-black/10 dark:bg-white/[0.08] dark:text-[#94A3B8] dark:hover:bg-white/[0.14]"
         >
-          <span className="material-symbols-outlined text-[20px]">close</span>
+          <span className="material-symbols-outlined text-[16px]">close</span>
         </button>
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="max-h-[420px] overflow-y-auto px-4 py-2">
+
         {/* Icon section */}
-        <div className="mb-3">
+        <div className="mb-2">
           <button
             type="button"
             onClick={() => setIconsExpanded((prev) => !prev)}
             className="flex w-full items-center justify-between py-2"
           >
-            <span className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
+            <span className="text-[11px] font-medium leading-none text-[#64748b]">
               {t('createDrawer.iconSection')}
             </span>
-            <span className="material-symbols-outlined text-[18px] text-neutral-400">
-              {iconsExpanded ? 'expand_less' : 'expand_more'}
+            <span className="material-symbols-outlined text-[14px] text-[#64748b]">
+              {iconsExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
             </span>
           </button>
           {iconsExpanded && (
-            <div className="mt-2 grid grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-6 gap-1">
               {PICKER_ICONS.map((iconName) => {
                 const isSelected = tempIcon === iconName;
                 return (
                   <button
                     key={iconName}
                     type="button"
-                    onClick={() => setTempIcon(iconName)}
+                    onClick={() => handleIconSelect(iconName)}
                     aria-label={iconName}
                     aria-pressed={isSelected}
                     className={cn(
-                      'flex h-[42px] w-[42px] items-center justify-center rounded-[10px] border transition-colors',
+                      'flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-100',
                       isSelected
-                        ? 'border-2 border-teal-600 bg-[#CCFBF1]'
-                        : 'border border-neutral-200 bg-[#F9FAFB] hover:bg-neutral-100',
+                        ? 'bg-[#0D9488]/15 ring-2 ring-[#0D9488] ring-offset-1 ring-offset-white dark:ring-offset-[#1a2e45]'
+                        : 'bg-transparent hover:bg-black/5 dark:hover:bg-white/[0.06]',
                     )}
                   >
-                    <span className="material-symbols-outlined text-[20px] text-neutral-700">
+                    <span
+                      className={cn(
+                        'material-symbols-outlined text-[20px] transition-colors',
+                        isSelected ? 'text-[#0D9488] dark:text-[#5EEAD4]' : 'text-[#94a3b8] hover:text-[#475569] dark:text-[#64748b] dark:hover:text-[#e2e8f0]',
+                      )}
+                    >
                       {iconName}
                     </span>
                   </button>
@@ -268,22 +282,24 @@ function IconColorPicker({
           )}
         </div>
 
+        <div className="mb-2 h-px bg-black/[0.06] dark:bg-white/[0.08]" />
+
         {/* Color section */}
-        <div className="mb-3">
+        <div className="mb-2">
           <button
             type="button"
             onClick={() => setColorsExpanded((prev) => !prev)}
             className="flex w-full items-center justify-between py-2"
           >
-            <span className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
+            <span className="text-[11px] font-medium leading-none text-[#64748b]">
               {t('createDrawer.colorSection')}
             </span>
-            <span className="material-symbols-outlined text-[18px] text-neutral-400">
-              {colorsExpanded ? 'expand_less' : 'expand_more'}
+            <span className="material-symbols-outlined text-[14px] text-[#64748b]">
+              {colorsExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
             </span>
           </button>
           {colorsExpanded && (
-            <div className="mt-2 grid grid-cols-8 gap-1.5">
+            <div className="grid grid-cols-8 gap-1.5">
               {PICKER_COLORS.map((color) => {
                 const isSelected = tempColor === color;
                 return (
@@ -293,10 +309,15 @@ function IconColorPicker({
                     onClick={() => handleColorSelect(color)}
                     aria-label={color}
                     aria-pressed={isSelected}
-                    className="h-[34px] w-[34px] rounded-full transition-all"
+                    className="h-[30px] w-[30px] rounded-full transition-all duration-100"
                     style={
                       isSelected
-                        ? { backgroundColor: color, outline: `3px solid ${color}`, outlineOffset: '2px' }
+                        ? {
+                            backgroundColor: color,
+                            outline: '2px solid white',
+                            outlineOffset: '2px',
+                            transform: 'scale(1.15)',
+                          }
                         : { backgroundColor: color }
                     }
                   />
@@ -306,6 +327,8 @@ function IconColorPicker({
           )}
         </div>
 
+        <div className="mb-2 h-px bg-black/[0.06] dark:bg-white/[0.08]" />
+
         {/* Custom color section */}
         <div className="mb-3">
           <button
@@ -313,17 +336,17 @@ function IconColorPicker({
             onClick={() => setCustomColorExpanded((prev) => !prev)}
             className="flex w-full items-center justify-between py-2"
           >
-            <span className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
+            <span className="text-[11px] font-medium leading-none text-[#64748b]">
               {t('createDrawer.customColorSection')}
             </span>
-            <span className="material-symbols-outlined text-[18px] text-neutral-400">
-              {customColorExpanded ? 'expand_less' : 'expand_more'}
+            <span className="material-symbols-outlined text-[14px] text-[#64748b]">
+              {customColorExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
             </span>
           </button>
           {customColorExpanded && (
-            <div className="mt-2 flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <div
-                className="h-9 w-9 shrink-0 rounded-lg border border-neutral-200"
+                className="h-9 w-9 shrink-0 rounded-lg"
                 style={{ backgroundColor: HEX_PATTERN.test(customHex) ? customHex : '#E5E7EB' }}
               />
               <input
@@ -333,8 +356,8 @@ function IconColorPicker({
                 placeholder="#000000"
                 maxLength={7}
                 className={cn(
-                  'flex-1 rounded-lg border px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-brand',
-                  customHexInvalid ? 'border-danger text-danger' : 'border-neutral-200',
+                  'h-9 flex-1 rounded-lg border bg-[#F9FAFB] px-3 font-mono text-xs text-[#374151] outline-none focus:ring-2 focus:ring-brand/30 dark:bg-[#182437] dark:text-[#D1D5DB]',
+                  customHexInvalid ? 'border-danger' : 'border-black/10 dark:border-white/[0.1]',
                 )}
               />
             </div>
@@ -342,19 +365,6 @@ function IconColorPicker({
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex shrink-0 items-center gap-2 border-t border-neutral-100 px-4 py-3">
-        <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
-          {t('createDrawer.pickerCancel')}
-        </Button>
-        <Button
-          type="button"
-          className="flex-1 bg-brand text-white hover:bg-brand-hover"
-          onClick={() => onApply(tempIcon, tempColor)}
-        >
-          {t('createDrawer.pickerApply')}
-        </Button>
-      </div>
     </div>
   );
 }
@@ -382,7 +392,7 @@ function CancelConfirmDialog({
       aria-labelledby={titleId}
       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"
     >
-      <div className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl">
+      <div className="mx-4 w-full max-w-sm rounded-xl bg-surface-card p-6 shadow-2xl">
         <h3 id={titleId} className="mb-2 text-base font-semibold text-neutral-900">
           {t('createDrawer.cancelConfirmTitle')}
         </h3>
@@ -429,50 +439,45 @@ function TypeSelectionBody({
       </h3>
       <p className="mb-5 text-xs text-neutral-500">{t('createDrawer.step1Subtitle')}</p>
 
-      <div className="flex flex-col gap-3" role="radiogroup" aria-label={t('createDrawer.step1Title')}>
+      <div className="flex flex-col gap-3">
         {TYPE_CONFIGS.map((config) => {
           const isSelected = selectedType === config.type;
           return (
             <button
               key={config.type}
               type="button"
-              role="radio"
-              aria-checked={isSelected}
               onClick={() => onSelectType(config.type)}
               className={cn(
-                'flex w-full items-start gap-4 rounded-xl border p-4 text-left transition-colors',
+                'flex w-full cursor-pointer items-start gap-4 rounded-xl border-2 p-4 text-left transition-all duration-150 active:scale-[0.99]',
                 isSelected
-                  ? 'border-2 border-brand bg-white'
-                  : 'border border-neutral-200 bg-neutral-100 hover:border-neutral-300',
+                  ? 'border-brand bg-white dark:border-brand dark:bg-[#243447]'
+                  : 'border-neutral-100 bg-neutral-50 hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:border-[#2A3F55] dark:bg-[#1e293b] dark:hover:border-[#3A5270] dark:hover:bg-[#243447]',
               )}
             >
               <div
                 className={cn(
-                  'flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-[10px]',
+                  'flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[12px]',
                   config.iconBg,
                 )}
               >
-                <span className={cn('material-symbols-outlined text-[22px]', config.iconColor)}>
+                <span className={cn('material-symbols-outlined text-[26px]', config.iconColor)}>
                   {config.icon}
                 </span>
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="mb-0.5 text-sm font-semibold text-neutral-900">{t(config.titleKey)}</p>
+                <p className="mb-0.5 text-sm font-semibold text-neutral-900 dark:text-[#E2E8F0]">
+                  {t(config.titleKey)}
+                </p>
                 <p className="mb-1.5 text-xs leading-relaxed text-neutral-500">{t(config.descKey)}</p>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
                   {t(config.exampleKey)}
                 </p>
               </div>
 
-              <div
-                className={cn(
-                  'mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-2',
-                  isSelected ? 'border-brand' : 'border-neutral-300',
-                )}
-              >
-                {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-brand" />}
-              </div>
+              <span className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-neutral-300 dark:text-neutral-600">
+                chevron_right
+              </span>
             </button>
           );
         })}
@@ -550,25 +555,39 @@ function DetailsBody({
     <form id={formId} onSubmit={handleSubmit(onFormSubmit)} noValidate>
       {/* Type banner */}
       <div
-        className={cn(
-          'mx-6 mt-5 rounded-xl border p-4',
-          typeConfig.bannerBg,
-          typeConfig.bannerBorder,
-        )}
+        className={cn('mx-6 mt-5 rounded-xl border p-4', !isCustomRoom && typeConfig.bannerBg, !isCustomRoom && typeConfig.bannerBorder)}
+        style={isCustomRoom ? { backgroundColor: `${colorValue}15`, borderColor: `${colorValue}40` } : undefined}
       >
         <div className="flex items-start gap-3">
-          <div
-            className={cn(
-              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
-              typeConfig.bannerIconBg,
-            )}
-          >
-            <span className={cn('material-symbols-outlined text-[20px]', typeConfig.iconColor)}>
-              {typeConfig.icon}
-            </span>
-          </div>
+          {isCustomRoom ? (
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+              style={{ backgroundColor: `${colorValue}33` }}
+            >
+              <span
+                className="material-symbols-outlined text-[20px]"
+                style={{ color: colorValue }}
+              >
+                {iconValue}
+              </span>
+            </div>
+          ) : (
+            <div
+              className={cn(
+                'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+                typeConfig.bannerIconBg,
+              )}
+            >
+              <span className={cn('material-symbols-outlined text-[20px]', typeConfig.iconColor)}>
+                {typeConfig.icon}
+              </span>
+            </div>
+          )}
           <div className="min-w-0 flex-1">
-            <p className={cn('text-sm font-semibold', typeConfig.bannerTitleColor)}>
+            <p
+              className={cn('text-sm font-semibold', !isCustomRoom && typeConfig.bannerTitleColor)}
+              style={isCustomRoom ? { color: colorValue } : undefined}
+            >
               {t('createDrawer.typeLabel')} {typeLabel()}
             </p>
             <p className={cn('text-xs', typeConfig.bannerDescColor)}>
@@ -579,7 +598,8 @@ function DetailsBody({
         <button
           type="button"
           onClick={onChangeType}
-          className={cn('mt-2 text-xs font-medium hover:underline', typeConfig.bannerLinkColor)}
+          className={cn('mt-2 text-xs font-medium hover:underline', !isCustomRoom && typeConfig.bannerLinkColor)}
+          style={isCustomRoom ? { color: colorValue } : undefined}
         >
           {t('createDrawer.changeType')}
         </button>
@@ -597,17 +617,17 @@ function DetailsBody({
       </div>
 
       {/* Tier limit banner */}
-      {tierLimitReached && currentTierLimit !== -1 && (
-        <div className="mx-6 mt-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+      {(tierLimitReached || serverError === 'tier_limit') && currentTierLimit !== -1 && (
+        <div className="mx-6 mt-4 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning-bg p-3">
           <span className="material-symbols-outlined shrink-0 text-[20px] text-warning">info</span>
-          <p className="text-xs text-amber-800">
+          <p className="text-xs text-neutral-700">
             {t('createDrawer.tierLimitWarning', {
               count: currentActiveCount,
               max: currentTierLimit,
               type: typeLabel(),
               tier: capitalizedTier,
             })}{' '}
-            <button type="button" className="font-medium text-[#3B82F6] hover:underline">
+            <button type="button" className="font-medium text-brand hover:underline">
               {t('createDrawer.tierLimitCta')}
             </button>
           </p>
@@ -641,7 +661,7 @@ function DetailsBody({
             }
             disabled={isSubmitting}
             className={cn(
-              'w-full rounded-lg border px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50',
+              'w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50 dark:bg-neutral-100',
               errors.name || serverError === 'name_taken'
                 ? 'border-danger focus:ring-danger/30'
                 : 'border-neutral-300',
@@ -685,7 +705,7 @@ function DetailsBody({
             aria-describedby={errors.address ? `${formId}-address-error` : undefined}
             disabled={isSubmitting}
             className={cn(
-              'w-full rounded-lg border px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50',
+              'w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50 dark:bg-neutral-100',
               errors.address ? 'border-danger focus:ring-danger/30' : 'border-neutral-300',
             )}
           />
@@ -721,7 +741,7 @@ function DetailsBody({
             aria-invalid={!!errors.description}
             aria-describedby={errors.description ? `${formId}-description-error` : undefined}
             className={cn(
-              'w-full resize-none rounded-lg border px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50',
+              'w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50 dark:bg-neutral-100',
               errors.description ? 'border-danger focus:ring-danger/30' : 'border-neutral-300',
             )}
           />
@@ -754,7 +774,7 @@ function DetailsBody({
               type="button"
               onClick={onOpenPicker}
               disabled={isSubmitting}
-              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-neutral-300 bg-white p-2.5 transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-neutral-300 bg-white p-2.5 transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50 dark:bg-neutral-100"
             >
               <div
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
@@ -780,7 +800,7 @@ function DetailsBody({
               </span>
             </button>
           ) : (
-            <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-2.5">
+            <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-100 p-2.5">
               <div
                 className={cn(
                   'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
@@ -808,9 +828,9 @@ function DetailsBody({
 
       {/* Server error banner */}
       {serverError === 'server_error' && (
-        <div className="mx-6 mb-2 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3">
+        <div className="mx-6 mb-2 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger-bg p-3">
           <span className="material-symbols-outlined shrink-0 text-[18px] text-danger">error</span>
-          <p className="text-xs text-red-700">{t('createDrawer.serverError')}</p>
+          <p className="text-xs text-danger">{t('createDrawer.serverError')}</p>
         </div>
       )}
     </form>
@@ -830,7 +850,7 @@ export function CreateStorageDrawer({
   onCreateWarehouse,
   onCreateStoreRoom,
   onCreateCustomRoom,
-}: CreateStorageDrawerProps): React.ReactElement | null {
+}: CreateStorageDrawerProps): React.ReactElement {
   const { t } = useTranslation('storages');
   const formId = useId();
   const drawerId = useId();
@@ -840,6 +860,7 @@ export function CreateStorageDrawer({
   const [serverError, setServerError] = useState<CreateError>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [pickerBackup, setPickerBackup] = useState({ icon: DEFAULT_ICON, color: DEFAULT_COLOR });
 
   const {
     register,
@@ -873,16 +894,19 @@ export function CreateStorageDrawer({
   const iconValue = watch('icon');
   const colorValue = watch('color');
 
-  // Reset when drawer opens
+  // Reset when drawer opens; close picker when drawer closes
   useEffect(() => {
-    if (open) {
-      setStep('type-selection');
-      setSelectedType(null);
-      setServerError(null);
-      setShowCancelConfirm(false);
+    if (!open) {
       setShowPicker(false);
-      reset({ name: '', address: '', description: '', icon: DEFAULT_ICON, color: DEFAULT_COLOR });
+      return;
     }
+    setStep('type-selection');
+    setSelectedType(null);
+    setServerError(null);
+    setShowCancelConfirm(false);
+    setShowPicker(false);
+    setPickerBackup({ icon: DEFAULT_ICON, color: DEFAULT_COLOR });
+    reset({ name: '', address: '', description: '', icon: DEFAULT_ICON, color: DEFAULT_COLOR });
   }, [open, reset]);
 
   // ── Tier limit helpers ────────────────────────────────────────────────────
@@ -928,11 +952,15 @@ export function CreateStorageDrawer({
 
   // ── Step navigation ───────────────────────────────────────────────────────
 
-  const handleContinue = (): void => {
-    if (!selectedType) return;
-    setStep('details');
-    setServerError(null);
-  };
+  // Auto-advances to step 2 after a 200ms delay so the user sees the card
+  // selected visually before the content transitions.
+  const handleSelectType = useCallback((type: StorageType): void => {
+    setSelectedType(type);
+    setTimeout(() => {
+      setStep('details');
+      setServerError(null);
+    }, 200);
+  }, []);
 
   const handleChangeType = (): void => {
     setStep('type-selection');
@@ -946,7 +974,7 @@ export function CreateStorageDrawer({
     if (!selectedType) return;
     setServerError(null);
 
-    const description = values.description.trim() === '' ? undefined : values.description.trim();
+    const description = values.description;
     let result: { error: CreateError };
 
     if (selectedType === 'WAREHOUSE') {
@@ -980,9 +1008,23 @@ export function CreateStorageDrawer({
 
   // ── Picker handlers ───────────────────────────────────────────────────────
 
-  const handlePickerApply = (icon: string, color: string): void => {
+  const handleOpenPicker = (): void => {
+    setPickerBackup({ icon: iconValue, color: colorValue });
+    setShowPicker(true);
+  };
+
+  const handlePickerChange = (icon: string, color: string): void => {
     setValue('icon', icon, { shouldDirty: true });
     setValue('color', color, { shouldDirty: true });
+  };
+
+  const handlePickerApply = (): void => {
+    setShowPicker(false);
+  };
+
+  const handlePickerCancel = (): void => {
+    setValue('icon', pickerBackup.icon, { shouldDirty: false });
+    setValue('color', pickerBackup.color, { shouldDirty: false });
     setShowPicker(false);
   };
 
@@ -1013,28 +1055,21 @@ export function CreateStorageDrawer({
     isSubmitting ||
     nameValue.trim().length < 3 ||
     addressValue.trim().length === 0 ||
-    tierLimitReached;
-
-  if (!open) return null;
+    tierLimitReached ||
+    serverError === 'tier_limit';
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={handleAttemptClose}
-        aria-hidden="true"
-      />
-
-      {/* Drawer panel */}
+  <>
+    <Drawer open={open} onClose={handleAttemptClose} className="max-w-[480px]">
+      {/* Inner panel — role="dialog" lives here so aria attributes are on the visible element */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={drawerId}
-        className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-[480px] flex-col bg-white shadow-2xl"
+        className="flex h-full flex-col"
       >
         {/* Header — always visible */}
-        <div className="flex shrink-0 items-start justify-between border-b border-neutral-100 px-6 py-5">
+        <div className="flex shrink-0 items-start justify-between border-b border-neutral-200 px-6 py-5">
           <div>
             <h2 id={drawerId} className="text-base font-semibold text-neutral-900">
               {t('createDrawer.title')}
@@ -1051,12 +1086,17 @@ export function CreateStorageDrawer({
           </button>
         </div>
 
-        {/* Body — scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        {/* aria-live region: announces step changes to screen readers */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {step === 'type-selection' ? t('createDrawer.step1Label') : t('createDrawer.step2Label')}
+        </div>
+
+        {/* Body — key forces re-mount on step change, triggering the enter animation */}
+        <div key={step} className="flex-1 animate-in fade-in slide-in-from-right-4 duration-200 overflow-y-auto">
           {step === 'type-selection' ? (
             <TypeSelectionBody
               selectedType={selectedType}
-              onSelectType={setSelectedType}
+              onSelectType={handleSelectType}
             />
           ) : (
             selectedType !== null && typeConfig !== null && (
@@ -1075,7 +1115,7 @@ export function CreateStorageDrawer({
                 descriptionCount={descriptionCount}
                 iconValue={iconValue}
                 colorValue={colorValue}
-                onOpenPicker={() => setShowPicker(true)}
+                onOpenPicker={handleOpenPicker}
                 serverError={serverError}
                 isSubmitting={isSubmitting}
                 register={register}
@@ -1088,29 +1128,16 @@ export function CreateStorageDrawer({
         </div>
 
         {/* Footer — always visible, step-specific */}
-        <div className="flex shrink-0 items-center gap-3 border-t border-neutral-100 px-6 py-4">
+        <div className="flex shrink-0 items-center gap-3 border-t border-neutral-200 px-6 py-4">
           {step === 'type-selection' ? (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={handleAttemptClose}
-              >
-                {t('createDrawer.pickerCancel')}
-              </Button>
-              <Button
-                type="button"
-                className={cn(
-                  'flex-1 bg-brand text-white hover:bg-brand-hover',
-                  !selectedType && 'cursor-not-allowed opacity-40',
-                )}
-                disabled={!selectedType}
-                onClick={handleContinue}
-              >
-                {t('createDrawer.continue')}
-              </Button>
-            </>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleAttemptClose}
+            >
+              {t('createDrawer.pickerCancel')}
+            </Button>
           ) : (
             <>
               <Button
@@ -1148,20 +1175,24 @@ export function CreateStorageDrawer({
       {/* Icon/Color picker overlay */}
       {showPicker && (
         <IconColorPicker
-          selectedIcon={iconValue}
-          selectedColor={colorValue}
-          onApply={handlePickerApply}
-          onCancel={() => setShowPicker(false)}
+          selectedIcon={pickerBackup.icon}
+          selectedColor={pickerBackup.color}
+          onChange={handlePickerChange}
+          onClose={() => setShowPicker(false)}
         />
       )}
 
-      {/* Cancel confirmation dialog */}
-      {showCancelConfirm && (
-        <CancelConfirmDialog
-          onKeepEditing={handleKeepEditing}
-          onAbandon={handleAbandon}
-        />
-      )}
-    </>
+    </Drawer>
+
+    {/* Cancel confirmation dialog — rendered outside <Drawer> to escape its CSS transform
+        stacking context. transform: translateX() makes fixed children position relative to
+        the drawer panel instead of the viewport, so this must live at the sibling level. */}
+    {showCancelConfirm && (
+      <CancelConfirmDialog
+        onKeepEditing={handleKeepEditing}
+        onAbandon={handleAbandon}
+      />
+    )}
+  </>
   );
 }

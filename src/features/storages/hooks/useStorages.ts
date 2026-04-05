@@ -18,11 +18,20 @@ const STORAGES_PAGE_LIMIT = 50;
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
 
 function resolveCreateError(err: unknown): CreateError {
-  if (!axios.isAxiosError(err)) return 'server_error';
-  const status = err.response?.status;
-  const code = (err.response?.data as { error?: string } | undefined)?.error;
-  if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
-  if (status === 403) return 'tier_limit';
+  // The response interceptor transforms AxiosErrors into plain ApiError objects
+  // before they reach this hook. Check the ApiError shape first.
+  const apiErr = err as Partial<{ statusCode: number; error: string }>;
+  if (apiErr?.error === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
+  if (apiErr?.statusCode === 403) return 'tier_limit';
+
+  // Fallback: raw AxiosError (e.g. cancelled requests bypass the interceptor)
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status;
+    const code = (err.response?.data as { error?: string } | undefined)?.error;
+    if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
+    if (status === 403) return 'tier_limit';
+  }
+
   return 'server_error';
 }
 

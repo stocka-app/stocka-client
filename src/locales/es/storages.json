@@ -209,6 +209,7 @@
     "fixedIconWarehouse": "El tipo Almacén no permite personalización.",
     "fixedIconStoreRoom": "El tipo Bodega no permite personalización.",
     "customizeIconColor": "Personalizar ícono y color",
+    "previewSection": "Vista previa",
     "iconSection": "Ícono",
     "colorSection": "Color",
     "customColorSection": "Color personalizado",

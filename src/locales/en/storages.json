@@ -209,6 +209,7 @@
     "fixedIconWarehouse": "Warehouse type does not allow customization.",
     "fixedIconStoreRoom": "Store Room type does not allow customization.",
     "customizeIconColor": "Customize icon and color",
+    "previewSection": "Preview",
     "iconSection": "Icon",
     "colorSection": "Color",
     "customColorSection": "Custom color",
