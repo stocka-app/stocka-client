@@ -952,15 +952,16 @@ export function CreateStorageDrawer({
 
   // ── Step navigation ───────────────────────────────────────────────────────
 
-  // Auto-advances to step 2 after a 200ms delay so the user sees the card
-  // selected visually before the content transitions.
   const handleSelectType = useCallback((type: StorageType): void => {
     setSelectedType(type);
-    setTimeout(() => {
+  }, []);
+
+  const handleContinue = useCallback((): void => {
+    if (selectedType !== null) {
       setStep('details');
       setServerError(null);
-    }, 200);
-  }, []);
+    }
+  }, [selectedType]);
 
   const handleChangeType = (): void => {
     setStep('type-selection');
@@ -1130,14 +1131,27 @@ export function CreateStorageDrawer({
         {/* Footer — always visible, step-specific */}
         <div className="flex shrink-0 items-center gap-3 border-t border-neutral-200 px-6 py-4">
           {step === 'type-selection' ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleAttemptClose}
-            >
-              {t('createDrawer.pickerCancel')}
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={handleAttemptClose}
+              >
+                {t('createDrawer.pickerCancel')}
+              </Button>
+              <Button
+                type="button"
+                disabled={selectedType === null}
+                className={cn(
+                  'flex-1 bg-brand text-white hover:bg-brand-hover',
+                  selectedType === null && 'cursor-not-allowed opacity-40',
+                )}
+                onClick={handleContinue}
+              >
+                {t('createDrawer.continue')}
+              </Button>
+            </>
           ) : (
             <>
               <Button
