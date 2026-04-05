@@ -63,6 +63,7 @@ export default defineConfig({
         'src/features/authentication/components/ExpirationTimer.tsx',
         'src/features/authentication/components/ResendButton.tsx',
         'src/features/authentication/components/VerificationCodeInput.tsx',
+        'src/features/storages/components/CreateStorageDrawer.tsx',
 
         // ── SERVICES / INFRA (require live HTTP — tested in e2e) ───────────
         'src/features/authentication/api/authentication.service.ts',

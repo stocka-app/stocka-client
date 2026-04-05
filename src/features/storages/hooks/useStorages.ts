@@ -4,10 +4,36 @@ import { useStoragesStore } from '../store/storages.store';
 import { useRBACStore } from '@/store/rbac.store';
 import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
-import type { CreateStorageFormData, UpdateStorageFormData } from '../schemas/storages.schema';
+import type {
+  CreateStorageFormData,
+  UpdateStorageFormData,
+  CreateWarehouseFormData,
+  CreateStoreRoomFormData,
+  CreateCustomRoomFormData,
+} from '../schemas/storages.schema';
 import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
 
 const STORAGES_PAGE_LIMIT = 50;
+
+type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
+
+function resolveCreateError(err: unknown): CreateError {
+  // The response interceptor transforms AxiosErrors into plain ApiError objects
+  // before they reach this hook. Check the ApiError shape first.
+  const apiErr = err as Partial<{ statusCode: number; error: string }>;
+  if (apiErr?.error === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
+  if (apiErr?.statusCode === 403) return 'tier_limit';
+
+  // Fallback: raw AxiosError (e.g. cancelled requests bypass the interceptor)
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status;
+    const code = (err.response?.data as { error?: string } | undefined)?.error;
+    if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
+    if (status === 403) return 'tier_limit';
+  }
+
+  return 'server_error';
+}
 
 export function useStorages(): {
   storages: Storage[];
@@ -35,6 +61,9 @@ export function useStorages(): {
   canDelete: boolean;
   fetchStorages: () => Promise<void>;
   createStorage: (payload: CreateStorageFormData) => Promise<boolean>;
+  createWarehouse: (payload: CreateWarehouseFormData) => Promise<{ error: CreateError }>;
+  createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
+  createCustomRoom: (payload: CreateCustomRoomFormData) => Promise<{ error: CreateError }>;
   editStorage: (id: string, payload: UpdateStorageFormData) => Promise<boolean>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
@@ -152,6 +181,52 @@ export function useStorages(): {
     [addStorage],
   );
 
+  const createWarehouse = useCallback(
+    async (payload: CreateWarehouseFormData): Promise<{ error: CreateError }> => {
+      try {
+        await storagesService.createWarehouse(payload);
+        await fetchStorages();
+        return { error: null };
+      } catch (err) {
+        return { error: resolveCreateError(err) };
+      }
+    },
+    [fetchStorages],
+  );
+
+  const createStoreRoom = useCallback(
+    async (payload: CreateStoreRoomFormData): Promise<{ error: CreateError }> => {
+      try {
+        await storagesService.createStoreRoom(payload);
+        await fetchStorages();
+        return { error: null };
+      } catch (err) {
+        return { error: resolveCreateError(err) };
+      }
+    },
+    [fetchStorages],
+  );
+
+  const createCustomRoom = useCallback(
+    async (payload: CreateCustomRoomFormData): Promise<{ error: CreateError }> => {
+      try {
+        await storagesService.createCustomRoom({
+          name: payload.name,
+          roomType: payload.icon,
+          address: payload.address,
+          description: payload.description,
+          icon: payload.icon,
+          color: payload.color,
+        });
+        await fetchStorages();
+        return { error: null };
+      } catch (err) {
+        return { error: resolveCreateError(err) };
+      }
+    },
+    [fetchStorages],
+  );
+
   const editStorage = useCallback(
     async (id: string, payload: UpdateStorageFormData): Promise<boolean> => {
       try {
@@ -238,6 +313,9 @@ export function useStorages(): {
         ...(searchQuery !== '' ? { search: searchQuery } : {}),
       }),
     createStorage,
+    createWarehouse,
+    createStoreRoom,
+    createCustomRoom,
     editStorage,
     archiveStorage,
     restoreStorage,

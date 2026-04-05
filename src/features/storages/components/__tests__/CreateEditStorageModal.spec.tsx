@@ -76,7 +76,11 @@ describe('Given CreateEditStorageModal handles storage creation and editing', ()
       status: 'ACTIVE',
       address: null,
       roomType: null,
+      icon: 'inventory_2',
+      color: '#D97706',
+      description: null,
       archivedAt: null,
+      frozenAt: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };

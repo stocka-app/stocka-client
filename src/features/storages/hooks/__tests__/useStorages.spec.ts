@@ -8,6 +8,9 @@ vi.mock('../../api/storages.service', () => ({
   storagesService: {
     list: vi.fn(),
     create: vi.fn(),
+    createWarehouse: vi.fn(),
+    createStoreRoom: vi.fn(),
+    createCustomRoom: vi.fn(),
     update: vi.fn(),
     archive: vi.fn(),
     restore: vi.fn(),
@@ -31,6 +34,7 @@ vi.mock('@/store/rbac.store', () => ({
 
 import { useStorages } from '../useStorages';
 import { storagesService } from '../../api/storages.service';
+import type { CreateWarehouseFormData, CreateStoreRoomFormData, CreateCustomRoomFormData } from '../../schemas/storages.schema';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -42,7 +46,11 @@ const mockStoragesItems: Storage[] = [
     status: 'ACTIVE',
     address: null,
     roomType: null,
+    icon: 'inventory_2',
+    color: '#D97706',
+    description: null,
     archivedAt: null,
+    frozenAt: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -53,7 +61,11 @@ const mockStoragesItems: Storage[] = [
     status: 'ACTIVE',
     address: null,
     roomType: null,
+    icon: 'restaurant',
+    color: '#0D9488',
+    description: null,
     archivedAt: null,
+    frozenAt: null,
     createdAt: '2026-01-02T00:00:00.000Z',
     updatedAt: '2026-01-02T00:00:00.000Z',
   },
@@ -64,7 +76,11 @@ const mockStoragesItems: Storage[] = [
     status: 'ARCHIVED',
     address: null,
     roomType: null,
+    icon: 'restaurant',
+    color: '#0D9488',
+    description: null,
     archivedAt: '2026-03-01T00:00:00.000Z',
+    frozenAt: null,
     createdAt: '2026-01-03T00:00:00.000Z',
     updatedAt: '2026-03-01T00:00:00.000Z',
   },
@@ -87,7 +103,11 @@ const allStoragesItems: Storage[] = [
     status: 'ACTIVE',
     address: 'Calle 1',
     roomType: null,
+    icon: 'warehouse',
+    color: '#3B82F6',
+    description: null,
     archivedAt: null,
+    frozenAt: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -98,7 +118,11 @@ const allStoragesItems: Storage[] = [
     status: 'ACTIVE',
     address: null,
     roomType: 'Display',
+    icon: 'storefront',
+    color: '#0D9488',
+    description: null,
     archivedAt: null,
+    frozenAt: null,
     createdAt: '2026-01-02T00:00:00.000Z',
     updatedAt: '2026-01-02T00:00:00.000Z',
   },
@@ -109,7 +133,11 @@ const allStoragesItems: Storage[] = [
     status: 'FROZEN',
     address: null,
     roomType: null,
+    icon: 'inventory_2',
+    color: '#D97706',
+    description: null,
     archivedAt: null,
+    frozenAt: '2026-02-01T00:00:00.000Z',
     createdAt: '2026-01-03T00:00:00.000Z',
     updatedAt: '2026-01-03T00:00:00.000Z',
   },
@@ -120,7 +148,11 @@ const allStoragesItems: Storage[] = [
     status: 'ARCHIVED',
     address: 'Calle Vieja',
     roomType: null,
+    icon: 'warehouse',
+    color: '#3B82F6',
+    description: null,
     archivedAt: '2026-03-01T00:00:00.000Z',
+    frozenAt: null,
     createdAt: '2026-01-04T00:00:00.000Z',
     updatedAt: '2026-03-01T00:00:00.000Z',
   },
@@ -234,6 +266,175 @@ describe('Given useStorages orchestrates storage operations', () => {
         type: 'CUSTOM_ROOM',
       });
       expect(success).toBe(false);
+    });
+  });
+
+  describe('When createWarehouse is called with valid data', () => {
+    it('Then it calls the service and returns error: null on success', async () => {
+      vi.mocked(storagesService.createWarehouse).mockResolvedValue({ storageUUID: 'new-uuid' });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'New Warehouse',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.createWarehouse)).toHaveBeenCalledTimes(1);
+    });
+
+    it('Then returns error: name_taken when service responds with STORAGE_NAME_ALREADY_EXISTS', async () => {
+      const axiosError = Object.assign(new Error('Conflict'), {
+        isAxiosError: true,
+        response: { status: 409, data: { error: 'STORAGE_NAME_ALREADY_EXISTS' } },
+      });
+      vi.mocked(storagesService.createWarehouse).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'Duplicate',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBe('name_taken');
+    });
+
+    it('Then returns error: tier_limit when service responds with 403', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: {} },
+      });
+      vi.mocked(storagesService.createWarehouse).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'Blocked',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBe('tier_limit');
+    });
+
+    it('Then returns error: server_error for a non-axios error', async () => {
+      vi.mocked(storagesService.createWarehouse).mockRejectedValue(new Error('Network error'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'New',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBe('server_error');
+    });
+
+    it('Then returns error: server_error for an axios error that is not 403 or name_taken', async () => {
+      const axiosError = Object.assign(new Error('Internal error'), {
+        isAxiosError: true,
+        response: { status: 500, data: {} },
+      });
+      vi.mocked(storagesService.createWarehouse).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'New',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBe('server_error');
+    });
+  });
+
+  describe('When createStoreRoom is called with valid data', () => {
+    it('Then it calls the service and returns error: null on success', async () => {
+      vi.mocked(storagesService.createStoreRoom).mockResolvedValue({ storageUUID: 'new-uuid' });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createStoreRoom({
+        name: 'New Store Room',
+        address: 'Calle 1',
+      } as CreateStoreRoomFormData);
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.createStoreRoom)).toHaveBeenCalledTimes(1);
+    });
+
+    it('Then returns error: name_taken when the name already exists', async () => {
+      const axiosError = Object.assign(new Error('Conflict'), {
+        isAxiosError: true,
+        response: { status: 409, data: { error: 'STORAGE_NAME_ALREADY_EXISTS' } },
+      });
+      vi.mocked(storagesService.createStoreRoom).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createStoreRoom({
+        name: 'Duplicate',
+        address: 'Calle 1',
+      } as CreateStoreRoomFormData);
+      expect(response.error).toBe('name_taken');
+    });
+
+    it('Then returns error: server_error for a generic failure', async () => {
+      vi.mocked(storagesService.createStoreRoom).mockRejectedValue(new Error('Server down'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createStoreRoom({
+        name: 'New',
+        address: 'Calle 1',
+      } as CreateStoreRoomFormData);
+      expect(response.error).toBe('server_error');
+    });
+  });
+
+  describe('When createCustomRoom is called with valid data', () => {
+    it('Then it calls the service and returns error: null on success', async () => {
+      vi.mocked(storagesService.createCustomRoom).mockResolvedValue({ storageUUID: 'new-uuid' });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createCustomRoom({
+        name: 'Kitchen',
+        address: 'Floor 1',
+        icon: 'restaurant',
+        color: '#0D9488',
+      } as CreateCustomRoomFormData);
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.createCustomRoom)).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Kitchen', roomType: 'restaurant', icon: 'restaurant' }),
+      );
+    });
+
+    it('Then returns error: tier_limit when the 403 response is received', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: {} },
+      });
+      vi.mocked(storagesService.createCustomRoom).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createCustomRoom({
+        name: 'Blocked',
+        address: 'Floor 1',
+        icon: 'restaurant',
+        color: '#0D9488',
+      } as CreateCustomRoomFormData);
+      expect(response.error).toBe('tier_limit');
+    });
+
+    it('Then returns error: server_error for a generic failure', async () => {
+      vi.mocked(storagesService.createCustomRoom).mockRejectedValue(new Error('Server down'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createCustomRoom({
+        name: 'New',
+        address: 'Floor 1',
+        icon: 'restaurant',
+        color: '#0D9488',
+      } as CreateCustomRoomFormData);
+      expect(response.error).toBe('server_error');
     });
   });
 

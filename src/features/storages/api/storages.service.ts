@@ -33,6 +33,36 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
+  async createWarehouse(payload: {
+    name: string;
+    address: string;
+    description?: string;
+  }): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.post('/storages/warehouses', payload);
+    return unwrap(data) as { storageUUID: string };
+  },
+
+  async createStoreRoom(payload: {
+    name: string;
+    address: string;
+    description?: string;
+  }): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.post('/storages/store-rooms', payload);
+    return unwrap(data) as { storageUUID: string };
+  },
+
+  async createCustomRoom(payload: {
+    name: string;
+    roomType: string;
+    address: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+  }): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.post('/storages/custom-rooms', payload);
+    return unwrap(data) as { storageUUID: string };
+  },
+
   async update(id: string, payload: UpdateStorageFormData): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/${id}`, payload);
     return storageSchema.parse(unwrap(data));
