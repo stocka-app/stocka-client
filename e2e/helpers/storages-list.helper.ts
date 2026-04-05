@@ -12,7 +12,11 @@ export interface MockStorage {
   status: StorageStatus;
   address: string | null;
   roomType: string | null;
+  icon: string;
+  color: string;
+  description: string | null;
   archivedAt: string | null;
+  frozenAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,7 +69,11 @@ export function buildStorage(overrides: Partial<MockStorage> = {}): MockStorage 
     status: 'ACTIVE',
     address: 'Calle Test 123',
     roomType: null,
+    icon: 'warehouse',
+    color: '#3B82F6',
+    description: null,
     archivedAt: null,
+    frozenAt: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
@@ -321,4 +329,69 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
+}
+
+// ─── Create POST mock ─────────────────────────────────────────────────────────
+
+type CreatePostType = 'warehouse' | 'store-room' | 'custom-room';
+
+interface MockCreatePostOptions {
+  /** HTTP status code to return. Defaults to 201. */
+  status?: number;
+  /** Response body. Defaults to the success envelope with a mock UUID. */
+  body?: object;
+  /** Artificial delay in milliseconds before the response is sent. */
+  delay?: number;
+  /**
+   * Error code string to embed in the response body.
+   * When provided, the body becomes `{ error: errorCode }`.
+   */
+  errorCode?: string;
+}
+
+/**
+ * Registers a page.route() mock for one of the three create POST endpoints.
+ * Must be called BEFORE navigating to /storages (i.e. before setupAndNavigate).
+ */
+export async function mockCreatePost(
+  page: Page,
+  type: CreatePostType,
+  opts: MockCreatePostOptions = {},
+): Promise<void> {
+  const {
+    status = 201,
+    delay = 0,
+    errorCode,
+  } = opts;
+
+  const defaultBody = { success: true, data: { storageUUID: 'mock-created-uuid' } };
+  const body = opts.body ?? (errorCode ? { error: errorCode } : defaultBody);
+
+  // Map the logical type name to the actual plural REST path segment
+  const pathSegmentMap: Record<CreatePostType, string> = {
+    warehouse: 'warehouses',
+    'store-room': 'store-rooms',
+    'custom-room': 'custom-rooms',
+  };
+  const urlSuffix = `/api/storages/${pathSegmentMap[type]}`;
+
+  await page.route(
+    (url) => url.pathname === urlSuffix,
+    async (route) => {
+      if (route.request().method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+
+      if (delay > 0) {
+        await new Promise((r) => setTimeout(r, delay));
+      }
+
+      await route.fulfill({
+        status,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      });
+    },
+  );
 }

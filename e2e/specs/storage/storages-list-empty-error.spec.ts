@@ -2,6 +2,7 @@ import { test, expect } from '../../fixtures/auth.fixture';
 import { StoragesListPage } from '../../pages/storages-list.page';
 import {
   setupAndNavigate,
+  buildStorage,
   buildStoragesResponse,
   RBAC_OWNER,
   RBAC_VIEWER,
@@ -91,9 +92,9 @@ test.describe('Section 3: Empty state', () => {
 
     await storagesPage.emptyCreateButton().click();
 
-    // Modal should open
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.getByText('New storage')).toBeVisible();
+    // Drawer should open at Step 1
+    await expect(page.getByRole('dialog', { name: 'New installation' })).toBeVisible();
+    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
   });
 });
 
@@ -176,7 +177,7 @@ test.describe('Section 4: Error state', () => {
     });
 
     const successResponse = buildStoragesResponse([
-      { uuid: '12345678-0000-4000-8000-000000000099', name: 'Recovered Storage', type: 'WAREHOUSE', status: 'ACTIVE', address: 'Calle 1', roomType: null, archivedAt: null, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      buildStorage({ uuid: '12345678-0000-4000-8000-000000000099', name: 'Recovered Storage', type: 'WAREHOUSE', status: 'ACTIVE', address: 'Calle 1' }),
     ]);
 
     await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
