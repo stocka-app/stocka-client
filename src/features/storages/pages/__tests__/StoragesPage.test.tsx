@@ -39,6 +39,7 @@ const mocks = vi.hoisted(() => ({
   activeStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   frozenStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   archivedStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
+  summary: { active: 0, frozen: 0, archived: 0 },
   total: 0,
   page: 1,
   totalPages: 1,
@@ -88,6 +89,7 @@ vi.mock('../../hooks/useStorages', () => ({
     activeStorages: mocks.activeStorages,
     frozenStorages: mocks.frozenStorages,
     archivedStorages: mocks.archivedStorages,
+    summary: mocks.summary,
     total: mocks.total,
     page: mocks.page,
     totalPages: mocks.totalPages,
@@ -214,6 +216,11 @@ function setSuccessState(overrides: Partial<typeof mocks> = {}) {
   mocks.activeStorages = overrides.activeStorages ?? mocks.storages.filter(s => s.status === 'ACTIVE');
   mocks.frozenStorages = overrides.frozenStorages ?? mocks.storages.filter(s => s.status === 'FROZEN');
   mocks.archivedStorages = overrides.archivedStorages ?? mocks.storages.filter(s => s.status === 'ARCHIVED');
+  mocks.summary = overrides.summary ?? {
+    active: mocks.activeStorages.length,
+    frozen: mocks.frozenStorages.length,
+    archived: mocks.archivedStorages.length,
+  };
   mocks.total = overrides.total ?? mocks.storages.length;
   Object.assign(mocks, overrides);
 }
@@ -229,6 +236,7 @@ describe('StoragesPage', () => {
     mocks.activeStorages = [];
     mocks.frozenStorages = [];
     mocks.archivedStorages = [];
+    mocks.summary = { active: 0, frozen: 0, archived: 0 };
     mocks.total = 0;
     mocks.page = 1;
     mocks.totalPages = 1;

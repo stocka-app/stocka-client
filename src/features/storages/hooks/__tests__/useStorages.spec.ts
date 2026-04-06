@@ -104,6 +104,7 @@ const mockPage: StoragesPage = {
   page: 1,
   limit: 50,
   totalPages: 1,
+  summary: { active: mockStoragesItems.length, frozen: 0, archived: 0 },
 };
 
 // Extended mock data with FROZEN and varied types for filter tests
@@ -176,6 +177,8 @@ const allStoragesMockPage: StoragesPage = {
   page: 1,
   limit: 50,
   totalPages: 1,
+  // 2 active (WAREHOUSE + CUSTOM_ROOM), 1 frozen (STORE_ROOM), 1 archived (WAREHOUSE)
+  summary: { active: 2, frozen: 1, archived: 1 },
 };
 
 function resetStore(): void {
@@ -803,6 +806,7 @@ describe('Given useStorages with multi-page results', () => {
     page: 1,
     limit: 1,
     totalPages: 3,
+    summary: { active: 3, frozen: 0, archived: 0 },
   };
 
   const pageTwoMock: StoragesPage = {
@@ -811,6 +815,7 @@ describe('Given useStorages with multi-page results', () => {
     page: 2,
     limit: 1,
     totalPages: 3,
+    summary: { active: 3, frozen: 0, archived: 0 },
   };
 
   beforeEach(() => {

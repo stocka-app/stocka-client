@@ -52,6 +52,7 @@ export default function StoragesPage(): React.ReactElement {
     activeStorages,
     frozenStorages,
     archivedStorages,
+    summary,
     total,
     page,
     totalPages,
@@ -438,7 +439,7 @@ export default function StoragesPage(): React.ReactElement {
           })}
         </div>
         {/* Stats + search — search hidden on gated tabs */}
-        <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} archivedCount={archivedStorages.length} />
+        <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
         {!isGated && <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />}
 
         {isGated && filterType !== null ? (
@@ -530,7 +531,7 @@ export default function StoragesPage(): React.ReactElement {
       </div>
 
       {/* Stats bar */}
-      <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} archivedCount={archivedStorages.length} />
+      <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
 
       {/* Search + filter chips — hidden on tier-gated tabs */}
       {!isGated && (

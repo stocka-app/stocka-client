@@ -12,7 +12,7 @@ import type {
   CreateStoreRoomFormData,
   CreateCustomRoomFormData,
 } from '../schemas/storages.schema';
-import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
+import type { Storage, StorageStatus, StorageType, StorageStatusSummary } from '../types/storages.types';
 
 const STORAGES_PAGE_LIMIT = 50;
 
@@ -36,11 +36,14 @@ function resolveCreateError(err: unknown): CreateError {
   return 'server_error';
 }
 
+const EMPTY_SUMMARY: StorageStatusSummary = { active: 0, frozen: 0, archived: 0 };
+
 export function useStorages(): {
   storages: Storage[];
   activeStorages: Storage[];
   frozenStorages: Storage[];
   archivedStorages: Storage[];
+  summary: StorageStatusSummary;
   total: number;
   page: number;
   totalPages: number;
@@ -93,6 +96,7 @@ export function useStorages(): {
   const [searchQuery, setSearchQueryState] = useState('');
   const [sortOrder, setSortOrderState] = useState<'ASC' | 'DESC'>('ASC');
   const [currentPage, setCurrentPageState] = useState(1);
+  const [summary, setSummary] = useState<StorageStatusSummary>(EMPTY_SUMMARY);
 
   // Keep a ref with the latest filter values so fetchStorages can be called
   // with current state without being a dep of useEffect (avoids infinite loop).
@@ -118,6 +122,7 @@ export function useStorages(): {
         const result = await storagesService.list(params);
         setStorages(result.items);
         setPagination(result.total, result.page, result.totalPages);
+        setSummary(result.summary);
         setLoading(false);
       } catch (err) {
         // AbortController cleanup (StrictMode) — ignore silently, don't set error
@@ -130,7 +135,7 @@ export function useStorages(): {
         setLoading(false);
       }
     },
-    [setLoading, setError, setStorages, setPagination],
+    [setLoading, setError, setStorages, setPagination, setSummary],
   );
 
   // isGated: the selected filter type is completely locked on the current tier.
@@ -150,6 +155,7 @@ export function useStorages(): {
       // Clear stale results so stats bars and card lists show empty for the locked tab.
       setStorages([]);
       setPagination(0, 1, 1);
+      setSummary(EMPTY_SUMMARY);
       return;
     }
     const controller = new AbortController();
@@ -306,6 +312,7 @@ export function useStorages(): {
     activeStorages,
     frozenStorages,
     archivedStorages,
+    summary,
     total,
     page,
     totalPages,

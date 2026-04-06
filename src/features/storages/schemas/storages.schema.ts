@@ -42,12 +42,19 @@ export const updateStorageSchema = storageFormBaseSchema.partial().extend({
 
 export const storagesListSchema = z.array(storageSchema);
 
+export const storageStatusSummarySchema = z.object({
+  active: z.number().int().nonnegative(),
+  frozen: z.number().int().nonnegative(),
+  archived: z.number().int().nonnegative(),
+});
+
 export const storagesPageSchema = z.object({
   items: z.array(storageSchema),
   total: z.number().int().nonnegative(),
   page: z.number().int().positive(),
   limit: z.number().int().positive(),
   totalPages: z.number().int().nonnegative(),
+  summary: storageStatusSummarySchema,
 });
 
 // ── Create drawer schemas ────────────────────────────────────────────────────

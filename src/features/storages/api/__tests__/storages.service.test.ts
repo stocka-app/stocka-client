@@ -39,6 +39,7 @@ const storagesPageFixture = {
   page: 1,
   limit: 10,
   totalPages: 1,
+  summary: { active: 1, frozen: 0, archived: 0 },
 };
 
 /** Backend envelope wrapper */
