@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useStoragesStore } from '../store/storages.store';
 import { useRBACStore } from '@/store/rbac.store';
+import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
 import type {
@@ -49,6 +50,8 @@ export function useStorages(): {
   filterType: StorageType | null;
   searchQuery: string;
   sortOrder: 'ASC' | 'DESC';
+  /** True when the active filterType is completely locked on the current tier */
+  isGated: boolean;
   setFilterStatus: (status: StorageStatus | null) => void;
   setFilterType: (type: StorageType | null) => void;
   setSearchQuery: (query: string) => void;
@@ -83,6 +86,7 @@ export function useStorages(): {
     setError,
   } = useStoragesStore();
   const { canDo } = useRBACStore();
+  const { isAllowed } = useTierCapabilities();
 
   const [filterStatus, setFilterStatusState] = useState<StorageStatus | null>(null);
   const [filterType, setFilterTypeState] = useState<StorageType | null>(null);
@@ -129,16 +133,25 @@ export function useStorages(): {
     [setLoading, setError, setStorages, setPagination],
   );
 
+  // isGated: the selected filter type is completely locked on the current tier.
+  // Derived here so it's stable for both the effect dep and the return value.
+  const isGated =
+    filterType !== null &&
+    !isAllowed(STORAGE_TYPE_TO_FEATURE[filterType]);
+
   // Re-fetch whenever any filter/page state changes.
+  // Skip entirely when the active filter type is tier-gated — no point in
+  // hitting the network for a resource the tenant cannot access.
   // AbortController ensures the in-flight request from the prior render (or
   // StrictMode's simulated unmount) is cancelled before the new one fires,
   // preventing duplicate requests and 401-cascade from concurrent calls.
   useEffect(() => {
+    if (isGated) return;
     const controller = new AbortController();
     void fetchStorages({ signal: controller.signal });
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatus, filterType, searchQuery, sortOrder, currentPage]);
+  }, [filterStatus, filterType, searchQuery, sortOrder, currentPage, isGated]);
 
   // ── Filter setters — reset page to 1 on any filter change ─────────────────
 
@@ -294,6 +307,7 @@ export function useStorages(): {
     filterType,
     searchQuery,
     sortOrder,
+    isGated,
     setFilterStatus,
     setFilterType,
     setSearchQuery,
