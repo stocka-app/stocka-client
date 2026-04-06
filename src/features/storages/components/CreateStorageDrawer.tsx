@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import Drawer from '@/shared/components/Drawer';
+import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { createCustomRoomFormSchema } from '../schemas/storages.schema';
 import type {
   CreateWarehouseFormData,
@@ -423,9 +424,13 @@ function CancelConfirmDialog({
 function TypeSelectionBody({
   selectedType,
   onSelectType,
+  isTypeBlocked,
+  onBlockedTypeClick,
 }: {
   selectedType: StorageType | null;
   onSelectType: (type: StorageType) => void;
+  isTypeBlocked: (type: StorageType) => boolean;
+  onBlockedTypeClick: (type: StorageType) => void;
 }): React.ReactElement {
   const { t } = useTranslation('storages');
 
@@ -442,18 +447,31 @@ function TypeSelectionBody({
       <div className="flex flex-col gap-3">
         {TYPE_CONFIGS.map((config) => {
           const isSelected = selectedType === config.type;
+          const isBlocked = isTypeBlocked(config.type);
           return (
             <button
               key={config.type}
               type="button"
-              onClick={() => onSelectType(config.type)}
+              data-testid={`type-card-${config.type}`}
+              onClick={() => isBlocked ? onBlockedTypeClick(config.type) : onSelectType(config.type)}
               className={cn(
-                'flex w-full cursor-pointer items-start gap-4 rounded-xl border-2 p-4 text-left transition-all duration-150 active:scale-[0.99]',
-                isSelected
+                'relative flex w-full cursor-pointer items-start gap-4 rounded-xl border-2 p-4 text-left transition-all duration-150 active:scale-[0.99]',
+                isBlocked
+                  ? 'border-neutral-100 bg-neutral-50 opacity-60 dark:border-[#2A3F55] dark:bg-[#1e293b]'
+                  : isSelected
                   ? 'border-brand bg-white dark:border-brand dark:bg-[#243447]'
                   : 'border-neutral-100 bg-neutral-50 hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:border-[#2A3F55] dark:bg-[#1e293b] dark:hover:border-[#3A5270] dark:hover:bg-[#243447]',
               )}
             >
+              {isBlocked && (
+                <span
+                  className="absolute right-3 top-3 rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:bg-[#2A3F55] dark:text-neutral-400"
+                  aria-hidden="true"
+                >
+                  {t('limits.warehouseProBadge')}
+                </span>
+              )}
+
               <div
                 className={cn(
                   'flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[12px]',
@@ -475,8 +493,11 @@ function TypeSelectionBody({
                 </p>
               </div>
 
-              <span className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-neutral-300 dark:text-neutral-600">
-                chevron_right
+              <span
+                className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-neutral-300 dark:text-neutral-600"
+                aria-hidden="true"
+              >
+                {isBlocked ? 'lock' : 'chevron_right'}
               </span>
             </button>
           );
@@ -854,6 +875,7 @@ export function CreateStorageDrawer({
   const { t } = useTranslation('storages');
   const formId = useId();
   const drawerId = useId();
+  const { isAllowed, openUpgradeModal } = useTierCapabilities();
 
   const [step, setStep] = useState<DrawerStep>('type-selection');
   const [selectedType, setSelectedType] = useState<StorageType | null>(null);
@@ -1097,6 +1119,8 @@ export function CreateStorageDrawer({
             <TypeSelectionBody
               selectedType={selectedType}
               onSelectType={handleSelectType}
+              isTypeBlocked={(type) => !isAllowed(STORAGE_TYPE_TO_FEATURE[type])}
+              onBlockedTypeClick={(type) => openUpgradeModal('FEATURE_NOT_IN_TIER', type)}
             />
           ) : (
             selectedType !== null && typeConfig !== null && (

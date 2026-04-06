@@ -207,6 +207,7 @@ export default function StoragesPage(): React.ReactElement {
           setSelectedStorage(null);
         }}
         onSave={handleSave}
+        isAtTypeLimit={isAtTypeLimit}
       />
       <ArchiveStorageModal
         open={isArchiveOpen}
@@ -371,17 +372,23 @@ export default function StoragesPage(): React.ReactElement {
         <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
           {TYPE_TABS.map((tab) => {
             const isActive = filterType === tab.key;
+            const isLocked = tab.key !== null && !isAllowed(STORAGE_TYPE_TO_FEATURE[tab.key]);
             return (
               <button
                 key={tab.key ?? 'all'}
                 type="button"
                 onClick={() => setFilterType(tab.key)}
                 className={cn(
-                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
                   isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
                 )}
               >
                 {t(tab.labelKey)}
+                {isLocked && (
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                    lock
+                  </span>
+                )}
               </button>
             );
           })}
@@ -455,17 +462,23 @@ export default function StoragesPage(): React.ReactElement {
         <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
           {TYPE_TABS.map((tab) => {
             const isActive = filterType === tab.key;
+            const isLocked = tab.key !== null && !isAllowed(STORAGE_TYPE_TO_FEATURE[tab.key]);
             return (
               <button
                 key={tab.key ?? 'all'}
                 type="button"
                 onClick={() => setFilterType(tab.key)}
                 className={cn(
-                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
                   isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
                 )}
               >
                 {t(tab.labelKey)} ({countByType(tab.key)})
+                {isLocked && (
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                    lock
+                  </span>
+                )}
               </button>
             );
           })}
@@ -528,6 +541,7 @@ export default function StoragesPage(): React.ReactElement {
       <div className="mb-5 flex flex-wrap gap-2 overflow-x-auto">
         {TYPE_TABS.map((tab) => {
           const isActive = filterType === tab.key;
+          const isLocked = tab.key !== null && !isAllowed(STORAGE_TYPE_TO_FEATURE[tab.key]);
           return (
             <button
               key={tab.key ?? 'all'}
@@ -536,11 +550,16 @@ export default function StoragesPage(): React.ReactElement {
               aria-selected={isActive}
               onClick={() => setFilterType(tab.key)}
               className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
                 isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
               )}
             >
               {t(tab.labelKey)} ({countByType(tab.key)})
+              {isLocked && (
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                  lock
+                </span>
+              )}
             </button>
           );
         })}

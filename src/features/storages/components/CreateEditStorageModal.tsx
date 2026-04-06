@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { useTierCapabilities } from '@/shared/hooks/useTierCapabilities';
+import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { createStorageSchema, type CreateStorageFormData } from '../schemas/storages.schema';
 import type { Storage, StorageType } from '../types/storages.types';
 
@@ -14,6 +14,7 @@ interface CreateEditStorageModalProps {
   storage?: Storage | null;
   onClose: () => void;
   onSave: (data: CreateStorageFormData) => Promise<boolean>;
+  isAtTypeLimit?: (type: StorageType) => boolean;
 }
 
 const STORAGE_TYPES: StorageType[] = ['CUSTOM_ROOM', 'STORE_ROOM', 'WAREHOUSE'];
@@ -29,6 +30,7 @@ export function CreateEditStorageModal({
   storage,
   onClose,
   onSave,
+  isAtTypeLimit,
 }: CreateEditStorageModalProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
   const { isAllowed, openUpgradeModal } = useTierCapabilities();
@@ -119,7 +121,12 @@ export function CreateEditStorageModal({
                 className="mt-1 w-full rounded border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {STORAGE_TYPES.map((type) => {
-                  const isDisabled = type === 'WAREHOUSE' && isWarehouseBlocked;
+                  const isDisabledByTier = !isAllowed(STORAGE_TYPE_TO_FEATURE[type]);
+                  const isDisabledByQuota =
+                    isAtTypeLimit !== undefined &&
+                    storage?.type !== type &&
+                    isAtTypeLimit(type);
+                  const isDisabled = isDisabledByTier || isDisabledByQuota;
                   return (
                     <option
                       key={type}
@@ -127,7 +134,7 @@ export function CreateEditStorageModal({
                       disabled={isDisabled}
                     >
                       {t(`types.${type}`)}
-                      {isDisabled ? ` — ${t('createModal.warehouseDisabled')}` : ''}
+                      {isDisabledByTier ? ` — ${t('createModal.warehouseDisabled')}` : ''}
                     </option>
                   );
                 })}
