@@ -7,7 +7,7 @@ import { StateComposition } from '@/shared/components/StateComposition';
 import { DoubleRingSpinner } from '@/shared/components/DoubleRingSpinner';
 import { ProgressBar } from '@/shared/components/ProgressBar';
 import { useRBACStore } from '@/store/rbac.store';
-import { useTierCapabilities } from '@/shared/hooks/useTierCapabilities';
+import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
@@ -46,7 +46,7 @@ const SKEL_BADGE2 = ['w-11', 'w-13', 'w-10', 'w-12', 'w-11', 'w-14'];
 export default function StoragesPage(): React.ReactElement {
   const { t } = useTranslation('storages');
   const { canDo, tier } = useRBACStore();
-  const { storageLimits, openUpgradeModal } = useTierCapabilities();
+  const { storageLimits, isAllowed, openUpgradeModal } = useTierCapabilities();
   const {
     storages,
     activeStorages,
@@ -151,6 +151,12 @@ export default function StoragesPage(): React.ReactElement {
     const activeOfType = activeStorages.filter((s) => s.type === type).length;
     return activeOfType >= limit;
   };
+
+  // True when at least one storage type is allowed by the current tier AND has remaining quota.
+  // Used to hide the inline create card in the "All" tab when every type is locked or full.
+  const canCreateAny = (['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).some(
+    (type) => isAllowed(STORAGE_TYPE_TO_FEATURE[type]) && !isAtTypeLimit(type),
+  );
 
   const handleClearFilters = (): void => {
     setFilterStatus(null);
@@ -595,8 +601,9 @@ export default function StoragesPage(): React.ReactElement {
             />
           ))}
 
-          {/* Tier limit card inline — when the active type filter has reached its plan limit */}
-          {filterType !== null && isAtTypeLimit(filterType) && (
+          {/* Tier limit card inline — shown when the filtered type is at its plan limit,
+              OR when on "All" tab and every available type is at its limit */}
+          {(filterType !== null ? isAtTypeLimit(filterType) : !canCreateAny) && (
             <button
               type="button"
               onClick={handleUpgrade}
@@ -609,8 +616,10 @@ export default function StoragesPage(): React.ReactElement {
             </button>
           )}
 
-          {/* Inline create card — only if NOT at tier limit */}
-          {canCreate && !(filterType !== null && isAtTypeLimit(filterType)) && (
+          {/* Inline create card — shown when there is remaining quota for the current view:
+              specific type tab → that type is not at limit;
+              "All" tab → at least one type still has room */}
+          {canCreate && (filterType !== null ? !isAtTypeLimit(filterType) : canCreateAny) && (
             <button
               type="button"
               onClick={handleCreateClick}

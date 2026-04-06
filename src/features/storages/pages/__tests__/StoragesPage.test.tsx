@@ -29,13 +29,9 @@ vi.mock('@/store/rbac.store', () => ({
   }),
 }));
 
-const { mockOpenUpgradeModal } = vi.hoisted(() => ({
+const { mockOpenUpgradeModal, mockIsAllowed } = vi.hoisted(() => ({
   mockOpenUpgradeModal: vi.fn(),
-}));
-vi.mock('@/shared/hooks/useTierGate', () => ({
-  useTierGate: () => ({
-    openUpgradeModal: mockOpenUpgradeModal,
-  }),
+  mockIsAllowed: vi.fn((_: string) => true),
 }));
 
 const mocks = vi.hoisted(() => ({
@@ -125,8 +121,14 @@ vi.mock('../../components/CreateStorageDrawer', () => ({
 vi.mock('@/shared/hooks/useTierCapabilities', () => ({
   useTierCapabilities: () => ({
     storageLimits: { WAREHOUSE: 2, STORE_ROOM: 3, CUSTOM_ROOM: -1 },
+    isAllowed: mockIsAllowed,
     openUpgradeModal: mockOpenUpgradeModal,
   }),
+  STORAGE_TYPE_TO_FEATURE: {
+    WAREHOUSE: 'warehouses',
+    STORE_ROOM: 'storeRooms',
+    CUSTOM_ROOM: 'customRooms',
+  },
 }));
 
 vi.mock('@/shared/components/TierUpgradeState', () => ({
@@ -233,6 +235,7 @@ describe('StoragesPage', () => {
     mocks.searchQuery = '';
     mocks.sortOrder = 'ASC';
     mocks.canCreate = true;
+    mockIsAllowed.mockReturnValue(true);
     storageCardInstances = [];
     createEditModalProps = {};
     archiveModalProps = {};
@@ -1109,6 +1112,56 @@ describe('StoragesPage', () => {
       it('Then the page title is still visible', () => {
         expect(screen.getByRole('heading')).toBeInTheDocument();
       });
+    });
+  });
+
+  // ── "All" tab consistency: no create card when all types are blocked ──
+
+  describe('Given the user is on the All tab and every storage type is blocked by the current tier', () => {
+    beforeEach(() => {
+      mockIsAllowed.mockReturnValue(false);
+      setSuccessState({
+        storages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+        activeStorages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+      });
+      mocks.filterType = null;
+      render(<StoragesPage />);
+    });
+
+    it('Then the tier limit upgrade card is shown', () => {
+      expect(screen.getByText('upgrade.tierLimit.title')).toBeInTheDocument();
+    });
+
+    it('Then the inline create card is not shown', () => {
+      expect(screen.queryByText('actions.createInline')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given the user is on the All tab and at least one storage type has remaining quota', () => {
+    beforeEach(() => {
+      mockIsAllowed.mockReturnValue(true);
+      setSuccessState({
+        storages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+        activeStorages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+      });
+      mocks.filterType = null;
+      render(<StoragesPage />);
+    });
+
+    it('Then the inline create card is shown', () => {
+      expect(screen.getByText('actions.createInline')).toBeInTheDocument();
+    });
+
+    it('Then the tier limit card is not shown', () => {
+      expect(screen.queryByText('upgrade.tierLimit.title')).not.toBeInTheDocument();
     });
   });
 });
