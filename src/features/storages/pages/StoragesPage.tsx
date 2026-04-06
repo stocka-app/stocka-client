@@ -383,7 +383,7 @@ export default function StoragesPage(): React.ReactElement {
                   isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
                 )}
               >
-                {t(tab.labelKey)}
+                {t(tab.labelKey)} ({countByType(tab.key)})
                 {isLocked && (
                   <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                     lock
@@ -393,7 +393,7 @@ export default function StoragesPage(): React.ReactElement {
             );
           })}
         </div>
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex min-h-[60vh] items-center justify-center">
           <TierUpgradeState
             feature={t(`types.${filterType}`)}
             onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
