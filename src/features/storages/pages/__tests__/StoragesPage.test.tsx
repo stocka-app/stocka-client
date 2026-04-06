@@ -1096,7 +1096,7 @@ describe('StoragesPage', () => {
       mocks.filterType = null;
     });
 
-    describe('When the page renders', () => {
+    describe('When the page renders with no stale storages', () => {
       beforeEach(() => {
         render(<StoragesPage />);
       });
@@ -1111,6 +1111,30 @@ describe('StoragesPage', () => {
 
       it('Then the page title is still visible', () => {
         expect(screen.getByRole('heading')).toBeInTheDocument();
+      });
+    });
+
+    describe('When the page renders with stale storages from a previous tab', () => {
+      beforeEach(() => {
+        mocks.storages = [{ uuid: 'sr-1', name: 'Store Room 1', type: 'STORE_ROOM', status: 'ACTIVE' }];
+        mocks.total = 1;
+        render(<StoragesPage />);
+      });
+
+      it('Then the TierUpgradeState component is shown instead of the stale cards', () => {
+        expect(screen.getByTestId('tier-upgrade-state')).toBeInTheDocument();
+      });
+
+      it('Then the stale storage cards are not rendered', () => {
+        expect(screen.queryByText('Store Room 1')).not.toBeInTheDocument();
+      });
+
+      it('Then the header create button is not shown', () => {
+        expect(screen.queryByRole('button', { name: /actions\.create$/i })).not.toBeInTheDocument();
+      });
+
+      it('Then the filter tabs remain visible with their counts', () => {
+        expect(screen.getByRole('tab', { name: /tabs\.warehouses/ })).toBeInTheDocument();
       });
     });
   });

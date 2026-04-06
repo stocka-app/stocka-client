@@ -492,7 +492,7 @@ export default function StoragesPage(): React.ReactElement {
           <h1 className="text-2xl font-bold text-neutral-900">{t('page.title')}</h1>
           <p className="mt-1 text-sm text-neutral-500">{t('page.subtitle')}</p>
         </div>
-        {canCreate && (
+        {canCreate && !isGated && (
           <Button type="button" onClick={handleCreateClick} className="gap-2 bg-brand text-white hover:bg-brand-hover">
             <span className="material-symbols-outlined text-[18px]">add</span>
             {t('actions.create')}
@@ -560,59 +560,69 @@ export default function StoragesPage(): React.ReactElement {
         </div>
       )}
 
-      {/* Card grid with optional loader overlay */}
-      <div className="relative">
-        {isLoading && hadData && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <DoubleRingSpinner label={t('loader.loading')} elevated />
-          </div>
-        )}
-
-        <div className={cn(
-          'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4',
-          isLoading && hadData && 'opacity-30',
-        )}>
-          {storages.map((storage) => (
-            <StorageCard
-              key={storage.uuid}
-              storage={storage}
-              onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
-              onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
-              onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
-              onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
-            />
-          ))}
-
-          {/* Tier limit card inline — shown when the filtered type is at its plan limit,
-              OR when on "All" tab and every available type is at its limit */}
-          {(filterType !== null ? isAtTypeLimit(filterType) : !canCreateAny) && (
-            <button
-              type="button"
-              onClick={handleUpgrade}
-              className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 text-neutral-500 transition-colors hover:border-warning hover:bg-warning-bg dark:bg-neutral-100"
-            >
-              <span className="material-symbols-outlined text-[32px] text-neutral-400">lock</span>
-              <span className="text-sm font-semibold">{t('upgrade.tierLimit.title')}</span>
-              <span className="text-xs text-neutral-400">{t('upgrade.tierLimit.description')}</span>
-              <span className="text-xs font-medium text-brand">{t('upgrade.banner.cta')}</span>
-            </button>
-          )}
-
-          {/* Inline create card — shown when there is remaining quota for the current view:
-              specific type tab → that type is not at limit;
-              "All" tab → at least one type still has room */}
-          {canCreate && (filterType !== null ? !isAtTypeLimit(filterType) : canCreateAny) && (
-            <button
-              type="button"
-              onClick={handleCreateClick}
-              className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-transparent text-neutral-500 transition-colors hover:border-brand hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="material-symbols-outlined text-[28px]">add</span>
-              <span className="text-sm font-medium">{t('actions.createInline')}</span>
-            </button>
-          )}
+      {/* Card grid — replaced by tier gate message when the active tab is blocked */}
+      {isGated && filterType !== null ? (
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <TierUpgradeState
+            feature={t(`types.${filterType}`)}
+            onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
+            onBack={() => setFilterType(null)}
+          />
         </div>
-      </div>
+      ) : (
+        <div className="relative">
+          {isLoading && hadData && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <DoubleRingSpinner label={t('loader.loading')} elevated />
+            </div>
+          )}
+
+          <div className={cn(
+            'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4',
+            isLoading && hadData && 'opacity-30',
+          )}>
+            {storages.map((storage) => (
+              <StorageCard
+                key={storage.uuid}
+                storage={storage}
+                onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
+                onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
+                onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
+                onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
+              />
+            ))}
+
+            {/* Tier limit card inline — shown when the filtered type is at its plan limit,
+                OR when on "All" tab and every available type is at its limit */}
+            {(filterType !== null ? isAtTypeLimit(filterType) : !canCreateAny) && (
+              <button
+                type="button"
+                onClick={handleUpgrade}
+                className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 text-neutral-500 transition-colors hover:border-warning hover:bg-warning-bg dark:bg-neutral-100"
+              >
+                <span className="material-symbols-outlined text-[32px] text-neutral-400">lock</span>
+                <span className="text-sm font-semibold">{t('upgrade.tierLimit.title')}</span>
+                <span className="text-xs text-neutral-400">{t('upgrade.tierLimit.description')}</span>
+                <span className="text-xs font-medium text-brand">{t('upgrade.banner.cta')}</span>
+              </button>
+            )}
+
+            {/* Inline create card — shown when there is remaining quota for the current view:
+                specific type tab → that type is not at limit;
+                "All" tab → at least one type still has room */}
+            {canCreate && (filterType !== null ? !isAtTypeLimit(filterType) : canCreateAny) && (
+              <button
+                type="button"
+                onClick={handleCreateClick}
+                className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-transparent text-neutral-500 transition-colors hover:border-brand hover:bg-brand-subtle hover:text-brand"
+              >
+                <span className="material-symbols-outlined text-[28px]">add</span>
+                <span className="text-sm font-medium">{t('actions.createInline')}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
