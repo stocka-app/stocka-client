@@ -7,9 +7,9 @@ import { StateComposition } from '@/shared/components/StateComposition';
 import { DoubleRingSpinner } from '@/shared/components/DoubleRingSpinner';
 import { ProgressBar } from '@/shared/components/ProgressBar';
 import { useRBACStore } from '@/store/rbac.store';
-import { useTierGate } from '@/shared/hooks/useTierGate';
+import { useTierCapabilities } from '@/shared/hooks/useTierCapabilities';
+import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { useStorages } from '../hooks/useStorages';
-import { useCapabilities } from '../hooks/useCapabilities';
 import type { Storage, StorageType } from '../types/storages.types';
 import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
@@ -46,8 +46,7 @@ const SKEL_BADGE2 = ['w-11', 'w-13', 'w-10', 'w-12', 'w-11', 'w-14'];
 export default function StoragesPage(): React.ReactElement {
   const { t } = useTranslation('storages');
   const { canDo, tier } = useRBACStore();
-  const { limits } = useCapabilities();
-  const { openUpgradeModal } = useTierGate();
+  const { storageLimits, openUpgradeModal } = useTierCapabilities();
   const {
     storages,
     activeStorages,
@@ -61,6 +60,7 @@ export default function StoragesPage(): React.ReactElement {
     filterType,
     searchQuery,
     sortOrder,
+    isGated,
     setFilterStatus,
     setFilterType,
     setSearchQuery,
@@ -86,7 +86,7 @@ export default function StoragesPage(): React.ReactElement {
   const canArchiveStorage = (storage: Storage): boolean => storage.status === 'ACTIVE';
 
   const canRestoreStorage = (storage: Storage): boolean => {
-    const limit = limits[storage.type];
+    const limit = storageLimits[storage.type];
     if (limit === -1) return true;
     const activeOfType = activeStorages.filter((s) => s.type === storage.type).length;
     return activeOfType < limit;
@@ -146,7 +146,7 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const isAtTypeLimit = (type: StorageType): boolean => {
-    const limit = limits[type];
+    const limit = storageLimits[type];
     if (limit === -1) return false;
     const activeOfType = activeStorages.filter((s) => s.type === type).length;
     return activeOfType >= limit;
@@ -186,7 +186,7 @@ export default function StoragesPage(): React.ReactElement {
         open={isCreateDrawerOpen}
         onClose={() => setIsCreateDrawerOpen(false)}
         storages={storages}
-        limits={limits}
+        limits={storageLimits}
         tier={tier ?? 'FREE'}
         onCreateWarehouse={createWarehouse}
         onCreateStoreRoom={createStoreRoom}
@@ -344,6 +344,47 @@ export default function StoragesPage(): React.ReactElement {
               { icon: 'update', iconColor: 'text-warning', title: t('error.troubleshooting.refresh'), description: t('error.troubleshooting.refreshDesc') },
               { icon: 'support_agent', iconColor: 'text-brand', title: t('error.troubleshooting.support'), description: t('error.troubleshooting.supportDesc') },
             ]}
+          />
+        </div>
+        {modals}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // STATE 3.5: TIER GATE — filterType is locked on the current plan
+  // ══════════════════════════════════════════════════════════════════════
+
+  if (isGated && filterType !== null) {
+    return (
+      <div className="mx-auto flex max-w-7xl flex-1 flex-col px-4 py-6 sm:px-6">
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold text-neutral-900">{t('page.title')}</h1>
+          <p className="mt-1 text-sm text-neutral-500">{t('page.subtitle')}</p>
+        </div>
+        <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
+          {TYPE_TABS.map((tab) => {
+            const isActive = filterType === tab.key;
+            return (
+              <button
+                key={tab.key ?? 'all'}
+                type="button"
+                onClick={() => setFilterType(tab.key)}
+                className={cn(
+                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
+                )}
+              >
+                {t(tab.labelKey)}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <TierUpgradeState
+            feature={t(`types.${filterType}`)}
+            onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
+            onBack={() => setFilterType(null)}
           />
         </div>
         {modals}

@@ -52,6 +52,7 @@ const mocks = vi.hoisted(() => ({
   searchQuery: '',
   sortOrder: 'ASC' as string,
   canCreate: true,
+  isGated: false,
 }));
 
 const {
@@ -104,6 +105,7 @@ vi.mock('../../hooks/useStorages', () => ({
     setSortOrder: mockSetSortOrder,
     setPage: mockSetPage,
     canCreate: mocks.canCreate,
+    isGated: mocks.isGated,
     fetchStorages: mockFetchStorages,
     createStorage: mockCreateStorage,
     createWarehouse: mockCreateWarehouse,
@@ -120,10 +122,20 @@ vi.mock('../../components/CreateStorageDrawer', () => ({
     open ? <div data-testid="create-storage-drawer" /> : null,
 }));
 
-vi.mock('../../hooks/useCapabilities', () => ({
-  useCapabilities: () => ({
-    limits: { WAREHOUSE: 2, STORE_ROOM: 3, CUSTOM_ROOM: -1 },
+vi.mock('@/shared/hooks/useTierCapabilities', () => ({
+  useTierCapabilities: () => ({
+    storageLimits: { WAREHOUSE: 2, STORE_ROOM: 3, CUSTOM_ROOM: -1 },
+    openUpgradeModal: mockOpenUpgradeModal,
   }),
+}));
+
+vi.mock('@/shared/components/TierUpgradeState', () => ({
+  TierUpgradeState: ({ feature, onBack }: { feature: string; onBack?: () => void }) => (
+    <div data-testid="tier-upgrade-state">
+      <span>{feature}</span>
+      {onBack && <button onClick={onBack}>back</button>}
+    </div>
+  ),
 }));
 
 const { mockDestroy } = vi.hoisted(() => ({
@@ -1063,6 +1075,40 @@ describe('StoragesPage', () => {
     it('should not pass onEdit to any storage card', () => {
       const hasEdit = storageCardInstances.some(c => c.onEdit !== undefined);
       expect(hasEdit).toBe(false);
+    });
+  });
+
+  describe('Given the active filter type is locked on the current tier', () => {
+    beforeEach(() => {
+      mocks.isGated = true;
+      mocks.filterType = 'WAREHOUSE';
+      mocks.storages = [];
+      mocks.total = 0;
+      mocks.isLoading = false;
+      mocks.error = null;
+    });
+
+    afterEach(() => {
+      mocks.isGated = false;
+      mocks.filterType = null;
+    });
+
+    describe('When the page renders', () => {
+      beforeEach(() => {
+        render(<StoragesPage />);
+      });
+
+      it('Then the TierUpgradeState component is shown', () => {
+        expect(screen.getByTestId('tier-upgrade-state')).toBeInTheDocument();
+      });
+
+      it('Then the filter tabs are still visible for context', () => {
+        expect(screen.getByRole('button', { name: /WAREHOUSE/i })).toBeInTheDocument();
+      });
+
+      it('Then the page title is still visible', () => {
+        expect(screen.getByRole('heading')).toBeInTheDocument();
+      });
     });
   });
 });

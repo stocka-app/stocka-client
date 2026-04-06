@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { STORAGE_TIER_LIMITS } from '../../types/storages.types';
-import type { Storage, StorageType } from '../../types/storages.types';
+import { TIER_CAPABILITIES } from '@/shared/config/tier-capabilities';
+import type { Storage } from '../../types/storages.types';
 import type { TenantTier } from '@/features/team/types/team.types';
 
 const mockOpenUpgradeModal = vi.fn();
@@ -13,31 +13,28 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('@/shared/hooks/useTierGate', () => ({
-  useTierGate: () => ({
-    openUpgradeModal: mockOpenUpgradeModal,
-    closeUpgradeModal: vi.fn(),
-    isOpen: false,
-  }),
-}));
-
 let currentTier: string | null = 'FREE';
 
-vi.mock('@/store/rbac.store', () => ({
-  useRBACStore: () => ({ tier: currentTier }),
-}));
-
 /**
- * Mock useCapabilities to return limits matching the current test tier.
- * This mirrors how the component resolves limits — from JWT → API → fallback.
- * In tests we use the same fallback constant to keep assertions aligned.
+ * Mock useTierCapabilities to return limits and capabilities matching the
+ * current test tier, using the same static map as the real hook.
  */
-vi.mock('../../hooks/useCapabilities', () => ({
-  useCapabilities: (): { limits: Record<StorageType, number>; isLoading: boolean } => {
+vi.mock('@/shared/hooks/useTierCapabilities', () => ({
+  useTierCapabilities: () => {
     const tier = (currentTier ?? 'FREE') as TenantTier;
+    const caps = TIER_CAPABILITIES[tier] ?? TIER_CAPABILITIES.FREE;
     return {
-      limits: STORAGE_TIER_LIMITS[tier] ?? STORAGE_TIER_LIMITS.FREE,
-      isLoading: false,
+      storageLimits: {
+        WAREHOUSE:   caps.warehouses.limit,
+        STORE_ROOM:  caps.storeRooms.limit,
+        CUSTOM_ROOM: caps.customRooms.limit,
+      },
+      isAllowed: (feature: string) => {
+        if (feature === 'warehouses') return caps.warehouses.allowed;
+        if (feature === 'storeRooms') return caps.storeRooms.allowed;
+        return caps.customRooms.allowed;
+      },
+      openUpgradeModal: mockOpenUpgradeModal,
     };
   },
 }));

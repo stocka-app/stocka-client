@@ -27,6 +27,12 @@
     "goToLogin": "Go to login",
     "tryAgain": "Try again"
   },
+  "tierUpgrade": {
+    "title": "{{feature}} is not available on your plan",
+    "description": "Upgrade to a paid plan to unlock this feature and get full access to Stocka.",
+    "cta": "View plans",
+    "back": "See available options"
+  },
   "upgradeModal": {
     "title": "Upgrade your plan",
     "reasonLimitReached": "You've reached the limit for your current plan.",

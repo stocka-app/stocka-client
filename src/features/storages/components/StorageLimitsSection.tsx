@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
-import { useRBACStore } from '@/store/rbac.store';
-import { useTierGate } from '@/shared/hooks/useTierGate';
-import { useCapabilities } from '../hooks/useCapabilities';
+import { useTierCapabilities } from '@/shared/hooks/useTierCapabilities';
 import type { Storage, StorageType } from '../types/storages.types';
 
 interface StorageLimitsSectionProps {
@@ -31,11 +29,7 @@ function getProgressPercent(used: number, max: number): number {
  */
 export function StorageLimitsSection({ storages }: StorageLimitsSectionProps): React.ReactElement {
   const { t } = useTranslation('storages');
-  const { tier } = useRBACStore();
-  const { openUpgradeModal } = useTierGate();
-  const { limits } = useCapabilities();
-
-  const effectiveTier = tier ?? 'FREE';
+  const { storageLimits, isAllowed, openUpgradeModal } = useTierCapabilities();
 
   return (
     <div className="rounded-lg border border-border bg-surface-card p-4">
@@ -44,9 +38,9 @@ export function StorageLimitsSection({ storages }: StorageLimitsSectionProps): R
       </h3>
       <div className="space-y-3">
         {STORAGE_TYPES.map((type) => {
-          const max = limits[type];
+          const max = storageLimits[type];
           const used = storages.filter((s) => s.type === type && s.status === 'ACTIVE').length;
-          const isWarehouseBlocked = type === 'WAREHOUSE' && effectiveTier === 'FREE';
+          const isWarehouseBlocked = type === 'WAREHOUSE' && !isAllowed('warehouses');
           const isUnlimited = max === -1;
 
           return (
