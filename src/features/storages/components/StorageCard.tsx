@@ -80,7 +80,7 @@ export function StorageCard({
   return (
     <div
       className={cn(
-        'flex overflow-hidden rounded-lg border border-border shadow-card',
+        'flex min-h-[220px] overflow-hidden rounded-lg border border-border shadow-card',
         isArchived
           ? 'bg-neutral-50 opacity-50'
           : isFrozen
@@ -151,8 +151,8 @@ export function StorageCard({
           <p className="mb-3 truncate text-sm text-neutral-600">{storage.address}</p>
         )}
 
-        {/* Context menu */}
-        <div className="flex items-center justify-between border-t border-border pt-2">
+        {/* Context menu — mt-auto pins footer to bottom when grid stretches this card */}
+        <div className="mt-auto flex items-center justify-between border-t border-border pt-2">
           <div className="flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[16px] text-neutral-400">inventory_2</span>
             <span className="text-xs text-neutral-500">— {t('productCount')}</span>

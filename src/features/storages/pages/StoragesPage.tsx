@@ -276,7 +276,7 @@ export default function StoragesPage(): React.ReactElement {
         {/* Card grid skeleton */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex overflow-hidden rounded-lg border border-border bg-surface-card shadow-card">
+            <div key={i} className="flex min-h-[220px] overflow-hidden rounded-lg border border-border bg-surface-card shadow-card">
               <div className="w-2.5 shrink-0 animate-pulse bg-neutral-200" />
               <div className="flex min-w-0 flex-1 flex-col gap-4 p-5">
                 <div className="flex items-start justify-between">
@@ -298,7 +298,7 @@ export default function StoragesPage(): React.ReactElement {
             </div>
           ))}
           {/* Skeleton create card */}
-          <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 p-8">
+          <div className="flex min-h-[220px] items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 p-8">
             <div className="flex flex-col items-center gap-2.5">
               <div className="h-10 w-10 animate-pulse rounded-full bg-neutral-200" />
               <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
@@ -603,7 +603,7 @@ export default function StoragesPage(): React.ReactElement {
               <button
                 type="button"
                 onClick={handleUpgrade}
-                className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 text-neutral-500 transition-colors hover:border-warning hover:bg-warning-bg dark:bg-neutral-100"
+                className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 text-neutral-500 transition-colors hover:border-warning hover:bg-warning-bg dark:bg-neutral-100"
               >
                 <span className="material-symbols-outlined text-[32px] text-neutral-400">lock</span>
                 <span className="text-sm font-semibold">{t('upgrade.tierLimit.title')}</span>
@@ -619,7 +619,7 @@ export default function StoragesPage(): React.ReactElement {
               <button
                 type="button"
                 onClick={handleCreateClick}
-                className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-transparent text-neutral-500 transition-colors hover:border-brand hover:bg-brand-subtle hover:text-brand"
+                className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-transparent text-neutral-500 transition-colors hover:border-brand hover:bg-brand-subtle hover:text-brand"
               >
                 <span className="material-symbols-outlined text-[28px]">add</span>
                 <span className="text-sm font-medium">{t('actions.createInline')}</span>
