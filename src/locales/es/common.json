@@ -27,6 +27,12 @@
     "goToLogin": "Ir al login",
     "tryAgain": "Intentar de nuevo"
   },
+  "tierUpgrade": {
+    "title": "{{feature}} no está disponible en tu plan",
+    "description": "Actualiza a un plan de pago para desbloquear esta función y acceder a todas las capacidades de Stocka.",
+    "cta": "Ver planes",
+    "back": "Ver opciones disponibles"
+  },
   "upgradeModal": {
     "title": "Actualiza tu plan",
     "reasonLimitReached": "Has alcanzado el límite de tu plan actual.",
