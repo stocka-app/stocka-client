@@ -39,7 +39,7 @@
     "total": "Total",
     "active": "Active",
     "frozen": "Frozen",
-    "occupancy": "Occupancy"
+    "archived": "Archived"
   },
   "controls": {
     "search": "Search storages...",

@@ -51,6 +51,7 @@ export default function StoragesPage(): React.ReactElement {
     storages,
     activeStorages,
     frozenStorages,
+    archivedStorages,
     total,
     page,
     totalPages,
@@ -436,9 +437,9 @@ export default function StoragesPage(): React.ReactElement {
             );
           })}
         </div>
-        {/* Stats + search */}
-        <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} />
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
+        {/* Stats + search — search hidden on gated tabs */}
+        <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} archivedCount={archivedStorages.length} />
+        {!isGated && <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />}
 
         {isGated && filterType !== null ? (
           <div className="flex min-h-[60vh] items-center justify-center">
@@ -529,35 +530,38 @@ export default function StoragesPage(): React.ReactElement {
       </div>
 
       {/* Stats bar */}
-      <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} />
+      <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} archivedCount={archivedStorages.length} />
 
-      {/* Search + status filter + sort */}
-      <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
+      {/* Search + filter chips — hidden on tier-gated tabs */}
+      {!isGated && (
+        <>
+          <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
 
-      {/* Active filter chips */}
-      {isFiltered && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {filterStatus !== null && (
-            <button
-              type="button"
-              onClick={() => setFilterStatus(null)}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-            >
-              {t(`statuses.${filterStatus}`)}
-              <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
-            </button>
+          {isFiltered && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {filterStatus !== null && (
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus(null)}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                >
+                  {t(`statuses.${filterStatus}`)}
+                  <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
+                </button>
+              )}
+              {searchQuery !== '' && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+                >
+                  &ldquo;{searchQuery}&rdquo;
+                  <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
+                </button>
+              )}
+            </div>
           )}
-          {searchQuery !== '' && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-            >
-              &ldquo;{searchQuery}&rdquo;
-              <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
-            </button>
-          )}
-        </div>
+        </>
       )}
 
       {/* Card grid — replaced by tier gate message when the active tab is blocked */}
@@ -644,7 +648,7 @@ export default function StoragesPage(): React.ReactElement {
 
 // ─── Extracted sub-components ────────────────────────────────────────────────
 
-function StatsBar({ activeCount, frozenCount }: { activeCount: number; frozenCount: number }): React.ReactElement {
+function StatsBar({ activeCount, frozenCount, archivedCount }: { activeCount: number; frozenCount: number; archivedCount: number }): React.ReactElement {
   const { t } = useTranslation('storages');
   return (
     <div className="mb-5 flex items-center gap-4 overflow-x-auto rounded-lg border border-border bg-surface-card px-4 py-3 sm:gap-6">
@@ -662,9 +666,9 @@ function StatsBar({ activeCount, frozenCount }: { activeCount: number; frozenCou
       <div className="hidden sm:block"><div className="h-6 w-px bg-border" /></div>
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined text-[20px] text-neutral-500">inventory_2</span>
-        <span className="text-xs font-medium text-neutral-500">{t('stats.occupancy')}</span>
+        <span className="text-lg font-bold text-neutral-900">{String(archivedCount).padStart(2, '0')}</span>
+        <span className="text-xs text-neutral-500">{t('stats.archived')}</span>
       </div>
-
     </div>
   );
 }

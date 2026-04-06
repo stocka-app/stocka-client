@@ -146,7 +146,12 @@ export function useStorages(): {
   // StrictMode's simulated unmount) is cancelled before the new one fires,
   // preventing duplicate requests and 401-cascade from concurrent calls.
   useEffect(() => {
-    if (isGated) return;
+    if (isGated) {
+      // Clear stale results so stats bars and card lists show empty for the locked tab.
+      setStorages([]);
+      setPagination(0, 1, 1);
+      return;
+    }
     const controller = new AbortController();
     void fetchStorages({ signal: controller.signal });
     return () => controller.abort();
@@ -162,6 +167,9 @@ export function useStorages(): {
 
   const setFilterType = useCallback((type: StorageType | null): void => {
     setFilterTypeState(type);
+    setFilterStatusState(null);
+    setSearchQueryState('');
+    setSortOrderState('ASC');
     setCurrentPageState(1);
   }, []);
 

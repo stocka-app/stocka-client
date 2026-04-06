@@ -38,6 +38,7 @@ const mocks = vi.hoisted(() => ({
   storages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   activeStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   frozenStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
+  archivedStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   total: 0,
   page: 1,
   totalPages: 1,
@@ -86,6 +87,7 @@ vi.mock('../../hooks/useStorages', () => ({
     storages: mocks.storages,
     activeStorages: mocks.activeStorages,
     frozenStorages: mocks.frozenStorages,
+    archivedStorages: mocks.archivedStorages,
     total: mocks.total,
     page: mocks.page,
     totalPages: mocks.totalPages,
@@ -211,6 +213,7 @@ function setSuccessState(overrides: Partial<typeof mocks> = {}) {
   ];
   mocks.activeStorages = overrides.activeStorages ?? mocks.storages.filter(s => s.status === 'ACTIVE');
   mocks.frozenStorages = overrides.frozenStorages ?? mocks.storages.filter(s => s.status === 'FROZEN');
+  mocks.archivedStorages = overrides.archivedStorages ?? mocks.storages.filter(s => s.status === 'ARCHIVED');
   mocks.total = overrides.total ?? mocks.storages.length;
   Object.assign(mocks, overrides);
 }
@@ -225,6 +228,7 @@ describe('StoragesPage', () => {
     mocks.storages = [];
     mocks.activeStorages = [];
     mocks.frozenStorages = [];
+    mocks.archivedStorages = [];
     mocks.total = 0;
     mocks.page = 1;
     mocks.totalPages = 1;
@@ -1112,6 +1116,10 @@ describe('StoragesPage', () => {
       it('Then the page title is still visible', () => {
         expect(screen.getByRole('heading')).toBeInTheDocument();
       });
+
+      it('Then the search bar is hidden', () => {
+        expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+      });
     });
 
     describe('When the page renders with stale storages from a previous tab', () => {
@@ -1135,6 +1143,10 @@ describe('StoragesPage', () => {
 
       it('Then the filter tabs remain visible with their counts', () => {
         expect(screen.getByRole('tab', { name: /tabs\.warehouses/ })).toBeInTheDocument();
+      });
+
+      it('Then the search bar is hidden', () => {
+        expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
       });
     });
   });

@@ -39,7 +39,7 @@
     "total": "Total",
     "active": "Activas",
     "frozen": "Congeladas",
-    "occupancy": "Ocupación"
+    "archived": "Archivadas"
   },
   "controls": {
     "search": "Buscar instalación...",

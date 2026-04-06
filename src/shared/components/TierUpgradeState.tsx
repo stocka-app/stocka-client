@@ -63,6 +63,26 @@ export function TierUpgradeState({
           )}
         </>
       }
+      cards={[
+        {
+          icon: 'lock_open',
+          iconColor: 'text-brand',
+          title: t('tierUpgrade.cards.unlock.title'),
+          description: t('tierUpgrade.cards.unlock.description'),
+        },
+        {
+          icon: 'expand',
+          iconColor: 'text-success',
+          title: t('tierUpgrade.cards.limits.title'),
+          description: t('tierUpgrade.cards.limits.description'),
+        },
+        {
+          icon: 'trending_up',
+          iconColor: 'text-warning',
+          title: t('tierUpgrade.cards.scale.title'),
+          description: t('tierUpgrade.cards.scale.description'),
+        },
+      ]}
     />
   );
 }
