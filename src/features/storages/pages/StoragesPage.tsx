@@ -359,53 +359,6 @@ export default function StoragesPage(): React.ReactElement {
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // STATE 3.5: TIER GATE — filterType is locked on the current plan
-  // ══════════════════════════════════════════════════════════════════════
-
-  if (isGated && filterType !== null) {
-    return (
-      <div className="mx-auto flex max-w-7xl flex-1 flex-col px-4 py-6 sm:px-6">
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold text-neutral-900">{t('page.title')}</h1>
-          <p className="mt-1 text-sm text-neutral-500">{t('page.subtitle')}</p>
-        </div>
-        <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
-          {TYPE_TABS.map((tab) => {
-            const isActive = filterType === tab.key;
-            const isLocked = tab.key !== null && !isAllowed(STORAGE_TYPE_TO_FEATURE[tab.key]);
-            return (
-              <button
-                key={tab.key ?? 'all'}
-                type="button"
-                onClick={() => setFilterType(tab.key)}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
-                )}
-              >
-                {t(tab.labelKey)} ({countByType(tab.key)})
-                {isLocked && (
-                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
-                    lock
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <TierUpgradeState
-            feature={t(`types.${filterType}`)}
-            onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
-            onBack={() => setFilterType(null)}
-          />
-        </div>
-        {modals}
-      </div>
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════
   // STATE 4: EMPTY (no storages ever)
   // ══════════════════════════════════════════════════════════════════════
 
@@ -487,31 +440,41 @@ export default function StoragesPage(): React.ReactElement {
         <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} />
         <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
 
-        <div className="flex flex-1 items-center justify-center">
-          <StateComposition
-            icon="search_off"
-            variant="search"
-            title={searchQuery !== '' ? t('empty.noResults') : t('empty.noFilterResults')}
-            description={searchQuery !== '' ? t('empty.noResultsSubtitle') : t('empty.noFilterResultsSubtitle')}
-            actions={
-              <>
-                <Button type="button" onClick={handleClearFilters} className="gap-2 bg-brand text-white hover:bg-brand-hover">
-                  <span className="material-symbols-outlined text-[20px]">backspace</span>
-                  {t('empty.clearSearch')}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleClearFilters} className="gap-2">
-                  <span className="material-symbols-outlined text-[20px]">grid_view</span>
-                  {t('empty.viewAll')}
-                </Button>
-              </>
-            }
-            cards={[
-              { icon: 'spellcheck', iconColor: 'text-brand', title: t('empty.suggestionCards.checkSpelling'), description: t('empty.suggestionCards.checkSpellingDesc') },
-              { icon: 'filter_alt', iconColor: 'text-warning', title: t('empty.suggestionCards.adjustFilters'), description: t('empty.suggestionCards.adjustFiltersDesc') },
-              { icon: 'add_circle', iconColor: 'text-success', title: t('empty.suggestionCards.createNew'), description: t('empty.suggestionCards.createNewDesc') },
-            ]}
-          />
-        </div>
+        {isGated && filterType !== null ? (
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <TierUpgradeState
+              feature={t(`types.${filterType}`)}
+              onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
+              onBack={() => setFilterType(null)}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-1 items-center justify-center">
+            <StateComposition
+              icon="search_off"
+              variant="search"
+              title={searchQuery !== '' ? t('empty.noResults') : t('empty.noFilterResults')}
+              description={searchQuery !== '' ? t('empty.noResultsSubtitle') : t('empty.noFilterResultsSubtitle')}
+              actions={
+                <>
+                  <Button type="button" onClick={handleClearFilters} className="gap-2 bg-brand text-white hover:bg-brand-hover">
+                    <span className="material-symbols-outlined text-[20px]">backspace</span>
+                    {t('empty.clearSearch')}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleClearFilters} className="gap-2">
+                    <span className="material-symbols-outlined text-[20px]">grid_view</span>
+                    {t('empty.viewAll')}
+                  </Button>
+                </>
+              }
+              cards={[
+                { icon: 'spellcheck', iconColor: 'text-brand', title: t('empty.suggestionCards.checkSpelling'), description: t('empty.suggestionCards.checkSpellingDesc') },
+                { icon: 'filter_alt', iconColor: 'text-warning', title: t('empty.suggestionCards.adjustFilters'), description: t('empty.suggestionCards.adjustFiltersDesc') },
+                { icon: 'add_circle', iconColor: 'text-success', title: t('empty.suggestionCards.createNew'), description: t('empty.suggestionCards.createNewDesc') },
+              ]}
+            />
+          </div>
+        )}
         {modals}
       </div>
     );
