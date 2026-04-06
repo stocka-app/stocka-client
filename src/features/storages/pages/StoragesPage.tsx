@@ -438,9 +438,16 @@ export default function StoragesPage(): React.ReactElement {
             );
           })}
         </div>
-        {/* Stats + search — search hidden on gated tabs */}
         <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
-        {!isGated && <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />}
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          disabled={isGated}
+        />
 
         {isGated && filterType !== null ? (
           <div className="flex min-h-[60vh] items-center justify-center">
@@ -533,36 +540,41 @@ export default function StoragesPage(): React.ReactElement {
       {/* Stats bar */}
       <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
 
-      {/* Search + filter chips — hidden on tier-gated tabs */}
-      {!isGated && (
-        <>
-          <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
+      {/* Search bar — visible on all tabs, disabled when the tab is tier-gated */}
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        disabled={isGated}
+      />
 
-          {isFiltered && (
-            <div className="mb-4 flex flex-wrap gap-2">
-              {filterStatus !== null && (
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus(null)}
-                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-                >
-                  {t(`statuses.${filterStatus}`)}
-                  <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
-                </button>
-              )}
-              {searchQuery !== '' && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
-                >
-                  &ldquo;{searchQuery}&rdquo;
-                  <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
-                </button>
-              )}
-            </div>
+      {/* Active filter chips — only shown when not gated (gated tabs have no active filters) */}
+      {!isGated && isFiltered && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {filterStatus !== null && (
+            <button
+              type="button"
+              onClick={() => setFilterStatus(null)}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+            >
+              {t(`statuses.${filterStatus}`)}
+              <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
+            </button>
           )}
-        </>
+          {searchQuery !== '' && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-card px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-100"
+            >
+              &ldquo;{searchQuery}&rdquo;
+              <span className="material-symbols-outlined text-[14px] text-neutral-400">close</span>
+            </button>
+          )}
+        </div>
       )}
 
       {/* Card grid — replaced by tier gate message when the active tab is blocked */}
@@ -681,6 +693,7 @@ function SearchBar({
   setFilterStatus,
   sortOrder,
   setSortOrder,
+  disabled = false,
 }: {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -688,24 +701,48 @@ function SearchBar({
   setFilterStatus: (s: import('../types/storages.types').StorageStatus | null) => void;
   sortOrder: string;
   setSortOrder: (o: 'ASC' | 'DESC') => void;
+  disabled?: boolean;
 }): React.ReactElement {
   const { t } = useTranslation('storages');
   return (
     <div className="mb-5 flex flex-wrap gap-3">
       <div className="relative min-w-0 flex-1">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-neutral-400">search</span>
+        <span
+          className={cn(
+            'material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px]',
+            disabled ? 'text-neutral-300' : 'text-neutral-400',
+          )}
+        >
+          {disabled ? 'lock' : 'search'}
+        </span>
         <input
           type="search"
           placeholder={t('controls.search')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-border bg-surface-card py-2.5 pl-10 pr-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring"
+          disabled={disabled}
+          className={cn(
+            'w-full rounded-lg border border-border bg-surface-card py-2.5 pl-10 pr-3 text-sm outline-none',
+            disabled
+              ? 'cursor-not-allowed text-neutral-300 placeholder:text-neutral-300'
+              : 'text-neutral-900 placeholder:text-neutral-400 focus:ring-2 focus:ring-ring',
+          )}
         />
       </div>
       <select
         value={filterStatus ?? ''}
-        onChange={(e) => setFilterStatus(e.target.value === '' ? null : e.target.value as import('../types/storages.types').StorageStatus)}
-        className="min-h-[44px] rounded-lg border border-border bg-surface-card px-3 py-2.5 text-sm text-neutral-700 outline-none focus:ring-2 focus:ring-ring"
+        onChange={(e) =>
+          setFilterStatus(
+            e.target.value === '' ? null : (e.target.value as import('../types/storages.types').StorageStatus),
+          )
+        }
+        disabled={disabled}
+        className={cn(
+          'min-h-[44px] rounded-lg border border-border bg-surface-card px-3 py-2.5 text-sm outline-none',
+          disabled
+            ? 'cursor-not-allowed text-neutral-300'
+            : 'text-neutral-700 focus:ring-2 focus:ring-ring',
+        )}
       >
         <option value="">{t('controls.allStatuses')}</option>
         <option value="ACTIVE">{t('statuses.ACTIVE')}</option>
@@ -715,7 +752,13 @@ function SearchBar({
       <button
         type="button"
         onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}
-        className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-surface-card px-3 py-2.5 text-xs font-medium text-neutral-500 hover:bg-neutral-100"
+        disabled={disabled}
+        className={cn(
+          'flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-surface-card px-3 py-2.5 text-xs font-medium',
+          disabled
+            ? 'cursor-not-allowed text-neutral-300'
+            : 'text-neutral-500 hover:bg-neutral-100',
+        )}
       >
         <span className="material-symbols-outlined text-[18px]">sort_by_alpha</span>
         {sortOrder === 'ASC' ? 'A → Z' : 'Z → A'}

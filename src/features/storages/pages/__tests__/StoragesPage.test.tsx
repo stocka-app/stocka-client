@@ -1125,8 +1125,8 @@ describe('StoragesPage', () => {
         expect(screen.getByRole('heading')).toBeInTheDocument();
       });
 
-      it('Then the search bar is hidden', () => {
-        expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+      it('Then the search bar is visible but disabled', () => {
+        expect(screen.getByRole('searchbox')).toBeDisabled();
       });
     });
 
@@ -1153,8 +1153,8 @@ describe('StoragesPage', () => {
         expect(screen.getByRole('tab', { name: /tabs\.warehouses/ })).toBeInTheDocument();
       });
 
-      it('Then the search bar is hidden', () => {
-        expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+      it('Then the search bar is visible but disabled', () => {
+        expect(screen.getByRole('searchbox')).toBeDisabled();
       });
     });
   });
