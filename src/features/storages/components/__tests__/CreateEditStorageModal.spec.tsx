@@ -11,18 +11,14 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('@/shared/hooks/useTierGate', () => ({
-  useTierGate: () => ({
+// Default: FREE — warehouses not allowed
+let mockIsWarehouseAllowed = false;
+
+vi.mock('@/shared/hooks/useTierCapabilities', () => ({
+  useTierCapabilities: () => ({
+    isAllowed: (feature: string) => feature === 'warehouses' ? mockIsWarehouseAllowed : true,
     openUpgradeModal: mockOpenUpgradeModal,
-    closeUpgradeModal: vi.fn(),
-    isOpen: false,
   }),
-}));
-
-let currentTier: string | null = 'FREE';
-
-vi.mock('@/store/rbac.store', () => ({
-  useRBACStore: () => ({ tier: currentTier }),
 }));
 
 import { CreateEditStorageModal } from '../CreateEditStorageModal';
@@ -33,7 +29,7 @@ describe('Given CreateEditStorageModal handles storage creation and editing', ()
   const onSave = vi.fn();
 
   beforeEach(() => {
-    currentTier = 'FREE';
+    mockIsWarehouseAllowed = false;
     onClose.mockClear();
     onSave.mockClear();
     mockOpenUpgradeModal.mockClear();
@@ -149,7 +145,7 @@ describe('Given CreateEditStorageModal handles storage creation and editing', ()
 
   describe('When tier is STARTER and WAREHOUSE is selected', () => {
     beforeEach(() => {
-      currentTier = 'STARTER';
+      mockIsWarehouseAllowed = true;
     });
 
     it('Then the WAREHOUSE option is enabled', () => {
@@ -195,7 +191,7 @@ describe('Given CreateEditStorageModal handles storage creation and editing', ()
     };
 
     beforeEach(() => {
-      currentTier = 'STARTER';
+      mockIsWarehouseAllowed = true;
     });
 
     it('Then submitting shows a type error and onSave is not called', async () => {

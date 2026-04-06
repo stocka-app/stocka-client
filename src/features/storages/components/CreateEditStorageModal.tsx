@@ -5,8 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { useRBACStore } from '@/store/rbac.store';
-import { useTierGate } from '@/shared/hooks/useTierGate';
+import { useTierCapabilities } from '@/shared/hooks/useTierCapabilities';
 import { createStorageSchema, type CreateStorageFormData } from '../schemas/storages.schema';
 import type { Storage, StorageType } from '../types/storages.types';
 
@@ -32,8 +31,7 @@ export function CreateEditStorageModal({
   onSave,
 }: CreateEditStorageModalProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
-  const { tier } = useRBACStore();
-  const { openUpgradeModal } = useTierGate();
+  const { isAllowed, openUpgradeModal } = useTierCapabilities();
   const isEdit = Boolean(storage);
 
   const {
@@ -63,7 +61,7 @@ export function CreateEditStorageModal({
   }, [open, storage, reset]);
 
   const selectedType = watch('type');
-  const isWarehouseBlocked = tier === 'FREE';
+  const isWarehouseBlocked = !isAllowed('warehouses');
 
   const handleFormSubmit = async (data: CreateStorageFormData): Promise<void> => {
     const success = await onSave(data);
