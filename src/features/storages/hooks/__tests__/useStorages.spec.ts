@@ -32,6 +32,18 @@ vi.mock('@/store/rbac.store', () => ({
   }),
 }));
 
+// Default: STARTER — all storage types allowed
+let mockIsAllowed = vi.fn((_feature: string) => true);
+
+vi.mock('@/shared/hooks/useTierCapabilities', () => ({
+  useTierCapabilities: () => ({ isAllowed: mockIsAllowed }),
+  STORAGE_TYPE_TO_FEATURE: {
+    WAREHOUSE:   'warehouses',
+    STORE_ROOM:  'storeRooms',
+    CUSTOM_ROOM: 'customRooms',
+  },
+}));
+
 import { useStorages } from '../useStorages';
 import { storagesService } from '../../api/storages.service';
 import type { CreateWarehouseFormData, CreateStoreRoomFormData, CreateCustomRoomFormData } from '../../schemas/storages.schema';
@@ -305,6 +317,38 @@ describe('Given useStorages orchestrates storage operations', () => {
         response: { status: 403, data: {} },
       });
       vi.mocked(storagesService.createWarehouse).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'Blocked',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBe('tier_limit');
+    });
+
+    it('Then returns error: name_taken when the interceptor resolves a plain ApiError with STORAGE_NAME_ALREADY_EXISTS', async () => {
+      vi.mocked(storagesService.createWarehouse).mockRejectedValue({
+        error: 'STORAGE_NAME_ALREADY_EXISTS',
+        statusCode: 409,
+        message: 'Storage name already exists',
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.createWarehouse({
+        name: 'Duplicate',
+        address: '123 Main St',
+      } as CreateWarehouseFormData);
+      expect(response.error).toBe('name_taken');
+    });
+
+    it('Then returns error: tier_limit when the interceptor resolves a plain ApiError with statusCode 403', async () => {
+      vi.mocked(storagesService.createWarehouse).mockRejectedValue({
+        error: 'TIER_LIMIT_REACHED',
+        statusCode: 403,
+        message: 'Tier limit reached',
+      });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -853,6 +897,85 @@ describe('Given useStorages resolves permission flags from the RBAC store', () =
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       expect(result.current.canArchive).toBe(false);
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tier gate — isGated and fetch prevention
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Given a FREE tier tenant where warehouses are not allowed', () => {
+  beforeEach(() => {
+    resetStore();
+    vi.clearAllMocks();
+    mockIsAllowed = vi.fn((feature: string) => feature !== 'warehouses');
+    vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+  });
+
+  describe('When the user selects the Warehouses filter tab', () => {
+    it('Then isGated is true', async () => {
+      const { result } = renderHook(() => useStorages());
+      act(() => { result.current.setFilterType('WAREHOUSE'); });
+      await waitFor(() => {
+        expect(result.current.isGated).toBe(true);
+      });
+    });
+
+    it('Then no API fetch is made for warehouses', async () => {
+      vi.mocked(storagesService.list).mockClear();
+      const { result } = renderHook(() => useStorages());
+      // Initial mount fetch (no filter)
+      await waitFor(() => expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1));
+
+      vi.mocked(storagesService.list).mockClear();
+      act(() => { result.current.setFilterType('WAREHOUSE'); });
+
+      // Allow any potential async ticks
+      await new Promise((r) => setTimeout(r, 50));
+      expect(vi.mocked(storagesService.list)).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('When the user is on the All tab (no filter)', () => {
+    it('Then isGated is false', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => {
+        expect(result.current.isGated).toBe(false);
+      });
+    });
+  });
+});
+
+describe('Given a STARTER tier tenant where all storage types are allowed', () => {
+  beforeEach(() => {
+    resetStore();
+    vi.clearAllMocks();
+    mockIsAllowed = vi.fn(() => true);
+    vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+  });
+
+  describe('When the user selects the Warehouses filter tab', () => {
+    it('Then isGated is false', async () => {
+      const { result } = renderHook(() => useStorages());
+      act(() => { result.current.setFilterType('WAREHOUSE'); });
+      await waitFor(() => {
+        expect(result.current.isGated).toBe(false);
+      });
+    });
+
+    it('Then the API is called with the warehouse filter', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1));
+
+      vi.mocked(storagesService.list).mockClear();
+      act(() => { result.current.setFilterType('WAREHOUSE'); });
+
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'WAREHOUSE' }),
+        );
+      });
     });
   });
 });
