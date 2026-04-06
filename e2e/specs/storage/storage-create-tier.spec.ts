@@ -9,7 +9,7 @@ import {
 
 // ─── Mock data helpers ────────────────────────────────────────────────────────
 
-/** FREE tier: WAREHOUSE limit = 0, STORE_ROOM limit = 1, CUSTOM_ROOM limit = 1 */
+/** FREE tier: WAREHOUSE limit = 0 (blocked by tier), STORE_ROOM limit = 1, CUSTOM_ROOM limit = 1 */
 const FREE_CAPS = { tier: 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 };
 
 /** STARTER tier: WAREHOUSE limit = 1, STORE_ROOM limit = 3, CUSTOM_ROOM limit = 3 */
@@ -45,26 +45,17 @@ const STARTER_WAREHOUSES_AT_LIMIT = buildStoragesResponse([ONE_ACTIVE_WAREHOUSE]
 const STARTER_EMPTY = buildStoragesResponse([]);
 
 // ═════════════════════════════════════════════════════════════════════════════
-// CD-33 — CD-38: Tier limit enforcement inside the drawer
+// CD-33 — CD-40: Tier limit enforcement in the drawer
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe('Given the user is on a tier with storage limits', () => {
-  test('CD-33: When FREE plan has 0 Warehouses allowed and the user selects Warehouse type, Then a tier limit banner is shown and the submit button is disabled', async ({
+  // ── Step 1 tier-block: FREE plan, WAREHOUSE locked ──────────────────────────
+
+  test('CD-33: When FREE plan has WAREHOUSE tier-locked and the user clicks the Warehouse card, Then the upgrade modal opens and the drawer stays on step 1', async ({
     preAuthPage: page,
   }) => {
-    // FREE plan: maxWarehouses = 0 → always at limit regardless of existing count
-    const storeRoom = buildStorage({
-      name: 'My Store Room',
-      type: 'STORE_ROOM',
-      status: 'ACTIVE',
-      address: 'Calle A',
-    });
-    const customRoom = buildStorage({
-      name: 'My Custom Room',
-      type: 'CUSTOM_ROOM',
-      status: 'ACTIVE',
-      address: null,
-    });
+    const storeRoom = buildStorage({ name: 'My Store Room', type: 'STORE_ROOM', status: 'ACTIVE', address: 'Calle A' });
+    const customRoom = buildStorage({ name: 'My Custom Room', type: 'CUSTOM_ROOM', status: 'ACTIVE', address: null });
 
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
@@ -74,12 +65,49 @@ test.describe('Given the user is on a tier with storage limits', () => {
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
+    await drawer.warehouseCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    // Upgrade modal opens — user is blocked in step 1
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
+    // Create installation button is NOT visible (still in step 1 / upgrade modal open)
+    await expect(drawer.submitButton).not.toBeVisible();
   });
+
+  // ── Step 1 lock badge ───────────────────────────────────────────────────────
+
+  test('CD-39: When FREE plan has WAREHOUSE tier-locked, Then the Warehouse card shows a STARTER+ lock badge', async ({
+    preAuthPage: page,
+  }) => {
+    const customRoom = buildStorage({ name: 'My Custom Room', type: 'CUSTOM_ROOM', status: 'ACTIVE', address: null });
+
+    await setupAndNavigate(page, {
+      rbac: { ...RBAC_OWNER, tier: 'FREE' },
+      storagesResponse: buildStoragesResponse([customRoom]),
+      capabilities: FREE_CAPS,
+    });
+
+    const drawer = new CreateStorageDrawerPage(page);
+    await drawer.openDrawer();
+
+    await expect(drawer.warehouseLockedBadge).toBeVisible({ timeout: 5_000 });
+  });
+
+  test('CD-40: When STARTER plan has WAREHOUSE allowed, Then the Warehouse card shows no lock badge', async ({
+    preAuthPage: page,
+  }) => {
+    await setupAndNavigate(page, {
+      rbac: { ...RBAC_OWNER, tier: 'STARTER' },
+      storagesResponse: STARTER_EMPTY,
+      capabilities: STARTER_CAPS,
+    });
+
+    const drawer = new CreateStorageDrawerPage(page);
+    await drawer.openDrawer();
+
+    await expect(drawer.warehouseLockedBadge).not.toBeVisible({ timeout: 5_000 });
+  });
+
+  // ── Step 2 quota limits ─────────────────────────────────────────────────────
 
   test('CD-34: When FREE plan is at the Store Room limit (1/1) and the user selects Store Room, Then a tier limit banner is shown', async ({
     preAuthPage: page,
@@ -93,7 +121,6 @@ test.describe('Given the user is on a tier with storage limits', () => {
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
     await expect(drawer.submitButton).toBeDisabled();
@@ -111,7 +138,6 @@ test.describe('Given the user is on a tier with storage limits', () => {
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
     await expect(drawer.submitButton).toBeDisabled();
@@ -129,7 +155,6 @@ test.describe('Given the user is on a tier with storage limits', () => {
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
 
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
     await expect(drawer.submitButton).toBeDisabled();
@@ -149,19 +174,19 @@ test.describe('Given the user is on a tier with storage limits', () => {
     // WAREHOUSE — no banner
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
+    await expect(drawer.nameInput).toBeVisible({ timeout: 5_000 }); // wait for step 2
     await expect(drawer.tierLimitBanner).not.toBeVisible();
 
     // Back to step 1 for next type
     await drawer.changeTypeButton.click();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
+    await expect(drawer.nameInput).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitBanner).not.toBeVisible();
 
     // Back again for CUSTOM_ROOM
     await drawer.changeTypeButton.click();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
+    await expect(drawer.nameInput).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitBanner).not.toBeVisible();
   });
 
@@ -177,7 +202,6 @@ test.describe('Given the user is on a tier with storage limits', () => {
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitCta).toBeVisible();

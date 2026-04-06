@@ -18,16 +18,18 @@ export class CreateStorageDrawerPage {
   readonly drawer: Locator;
 
   // ── Step 1 — Type cards ───────────────────────────────────────────────────
-  /** The Warehouse type radio card */
+  /** The Warehouse type card */
   readonly warehouseCard: Locator;
-  /** The Store Room type radio card */
+  /** The Store Room type card */
   readonly storeRoomCard: Locator;
-  /** The Custom area type radio card */
+  /** The Custom area type card */
   readonly customRoomCard: Locator;
+  /** "STARTER+" lock badge on the Warehouse card when WAREHOUSE is tier-blocked */
+  readonly warehouseLockedBadge: Locator;
 
-  // ── Step 1 — Footer buttons ───────────────────────────────────────────────
-  /** "Continue" button — advances from step 1 to step 2 */
-  readonly continueButton: Locator;
+  // ── Tier-lock upgrade modal ───────────────────────────────────────────────
+  /** Global upgrade modal — opens when a tier-locked type card is clicked */
+  readonly upgradeModal: Locator;
 
   // ── Step 2 — Form fields ──────────────────────────────────────────────────
   /** Name text input */
@@ -77,14 +79,15 @@ export class CreateStorageDrawerPage {
     // The drawer panel — matches the `role="dialog"` with the heading "New installation"
     this.drawer = page.getByRole('dialog', { name: 'New installation' });
 
-    // Type cards — each has role="radio" and a visible label
-    this.warehouseCard = page.getByRole('radio', { name: /Warehouse/ });
-    this.storeRoomCard = page.getByRole('radio', { name: /Store Room/ });
-    this.customRoomCard = page.getByRole('radio', { name: /Custom area/ });
+    // Type cards — located by data-testid attribute set in TypeSelectionBody
+    this.warehouseCard = page.getByTestId('type-card-WAREHOUSE');
+    this.storeRoomCard = page.getByTestId('type-card-STORE_ROOM');
+    this.customRoomCard = page.getByTestId('type-card-CUSTOM_ROOM');
+    this.warehouseLockedBadge = page.getByTestId('type-card-WAREHOUSE').getByText('STARTER+');
 
     // Footer buttons — scoped to the drawer so we don't pick up the picker dialog buttons
-    this.continueButton = this.drawer.getByRole('button', { name: 'Continue' });
     this.cancelButton = this.drawer.getByRole('button', { name: 'Back' });
+    this.upgradeModal = page.getByRole('dialog', { name: 'Upgrade your plan' });
     this.submitButton = this.drawer.getByRole('button', { name: /Create installation|Creating\.\.\./ });
 
     // Close button — aria-label="Close" on the × icon in the header

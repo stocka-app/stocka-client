@@ -106,4 +106,29 @@ test.describe('Section 11: Tier limit / Upgrade', () => {
     await expect(storagesPage.createInlineCard).toBeVisible();
     await expect(storagesPage.upgradeCard).not.toBeVisible();
   });
+
+  // TL-06: FREE plan — Warehouses tab shows lock icon (WAREHOUSE tier-blocked)
+  test('TL-06: When FREE plan has WAREHOUSE tier-locked, Then the Warehouses tab shows a lock icon', async ({
+    preAuthPage: page,
+  }) => {
+    const storagesPage = new StoragesListPage(page);
+    await setupAndNavigate(page, {
+      rbac: RBAC_OWNER,
+      storagesResponse: buildStoragesResponse([AVAILABLE_ROOM]),
+      capabilities: { tier: 'FREE', maxCustomRooms: 1, maxStoreRooms: 1, maxWarehouses: 0 },
+    });
+
+    await storagesPage.waitForCards();
+
+    // Warehouses tab has lock icon
+    await expect(storagesPage.warehousesTabLockIcon).toBeVisible({ timeout: 5_000 });
+
+    // Store Rooms and Custom Rooms tabs do NOT have lock icon (they are allowed on FREE)
+    await expect(
+      storagesPage.tabStoreRooms.locator('.material-symbols-outlined', { hasText: 'lock' }),
+    ).not.toBeVisible();
+    await expect(
+      storagesPage.tabCustomRooms.locator('.material-symbols-outlined', { hasText: 'lock' }),
+    ).not.toBeVisible();
+  });
 });

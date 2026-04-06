@@ -19,6 +19,11 @@ vi.mock('@/shared/hooks/useTierCapabilities', () => ({
     isAllowed: (feature: string) => feature === 'warehouses' ? mockIsWarehouseAllowed : true,
     openUpgradeModal: mockOpenUpgradeModal,
   }),
+  STORAGE_TYPE_TO_FEATURE: {
+    WAREHOUSE: 'warehouses',
+    STORE_ROOM: 'storeRooms',
+    CUSTOM_ROOM: 'customRooms',
+  },
 }));
 
 import { CreateEditStorageModal } from '../CreateEditStorageModal';
@@ -224,6 +229,57 @@ describe('Given CreateEditStorageModal handles storage creation and editing', ()
         expect(onSave).toHaveBeenCalledTimes(1);
       });
       expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('When isAtTypeLimit reports STORE_ROOM is at quota and user is editing a CUSTOM_ROOM', () => {
+    const editCustomRoom: Storage = {
+      uuid: 'storage-002',
+      name: 'My Custom Room',
+      type: 'CUSTOM_ROOM',
+      status: 'ACTIVE',
+      address: null,
+      roomType: null,
+      icon: 'storefront',
+      color: '#22C55E',
+      description: null,
+      archivedAt: null,
+      frozenAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+    const isAtTypeLimit = (type: Storage['type']): boolean => type === 'STORE_ROOM';
+
+    beforeEach(() => {
+      mockIsWarehouseAllowed = true;
+    });
+
+    it('Then the STORE_ROOM option is disabled', () => {
+      render(
+        <CreateEditStorageModal
+          open={true}
+          storage={editCustomRoom}
+          onClose={onClose}
+          onSave={onSave}
+          isAtTypeLimit={isAtTypeLimit}
+        />,
+      );
+      const storeRoomOption = screen.getByRole('option', { name: /^types\.STORE_ROOM$/ });
+      expect(storeRoomOption).toBeDisabled();
+    });
+
+    it('Then the CUSTOM_ROOM option (current type) remains enabled', () => {
+      render(
+        <CreateEditStorageModal
+          open={true}
+          storage={editCustomRoom}
+          onClose={onClose}
+          onSave={onSave}
+          isAtTypeLimit={isAtTypeLimit}
+        />,
+      );
+      const customRoomOption = screen.getByRole('option', { name: /^types\.CUSTOM_ROOM$/ });
+      expect(customRoomOption).not.toBeDisabled();
     });
   });
 });

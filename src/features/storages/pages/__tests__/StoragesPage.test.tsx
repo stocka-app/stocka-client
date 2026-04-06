@@ -31,7 +31,7 @@ vi.mock('@/store/rbac.store', () => ({
 
 const { mockOpenUpgradeModal, mockIsAllowed } = vi.hoisted(() => ({
   mockOpenUpgradeModal: vi.fn(),
-  mockIsAllowed: vi.fn((_: string) => true),
+  mockIsAllowed: vi.fn(() => true),
 }));
 
 const mocks = vi.hoisted(() => ({
@@ -1162,6 +1162,48 @@ describe('StoragesPage', () => {
 
     it('Then the tier limit card is not shown', () => {
       expect(screen.queryByText('upgrade.tierLimit.title')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── Tab lock icon for tier-blocked types ─────────────────────────────────
+
+  describe('Given the WAREHOUSE type is tier-blocked (isAllowed returns false for warehouses)', () => {
+    beforeEach(() => {
+      mockIsAllowed.mockImplementation((feature: string) => feature !== 'warehouses');
+      setSuccessState({
+        storages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+        activeStorages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+      });
+      render(<StoragesPage />);
+    });
+
+    it('Then the Warehouses tab renders a lock icon', () => {
+      const warehousesTab = screen.getByRole('tab', { name: /tabs\.warehouses/ });
+      expect(warehousesTab.querySelector('.material-symbols-outlined')).toHaveTextContent('lock');
+    });
+
+    it('Then the Store Rooms tab does NOT render a lock icon', () => {
+      const storeRoomsTab = screen.getByRole('tab', { name: /tabs\.storeRooms/ });
+      expect(storeRoomsTab.querySelector('.material-symbols-outlined')).toBeNull();
+    });
+  });
+
+  // ── isAtTypeLimit prop forwarded to CreateEditStorageModal ──────────────
+
+  describe('Given the edit modal is opened for a storage', () => {
+    beforeEach(async () => {
+      setSuccessState();
+      render(<StoragesPage />);
+      const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
+      await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
+    });
+
+    it('Then isAtTypeLimit is passed as a function to CreateEditStorageModal', () => {
+      expect(typeof createEditModalProps.isAtTypeLimit).toBe('function');
     });
   });
 });
