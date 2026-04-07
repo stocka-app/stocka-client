@@ -30,7 +30,6 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
 
     await expect(page.getByText('Fixed icon and color')).toBeVisible();
     await expect(page.getByText('Warehouse type does not allow customization.')).toBeVisible();
@@ -44,7 +43,6 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(page.getByText('Fixed icon and color')).toBeVisible();
     await expect(page.getByText('Store Room type does not allow customization.')).toBeVisible();
@@ -58,7 +56,6 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     // "Icon and color" label — not "Fixed icon and color"
     await expect(page.getByText('Icon and color')).toBeVisible();
@@ -76,7 +73,6 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     // Open the picker by clicking the icon/color button
     // The button wraps the current icon + color display
@@ -112,7 +108,6 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
 
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     // Fill only name and address — no icon/color interaction
     await drawer.fillStep2({ name: 'Pop-up Store', address: 'Calle 5 de Mayo 10' });

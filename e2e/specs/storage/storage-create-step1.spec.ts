@@ -39,7 +39,7 @@ test.describe('Given the drawer is open at Step 1', () => {
     await expect(allRadios).toHaveCount(3);
   });
 
-  test('CD-06: When the user selects Warehouse and clicks Continue, Then Step 2 shows an address field', async ({
+  test('CD-06: When the user selects Warehouse, Then Step 2 shows an address field', async ({
     preAuthPage: page,
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
@@ -48,13 +48,12 @@ test.describe('Given the drawer is open at Step 1', () => {
     await drawer.openDrawer();
 
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
 
     await expect(page.getByText('STEP 2 OF 2')).toBeVisible();
     await expect(drawer.addressInput).toBeVisible();
   });
 
-  test('CD-07: When the user selects Store Room and clicks Continue, Then Step 2 shows an address field', async ({
+  test('CD-07: When the user selects Store Room, Then Step 2 shows an address field', async ({
     preAuthPage: page,
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
@@ -63,13 +62,12 @@ test.describe('Given the drawer is open at Step 1', () => {
     await drawer.openDrawer();
 
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(page.getByText('STEP 2 OF 2')).toBeVisible();
     await expect(drawer.addressInput).toBeVisible();
   });
 
-  test('CD-08: When the user selects Custom area and clicks Continue, Then Step 2 shows the icon/color section', async ({
+  test('CD-08: When the user selects Custom area, Then Step 2 shows the icon/color section', async ({
     preAuthPage: page,
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
@@ -78,7 +76,6 @@ test.describe('Given the drawer is open at Step 1', () => {
     await drawer.openDrawer();
 
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     await expect(page.getByText('STEP 2 OF 2')).toBeVisible();
     await expect(drawer.iconColorSection).toBeVisible();
@@ -94,7 +91,6 @@ test.describe('Given the drawer is open at Step 1', () => {
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await expect(drawer.nameInput).toHaveAttribute(
       'placeholder',
       'E.g. Central Warehouse, North Distribution Warehouse',
@@ -104,7 +100,6 @@ test.describe('Given the drawer is open at Step 1', () => {
     await drawer.closeButton.click();
     await storagesPage.emptyCreateButton().click();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
     await expect(drawer.nameInput).toHaveAttribute(
       'placeholder',
       'E.g. Back store room, Emergency stock',
@@ -114,7 +109,6 @@ test.describe('Given the drawer is open at Step 1', () => {
     await drawer.closeButton.click();
     await storagesPage.emptyCreateButton().click();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
     await expect(drawer.nameInput).toHaveAttribute(
       'placeholder',
       'E.g. Downtown Store, Polanco Branch, Counter',

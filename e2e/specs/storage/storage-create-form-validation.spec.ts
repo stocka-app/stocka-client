@@ -27,13 +27,11 @@ async function navigate(page: Page): Promise<void> {
 
 // Helper: open drawer, select type, advance to step 2
 async function openAt(
-  page: Page,
   drawer: CreateStorageDrawerPage,
   type: 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM',
 ): Promise<void> {
   await drawer.openDrawer();
   await drawer.selectType(type);
-  await drawer.continueButton.click();
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -46,7 +44,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await expect(drawer.submitButton).toBeDisabled();
   });
@@ -56,7 +54,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await drawer.fillStep2({ name: 'Main Warehouse' });
 
@@ -68,7 +66,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await drawer.fillStep2({ name: 'Main Warehouse', address: 'Av. Industrial 500' });
 
@@ -80,7 +78,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'STORE_ROOM');
+    await openAt(drawer, 'STORE_ROOM');
 
     await drawer.fillStep2({ name: 'Back Store Room', address: 'Calle 10' });
 
@@ -92,7 +90,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'CUSTOM_ROOM');
+    await openAt(drawer, 'CUSTOM_ROOM');
 
     await drawer.fillStep2({ name: 'Downtown Store', address: 'Calle Reforma 1' });
 
@@ -104,7 +102,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await drawer.fillStep2({ name: 'AB', address: 'Av. Test 1' });
 
@@ -116,7 +114,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     // 80 - 62 = 18 remaining
     const longName = 'A'.repeat(62);
@@ -131,7 +129,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await drawer.fillStep2({
       name: 'Valid Name',
@@ -149,7 +147,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await drawer.fillStep2({ name: 'Valid Name', address: 'Av. Test 500' });
 
@@ -162,7 +160,7 @@ test.describe('Given the user is on Step 2 of the Create Installation drawer', (
   }) => {
     const drawer = new CreateStorageDrawerPage(page);
     await navigate(page);
-    await openAt(page, drawer, 'WAREHOUSE');
+    await openAt(drawer, 'WAREHOUSE');
 
     await drawer.fillStep2({
       name: 'Valid Name',
