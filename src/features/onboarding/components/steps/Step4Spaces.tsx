@@ -4,6 +4,8 @@ import { Store, Package, Warehouse, Lock, ChevronDown, ChevronUp, Plus, Trash2, 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { cn } from '@/shared/lib/utils';
+import { TIER_CAPABILITIES } from '@/shared/config/tier-capabilities';
+import type { TenantTier } from '@/features/team/types/team.types';
 
 // =============================================================================
 // TYPES
@@ -72,18 +74,6 @@ interface ValidationErrors {
 }
 
 // =============================================================================
-// TIER HELPERS
-// =============================================================================
-
-type SpaceType = 'CUSTOM_ROOM' | 'STORE_ROOM' | 'WAREHOUSE';
-
-function getMaxSpaces(spaceType: SpaceType, tier: string | null): number {
-  const isFreeTier = !tier || tier === 'FREE';
-  if (spaceType === 'WAREHOUSE') return isFreeTier ? 0 : 1;
-  return isFreeTier ? 1 : 3;
-}
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
@@ -97,7 +87,12 @@ export function Step4Spaces({
   error,
 }: Step4SpacesProps): React.ReactElement {
   const { t } = useTranslation('onboarding');
-  const isFreeTier = !tier || tier === 'FREE';
+
+  const tierCaps =
+    tier !== null && tier in TIER_CAPABILITIES
+      ? TIER_CAPABILITIES[tier as TenantTier]
+      : TIER_CAPABILITIES.FREE;
+  const isWarehouseLocked = tierCaps.warehouses.limit === 0;
 
   // View mode: 'overview' shows summary cards, 'configure' shows editable forms
   const [mode, setMode] = useState<'overview' | 'configure'>('overview');
@@ -130,9 +125,9 @@ export function Step4Spaces({
     return Array.isArray(raw) ? (raw as string[]) : [];
   }, [suggestionKey, t]);
 
-  const maxCustomRooms = getMaxSpaces('CUSTOM_ROOM', tier);
-  const maxStoreRooms = getMaxSpaces('STORE_ROOM', tier);
-  const maxWarehouses = getMaxSpaces('WAREHOUSE', tier);
+  const maxCustomRooms = tierCaps.customRooms.limit;
+  const maxStoreRooms = tierCaps.storeRooms.limit;
+  const maxWarehouses = tierCaps.warehouses.limit;
 
   // Toggle section expansion
   const toggleSection = useCallback((section: string) => {
@@ -160,7 +155,7 @@ export function Step4Spaces({
 
   /* v8 ignore start: defensive guard — add button not rendered at max capacity */
   const addCustomRoom = useCallback(() => {
-    if (customRooms.length < maxCustomRooms) {
+    if (maxCustomRooms === -1 || customRooms.length < maxCustomRooms) {
       setCustomRooms((prev) => [...prev, { roomType: '', customRoomType: '', name: '', address: '' }]);
     }
   }, [customRooms.length, maxCustomRooms]);
@@ -194,7 +189,7 @@ export function Step4Spaces({
 
   /* v8 ignore start: defensive guard — add button not rendered at max capacity */
   const addStoreRoom = useCallback(() => {
-    if (storeRooms.length < maxStoreRooms) {
+    if (maxStoreRooms === -1 || storeRooms.length < maxStoreRooms) {
       setStoreRooms((prev) => [...prev, { name: '', address: '' }]);
     }
   }, [storeRooms.length, maxStoreRooms]);
@@ -234,11 +229,11 @@ export function Step4Spaces({
     const hasStoreRoomData = storeRooms.some(
       (r) => r.name.trim() || r.address.trim(),
     );
-    const hasWarehouseData = !isFreeTier && warehouses.some(
+    const hasWarehouseData = !isWarehouseLocked && warehouses.some(
       (r) => r.name.trim() || r.address.trim(),
     );
     return hasCustomRoomData || hasStoreRoomData || hasWarehouseData;
-  }, [customRooms, storeRooms, warehouses, isFreeTier]);
+  }, [customRooms, storeRooms, warehouses, isWarehouseLocked]);
 
   // Validate all spaces before submit
   const validate = useCallback((): boolean => {
@@ -267,7 +262,7 @@ export function Step4Spaces({
       }
     });
 
-    if (!isFreeTier) {
+    if (!isWarehouseLocked) {
       warehouses.forEach((room, i) => {
         const hasData = room.name.trim() || room.address.trim();
         if (hasData) {
@@ -283,7 +278,7 @@ export function Step4Spaces({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [customRooms, storeRooms, warehouses, isFreeTier]);
+  }, [customRooms, storeRooms, warehouses, isWarehouseLocked]);
 
   // Build SpaceConfig[] from state and submit
   const handleSubmit = useCallback(async () => {
@@ -319,7 +314,7 @@ export function Step4Spaces({
       }
     });
 
-    if (!isFreeTier) {
+    if (!isWarehouseLocked) {
       warehouses.forEach((room) => {
         if (room.name.trim() && room.address.trim()) {
           spaces.push({
@@ -337,7 +332,7 @@ export function Step4Spaces({
     }
 
     await onSubmit(spaces);
-  }, [customRooms, storeRooms, warehouses, isFreeTier, hasAnyData, validate, onSubmit, onSkip]);
+  }, [customRooms, storeRooms, warehouses, isWarehouseLocked, hasAnyData, validate, onSubmit, onSkip]);
 
   // Get dynamic placeholder for the name field based on selected room type
   const defaultNamePlaceholder = t('step4.customRoom.namePlaceholderDefault');
@@ -384,7 +379,7 @@ export function Step4Spaces({
                 </p>
               </div>
               <span className="text-xs text-neutral-400 flex-shrink-0">
-                max {maxStoreRooms}
+                max {maxStoreRooms === -1 ? '∞' : maxStoreRooms}
               </span>
             </div>
           </div>
@@ -407,7 +402,7 @@ export function Step4Spaces({
                 </p>
               </div>
               <span className="text-xs text-neutral-400 flex-shrink-0">
-                max {maxCustomRooms}
+                max {maxCustomRooms === -1 ? '∞' : maxCustomRooms}
               </span>
             </div>
           </div>
@@ -416,7 +411,7 @@ export function Step4Spaces({
           <div
             className={cn(
               'p-4 rounded-xl border bg-surface-card',
-              isFreeTier
+              isWarehouseLocked
                 ? 'border-neutral-200 dark:border-white/[0.08] opacity-60'
                 : 'border-neutral-200 dark:border-white/[0.08]',
             )}
@@ -426,10 +421,10 @@ export function Step4Spaces({
               <div
                 className={cn(
                   'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-                  isFreeTier ? 'bg-neutral-200 dark:bg-white/[0.06]' : 'bg-indigo-500/10',
+                  isWarehouseLocked ? 'bg-neutral-200 dark:bg-white/[0.06]' : 'bg-indigo-500/10',
                 )}
               >
-                {isFreeTier ? (
+                {isWarehouseLocked ? (
                   <Lock className="w-5 h-5 text-neutral-400" aria-hidden="true" />
                 ) : (
                   <Warehouse className="w-5 h-5 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
@@ -440,24 +435,24 @@ export function Step4Spaces({
                   <p
                     className={cn(
                       'font-semibold text-sm',
-                      isFreeTier ? 'text-neutral-400' : 'text-neutral-900',
+                      isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900',
                     )}
                   >
                     {t('step4.warehouse.title')}
                   </p>
-                  {isFreeTier && (
+                  {isWarehouseLocked && (
                     <span className="text-[10px] font-semibold bg-brand text-white px-2 py-0.5 rounded-full">
                       {t('step4.warehouse.lockedBadge')}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-neutral-500 mt-0.5">
-                  {isFreeTier ? t('step4.warehouse.lockedMessage') : t('step4.warehouse.description')}
+                  {isWarehouseLocked ? t('step4.warehouse.lockedMessage') : t('step4.warehouse.description')}
                 </p>
               </div>
-              {!isFreeTier && (
+              {!isWarehouseLocked && (
                 <span className="text-xs text-neutral-400 flex-shrink-0">
-                  max {maxWarehouses}
+                  max {maxWarehouses === -1 ? '∞' : maxWarehouses}
                 </span>
               )}
             </div>
@@ -614,7 +609,7 @@ export function Step4Spaces({
               </div>
             ))}
 
-            {storeRooms.length < maxStoreRooms && (
+            {(maxStoreRooms === -1 || storeRooms.length < maxStoreRooms) && (
               <button
                 type="button"
                 onClick={addStoreRoom}
@@ -764,7 +759,7 @@ export function Step4Spaces({
               </div>
             ))}
 
-            {customRooms.length < maxCustomRooms && (
+            {(maxCustomRooms === -1 || customRooms.length < maxCustomRooms) && (
               <button
                 type="button"
                 onClick={addCustomRoom}
@@ -785,7 +780,7 @@ export function Step4Spaces({
       <section
         className={cn(
           'rounded-xl border overflow-hidden',
-          isFreeTier
+          isWarehouseLocked
             ? 'border-neutral-200 dark:border-white/[0.08] opacity-60'
             : 'border-neutral-200 dark:border-white/[0.08]',
         )}
@@ -794,21 +789,21 @@ export function Step4Spaces({
         {/* Section header */}
         <button
           type="button"
-          onClick={() => !isFreeTier && toggleSection('warehouse')}
-          disabled={isFreeTier}
+          onClick={() => !isWarehouseLocked && toggleSection('warehouse')}
+          disabled={isWarehouseLocked}
           className={cn(
             'w-full flex items-center gap-3 p-4 bg-surface-card text-left transition-colors',
-            isFreeTier ? 'cursor-not-allowed' : 'hover:bg-neutral-50 dark:hover:bg-white/[0.03]',
+            isWarehouseLocked ? 'cursor-not-allowed' : 'hover:bg-neutral-50 dark:hover:bg-white/[0.03]',
           )}
-          aria-expanded={!isFreeTier && expandedSections.warehouse}
+          aria-expanded={!isWarehouseLocked && expandedSections.warehouse}
         >
           <div
             className={cn(
               'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
-              isFreeTier ? 'bg-neutral-200 dark:bg-white/[0.06]' : 'bg-indigo-500/10',
+              isWarehouseLocked ? 'bg-neutral-200 dark:bg-white/[0.06]' : 'bg-indigo-500/10',
             )}
           >
-            {isFreeTier ? (
+            {isWarehouseLocked ? (
               <Lock className="w-4 h-4 text-neutral-400" aria-hidden="true" />
             ) : (
               <Warehouse className="w-4 h-4 text-indigo-600 dark:text-indigo-400" aria-hidden="true" />
@@ -819,22 +814,22 @@ export function Step4Spaces({
               <p
                 className={cn(
                   'font-semibold text-sm',
-                  isFreeTier ? 'text-neutral-400' : 'text-neutral-900',
+                  isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900',
                 )}
               >
                 {t('step4.warehouse.title')}
               </p>
-              {isFreeTier && (
+              {isWarehouseLocked && (
                 <span className="text-[10px] font-semibold bg-brand text-white px-2 py-0.5 rounded-full">
                   {t('step4.warehouse.lockedBadge')}
                 </span>
               )}
             </div>
             <p className="text-xs text-neutral-500">
-              {isFreeTier ? t('step4.warehouse.lockedMessage') : t('step4.warehouse.description')}
+              {isWarehouseLocked ? t('step4.warehouse.lockedMessage') : t('step4.warehouse.description')}
             </p>
           </div>
-          {!isFreeTier && (
+          {!isWarehouseLocked && (
             expandedSections.warehouse ? (
               <ChevronUp className="w-4 h-4 text-neutral-400 flex-shrink-0" aria-hidden="true" />
             ) : (
@@ -844,7 +839,7 @@ export function Step4Spaces({
         </button>
 
         {/* Section body — only for non-free tiers */}
-        {!isFreeTier && expandedSections.warehouse && (
+        {!isWarehouseLocked && expandedSections.warehouse && (
           <div className="border-t border-neutral-200 dark:border-white/[0.08] p-4 space-y-4">
             {warehouses.map((room, index) => (
               <div key={index} className="space-y-3">

@@ -7,7 +7,7 @@ import { StateComposition } from '@/shared/components/StateComposition';
 import { DoubleRingSpinner } from '@/shared/components/DoubleRingSpinner';
 import { ProgressBar } from '@/shared/components/ProgressBar';
 import { useRBACStore } from '@/store/rbac.store';
-import { useTierCapabilities } from '@/shared/hooks/useTierCapabilities';
+import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
@@ -46,11 +46,14 @@ const SKEL_BADGE2 = ['w-11', 'w-13', 'w-10', 'w-12', 'w-11', 'w-14'];
 export default function StoragesPage(): React.ReactElement {
   const { t } = useTranslation('storages');
   const { canDo, tier } = useRBACStore();
-  const { storageLimits, openUpgradeModal } = useTierCapabilities();
+  const { storageLimits, isAllowed, openUpgradeModal } = useTierCapabilities();
   const {
     storages,
     activeStorages,
     frozenStorages,
+    archivedStorages,
+    summary,
+    typeCounts,
     total,
     page,
     totalPages,
@@ -148,9 +151,14 @@ export default function StoragesPage(): React.ReactElement {
   const isAtTypeLimit = (type: StorageType): boolean => {
     const limit = storageLimits[type];
     if (limit === -1) return false;
-    const activeOfType = activeStorages.filter((s) => s.type === type).length;
-    return activeOfType >= limit;
+    return storages.filter((s) => s.type === type).length >= limit;
   };
+
+  // True when at least one storage type is allowed by the current tier AND has remaining quota.
+  // Used to hide the inline create card in the "All" tab when every type is locked or full.
+  const canCreateAny = (['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).some(
+    (type) => isAllowed(STORAGE_TYPE_TO_FEATURE[type]) && !isAtTypeLimit(type),
+  );
 
   const handleClearFilters = (): void => {
     setFilterStatus(null);
@@ -161,6 +169,9 @@ export default function StoragesPage(): React.ReactElement {
   // ── Derived state ─────────────────────────────────────────────────────
 
   const isFiltered = filterStatus !== null || filterType !== null || searchQuery !== '';
+  // True when the user only clicked a type tab — no status filter or search applied.
+  // In this case the empty state should read "No tienes X aún", not "tu filtro no encontró nada".
+  const isTypeTabOnly = filterType !== null && filterStatus === null && searchQuery === '';
   const hasStorages = storages.length > 0;
 
   // Track whether we ever received data. Once true, stays true for the
@@ -171,11 +182,6 @@ export default function StoragesPage(): React.ReactElement {
     everHadDataRef.current = true;
   }
   const hadData = everHadDataRef.current;
-
-  const countByType = (type: StorageType | null): number => {
-    if (type === null) return total;
-    return storages.filter((s) => s.type === type).length;
-  };
 
   // ── Modals (always mounted) ───────────────────────────────────────────
 
@@ -201,6 +207,7 @@ export default function StoragesPage(): React.ReactElement {
           setSelectedStorage(null);
         }}
         onSave={handleSave}
+        isAtTypeLimit={isAtTypeLimit}
       />
       <ArchiveStorageModal
         open={isArchiveOpen}
@@ -267,7 +274,7 @@ export default function StoragesPage(): React.ReactElement {
         {/* Card grid skeleton */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex overflow-hidden rounded-lg border border-border bg-surface-card shadow-card">
+            <div key={i} className="flex min-h-[220px] overflow-hidden rounded-lg border border-border bg-surface-card shadow-card">
               <div className="w-2.5 shrink-0 animate-pulse bg-neutral-200" />
               <div className="flex min-w-0 flex-1 flex-col gap-4 p-5">
                 <div className="flex items-start justify-between">
@@ -289,7 +296,7 @@ export default function StoragesPage(): React.ReactElement {
             </div>
           ))}
           {/* Skeleton create card */}
-          <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 p-8">
+          <div className="flex min-h-[220px] items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 p-8">
             <div className="flex flex-col items-center gap-2.5">
               <div className="h-10 w-10 animate-pulse rounded-full bg-neutral-200" />
               <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
@@ -344,47 +351,6 @@ export default function StoragesPage(): React.ReactElement {
               { icon: 'update', iconColor: 'text-warning', title: t('error.troubleshooting.refresh'), description: t('error.troubleshooting.refreshDesc') },
               { icon: 'support_agent', iconColor: 'text-brand', title: t('error.troubleshooting.support'), description: t('error.troubleshooting.supportDesc') },
             ]}
-          />
-        </div>
-        {modals}
-      </div>
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════
-  // STATE 3.5: TIER GATE — filterType is locked on the current plan
-  // ══════════════════════════════════════════════════════════════════════
-
-  if (isGated && filterType !== null) {
-    return (
-      <div className="mx-auto flex max-w-7xl flex-1 flex-col px-4 py-6 sm:px-6">
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold text-neutral-900">{t('page.title')}</h1>
-          <p className="mt-1 text-sm text-neutral-500">{t('page.subtitle')}</p>
-        </div>
-        <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
-          {TYPE_TABS.map((tab) => {
-            const isActive = filterType === tab.key;
-            return (
-              <button
-                key={tab.key ?? 'all'}
-                type="button"
-                onClick={() => setFilterType(tab.key)}
-                className={cn(
-                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
-                )}
-              >
-                {t(tab.labelKey)}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex flex-1 items-center justify-center">
-          <TierUpgradeState
-            feature={t(`types.${filterType}`)}
-            onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
-            onBack={() => setFilterType(null)}
           />
         </div>
         {modals}
@@ -449,50 +415,90 @@ export default function StoragesPage(): React.ReactElement {
         <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
           {TYPE_TABS.map((tab) => {
             const isActive = filterType === tab.key;
+            const isLocked = tab.key !== null && !isAllowed(STORAGE_TYPE_TO_FEATURE[tab.key]);
             return (
               <button
                 key={tab.key ?? 'all'}
                 type="button"
                 onClick={() => setFilterType(tab.key)}
                 className={cn(
-                  'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
                   isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
                 )}
               >
-                {t(tab.labelKey)} ({countByType(tab.key)})
+                {t(tab.labelKey)} ({tab.key === null ? typeCounts.total : typeCounts[tab.key]})
+                {isLocked && (
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                    lock
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
-        {/* Stats + search */}
-        <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} />
-        <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
+        <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          disabled={isGated}
+        />
 
-        <div className="flex flex-1 items-center justify-center">
-          <StateComposition
-            icon="search_off"
-            variant="search"
-            title={searchQuery !== '' ? t('empty.noResults') : t('empty.noFilterResults')}
-            description={searchQuery !== '' ? t('empty.noResultsSubtitle') : t('empty.noFilterResultsSubtitle')}
-            actions={
-              <>
-                <Button type="button" onClick={handleClearFilters} className="gap-2 bg-brand text-white hover:bg-brand-hover">
-                  <span className="material-symbols-outlined text-[20px]">backspace</span>
-                  {t('empty.clearSearch')}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleClearFilters} className="gap-2">
-                  <span className="material-symbols-outlined text-[20px]">grid_view</span>
-                  {t('empty.viewAll')}
-                </Button>
-              </>
-            }
-            cards={[
-              { icon: 'spellcheck', iconColor: 'text-brand', title: t('empty.suggestionCards.checkSpelling'), description: t('empty.suggestionCards.checkSpellingDesc') },
-              { icon: 'filter_alt', iconColor: 'text-warning', title: t('empty.suggestionCards.adjustFilters'), description: t('empty.suggestionCards.adjustFiltersDesc') },
-              { icon: 'add_circle', iconColor: 'text-success', title: t('empty.suggestionCards.createNew'), description: t('empty.suggestionCards.createNewDesc') },
-            ]}
-          />
-        </div>
+        {isGated && filterType !== null ? (
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <TierUpgradeState
+              feature={t(`types.${filterType}`)}
+              onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
+              onBack={() => setFilterType(null)}
+            />
+          </div>
+        ) : isTypeTabOnly ? (
+          <div className="flex flex-1 items-center justify-center">
+            <StateComposition
+              icon="inventory_2"
+              variant="neutral"
+              title={t('empty.noTypeResults', { type: t(`tabs.${filterType === 'WAREHOUSE' ? 'warehouses' : filterType === 'STORE_ROOM' ? 'storeRooms' : 'customRooms'}`) })}
+              description={t('empty.noTypeResultsSubtitle')}
+              actions={
+                canCreate && (
+                  <Button type="button" onClick={handleCreateClick} className="gap-2 bg-brand text-white hover:bg-brand-hover">
+                    <span className="material-symbols-outlined text-[20px]">add</span>
+                    {t('actions.create')}
+                  </Button>
+                )
+              }
+            />
+          </div>
+        ) : (
+          <div className="flex flex-1 items-center justify-center">
+            <StateComposition
+              icon="search_off"
+              variant="search"
+              title={searchQuery !== '' ? t('empty.noResults') : t('empty.noFilterResults')}
+              description={searchQuery !== '' ? t('empty.noResultsSubtitle') : t('empty.noFilterResultsSubtitle')}
+              actions={
+                <>
+                  <Button type="button" onClick={handleClearFilters} className="gap-2 bg-brand text-white hover:bg-brand-hover">
+                    <span className="material-symbols-outlined text-[20px]">backspace</span>
+                    {t('empty.clearSearch')}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleClearFilters} className="gap-2">
+                    <span className="material-symbols-outlined text-[20px]">grid_view</span>
+                    {t('empty.viewAll')}
+                  </Button>
+                </>
+              }
+              cards={[
+                { icon: 'spellcheck', iconColor: 'text-brand', title: t('empty.suggestionCards.checkSpelling'), description: t('empty.suggestionCards.checkSpellingDesc') },
+                { icon: 'filter_alt', iconColor: 'text-warning', title: t('empty.suggestionCards.adjustFilters'), description: t('empty.suggestionCards.adjustFiltersDesc') },
+                { icon: 'add_circle', iconColor: 'text-success', title: t('empty.suggestionCards.createNew'), description: t('empty.suggestionCards.createNewDesc') },
+              ]}
+            />
+          </div>
+        )}
         {modals}
       </div>
     );
@@ -510,7 +516,7 @@ export default function StoragesPage(): React.ReactElement {
           <h1 className="text-2xl font-bold text-neutral-900">{t('page.title')}</h1>
           <p className="mt-1 text-sm text-neutral-500">{t('page.subtitle')}</p>
         </div>
-        {canCreate && (
+        {canCreate && !isGated && (
           <Button type="button" onClick={handleCreateClick} className="gap-2 bg-brand text-white hover:bg-brand-hover">
             <span className="material-symbols-outlined text-[18px]">add</span>
             {t('actions.create')}
@@ -522,6 +528,7 @@ export default function StoragesPage(): React.ReactElement {
       <div className="mb-5 flex flex-wrap gap-2 overflow-x-auto">
         {TYPE_TABS.map((tab) => {
           const isActive = filterType === tab.key;
+          const isLocked = tab.key !== null && !isAllowed(STORAGE_TYPE_TO_FEATURE[tab.key]);
           return (
             <button
               key={tab.key ?? 'all'}
@@ -530,24 +537,37 @@ export default function StoragesPage(): React.ReactElement {
               aria-selected={isActive}
               onClick={() => setFilterType(tab.key)}
               className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-colors',
                 isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
               )}
             >
-              {t(tab.labelKey)} ({countByType(tab.key)})
+              {t(tab.labelKey)} ({tab.key === null ? typeCounts.total : typeCounts[tab.key]})
+              {isLocked && (
+                <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                  lock
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
       {/* Stats bar */}
-      <StatsBar activeCount={activeStorages.length} frozenCount={frozenStorages.length} />
+      <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
 
-      {/* Search + status filter + sort */}
-      <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterStatus={filterStatus} setFilterStatus={setFilterStatus} sortOrder={sortOrder} setSortOrder={setSortOrder} />
+      {/* Search bar — visible on all tabs, disabled when the tab is tier-gated */}
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        disabled={isGated}
+      />
 
-      {/* Active filter chips */}
-      {isFiltered && (
+      {/* Active filter chips — only shown when not gated (gated tabs have no active filters) */}
+      {!isGated && isFiltered && (
         <div className="mb-4 flex flex-wrap gap-2">
           {filterStatus !== null && (
             <button
@@ -572,56 +592,69 @@ export default function StoragesPage(): React.ReactElement {
         </div>
       )}
 
-      {/* Card grid with optional loader overlay */}
-      <div className="relative">
-        {isLoading && hadData && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <DoubleRingSpinner label={t('loader.loading')} elevated />
-          </div>
-        )}
-
-        <div className={cn(
-          'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4',
-          isLoading && hadData && 'opacity-30',
-        )}>
-          {storages.map((storage) => (
-            <StorageCard
-              key={storage.uuid}
-              storage={storage}
-              onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
-              onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
-              onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
-              onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
-            />
-          ))}
-
-          {/* Tier limit card inline — when the active type filter has reached its plan limit */}
-          {filterType !== null && isAtTypeLimit(filterType) && (
-            <button
-              type="button"
-              onClick={handleUpgrade}
-              className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 text-neutral-500 transition-colors hover:border-warning hover:bg-warning-bg dark:bg-neutral-100"
-            >
-              <span className="material-symbols-outlined text-[32px] text-neutral-400">lock</span>
-              <span className="text-sm font-semibold">{t('upgrade.tierLimit.title')}</span>
-              <span className="text-xs text-neutral-400">{t('upgrade.tierLimit.description')}</span>
-              <span className="text-xs font-medium text-brand">{t('upgrade.banner.cta')}</span>
-            </button>
-          )}
-
-          {/* Inline create card — only if NOT at tier limit */}
-          {canCreate && !(filterType !== null && isAtTypeLimit(filterType)) && (
-            <button
-              type="button"
-              onClick={handleCreateClick}
-              className="flex min-h-[176px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-transparent text-neutral-500 transition-colors hover:border-brand hover:bg-brand-subtle hover:text-brand"
-            >
-              <span className="material-symbols-outlined text-[28px]">add</span>
-              <span className="text-sm font-medium">{t('actions.createInline')}</span>
-            </button>
-          )}
+      {/* Card grid — replaced by tier gate message when the active tab is blocked */}
+      {isGated && filterType !== null ? (
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <TierUpgradeState
+            feature={t(`types.${filterType}`)}
+            onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
+            onBack={() => setFilterType(null)}
+          />
         </div>
-      </div>
+      ) : (
+        <div className="relative">
+          {isLoading && hadData && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <DoubleRingSpinner label={t('loader.loading')} elevated />
+            </div>
+          )}
+
+          <div className={cn(
+            'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4',
+            isLoading && hadData && 'opacity-30',
+          )}>
+            {storages.map((storage) => (
+              <StorageCard
+                key={storage.uuid}
+                storage={storage}
+                onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
+                onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
+                onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
+                onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
+              />
+            ))}
+
+            {/* Tier limit card inline — shown when the filtered type is at its plan limit,
+                OR when on "All" tab and every available type is at its limit */}
+            {(filterType !== null ? isAtTypeLimit(filterType) : !canCreateAny) && (
+              <button
+                type="button"
+                onClick={handleUpgrade}
+                className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 text-neutral-500 transition-colors hover:border-warning hover:bg-warning-bg dark:bg-neutral-100"
+              >
+                <span className="material-symbols-outlined text-[32px] text-neutral-400">lock</span>
+                <span className="text-sm font-semibold">{t('upgrade.tierLimit.title')}</span>
+                <span className="text-xs text-neutral-400">{t('upgrade.tierLimit.description')}</span>
+                <span className="text-xs font-medium text-brand">{t('upgrade.banner.cta')}</span>
+              </button>
+            )}
+
+            {/* Inline create card — shown when there is remaining quota for the current view:
+                specific type tab → that type is not at limit;
+                "All" tab → at least one type still has room */}
+            {canCreate && (filterType !== null ? !isAtTypeLimit(filterType) : canCreateAny) && (
+              <button
+                type="button"
+                onClick={handleCreateClick}
+                className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-transparent text-neutral-500 transition-colors hover:border-brand hover:bg-brand-subtle hover:text-brand"
+              >
+                <span className="material-symbols-outlined text-[28px]">add</span>
+                <span className="text-sm font-medium">{t('actions.createInline')}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -643,7 +676,7 @@ export default function StoragesPage(): React.ReactElement {
 
 // ─── Extracted sub-components ────────────────────────────────────────────────
 
-function StatsBar({ activeCount, frozenCount }: { activeCount: number; frozenCount: number }): React.ReactElement {
+function StatsBar({ activeCount, frozenCount, archivedCount }: { activeCount: number; frozenCount: number; archivedCount: number }): React.ReactElement {
   const { t } = useTranslation('storages');
   return (
     <div className="mb-5 flex items-center gap-4 overflow-x-auto rounded-lg border border-border bg-surface-card px-4 py-3 sm:gap-6">
@@ -654,16 +687,16 @@ function StatsBar({ activeCount, frozenCount }: { activeCount: number; frozenCou
       </div>
       <div className="hidden sm:block"><div className="h-6 w-px bg-border" /></div>
       <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-[20px] text-warning">ac_unit</span>
+        <span className="material-symbols-outlined text-[20px] text-blue-400">ac_unit</span>
         <span className="text-lg font-bold text-neutral-900">{String(frozenCount).padStart(2, '0')}</span>
         <span className="text-xs text-neutral-500">{t('stats.frozen')}</span>
       </div>
       <div className="hidden sm:block"><div className="h-6 w-px bg-border" /></div>
       <div className="flex items-center gap-2">
         <span className="material-symbols-outlined text-[20px] text-neutral-500">inventory_2</span>
-        <span className="text-xs font-medium text-neutral-500">{t('stats.occupancy')}</span>
+        <span className="text-lg font-bold text-neutral-900">{String(archivedCount).padStart(2, '0')}</span>
+        <span className="text-xs text-neutral-500">{t('stats.archived')}</span>
       </div>
-
     </div>
   );
 }
@@ -675,6 +708,7 @@ function SearchBar({
   setFilterStatus,
   sortOrder,
   setSortOrder,
+  disabled = false,
 }: {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -682,24 +716,48 @@ function SearchBar({
   setFilterStatus: (s: import('../types/storages.types').StorageStatus | null) => void;
   sortOrder: string;
   setSortOrder: (o: 'ASC' | 'DESC') => void;
+  disabled?: boolean;
 }): React.ReactElement {
   const { t } = useTranslation('storages');
   return (
     <div className="mb-5 flex flex-wrap gap-3">
       <div className="relative min-w-0 flex-1">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-neutral-400">search</span>
+        <span
+          className={cn(
+            'material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px]',
+            disabled ? 'text-neutral-300' : 'text-neutral-400',
+          )}
+        >
+          {disabled ? 'lock' : 'search'}
+        </span>
         <input
           type="search"
           placeholder={t('controls.search')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-border bg-surface-card py-2.5 pl-10 pr-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring"
+          disabled={disabled}
+          className={cn(
+            'w-full rounded-lg border border-border bg-surface-card py-2.5 pl-10 pr-3 text-sm outline-none',
+            disabled
+              ? 'cursor-not-allowed text-neutral-300 placeholder:text-neutral-300'
+              : 'text-neutral-900 placeholder:text-neutral-400 focus:ring-2 focus:ring-ring',
+          )}
         />
       </div>
       <select
         value={filterStatus ?? ''}
-        onChange={(e) => setFilterStatus(e.target.value === '' ? null : e.target.value as import('../types/storages.types').StorageStatus)}
-        className="min-h-[44px] rounded-lg border border-border bg-surface-card px-3 py-2.5 text-sm text-neutral-700 outline-none focus:ring-2 focus:ring-ring"
+        onChange={(e) =>
+          setFilterStatus(
+            e.target.value === '' ? null : (e.target.value as import('../types/storages.types').StorageStatus),
+          )
+        }
+        disabled={disabled}
+        className={cn(
+          'min-h-[44px] rounded-lg border border-border bg-surface-card px-3 py-2.5 text-sm outline-none',
+          disabled
+            ? 'cursor-not-allowed text-neutral-300'
+            : 'text-neutral-700 focus:ring-2 focus:ring-ring',
+        )}
       >
         <option value="">{t('controls.allStatuses')}</option>
         <option value="ACTIVE">{t('statuses.ACTIVE')}</option>
@@ -709,7 +767,13 @@ function SearchBar({
       <button
         type="button"
         onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}
-        className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-surface-card px-3 py-2.5 text-xs font-medium text-neutral-500 hover:bg-neutral-100"
+        disabled={disabled}
+        className={cn(
+          'flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-surface-card px-3 py-2.5 text-xs font-medium',
+          disabled
+            ? 'cursor-not-allowed text-neutral-300'
+            : 'text-neutral-500 hover:bg-neutral-100',
+        )}
       >
         <span className="material-symbols-outlined text-[18px]">sort_by_alpha</span>
         {sortOrder === 'ASC' ? 'A → Z' : 'Z → A'}

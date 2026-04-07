@@ -104,6 +104,7 @@ const mockPage: StoragesPage = {
   page: 1,
   limit: 50,
   totalPages: 1,
+  summary: { active: mockStoragesItems.length, frozen: 0, archived: 0 },
 };
 
 // Extended mock data with FROZEN and varied types for filter tests
@@ -176,6 +177,8 @@ const allStoragesMockPage: StoragesPage = {
   page: 1,
   limit: 50,
   totalPages: 1,
+  // 2 active (WAREHOUSE + CUSTOM_ROOM), 1 frozen (STORE_ROOM), 1 archived (WAREHOUSE)
+  summary: { active: 2, frozen: 1, archived: 1 },
 };
 
 function resetStore(): void {
@@ -690,20 +693,15 @@ describe('Given useStorages exposes a manual fetchStorages function', () => {
     });
   });
 
-  describe('When fetchStorages is called with status, type, and search filters active', () => {
-    it('Then it passes all active filters to the API', async () => {
+  describe('When fetchStorages is called manually while searchQuery is active', () => {
+    it('Then it passes the active searchQuery to the API', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      act(() => {
-        result.current.setFilterStatus('ACTIVE');
-        result.current.setFilterType('WAREHOUSE');
-        result.current.setSearchQuery('almacén');
-      });
-
+      act(() => result.current.setSearchQuery('bodega'));
       await waitFor(() => {
         expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
-          expect.objectContaining({ status: 'ACTIVE', type: 'WAREHOUSE', search: 'almacén' }),
+          expect.objectContaining({ search: 'bodega' }),
         );
       });
 
@@ -715,8 +713,86 @@ describe('Given useStorages exposes a manual fetchStorages function', () => {
       });
 
       expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'ACTIVE', type: 'WAREHOUSE', search: 'almacén' }),
+        expect.objectContaining({ search: 'bodega' }),
       );
+    });
+  });
+
+  describe('When fetchStorages is called manually while filterStatus is active', () => {
+    it('Then it passes the active filterStatus to the API', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      act(() => result.current.setFilterStatus('FROZEN'));
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ status: 'FROZEN' }),
+        );
+      });
+
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+
+      await act(async () => {
+        await result.current.fetchStorages();
+      });
+
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'FROZEN' }),
+      );
+    });
+  });
+
+  describe('When the user switches tabs (setFilterType) while filterStatus and searchQuery are active', () => {
+    it('Then filterStatus and searchQuery are reset so only the new tab filters reach the API', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      // Set status and search first, then switch tab — tab switch must clear the rest
+      act(() => {
+        result.current.setFilterStatus('ACTIVE');
+        result.current.setFilterType('STORE_ROOM');
+        result.current.setSearchQuery('almacén');
+      });
+
+      // filterStatus was cleared by setFilterType; only type + search remain
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'STORE_ROOM', search: 'almacén' }),
+        );
+      });
+
+      const latestCall = vi.mocked(storagesService.list).mock.lastCall?.[0];
+      expect(latestCall).not.toHaveProperty('status');
+    });
+
+    it('Then manual fetchStorages also reflects only the remaining active filters', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      act(() => {
+        result.current.setFilterStatus('ACTIVE');
+        result.current.setFilterType('STORE_ROOM');
+      });
+
+      await waitFor(() => {
+        expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'STORE_ROOM' }),
+        );
+      });
+
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+
+      await act(async () => {
+        await result.current.fetchStorages();
+      });
+
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'STORE_ROOM' }),
+      );
+      const latestCall = vi.mocked(storagesService.list).mock.lastCall?.[0];
+      expect(latestCall).not.toHaveProperty('status');
     });
   });
 });
@@ -730,6 +806,7 @@ describe('Given useStorages with multi-page results', () => {
     page: 1,
     limit: 1,
     totalPages: 3,
+    summary: { active: 3, frozen: 0, archived: 0 },
   };
 
   const pageTwoMock: StoragesPage = {
@@ -738,6 +815,7 @@ describe('Given useStorages with multi-page results', () => {
     page: 2,
     limit: 1,
     totalPages: 3,
+    summary: { active: 3, frozen: 0, archived: 0 },
   };
 
   beforeEach(() => {
@@ -934,6 +1012,22 @@ describe('Given a FREE tier tenant where warehouses are not allowed', () => {
       // Allow any potential async ticks
       await new Promise((r) => setTimeout(r, 50));
       expect(vi.mocked(storagesService.list)).not.toHaveBeenCalled();
+    });
+
+    it('Then stale storages from the previous tab are cleared so stats bars show empty', async () => {
+      const { result } = renderHook(() => useStorages());
+      // Wait for initial fetch to populate storages
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      // Switch to gated warehouse tab
+      act(() => { result.current.setFilterType('WAREHOUSE'); });
+
+      await waitFor(() => {
+        expect(result.current.storages).toHaveLength(0);
+        expect(result.current.activeStorages).toHaveLength(0);
+        expect(result.current.frozenStorages).toHaveLength(0);
+        expect(result.current.total).toBe(0);
+      });
     });
   });
 

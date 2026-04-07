@@ -18,7 +18,10 @@ vi.mock('react-router-dom', () => ({
 const mockLogout = vi.fn();
 vi.mock('@/features/authentication', () => ({
   useAuthentication: () => ({
-    user: { username: 'carlos', tier: 'STARTER' },
+    user: {
+      username: 'carlos',
+      tierLimits: { tier: 'STARTER', maxWarehouses: 1, maxStoreRooms: 3, maxCustomRooms: 3 },
+    },
     logout: mockLogout,
   }),
 }));

@@ -42,12 +42,26 @@ export const updateStorageSchema = storageFormBaseSchema.partial().extend({
 
 export const storagesListSchema = z.array(storageSchema);
 
+export const storageStatusSummarySchema = z.object({
+  active: z.number().int().nonnegative(),
+  frozen: z.number().int().nonnegative(),
+  archived: z.number().int().nonnegative(),
+});
+
+export const storageTypeSummarySchema = z.object({
+  WAREHOUSE: storageStatusSummarySchema,
+  STORE_ROOM: storageStatusSummarySchema,
+  CUSTOM_ROOM: storageStatusSummarySchema,
+});
+
 export const storagesPageSchema = z.object({
   items: z.array(storageSchema),
   total: z.number().int().nonnegative(),
   page: z.number().int().positive(),
   limit: z.number().int().positive(),
   totalPages: z.number().int().nonnegative(),
+  summary: storageStatusSummarySchema,
+  typeSummary: storageTypeSummarySchema,
 });
 
 // ── Create drawer schemas ────────────────────────────────────────────────────
@@ -99,7 +113,7 @@ export const createCustomRoomFormSchema = z.object({
       message: 'Description must be at least 5 characters if provided',
     }),
   icon: z.string().default('restaurant'),
-  color: z.string().default('#0D9488'),
+  color: z.string().default('#EC4899'),
 });
 
 export type CreateStorageFormData = z.infer<typeof createStorageSchema>;

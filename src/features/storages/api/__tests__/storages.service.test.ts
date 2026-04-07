@@ -39,6 +39,12 @@ const storagesPageFixture = {
   page: 1,
   limit: 10,
   totalPages: 1,
+  summary: { active: 1, frozen: 0, archived: 0 },
+  typeSummary: {
+    WAREHOUSE: { active: 1, frozen: 0, archived: 0 },
+    STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+    CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+  },
 };
 
 /** Backend envelope wrapper */

@@ -12,7 +12,7 @@ import type {
   CreateStoreRoomFormData,
   CreateCustomRoomFormData,
 } from '../schemas/storages.schema';
-import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
+import type { Storage, StorageStatus, StorageType, StorageStatusSummary } from '../types/storages.types';
 
 const STORAGES_PAGE_LIMIT = 50;
 
@@ -36,11 +36,24 @@ function resolveCreateError(err: unknown): CreateError {
   return 'server_error';
 }
 
+const EMPTY_SUMMARY: StorageStatusSummary = { active: 0, frozen: 0, archived: 0 };
+
+interface TypeCounts {
+  WAREHOUSE: number;
+  STORE_ROOM: number;
+  CUSTOM_ROOM: number;
+  total: number;
+}
+
+const EMPTY_TYPE_COUNTS: TypeCounts = { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 };
+
 export function useStorages(): {
   storages: Storage[];
   activeStorages: Storage[];
   frozenStorages: Storage[];
   archivedStorages: Storage[];
+  summary: StorageStatusSummary;
+  typeCounts: TypeCounts;
   total: number;
   page: number;
   totalPages: number;
@@ -93,6 +106,8 @@ export function useStorages(): {
   const [searchQuery, setSearchQueryState] = useState('');
   const [sortOrder, setSortOrderState] = useState<'ASC' | 'DESC'>('ASC');
   const [currentPage, setCurrentPageState] = useState(1);
+  const [summary, setSummary] = useState<StorageStatusSummary>(EMPTY_SUMMARY);
+  const [typeCounts, setTypeCounts] = useState<TypeCounts>(EMPTY_TYPE_COUNTS);
 
   // Keep a ref with the latest filter values so fetchStorages can be called
   // with current state without being a dep of useEffect (avoids infinite loop).
@@ -118,6 +133,17 @@ export function useStorages(): {
         const result = await storagesService.list(params);
         setStorages(result.items);
         setPagination(result.total, result.page, result.totalPages);
+        setSummary(result.summary);
+        const ts = result.typeSummary;
+        setTypeCounts({
+          WAREHOUSE: ts.WAREHOUSE.active + ts.WAREHOUSE.frozen + ts.WAREHOUSE.archived,
+          STORE_ROOM: ts.STORE_ROOM.active + ts.STORE_ROOM.frozen + ts.STORE_ROOM.archived,
+          CUSTOM_ROOM: ts.CUSTOM_ROOM.active + ts.CUSTOM_ROOM.frozen + ts.CUSTOM_ROOM.archived,
+          total:
+            ts.WAREHOUSE.active + ts.WAREHOUSE.frozen + ts.WAREHOUSE.archived +
+            ts.STORE_ROOM.active + ts.STORE_ROOM.frozen + ts.STORE_ROOM.archived +
+            ts.CUSTOM_ROOM.active + ts.CUSTOM_ROOM.frozen + ts.CUSTOM_ROOM.archived,
+        });
         setLoading(false);
       } catch (err) {
         // AbortController cleanup (StrictMode) — ignore silently, don't set error
@@ -130,7 +156,7 @@ export function useStorages(): {
         setLoading(false);
       }
     },
-    [setLoading, setError, setStorages, setPagination],
+    [setLoading, setError, setStorages, setPagination, setSummary],
   );
 
   // isGated: the selected filter type is completely locked on the current tier.
@@ -146,12 +172,19 @@ export function useStorages(): {
   // StrictMode's simulated unmount) is cancelled before the new one fires,
   // preventing duplicate requests and 401-cascade from concurrent calls.
   useEffect(() => {
-    if (isGated) return;
+    if (isGated) {
+      // Clear stale results so stats bars and card lists show empty for the locked tab.
+      setStorages([]);
+      setPagination(0, 1, 1);
+      setSummary(EMPTY_SUMMARY);
+      return;
+    }
     const controller = new AbortController();
     void fetchStorages({ signal: controller.signal });
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterType, searchQuery, sortOrder, currentPage, isGated]);
+
 
   // ── Filter setters — reset page to 1 on any filter change ─────────────────
 
@@ -162,6 +195,9 @@ export function useStorages(): {
 
   const setFilterType = useCallback((type: StorageType | null): void => {
     setFilterTypeState(type);
+    setFilterStatusState(null);
+    setSearchQueryState('');
+    setSortOrderState('ASC');
     setCurrentPageState(1);
   }, []);
 
@@ -298,6 +334,8 @@ export function useStorages(): {
     activeStorages,
     frozenStorages,
     archivedStorages,
+    summary,
+    typeCounts,
     total,
     page,
     totalPages,

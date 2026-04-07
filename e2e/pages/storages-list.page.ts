@@ -17,6 +17,8 @@ export class StoragesListPage {
   readonly tabWarehouses: Locator;
   readonly tabStoreRooms: Locator;
   readonly tabCustomRooms: Locator;
+  /** Lock icon inside the Warehouses tab — visible when WAREHOUSE is tier-blocked */
+  readonly warehousesTabLockIcon: Locator;
 
   // ── Stats bar ────────────────────────────────────────────────────────
   readonly statsBar: Locator;
@@ -54,6 +56,7 @@ export class StoragesListPage {
     this.tabWarehouses = page.getByRole('tab', { name: /^Warehouses/ });
     this.tabStoreRooms = page.getByRole('tab', { name: /^Store Rooms/ });
     this.tabCustomRooms = page.getByRole('tab', { name: /^Custom Rooms/ });
+    this.warehousesTabLockIcon = this.tabWarehouses.locator('.material-symbols-outlined', { hasText: 'lock' });
 
     // Stats bar
     this.statsBar = page.locator('.flex.items-center.gap-4.overflow-x-auto.rounded-lg');

@@ -26,7 +26,7 @@ export default function Drawer({ open, onClose, children, className }: DrawerPro
       {/* Backdrop — fades in on open, fades out on close */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/40 transition-opacity duration-300',
+          'fixed inset-0 z-[55] bg-black/40 transition-opacity duration-300',
           open ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={onClose}
@@ -37,7 +37,7 @@ export default function Drawer({ open, onClose, children, className }: DrawerPro
       <div
         aria-hidden={!open}
         className={cn(
-          'fixed right-0 top-0 z-50 flex h-screen w-full flex-col bg-surface-card shadow-2xl',
+          'fixed right-0 top-0 z-[60] flex h-screen w-full flex-col bg-surface-card shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           open ? 'translate-x-0' : 'pointer-events-none translate-x-full',
           className,

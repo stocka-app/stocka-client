@@ -31,7 +31,21 @@
     "title": "{{feature}} is not available on your plan",
     "description": "Upgrade to a paid plan to unlock this feature and get full access to Stocka.",
     "cta": "View plans",
-    "back": "See available options"
+    "back": "See available options",
+    "cards": {
+      "unlock": {
+        "title": "Unlock more types",
+        "description": "Access warehouses and all storage types to manage every location your business needs."
+      },
+      "limits": {
+        "title": "Higher limits",
+        "description": "More storages, products, and team members — your plan grows with your business."
+      },
+      "scale": {
+        "title": "Grow without limits",
+        "description": "All the tools you need to scale your inventory management as your business expands."
+      }
+    }
   },
   "upgradeModal": {
     "title": "Upgrade your plan",

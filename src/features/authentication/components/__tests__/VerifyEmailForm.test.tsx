@@ -77,20 +77,21 @@ vi.mock('../ResendButton', () => ({
     onResend,
     disabled,
   }: {
-    onResend: () => void;
+    onResend: () => Promise<unknown>;
     disabled?: boolean;
     initialCooldown?: number;
     initialRemainingResends?: number;
-  }) => (
-    <button
-      type="button"
-      data-testid="resend-button"
-      onClick={onResend}
-      disabled={disabled}
-    >
-      Resend
-    </button>
-  ),
+  }) => {
+    const handleClick = () => {
+      // Mirrors real ResendButton behavior: catches all errors from onResend
+      void Promise.resolve(onResend()).catch(() => {});
+    };
+    return (
+      <button type="button" data-testid="resend-button" onClick={handleClick} disabled={disabled}>
+        Resend
+      </button>
+    );
+  },
 }));
 
 vi.mock('@/shared/components/ui/button', () => ({
@@ -458,7 +459,7 @@ describe('VerifyEmailForm', () => {
   // ── Resend throws non-cooldown error ───────────────────────────────
 
   describe('Given resend throws a generic error', () => {
-    it('Then should re-throw the error', async () => {
+    it('Then the form remains stable and the button is still shown', async () => {
       mockResendVerificationCode.mockRejectedValue({
         error: 'MAX_RESENDS_EXCEEDED',
         message: 'Max resends exceeded',
@@ -466,7 +467,9 @@ describe('VerifyEmailForm', () => {
       });
       render(<VerifyEmailForm email="test@example.com" />);
 
-      // The click triggers handleResend; error is thrown but caught by ResendButton
+      // The mock ResendButton catches all errors from onResend (matching real behavior).
+      // VerifyEmailForm.handleResend re-throws non-cooldown errors — the ResendButton
+      // stub swallows it so the form stays stable.
       await user.click(screen.getByTestId('resend-button'));
 
       expect(screen.getByTestId('resend-button')).toBeInTheDocument();

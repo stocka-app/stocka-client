@@ -29,19 +29,18 @@ vi.mock('@/store/rbac.store', () => ({
   }),
 }));
 
-const { mockOpenUpgradeModal } = vi.hoisted(() => ({
+const { mockOpenUpgradeModal, mockIsAllowed } = vi.hoisted(() => ({
   mockOpenUpgradeModal: vi.fn(),
-}));
-vi.mock('@/shared/hooks/useTierGate', () => ({
-  useTierGate: () => ({
-    openUpgradeModal: mockOpenUpgradeModal,
-  }),
+  mockIsAllowed: vi.fn(() => true),
 }));
 
 const mocks = vi.hoisted(() => ({
   storages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   activeStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   frozenStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
+  archivedStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
+  summary: { active: 0, frozen: 0, archived: 0 },
+  typeCounts: { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 },
   total: 0,
   page: 1,
   totalPages: 1,
@@ -90,6 +89,9 @@ vi.mock('../../hooks/useStorages', () => ({
     storages: mocks.storages,
     activeStorages: mocks.activeStorages,
     frozenStorages: mocks.frozenStorages,
+    archivedStorages: mocks.archivedStorages,
+    summary: mocks.summary,
+    typeCounts: mocks.typeCounts,
     total: mocks.total,
     page: mocks.page,
     totalPages: mocks.totalPages,
@@ -125,8 +127,14 @@ vi.mock('../../components/CreateStorageDrawer', () => ({
 vi.mock('@/shared/hooks/useTierCapabilities', () => ({
   useTierCapabilities: () => ({
     storageLimits: { WAREHOUSE: 2, STORE_ROOM: 3, CUSTOM_ROOM: -1 },
+    isAllowed: mockIsAllowed,
     openUpgradeModal: mockOpenUpgradeModal,
   }),
+  STORAGE_TYPE_TO_FEATURE: {
+    WAREHOUSE: 'warehouses',
+    STORE_ROOM: 'storeRooms',
+    CUSTOM_ROOM: 'customRooms',
+  },
 }));
 
 vi.mock('@/shared/components/TierUpgradeState', () => ({
@@ -209,6 +217,19 @@ function setSuccessState(overrides: Partial<typeof mocks> = {}) {
   ];
   mocks.activeStorages = overrides.activeStorages ?? mocks.storages.filter(s => s.status === 'ACTIVE');
   mocks.frozenStorages = overrides.frozenStorages ?? mocks.storages.filter(s => s.status === 'FROZEN');
+  mocks.archivedStorages = overrides.archivedStorages ?? mocks.storages.filter(s => s.status === 'ARCHIVED');
+  mocks.summary = overrides.summary ?? {
+    active: mocks.activeStorages.length,
+    frozen: mocks.frozenStorages.length,
+    archived: mocks.archivedStorages.length,
+  };
+  const countByType = (type: string) => mocks.storages.filter(s => s.type === type).length;
+  mocks.typeCounts = overrides.typeCounts ?? {
+    WAREHOUSE: countByType('WAREHOUSE'),
+    STORE_ROOM: countByType('STORE_ROOM'),
+    CUSTOM_ROOM: countByType('CUSTOM_ROOM'),
+    total: mocks.storages.length,
+  };
   mocks.total = overrides.total ?? mocks.storages.length;
   Object.assign(mocks, overrides);
 }
@@ -223,6 +244,9 @@ describe('StoragesPage', () => {
     mocks.storages = [];
     mocks.activeStorages = [];
     mocks.frozenStorages = [];
+    mocks.archivedStorages = [];
+    mocks.summary = { active: 0, frozen: 0, archived: 0 };
+    mocks.typeCounts = { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 };
     mocks.total = 0;
     mocks.page = 1;
     mocks.totalPages = 1;
@@ -233,6 +257,7 @@ describe('StoragesPage', () => {
     mocks.searchQuery = '';
     mocks.sortOrder = 'ASC';
     mocks.canCreate = true;
+    mockIsAllowed.mockReturnValue(true);
     storageCardInstances = [];
     createEditModalProps = {};
     archiveModalProps = {};
@@ -420,8 +445,8 @@ describe('StoragesPage', () => {
       render(<StoragesPage />);
     });
 
-    it('should show the no filter results message', () => {
-      expect(screen.getByTestId('state-composition')).toHaveTextContent('empty.noFilterResults');
+    it('should show the no type results message', () => {
+      expect(screen.getByTestId('state-composition')).toHaveTextContent('empty.noTypeResults');
     });
   });
 
@@ -1093,7 +1118,7 @@ describe('StoragesPage', () => {
       mocks.filterType = null;
     });
 
-    describe('When the page renders', () => {
+    describe('When the page renders with no stale storages', () => {
       beforeEach(() => {
         render(<StoragesPage />);
       });
@@ -1109,6 +1134,130 @@ describe('StoragesPage', () => {
       it('Then the page title is still visible', () => {
         expect(screen.getByRole('heading')).toBeInTheDocument();
       });
+
+      it('Then the search bar is visible but disabled', () => {
+        expect(screen.getByRole('searchbox')).toBeDisabled();
+      });
+    });
+
+    describe('When the page renders with stale storages from a previous tab', () => {
+      beforeEach(() => {
+        mocks.storages = [{ uuid: 'sr-1', name: 'Store Room 1', type: 'STORE_ROOM', status: 'ACTIVE' }];
+        mocks.total = 1;
+        render(<StoragesPage />);
+      });
+
+      it('Then the TierUpgradeState component is shown instead of the stale cards', () => {
+        expect(screen.getByTestId('tier-upgrade-state')).toBeInTheDocument();
+      });
+
+      it('Then the stale storage cards are not rendered', () => {
+        expect(screen.queryByText('Store Room 1')).not.toBeInTheDocument();
+      });
+
+      it('Then the header create button is not shown', () => {
+        expect(screen.queryByRole('button', { name: /actions\.create$/i })).not.toBeInTheDocument();
+      });
+
+      it('Then the filter tabs remain visible with their counts', () => {
+        expect(screen.getByRole('tab', { name: /tabs\.warehouses/ })).toBeInTheDocument();
+      });
+
+      it('Then the search bar is visible but disabled', () => {
+        expect(screen.getByRole('searchbox')).toBeDisabled();
+      });
+    });
+  });
+
+  // ── "All" tab consistency: no create card when all types are blocked ──
+
+  describe('Given the user is on the All tab and every storage type is blocked by the current tier', () => {
+    beforeEach(() => {
+      mockIsAllowed.mockReturnValue(false);
+      setSuccessState({
+        storages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+        activeStorages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+      });
+      mocks.filterType = null;
+      render(<StoragesPage />);
+    });
+
+    it('Then the tier limit upgrade card is shown', () => {
+      expect(screen.getByText('upgrade.tierLimit.title')).toBeInTheDocument();
+    });
+
+    it('Then the inline create card is not shown', () => {
+      expect(screen.queryByText('actions.createInline')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Given the user is on the All tab and at least one storage type has remaining quota', () => {
+    beforeEach(() => {
+      mockIsAllowed.mockReturnValue(true);
+      setSuccessState({
+        storages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+        activeStorages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+      });
+      mocks.filterType = null;
+      render(<StoragesPage />);
+    });
+
+    it('Then the inline create card is shown', () => {
+      expect(screen.getByText('actions.createInline')).toBeInTheDocument();
+    });
+
+    it('Then the tier limit card is not shown', () => {
+      expect(screen.queryByText('upgrade.tierLimit.title')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── Tab lock icon for tier-blocked types ─────────────────────────────────
+
+  describe('Given the WAREHOUSE type is tier-blocked (isAllowed returns false for warehouses)', () => {
+    beforeEach(() => {
+      mockIsAllowed.mockImplementation((feature: string) => feature !== 'warehouses');
+      setSuccessState({
+        storages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+        activeStorages: [
+          { uuid: '1', name: 'SR1', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ],
+      });
+      render(<StoragesPage />);
+    });
+
+    it('Then the Warehouses tab renders a lock icon', () => {
+      const warehousesTab = screen.getByRole('tab', { name: /tabs\.warehouses/ });
+      expect(warehousesTab.querySelector('.material-symbols-outlined')).toHaveTextContent('lock');
+    });
+
+    it('Then the Store Rooms tab does NOT render a lock icon', () => {
+      const storeRoomsTab = screen.getByRole('tab', { name: /tabs\.storeRooms/ });
+      expect(storeRoomsTab.querySelector('.material-symbols-outlined')).toBeNull();
+    });
+  });
+
+  // ── isAtTypeLimit prop forwarded to CreateEditStorageModal ──────────────
+
+  describe('Given the edit modal is opened for a storage', () => {
+    beforeEach(async () => {
+      setSuccessState();
+      render(<StoragesPage />);
+      const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
+      await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
+    });
+
+    it('Then isAtTypeLimit is passed as a function to CreateEditStorageModal', () => {
+      expect(typeof createEditModalProps.isAtTypeLimit).toBe('function');
     });
   });
 });

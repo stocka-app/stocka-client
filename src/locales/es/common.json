@@ -31,7 +31,21 @@
     "title": "{{feature}} no está disponible en tu plan",
     "description": "Actualiza a un plan de pago para desbloquear esta función y acceder a todas las capacidades de Stocka.",
     "cta": "Ver planes",
-    "back": "Ver opciones disponibles"
+    "back": "Ver opciones disponibles",
+    "cards": {
+      "unlock": {
+        "title": "Desbloquea más tipos",
+        "description": "Accede a bodegas y todos los tipos de almacén para gestionar cada ubicación de tu negocio."
+      },
+      "limits": {
+        "title": "Límites más altos",
+        "description": "Más almacenes, productos y miembros del equipo — tu plan crece con tu negocio."
+      },
+      "scale": {
+        "title": "Crece sin límites",
+        "description": "Todas las herramientas que necesitas para escalar tu gestión de inventario."
+      }
+    }
   },
   "upgradeModal": {
     "title": "Actualiza tu plan",
