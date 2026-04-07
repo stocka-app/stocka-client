@@ -33,7 +33,6 @@ test.describe('Given the create POST endpoint returns success', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Main Warehouse', address: 'Av. Industrial 500' });
     await drawer.submit();
 
@@ -51,7 +50,6 @@ test.describe('Given the create POST endpoint returns success', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Back Store Room', address: 'Calle Bodega 10' });
     await drawer.submit();
 
@@ -68,7 +66,6 @@ test.describe('Given the create POST endpoint returns success', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Pop-up Store', address: 'Calle Reforma 1' });
 
     // Open the picker and select a color
@@ -93,7 +90,6 @@ test.describe('Given the create POST endpoint returns success', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Main Warehouse', address: 'Av. Industrial 500' });
 
     // Submit without waiting — check loading state immediately
@@ -122,7 +118,6 @@ test.describe('Given the create POST endpoint returns success', () => {
     // First creation
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Main Warehouse', address: 'Av. Industrial 500' });
     await drawer.submit();
     await expect(drawer.drawer).not.toBeVisible({ timeout: 5_000 });

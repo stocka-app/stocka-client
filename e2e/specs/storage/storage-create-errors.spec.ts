@@ -35,7 +35,6 @@ test.describe('Given the user has filled the Step 2 form and submits', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Duplicate Name', address: 'Av. Test 1' });
     await drawer.submit();
 
@@ -80,7 +79,6 @@ test.describe('Given the user has filled the Step 2 form and submits', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Duplicate Name', address: 'Av. Test 1' });
     await drawer.submit();
 
@@ -106,7 +104,6 @@ test.describe('Given the user has filled the Step 2 form and submits', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'My Warehouse', address: 'Av. Industrial 500' });
     await drawer.submit();
 
@@ -131,7 +128,6 @@ test.describe('Given the user has filled the Step 2 form and submits', () => {
 
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Blocked Warehouse', address: 'Calle Bloqueada 1' });
     await drawer.submit();
 

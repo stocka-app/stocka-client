@@ -32,7 +32,6 @@ test.describe('Given the user has the Create Installation drawer open', () => {
 
     // Advance to Step 2 without typing anything in the form
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
 
     // Click close — no data entered, no dialog expected
     await drawer.closeButton.click();
@@ -49,7 +48,6 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
 
     await drawer.fillStep2({ name: 'Some warehouse' });
     await drawer.closeButton.click();
@@ -65,7 +63,6 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Some warehouse' });
 
     // Trigger confirm dialog
@@ -91,7 +88,6 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Some warehouse', address: 'Av. Test 1' });
 
     // Trigger confirm dialog
@@ -112,7 +108,6 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Warehouse with data' });
 
     // Footer "Back" button triggers dirty check
@@ -132,7 +127,6 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     // First open — type some data
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await drawer.fillStep2({ name: 'Data that should be gone' });
 
     // Abandon
