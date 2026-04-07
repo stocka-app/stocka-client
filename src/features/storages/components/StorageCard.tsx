@@ -42,7 +42,7 @@ const TYPE_ICON_COLOR_CLASSES: Record<StorageType, string> = {
 
 const STATUS_DOT_CLASSES: Record<StorageStatus, string> = {
   ACTIVE: 'bg-success',
-  FROZEN: 'bg-warning',
+  FROZEN: 'bg-blue-400',
   ARCHIVED: 'bg-neutral-400',
 };
 
@@ -76,6 +76,7 @@ export function StorageCard({
 
   const isFrozen = storage.status === 'FROZEN';
   const isArchived = storage.status === 'ARCHIVED';
+  const isCustomRoom = storage.type === 'CUSTOM_ROOM';
 
   return (
     <div
@@ -84,13 +85,14 @@ export function StorageCard({
         isArchived
           ? 'bg-neutral-50 opacity-50'
           : isFrozen
-            ? 'border-warning/30 bg-surface-card'
+            ? 'border-blue-400/30 bg-surface-card'
             : 'bg-surface-card',
       )}
     >
       {/* Left color bracket */}
       <div
-        className={cn('w-2.5 shrink-0', TYPE_BRACKET_CLASSES[storage.type])}
+        className={cn('w-2.5 shrink-0', !isCustomRoom && TYPE_BRACKET_CLASSES[storage.type])}
+        style={isCustomRoom ? { backgroundColor: storage.color } : undefined}
         aria-hidden="true"
       />
 
@@ -102,44 +104,43 @@ export function StorageCard({
           <div
             className={cn(
               'flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl',
-              TYPE_ICON_BG_CLASSES[storage.type],
+              !isCustomRoom && TYPE_ICON_BG_CLASSES[storage.type],
             )}
+            style={isCustomRoom ? { backgroundColor: `${storage.color}33` } : undefined}
             aria-hidden="true"
           >
             <span
               className={cn(
                 'material-symbols-outlined text-2xl',
-                TYPE_ICON_COLOR_CLASSES[storage.type],
+                !isCustomRoom && TYPE_ICON_COLOR_CLASSES[storage.type],
               )}
+              style={isCustomRoom ? { color: storage.color } : undefined}
             >
-              {TYPE_ICON_NAME[storage.type]}
+              {isCustomRoom ? storage.icon : TYPE_ICON_NAME[storage.type]}
             </span>
           </div>
 
-          {/* Badge + status aligned right */}
-          <div className="flex flex-col items-end gap-1">
+          {/* Badge + status dot aligned right */}
+          <div className="flex items-center gap-1.5">
             <span
               className={cn(
                 'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                TYPE_BADGE_CLASSES[storage.type],
+                !isCustomRoom && TYPE_BADGE_CLASSES[storage.type],
               )}
+              style={isCustomRoom ? { backgroundColor: `${storage.color}20`, color: storage.color } : undefined}
             >
               {t(`types.${storage.type}`)}
             </span>
+            <span
+              className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT_CLASSES[storage.status])}
+              role="img"
+              aria-label={t(`statuses.${storage.status}`)}
+            />
           </div>
         </div>
 
         {/* Name — always full width, never truncated by badge */}
         <h3 className="mb-1 text-base font-semibold text-neutral-900">{storage.name}</h3>
-
-        {/* Status indicator */}
-        <div className="mb-3 flex items-center gap-1.5">
-          <span
-            className={cn('inline-block h-2 w-2 rounded-full', STATUS_DOT_CLASSES[storage.status])}
-            aria-hidden="true"
-          />
-          <span className="text-xs text-neutral-500">{t(`statuses.${storage.status}`)}</span>
-        </div>
 
         {/* Room type (CUSTOM_ROOM only) */}
         {storage.type === 'CUSTOM_ROOM' && storage.roomType && (
@@ -148,7 +149,10 @@ export function StorageCard({
 
         {/* Address */}
         {storage.address !== null && (
-          <p className="mb-3 truncate text-sm text-neutral-600">{storage.address}</p>
+          <div className="mb-3 flex min-w-0 items-center gap-1">
+            <span className="material-symbols-outlined shrink-0 text-[14px] text-neutral-400">location_on</span>
+            <p className="truncate text-sm text-neutral-600">{storage.address}</p>
+          </div>
         )}
 
         {/* Context menu — mt-auto pins footer to bottom when grid stretches this card */}

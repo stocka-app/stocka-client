@@ -9,7 +9,7 @@
     "all": "Todos",
     "warehouses": "Almacenes",
     "storeRooms": "Bodegas",
-    "customRooms": "Áreas personalizadas"
+    "customRooms": "Personalizadas"
   },
   "table": {
     "name": "Nombre",
@@ -20,9 +20,9 @@
     "emptyArchived": "No hay instalaciones archivadas"
   },
   "types": {
-    "CUSTOM_ROOM": "Cuarto personalizado",
-    "STORE_ROOM": "Cuarto de almacén",
-    "WAREHOUSE": "Bodega"
+    "CUSTOM_ROOM": "Personalizado",
+    "STORE_ROOM": "Bodega",
+    "WAREHOUSE": "Almacén"
   },
   "statuses": {
     "ACTIVE": "Activo",
@@ -57,8 +57,10 @@
     "noStoragesSubtitle": "Crea tu primera instalación para gestionar tu inventario",
     "noResults": "No encontramos instalaciones con ese nombre",
     "noResultsSubtitle": "Revisa que el término de búsqueda sea correcto o intenta con un filtro diferente.",
+    "noTypeResults": "Aún no tienes {{type}}",
+    "noTypeResultsSubtitle": "Crea tu primera instalación de este tipo para gestionarla desde aquí.",
     "noFilterResults": "No hay instalaciones con ese filtro activo",
-    "noFilterResultsSubtitle": "Prueba seleccionar otro estado o tipo de instalación.",
+    "noFilterResultsSubtitle": "Prueba seleccionar otro estado o quita el término de búsqueda.",
     "clearSearch": "Limpiar búsqueda",
     "viewAll": "Ver todas",
     "valueCards": {

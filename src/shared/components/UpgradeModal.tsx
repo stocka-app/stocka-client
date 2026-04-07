@@ -26,7 +26,7 @@ export function UpgradeModal(): React.ReactElement | null {
       role="dialog"
       aria-modal="true"
       aria-labelledby="upgrade-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-[65] flex items-center justify-center bg-black/50"
     >
       <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
         {/* Header */}

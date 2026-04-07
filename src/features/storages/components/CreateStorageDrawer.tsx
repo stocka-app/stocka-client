@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useId } from 'react';
+import { useState, useCallback, useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -84,7 +84,7 @@ const PICKER_COLORS: string[] = [
 
 const HEX_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const DEFAULT_ICON = 'restaurant';
-const DEFAULT_COLOR = '#0D9488';
+const DEFAULT_COLOR = '#EC4899';
 
 // ─── Type card config ─────────────────────────────────────────────────────────
 
@@ -143,9 +143,9 @@ const TYPE_CONFIGS: TypeCardConfig[] = [
   },
   {
     type: 'CUSTOM_ROOM',
-    icon: 'category',
-    iconBg: 'bg-[#E5E7EB] dark:bg-[#374151]',
-    iconColor: 'text-[#6B7280] dark:text-[#D1D5DB]',
+    icon: 'palette',
+    iconBg: 'bg-[#FCE7F3] dark:bg-[#831843]',
+    iconColor: 'text-[#EC4899] dark:text-[#F9A8D4]',
     titleKey: 'createDrawer.customRoomLabel',
     descKey: 'createDrawer.customRoomDesc',
     exampleKey: 'createDrawer.customRoomExample',
@@ -156,7 +156,7 @@ const TYPE_CONFIGS: TypeCardConfig[] = [
     bannerDescColor: 'text-[#9CA3AF]',
     bannerLinkColor: 'text-[#6B7280] dark:text-[#9CA3AF]',
     subtitleKey: 'createDrawer.customRoomTypeSubtitle',
-    fixedColorSwatch: '#0D9488',
+    fixedColorSwatch: '#EC4899',
   },
 ];
 
@@ -179,6 +179,17 @@ function IconColorPicker({
 }: IconColorPickerProps): React.ReactElement {
   const { t } = useTranslation('storages');
   const titleId = useId();
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent): void => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [onClose]);
 
   const [tempIcon, setTempIcon] = useState(selectedIcon);
   const [tempColor, setTempColor] = useState(selectedColor);
@@ -213,10 +224,11 @@ function IconColorPicker({
 
   return (
     <div
+      ref={pickerRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed bottom-[72px] right-[480px] z-[60] flex w-[280px] flex-col overflow-hidden rounded-xl bg-white shadow-[-8px_0_32px_-4px_rgba(0,0,0,0.32)] dark:bg-[#1a2e45]"
+      className="fixed bottom-[72px] right-[480px] z-[60] flex max-h-[calc(100vh-88px)] w-[280px] flex-col overflow-hidden rounded-xl bg-white shadow-[-8px_0_32px_-4px_rgba(0,0,0,0.32)] dark:bg-[#1a2e45]"
     >
       {/* Header */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/10 px-4 dark:border-white/[0.08]">
@@ -234,7 +246,7 @@ function IconColorPicker({
       </div>
 
       {/* Scrollable body */}
-      <div className="max-h-[420px] overflow-y-auto px-4 py-2">
+      <div className="flex-1 overflow-y-auto px-4 py-2">
 
         {/* Icon section */}
         <div className="mb-2">
@@ -300,7 +312,7 @@ function IconColorPicker({
             </span>
           </button>
           {colorsExpanded && (
-            <div className="grid grid-cols-8 gap-1.5">
+            <div className="grid grid-cols-6 gap-3">
               {PICKER_COLORS.map((color) => {
                 const isSelected = tempColor === color;
                 return (
@@ -425,11 +437,13 @@ function TypeSelectionBody({
   selectedType,
   onSelectType,
   isTypeBlocked,
+  getBlockedBadgeLabel,
   onBlockedTypeClick,
 }: {
   selectedType: StorageType | null;
   onSelectType: (type: StorageType) => void;
   isTypeBlocked: (type: StorageType) => boolean;
+  getBlockedBadgeLabel: (type: StorageType) => string;
   onBlockedTypeClick: (type: StorageType) => void;
 }): React.ReactElement {
   const { t } = useTranslation('storages');
@@ -455,20 +469,20 @@ function TypeSelectionBody({
               data-testid={`type-card-${config.type}`}
               onClick={() => isBlocked ? onBlockedTypeClick(config.type) : onSelectType(config.type)}
               className={cn(
-                'relative flex w-full cursor-pointer items-start gap-4 rounded-xl border-2 p-4 text-left transition-all duration-150 active:scale-[0.99]',
+                'relative flex w-full items-start gap-4 rounded-xl border-2 p-4 text-left transition-all duration-150',
                 isBlocked
-                  ? 'border-neutral-100 bg-neutral-50 opacity-60 dark:border-[#2A3F55] dark:bg-[#1e293b]'
+                  ? 'cursor-not-allowed border-neutral-200 bg-neutral-100 opacity-50 grayscale dark:border-[#2A3F55] dark:bg-[#1e293b]'
                   : isSelected
-                  ? 'border-brand bg-white dark:border-brand dark:bg-[#243447]'
-                  : 'border-neutral-100 bg-neutral-50 hover:border-neutral-200 hover:bg-white hover:shadow-sm dark:border-[#2A3F55] dark:bg-[#1e293b] dark:hover:border-[#3A5270] dark:hover:bg-[#243447]',
+                  ? 'cursor-pointer border-brand bg-white shadow-sm active:scale-[0.99] dark:border-brand dark:bg-[#243447]'
+                  : 'cursor-pointer border-neutral-200 bg-white shadow-sm hover:border-brand/40 hover:shadow-md active:scale-[0.99] dark:border-[#2A3F55] dark:bg-[#1e293b] dark:hover:border-[#3A5270] dark:hover:bg-[#243447]',
               )}
             >
               {isBlocked && (
                 <span
-                  className="absolute right-3 top-3 rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:bg-[#2A3F55] dark:text-neutral-400"
+                  className="absolute right-3 top-3 rounded-full bg-neutral-300 px-2 py-0.5 text-[10px] font-semibold text-neutral-500 dark:bg-[#2A3F55] dark:text-neutral-400"
                   aria-hidden="true"
                 >
-                  {t('limits.warehouseProBadge')}
+                  {getBlockedBadgeLabel(config.type)}
                 </span>
               )}
 
@@ -493,12 +507,14 @@ function TypeSelectionBody({
                 </p>
               </div>
 
-              <span
-                className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-neutral-300 dark:text-neutral-600"
-                aria-hidden="true"
-              >
-                {isBlocked ? 'lock' : 'chevron_right'}
-              </span>
+              {!isBlocked && (
+                <span
+                  className="material-symbols-outlined mt-0.5 shrink-0 text-[20px] text-neutral-300 dark:text-neutral-600"
+                  aria-hidden="true"
+                >
+                  chevron_right
+                </span>
+              )}
             </button>
           );
         })}
@@ -579,7 +595,7 @@ function DetailsBody({
         className={cn('mx-6 mt-5 rounded-xl border p-4', !isCustomRoom && typeConfig.bannerBg, !isCustomRoom && typeConfig.bannerBorder)}
         style={isCustomRoom ? { backgroundColor: `${colorValue}15`, borderColor: `${colorValue}40` } : undefined}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-start justify-between">
           {isCustomRoom ? (
             <div
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
@@ -604,26 +620,26 @@ function DetailsBody({
               </span>
             </div>
           )}
-          <div className="min-w-0 flex-1">
-            <p
-              className={cn('text-sm font-semibold', !isCustomRoom && typeConfig.bannerTitleColor)}
-              style={isCustomRoom ? { color: colorValue } : undefined}
-            >
-              {t('createDrawer.typeLabel')} {typeLabel()}
-            </p>
-            <p className={cn('text-xs', typeConfig.bannerDescColor)}>
-              {t(typeConfig.subtitleKey)}
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={onChangeType}
+            className={cn('shrink-0 text-xs font-medium hover:underline', !isCustomRoom && typeConfig.bannerLinkColor)}
+            style={isCustomRoom ? { color: colorValue } : undefined}
+          >
+            {t('createDrawer.changeType')}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onChangeType}
-          className={cn('mt-2 text-xs font-medium hover:underline', !isCustomRoom && typeConfig.bannerLinkColor)}
-          style={isCustomRoom ? { color: colorValue } : undefined}
-        >
-          {t('createDrawer.changeType')}
-        </button>
+        <div className="mt-2">
+          <p
+            className={cn('text-sm font-semibold', !isCustomRoom && typeConfig.bannerTitleColor)}
+            style={isCustomRoom ? { color: colorValue } : undefined}
+          >
+            {t('createDrawer.typeLabel')} {typeLabel()}
+          </p>
+          <p className={cn('text-xs', typeConfig.bannerDescColor)}>
+            {t(typeConfig.subtitleKey)}
+          </p>
+        </div>
       </div>
 
       {/* Section header */}
@@ -933,13 +949,13 @@ export function CreateStorageDrawer({
 
   // ── Tier limit helpers ────────────────────────────────────────────────────
 
-  const activeCountForType = (type: StorageType): number =>
-    storages.filter((s) => s.type === type && s.status === 'ACTIVE').length;
+  const countForType = (type: StorageType): number =>
+    storages.filter((s) => s.type === type).length;
 
   const isAtTierLimit = (type: StorageType): boolean => {
     const limit = limits[type];
     if (limit === -1) return false;
-    return activeCountForType(type) >= limit;
+    return countForType(type) >= limit;
   };
 
   // ── Close / cancel guard ──────────────────────────────────────────────────
@@ -1058,7 +1074,7 @@ export function CreateStorageDrawer({
 
   const tierLimitReached = selectedType !== null && isAtTierLimit(selectedType);
   const currentTierLimit = selectedType ? limits[selectedType] : -1;
-  const currentActiveCount = selectedType ? activeCountForType(selectedType) : 0;
+  const currentActiveCount = selectedType ? countForType(selectedType) : 0;
 
   const capitalizedTier =
     tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
@@ -1119,8 +1135,20 @@ export function CreateStorageDrawer({
             <TypeSelectionBody
               selectedType={selectedType}
               onSelectType={handleSelectType}
-              isTypeBlocked={(type) => !isAllowed(STORAGE_TYPE_TO_FEATURE[type])}
-              onBlockedTypeClick={(type) => openUpgradeModal('FEATURE_NOT_IN_TIER', type)}
+              isTypeBlocked={(type) =>
+                !isAllowed(STORAGE_TYPE_TO_FEATURE[type]) || isAtTierLimit(type)
+              }
+              getBlockedBadgeLabel={(type) =>
+                !isAllowed(STORAGE_TYPE_TO_FEATURE[type])
+                  ? t('limits.warehouseProBadge')
+                  : `${countForType(type)}/${limits[type]}`
+              }
+              onBlockedTypeClick={(type) =>
+                openUpgradeModal(
+                  !isAllowed(STORAGE_TYPE_TO_FEATURE[type]) ? 'FEATURE_NOT_IN_TIER' : 'TIER_LIMIT_REACHED',
+                  type,
+                )
+              }
             />
           ) : (
             selectedType !== null && typeConfig !== null && (

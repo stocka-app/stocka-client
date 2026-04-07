@@ -51,7 +51,7 @@ export default function OnboardingPage(): React.ReactElement | null {
   } = useOnboarding();
 
   const setPath = useOnboardingStore((s) => s.setPath);
-  const tier = (user as { tier?: string } | null)?.tier;
+  const tier = user?.tierLimits?.tier ?? null;
 
   // Auto-redirect to dashboard when onboarding is completed (step 7 = completed state)
   useEffect(() => {

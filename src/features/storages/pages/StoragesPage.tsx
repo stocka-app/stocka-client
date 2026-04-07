@@ -53,6 +53,7 @@ export default function StoragesPage(): React.ReactElement {
     frozenStorages,
     archivedStorages,
     summary,
+    typeCounts,
     total,
     page,
     totalPages,
@@ -150,8 +151,7 @@ export default function StoragesPage(): React.ReactElement {
   const isAtTypeLimit = (type: StorageType): boolean => {
     const limit = storageLimits[type];
     if (limit === -1) return false;
-    const activeOfType = activeStorages.filter((s) => s.type === type).length;
-    return activeOfType >= limit;
+    return storages.filter((s) => s.type === type).length >= limit;
   };
 
   // True when at least one storage type is allowed by the current tier AND has remaining quota.
@@ -169,6 +169,9 @@ export default function StoragesPage(): React.ReactElement {
   // ── Derived state ─────────────────────────────────────────────────────
 
   const isFiltered = filterStatus !== null || filterType !== null || searchQuery !== '';
+  // True when the user only clicked a type tab — no status filter or search applied.
+  // In this case the empty state should read "No tienes X aún", not "tu filtro no encontró nada".
+  const isTypeTabOnly = filterType !== null && filterStatus === null && searchQuery === '';
   const hasStorages = storages.length > 0;
 
   // Track whether we ever received data. Once true, stays true for the
@@ -179,11 +182,6 @@ export default function StoragesPage(): React.ReactElement {
     everHadDataRef.current = true;
   }
   const hadData = everHadDataRef.current;
-
-  const countByType = (type: StorageType | null): number => {
-    if (type === null) return total;
-    return storages.filter((s) => s.type === type).length;
-  };
 
   // ── Modals (always mounted) ───────────────────────────────────────────
 
@@ -428,7 +426,7 @@ export default function StoragesPage(): React.ReactElement {
                   isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
                 )}
               >
-                {t(tab.labelKey)} ({countByType(tab.key)})
+                {t(tab.labelKey)} ({tab.key === null ? typeCounts.total : typeCounts[tab.key]})
                 {isLocked && (
                   <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                     lock
@@ -455,6 +453,23 @@ export default function StoragesPage(): React.ReactElement {
               feature={t(`types.${filterType}`)}
               onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
               onBack={() => setFilterType(null)}
+            />
+          </div>
+        ) : isTypeTabOnly ? (
+          <div className="flex flex-1 items-center justify-center">
+            <StateComposition
+              icon="inventory_2"
+              variant="neutral"
+              title={t('empty.noTypeResults', { type: t(`tabs.${filterType === 'WAREHOUSE' ? 'warehouses' : filterType === 'STORE_ROOM' ? 'storeRooms' : 'customRooms'}`) })}
+              description={t('empty.noTypeResultsSubtitle')}
+              actions={
+                canCreate && (
+                  <Button type="button" onClick={handleCreateClick} className="gap-2 bg-brand text-white hover:bg-brand-hover">
+                    <span className="material-symbols-outlined text-[20px]">add</span>
+                    {t('actions.create')}
+                  </Button>
+                )
+              }
             />
           </div>
         ) : (
@@ -526,7 +541,7 @@ export default function StoragesPage(): React.ReactElement {
                 isActive ? 'bg-brand text-white' : 'text-neutral-500 hover:bg-neutral-100',
               )}
             >
-              {t(tab.labelKey)} ({countByType(tab.key)})
+              {t(tab.labelKey)} ({tab.key === null ? typeCounts.total : typeCounts[tab.key]})
               {isLocked && (
                 <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                   lock
@@ -672,7 +687,7 @@ function StatsBar({ activeCount, frozenCount, archivedCount }: { activeCount: nu
       </div>
       <div className="hidden sm:block"><div className="h-6 w-px bg-border" /></div>
       <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-[20px] text-warning">ac_unit</span>
+        <span className="material-symbols-outlined text-[20px] text-blue-400">ac_unit</span>
         <span className="text-lg font-bold text-neutral-900">{String(frozenCount).padStart(2, '0')}</span>
         <span className="text-xs text-neutral-500">{t('stats.frozen')}</span>
       </div>

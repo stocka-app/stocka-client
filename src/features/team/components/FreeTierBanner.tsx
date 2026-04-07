@@ -1,17 +1,26 @@
 import { useTranslation } from 'react-i18next';
 import { useRBACStore } from '@/store/rbac.store';
+import { TIER_CAPABILITIES } from '@/shared/config/tier-capabilities';
+import type { TenantTier } from '@/features/team/types/team.types';
 
 /**
  * FreeTierBanner
  *
- * Displayed when the tenant is on the FREE tier and the current user is not OWNER.
- * Informs non-owner members that write actions require an upgraded plan.
+ * Displayed when the current tenant plan does not include invitations (i.e. the
+ * most restrictive tier) and the user is not the OWNER. Uses the TIER_CAPABILITIES
+ * snapshot instead of comparing against a hardcoded tier name string, so the banner
+ * automatically adapts if plan limits are reconfigured.
  */
 export function FreeTierBanner(): React.ReactElement | null {
   const { t } = useTranslation('team');
   const { tier, role } = useRBACStore();
 
-  if (tier !== 'FREE' || role === 'OWNER') {
+  const isRestrictedPlan =
+    tier !== null && tier in TIER_CAPABILITIES
+      ? !TIER_CAPABILITIES[tier as TenantTier].invitations
+      : false;
+
+  if (!isRestrictedPlan || role === 'OWNER') {
     return null;
   }
 

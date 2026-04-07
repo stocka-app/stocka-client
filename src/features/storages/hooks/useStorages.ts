@@ -38,12 +38,22 @@ function resolveCreateError(err: unknown): CreateError {
 
 const EMPTY_SUMMARY: StorageStatusSummary = { active: 0, frozen: 0, archived: 0 };
 
+interface TypeCounts {
+  WAREHOUSE: number;
+  STORE_ROOM: number;
+  CUSTOM_ROOM: number;
+  total: number;
+}
+
+const EMPTY_TYPE_COUNTS: TypeCounts = { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 };
+
 export function useStorages(): {
   storages: Storage[];
   activeStorages: Storage[];
   frozenStorages: Storage[];
   archivedStorages: Storage[];
   summary: StorageStatusSummary;
+  typeCounts: TypeCounts;
   total: number;
   page: number;
   totalPages: number;
@@ -97,6 +107,7 @@ export function useStorages(): {
   const [sortOrder, setSortOrderState] = useState<'ASC' | 'DESC'>('ASC');
   const [currentPage, setCurrentPageState] = useState(1);
   const [summary, setSummary] = useState<StorageStatusSummary>(EMPTY_SUMMARY);
+  const [typeCounts, setTypeCounts] = useState<TypeCounts>(EMPTY_TYPE_COUNTS);
 
   // Keep a ref with the latest filter values so fetchStorages can be called
   // with current state without being a dep of useEffect (avoids infinite loop).
@@ -123,6 +134,16 @@ export function useStorages(): {
         setStorages(result.items);
         setPagination(result.total, result.page, result.totalPages);
         setSummary(result.summary);
+        const ts = result.typeSummary;
+        setTypeCounts({
+          WAREHOUSE: ts.WAREHOUSE.active + ts.WAREHOUSE.frozen + ts.WAREHOUSE.archived,
+          STORE_ROOM: ts.STORE_ROOM.active + ts.STORE_ROOM.frozen + ts.STORE_ROOM.archived,
+          CUSTOM_ROOM: ts.CUSTOM_ROOM.active + ts.CUSTOM_ROOM.frozen + ts.CUSTOM_ROOM.archived,
+          total:
+            ts.WAREHOUSE.active + ts.WAREHOUSE.frozen + ts.WAREHOUSE.archived +
+            ts.STORE_ROOM.active + ts.STORE_ROOM.frozen + ts.STORE_ROOM.archived +
+            ts.CUSTOM_ROOM.active + ts.CUSTOM_ROOM.frozen + ts.CUSTOM_ROOM.archived,
+        });
         setLoading(false);
       } catch (err) {
         // AbortController cleanup (StrictMode) — ignore silently, don't set error
@@ -163,6 +184,7 @@ export function useStorages(): {
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterType, searchQuery, sortOrder, currentPage, isGated]);
+
 
   // ── Filter setters — reset page to 1 on any filter change ─────────────────
 
@@ -313,6 +335,7 @@ export function useStorages(): {
     frozenStorages,
     archivedStorages,
     summary,
+    typeCounts,
     total,
     page,
     totalPages,
