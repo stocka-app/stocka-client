@@ -223,6 +223,7 @@
     "nameTakenError": "A storage with that name already exists. Choose a different one so your team can tell them apart.",
     "cancelConfirmTitle": "Abandon creation?",
     "cancelConfirmBody": "You will lose all entered data. This action cannot be undone.",
+    "cancel": "Cancel",
     "keepEditing": "Keep editing",
     "abandon": "Abandon",
     "successToast": "\"{{name}}\" was added to the list."
