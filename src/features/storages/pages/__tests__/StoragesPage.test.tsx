@@ -40,6 +40,7 @@ const mocks = vi.hoisted(() => ({
   frozenStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   archivedStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
   summary: { active: 0, frozen: 0, archived: 0 },
+  typeCounts: { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 },
   total: 0,
   page: 1,
   totalPages: 1,
@@ -90,6 +91,7 @@ vi.mock('../../hooks/useStorages', () => ({
     frozenStorages: mocks.frozenStorages,
     archivedStorages: mocks.archivedStorages,
     summary: mocks.summary,
+    typeCounts: mocks.typeCounts,
     total: mocks.total,
     page: mocks.page,
     totalPages: mocks.totalPages,
@@ -221,6 +223,13 @@ function setSuccessState(overrides: Partial<typeof mocks> = {}) {
     frozen: mocks.frozenStorages.length,
     archived: mocks.archivedStorages.length,
   };
+  const countByType = (type: string) => mocks.storages.filter(s => s.type === type).length;
+  mocks.typeCounts = overrides.typeCounts ?? {
+    WAREHOUSE: countByType('WAREHOUSE'),
+    STORE_ROOM: countByType('STORE_ROOM'),
+    CUSTOM_ROOM: countByType('CUSTOM_ROOM'),
+    total: mocks.storages.length,
+  };
   mocks.total = overrides.total ?? mocks.storages.length;
   Object.assign(mocks, overrides);
 }
@@ -237,6 +246,7 @@ describe('StoragesPage', () => {
     mocks.frozenStorages = [];
     mocks.archivedStorages = [];
     mocks.summary = { active: 0, frozen: 0, archived: 0 };
+    mocks.typeCounts = { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 };
     mocks.total = 0;
     mocks.page = 1;
     mocks.totalPages = 1;
@@ -435,8 +445,8 @@ describe('StoragesPage', () => {
       render(<StoragesPage />);
     });
 
-    it('should show the no filter results message', () => {
-      expect(screen.getByTestId('state-composition')).toHaveTextContent('empty.noFilterResults');
+    it('should show the no type results message', () => {
+      expect(screen.getByTestId('state-composition')).toHaveTextContent('empty.noTypeResults');
     });
   });
 

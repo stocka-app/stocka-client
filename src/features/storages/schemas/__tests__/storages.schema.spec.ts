@@ -338,7 +338,7 @@ describe('Given the storages schemas validate domain data', () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.icon).toBe('restaurant');
-        expect(result.data.color).toBe('#0D9488');
+        expect(result.data.color).toBe('#EC4899');
       }
     });
   });

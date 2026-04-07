@@ -92,9 +92,9 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       expect(screen.getByText('types.WAREHOUSE')).toBeInTheDocument();
     });
 
-    it('Then the status label is rendered', () => {
+    it('Then the active status dot is rendered with an accessible label', () => {
       render(<StorageCard storage={activeWarehouse} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.getByText('statuses.ACTIVE')).toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'statuses.ACTIVE' })).toBeInTheDocument();
     });
 
     it('Then the address is shown when present', () => {
@@ -126,9 +126,9 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
   });
 
   describe('When the storage is frozen', () => {
-    it('Then the frozen status label is rendered', () => {
+    it('Then the frozen status dot is rendered with an accessible label', () => {
       render(<StorageCard storage={frozenStoreRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.getByText('statuses.FROZEN')).toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'statuses.FROZEN' })).toBeInTheDocument();
     });
 
     it('Then the archive action is not shown for a frozen storage', async () => {
@@ -153,9 +153,9 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
   });
 
   describe('When the storage is archived and the delete handler is provided (Owner role)', () => {
-    it('Then the archived status label is rendered', () => {
+    it('Then the archived status dot is rendered with an accessible label', () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
-      expect(screen.getByText('statuses.ARCHIVED')).toBeInTheDocument();
+      expect(screen.getByRole('img', { name: 'statuses.ARCHIVED' })).toBeInTheDocument();
     });
 
     it('Then Ver más, Editar, and Eliminar actions are shown', async () => {
@@ -262,6 +262,17 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
     it('Then the CUSTOM_ROOM type badge label is shown', () => {
       render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
       expect(screen.getByText('types.CUSTOM_ROOM')).toBeInTheDocument();
+    });
+
+    it('Then the custom icon from storage.icon is rendered', () => {
+      render(<StorageCard storage={archivedRoom} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />);
+      expect(screen.getByText('restaurant')).toBeInTheDocument();
+    });
+
+    it('Then a different custom icon is rendered when storage.icon changes', () => {
+      const hotelRoom: Storage = { ...archivedRoom, icon: 'hotel', color: '#8B5CF6' };
+      render(<StorageCard storage={hotelRoom} />);
+      expect(screen.getByText('hotel')).toBeInTheDocument();
     });
   });
 

@@ -128,6 +128,32 @@ describe('Step4Spaces', () => {
   // Null tier defaults to FREE
   // =========================================================================
 
+  // =========================================================================
+  // ENTERPRISE tier — unlimited limits show ∞ symbol
+  // =========================================================================
+
+  describe('Given the user is on ENTERPRISE tier (unlimited limits)', () => {
+    beforeEach(() => {
+      render(
+        <Step4Spaces
+          businessType="RETAIL"
+          tier="ENTERPRISE"
+          onSubmit={onSubmit}
+          onSkip={onSkip}
+          onBack={onBack}
+          isLoading={false}
+          error={null}
+        />,
+      );
+    });
+
+    it('Then all three storage type cards show ∞ as the max limit', () => {
+      // ENTERPRISE tier has limit=-1 for all three types → displayed as ∞
+      const infinityBadges = screen.getAllByText('max ∞');
+      expect(infinityBadges).toHaveLength(3);
+    });
+  });
+
   describe('Given tier is null', () => {
     beforeEach(() => {
       render(
