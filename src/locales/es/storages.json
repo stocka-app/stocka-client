@@ -58,7 +58,7 @@
     "noResults": "No encontramos instalaciones con ese nombre",
     "noResultsSubtitle": "Revisa que el término de búsqueda sea correcto o intenta con un filtro diferente.",
     "noTypeResults": "Aún no tienes {{type}}",
-    "noTypeResultsSubtitle": "Crea tu primera instalación de este tipo para gestionarla desde aquí.",
+    "noTypeResultsSubtitle": "Crea tu primera instalación de este tipo para centralizar tu inventario y gestionar esta área.",
     "noFilterResults": "No hay instalaciones con ese filtro activo",
     "noFilterResultsSubtitle": "Prueba seleccionar otro estado o quita el término de búsqueda.",
     "clearSearch": "Limpiar búsqueda",

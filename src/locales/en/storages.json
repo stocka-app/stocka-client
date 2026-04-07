@@ -58,7 +58,7 @@
     "noResults": "No storages found with that name",
     "noResultsSubtitle": "Check that the search term is correct or try a different filter.",
     "noTypeResults": "No {{type}} yet",
-    "noTypeResultsSubtitle": "Create your first storage of this type to manage it from here.",
+    "noTypeResultsSubtitle": "Create your first {{type}} and start centralizing your inventory for this area.",
     "noFilterResults": "No storages match this filter",
     "noFilterResultsSubtitle": "Try selecting a different status or clearing your search.",
     "clearSearch": "Clear search",
