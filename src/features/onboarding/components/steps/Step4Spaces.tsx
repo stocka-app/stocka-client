@@ -4,6 +4,8 @@ import { Store, Package, Warehouse, Lock, ChevronDown, ChevronUp, Plus, Trash2, 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { cn } from '@/shared/lib/utils';
+import { IconColorPicker } from '@/shared/components/IconColorPicker';
+import { DEFAULT_ICON, DEFAULT_COLOR } from '@/shared/lib/icon-color-picker.constants';
 import { TIER_CAPABILITIES } from '@/shared/config/tier-capabilities';
 import type { TenantTier } from '@/features/team/types/team.types';
 
@@ -16,6 +18,8 @@ export interface SpaceConfig {
   name: string;
   roomType?: string;
   address?: string;
+  icon?: string;
+  color?: string;
 }
 
 interface Step4SpacesProps {
@@ -57,6 +61,8 @@ interface CustomRoomState {
   customRoomType: string;
   name: string;
   address: string;
+  icon: string;
+  color: string;
 }
 
 interface StoreRoomState {
@@ -106,8 +112,9 @@ export function Step4Spaces({
 
   // Space instances
   const [customRooms, setCustomRooms] = useState<CustomRoomState[]>([
-    { roomType: '', customRoomType: '', name: '', address: '' },
+    { roomType: '', customRoomType: '', name: '', address: '', icon: DEFAULT_ICON, color: DEFAULT_COLOR },
   ]);
+  const [openPickerIndex, setOpenPickerIndex] = useState<number | null>(null);
   const [storeRooms, setStoreRooms] = useState<StoreRoomState[]>([
     { name: '', address: '' },
   ]);
@@ -156,7 +163,7 @@ export function Step4Spaces({
   /* v8 ignore start: defensive guard — add button not rendered at max capacity */
   const addCustomRoom = useCallback(() => {
     if (maxCustomRooms === -1 || customRooms.length < maxCustomRooms) {
-      setCustomRooms((prev) => [...prev, { roomType: '', customRoomType: '', name: '', address: '' }]);
+      setCustomRooms((prev) => [...prev, { roomType: '', customRoomType: '', name: '', address: '', icon: DEFAULT_ICON, color: DEFAULT_COLOR }]);
     }
   }, [customRooms.length, maxCustomRooms]);
   /* v8 ignore stop */
@@ -300,6 +307,8 @@ export function Step4Spaces({
           name: room.name.trim(),
           roomType: effectiveRoomType,
           address: room.address.trim() || undefined,
+          icon: room.icon,
+          color: room.color,
         });
       }
     });
@@ -755,6 +764,55 @@ export function Step4Spaces({
                     className="h-10 rounded-xl border-neutral-200 dark:border-white/[0.08]"
                     aria-label={t('step4.customRoom.addressLabel')}
                   />
+                </div>
+
+                {/* Icon & color picker */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenPickerIndex(index)}
+                    disabled={isLoading}
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-neutral-800 p-2.5 transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                      style={{ backgroundColor: `${room.color}33` }}
+                    >
+                      <span
+                        className="material-symbols-outlined text-[18px]"
+                        style={{ color: room.color }}
+                      >
+                        {room.icon}
+                      </span>
+                    </div>
+                    <div
+                      className="h-8 w-8 shrink-0 rounded-lg border border-neutral-200"
+                      style={{ backgroundColor: room.color }}
+                    />
+                    <div className="flex-1 text-left">
+                      <p className="text-xs font-medium text-neutral-700">{room.icon}</p>
+                      <p className="text-[10px] text-neutral-400">{room.color}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-[18px] text-neutral-400">
+                      chevron_right
+                    </span>
+                  </button>
+                  {openPickerIndex === index && (
+                    <IconColorPicker
+                      selectedIcon={room.icon}
+                      selectedColor={room.color}
+                      onChange={(icon, color) => {
+                        setCustomRooms((prev) => {
+                          const updated = [...prev];
+                          updated[index] = { ...updated[index], icon, color };
+                          return updated;
+                        });
+                      }}
+                      onClose={() => setOpenPickerIndex(null)}
+                      onApply={() => setOpenPickerIndex(null)}
+                      positionClassName="absolute bottom-full right-0 z-50 mb-2"
+                    />
+                  )}
                 </div>
               </div>
             ))}
