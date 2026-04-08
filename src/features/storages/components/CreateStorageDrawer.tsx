@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormHandleSubmit, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
@@ -282,7 +282,7 @@ interface DetailsBodyProps {
   isSubmitting: boolean;
   register: ReturnType<typeof useForm<DrawerFormValues>>['register'];
   errors: ReturnType<typeof useForm<DrawerFormValues>>['formState']['errors'];
-  handleSubmit: ReturnType<typeof useForm<DrawerFormValues>>['handleSubmit'];
+  handleSubmit: UseFormHandleSubmit<DrawerFormValues, DrawerFormValues>;
   onFormSubmit: (values: DrawerFormValues) => Promise<void>;
 }
 
@@ -643,6 +643,11 @@ export function CreateStorageDrawer({
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<DrawerFormValues>({
+    // The zod schema has `.optional()` / `.default()` on description/icon/color
+    // which makes the resolver's input type have `| undefined` for those fields.
+    // But our `defaultValues` below supply concrete strings for all of them, so
+    // at runtime the form always holds fully-populated values matching
+    // `DrawerFormValues`. We cast the resolver to tell TS the effective type.
     resolver: zodResolver(
       createCustomRoomFormSchema.pick({
         name: true,
@@ -651,7 +656,7 @@ export function CreateStorageDrawer({
         icon: true,
         color: true,
       }),
-    ),
+    ) as unknown as Resolver<DrawerFormValues, unknown, DrawerFormValues>,
     defaultValues: {
       name: '',
       address: '',

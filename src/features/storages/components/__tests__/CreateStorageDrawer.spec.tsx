@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { CreateStorageDrawerProps } from '../CreateStorageDrawer';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -43,10 +43,10 @@ const DEFAULT_TYPE_COUNTS: CreateStorageDrawerProps['typeCounts'] = {
 
 describe('Given the CreateStorageDrawer is open', () => {
   let user: ReturnType<typeof userEvent.setup>;
-  let onClose: ReturnType<typeof vi.fn>;
-  let onCreateWarehouse: ReturnType<typeof vi.fn>;
-  let onCreateStoreRoom: ReturnType<typeof vi.fn>;
-  let onCreateCustomRoom: ReturnType<typeof vi.fn>;
+  let onClose: Mock<CreateStorageDrawerProps['onClose']>;
+  let onCreateWarehouse: Mock<CreateStorageDrawerProps['onCreateWarehouse']>;
+  let onCreateStoreRoom: Mock<CreateStorageDrawerProps['onCreateStoreRoom']>;
+  let onCreateCustomRoom: Mock<CreateStorageDrawerProps['onCreateCustomRoom']>;
 
   beforeEach(() => {
     user = userEvent.setup();
@@ -75,6 +75,8 @@ describe('Given the CreateStorageDrawer is open', () => {
 
   async function navigateToStep2(type: 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM'): Promise<void> {
     await user.click(screen.getByTestId(`type-card-${type}`));
+    // Step 1 does not auto-advance; user must click the Continue button
+    await user.click(screen.getByText('createDrawer.continue'));
     // step2Title appears only in the visible body, not in the sr-only live region
     await waitFor(() => expect(screen.getByText('createDrawer.step2Title')).toBeInTheDocument(), {
       timeout: 500,

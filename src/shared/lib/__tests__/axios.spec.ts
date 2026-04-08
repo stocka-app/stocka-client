@@ -50,37 +50,6 @@ function fakeRefreshResponse(
   } as AxiosResponse;
 }
 
-/**
- * Creates an AxiosError-like object that axios interceptors will receive.
- * We build it manually because we need full control over shape.
- */
-function makeAxiosError(opts: {
-  status?: number;
-  url?: string;
-  data?: Record<string, unknown>;
-  code?: string;
-  message?: string;
-  _retry?: boolean;
-}) {
-  const config: InternalAxiosRequestConfig & { _retry?: boolean } = {
-    url: opts.url ?? '/some-endpoint',
-    headers: {} as InternalAxiosRequestConfig['headers'],
-  };
-  if (opts._retry) config._retry = true;
-
-  const error: Record<string, unknown> = {
-    config,
-    response: opts.status
-      ? { status: opts.status, data: opts.data ?? {}, headers: {}, config, statusText: 'Error' }
-      : undefined,
-    isAxiosError: true,
-    code: opts.code,
-    message: opts.message ?? 'Request failed',
-    toJSON: () => ({}),
-  };
-  return error;
-}
-
 // ─── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('axios.ts module', () => {
