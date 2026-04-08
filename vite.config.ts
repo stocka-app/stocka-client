@@ -23,9 +23,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     pool: 'forks',
-    forks: {
-      singleFork: true,
-    },
+    fileParallelism: false,
     // Exclude Playwright e2e specs — they run via `npm run test:e2e`, not Vitest
     exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
     coverage: {

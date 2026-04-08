@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 
+// eslint-disable-next-line react-refresh/only-export-components -- helper utility tightly coupled to AvatarWithFallback; kept in the same file for discoverability.
 export function getInitials(
   givenName: string | null | undefined,
   familyName: string | null | undefined,

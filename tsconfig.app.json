@@ -16,8 +16,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Path aliases */
-    "baseUrl": ".",
+    /* Path aliases — bundler moduleResolution resolves paths relative to tsconfig */
     "paths": {
       "@/*": ["./src/*"]
     },

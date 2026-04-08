@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
@@ -50,8 +50,6 @@ export default function StoragesPage(): React.ReactElement {
   const {
     storages,
     activeStorages,
-    frozenStorages,
-    archivedStorages,
     summary,
     typeCounts,
     total,
@@ -177,11 +175,16 @@ export default function StoragesPage(): React.ReactElement {
   // Track whether we ever received data. Once true, stays true for the
   // lifetime of this component so that subsequent loads (filter, search,
   // pagination) always show the spinner overlay instead of the skeleton.
-  const everHadDataRef = useRef(false);
-  if (!isLoading && (hasStorages || total > 0)) {
-    everHadDataRef.current = true;
-  }
-  const hadData = everHadDataRef.current;
+  // This is sticky derived state — there is no external system to subscribe
+  // to; the flag latches once data arrives and must survive subsequent loads
+  // where `storages` may temporarily be empty while fetching.
+  const [hadData, setHadData] = useState(false);
+  useEffect(() => {
+    if (!hadData && !isLoading && (hasStorages || total > 0)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sticky flag, see comment above.
+      setHadData(true);
+    }
+  }, [hadData, isLoading, hasStorages, total]);
 
   // ── Modals (always mounted) ───────────────────────────────────────────
 

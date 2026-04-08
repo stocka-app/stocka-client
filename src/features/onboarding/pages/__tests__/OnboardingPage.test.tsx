@@ -61,10 +61,8 @@ vi.mock('lucide-react', () => ({
 }));
 
 /** Stub all step components — capture props */
-let onboardingCardProps: Record<string, unknown> = {};
 vi.mock('../../components/OnboardingCard', () => ({
   OnboardingCard: (props: Record<string, unknown>) => {
-    onboardingCardProps = props;
     return (
       <div data-testid={`onboarding-card-step-${props.step}`} data-title={props.title}>
         {props.children as React.ReactNode}
@@ -184,7 +182,6 @@ describe('OnboardingPage', () => {
     user = userEvent.setup();
     vi.clearAllMocks();
     mutableThemeStore.theme = 'light';
-    onboardingCardProps = {};
     step0Props = {};
     step1Props = {};
     step2Props = {};

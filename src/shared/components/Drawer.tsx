@@ -20,7 +20,7 @@ interface DrawerProps {
  *     {children}
  *   </Drawer>
  */
-export default function Drawer({ open, onClose, children, className }: DrawerProps): JSX.Element {
+export default function Drawer({ open, onClose, children, className }: DrawerProps): React.ReactElement {
   return (
     <>
       {/* Backdrop — fades in on open, fades out on close */}
