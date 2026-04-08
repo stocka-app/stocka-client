@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Step4Spaces } from '@/features/onboarding/components/steps/Step4Spaces';
 
@@ -520,6 +520,8 @@ describe('Step4Spaces', () => {
             name: 'Display Area',
             roomType: 'Showroom',
             address: undefined,
+            icon: 'restaurant',
+            color: '#EC4899',
           },
         ]);
       });
@@ -543,6 +545,8 @@ describe('Step4Spaces', () => {
             name: 'Main Lab',
             roomType: 'Lab',
             address: '456 Science Rd',
+            icon: 'restaurant',
+            color: '#EC4899',
           },
         ]);
       });
@@ -1073,7 +1077,7 @@ describe('Step4Spaces', () => {
 
     it('Then onSubmit is called with all three space types', () => {
       expect(onSubmit).toHaveBeenCalledWith([
-        { type: 'CUSTOM_ROOM', name: 'Back Office', roomType: 'Office', address: undefined },
+        { type: 'CUSTOM_ROOM', name: 'Back Office', roomType: 'Office', address: undefined, icon: 'restaurant', color: '#EC4899' },
         { type: 'STORE_ROOM', name: 'Main Store', address: undefined },
         { type: 'WAREHOUSE', name: 'WH-1', address: 'Industrial Zone' },
       ]);
@@ -1491,6 +1495,76 @@ describe('Step4Spaces', () => {
         { type: 'STORE_ROOM', name: 'Free Store', address: undefined },
       ]);
     });
+  });
+
+  // =========================================================================
+  // Custom room icon/color picker
+  // =========================================================================
+
+  describe('Given configure mode with the custom room section expanded', () => {
+    beforeEach(async () => {
+      render(
+        <Step4Spaces
+          businessType="RETAIL"
+          tier="STARTER"
+          onSubmit={onSubmit}
+          onSkip={onSkip}
+          onBack={onBack}
+          isLoading={false}
+          error={null}
+        />,
+      );
+      await user.click(screen.getByText('step4.configureButton'));
+      const customToggle = screen.getByRole('button', { name: /step4\.customRoom\.title/i });
+      await user.click(customToggle);
+    });
+
+    describe('When the user clicks the icon/color button', () => {
+      it('Then the icon/color picker panel opens', async () => {
+        const pickerButtons = screen.getAllByRole('button', { name: /restaurant/i });
+        await user.click(pickerButtons[0]);
+        expect(screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' })).toBeInTheDocument();
+      });
+    });
+
+    describe('When the picker is open and the user clicks Apply', () => {
+      beforeEach(async () => {
+        const pickerButtons = screen.getAllByRole('button', { name: /restaurant/i });
+        await user.click(pickerButtons[0]);
+      });
+
+      it('Then the picker closes', async () => {
+        await user.click(screen.getByRole('button', { name: 'createDrawer.pickerApply' }));
+        expect(screen.queryByRole('dialog', { name: 'createDrawer.customizeIconColor' })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('When the picker is open and the user clicks X to close', () => {
+      beforeEach(async () => {
+        const pickerButtons = screen.getAllByRole('button', { name: /restaurant/i });
+        await user.click(pickerButtons[0]);
+      });
+
+      it('Then the picker closes', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: 'createDrawer.close' }));
+        expect(screen.queryByRole('dialog', { name: 'createDrawer.customizeIconColor' })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('When the picker is open and the user selects a different icon', () => {
+      beforeEach(async () => {
+        const pickerButtons = screen.getAllByRole('button', { name: /restaurant/i });
+        await user.click(pickerButtons[0]);
+      });
+
+      it('Then the room state updates with the new icon', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: 'hotel' }));
+        expect(within(pickerDialog).getByRole('button', { name: 'hotel' })).toHaveAttribute('aria-pressed', 'true');
+      });
+    });
+
   });
 
   // =========================================================================

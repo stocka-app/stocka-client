@@ -1,7 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Storage } from '../../types/storages.types';
 import type { CreateStorageDrawerProps } from '../CreateStorageDrawer';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
@@ -34,23 +33,11 @@ const DEFAULT_LIMITS: CreateStorageDrawerProps['limits'] = {
   CUSTOM_ROOM: 3,
 };
 
-function makeStorage(type: Storage['type'], uuid: string): Storage {
-  return {
-    uuid,
-    name: 'Existing Storage',
-    type,
-    status: 'ACTIVE',
-    address: '123 Test St',
-    roomType: null,
-    icon: 'warehouse',
-    color: '#3B82F6',
-    description: null,
-    archivedAt: null,
-    frozenAt: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  };
-}
+const DEFAULT_TYPE_COUNTS: CreateStorageDrawerProps['typeCounts'] = {
+  WAREHOUSE: 0,
+  STORE_ROOM: 0,
+  CUSTOM_ROOM: 0,
+};
 
 // ─── Spec ────────────────────────────────────────────────────────────────────
 
@@ -75,7 +62,7 @@ describe('Given the CreateStorageDrawer is open', () => {
       <CreateStorageDrawer
         open={true}
         onClose={onClose}
-        storages={[]}
+        typeCounts={DEFAULT_TYPE_COUNTS}
         limits={DEFAULT_LIMITS}
         tier="STARTER"
         onCreateWarehouse={onCreateWarehouse}
@@ -324,6 +311,84 @@ describe('Given the CreateStorageDrawer is open', () => {
       });
     });
 
+    describe('When the picker is open', () => {
+      beforeEach(async () => {
+        await user.click(screen.getByRole('button', { name: /restaurant/ }));
+        await waitFor(() =>
+          expect(screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' })).toBeInTheDocument(),
+        );
+      });
+
+      it('Then clicking Apply closes the picker', async () => {
+        await user.click(screen.getByRole('button', { name: 'createDrawer.pickerApply' }));
+        expect(screen.queryByRole('dialog', { name: 'createDrawer.customizeIconColor' })).not.toBeInTheDocument();
+      });
+
+      it('Then clicking the Cancel button in the footer closes the picker and reverts values', async () => {
+        // Change the icon first
+        await user.click(screen.getByRole('button', { name: 'hotel' }));
+        // Then cancel — should revert to original
+        await user.click(screen.getByRole('button', { name: 'createDrawer.pickerCancel' }));
+        expect(screen.queryByRole('dialog', { name: 'createDrawer.customizeIconColor' })).not.toBeInTheDocument();
+      });
+
+      it('Then clicking outside the picker panel closes it via the mousedown handler', async () => {
+        // The name input is outside pickerRef — triggers the document mousedown handler
+        await user.pointer({ target: screen.getByRole('textbox', { name: 'createDrawer.nameLabel' }), keys: '[MouseLeft>]' });
+        expect(screen.queryByRole('dialog', { name: 'createDrawer.customizeIconColor' })).not.toBeInTheDocument();
+      });
+
+      it('Then clicking the X close button in the picker header closes the picker', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: 'createDrawer.close' }));
+        expect(screen.queryByRole('dialog', { name: 'createDrawer.customizeIconColor' })).not.toBeInTheDocument();
+      });
+
+      it('Then clicking an icon in the picker updates the selection', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: 'hotel' }));
+        expect(within(pickerDialog).getByRole('button', { name: 'hotel' })).toHaveAttribute('aria-pressed', 'true');
+      });
+
+      it('Then clicking a color swatch updates the selection', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: '#EF4444' }));
+        expect(within(pickerDialog).getByRole('button', { name: '#EF4444' })).toHaveAttribute('aria-pressed', 'true');
+      });
+
+      it('Then typing a valid hex in the custom color input updates the color', async () => {
+        const hexInput = screen.getByPlaceholderText('#000000');
+        await user.clear(hexInput);
+        await user.type(hexInput, '#AABBCC');
+        expect(hexInput).toHaveValue('#AABBCC');
+      });
+
+      it('Then typing an invalid hex does not update the color selection', async () => {
+        const hexInput = screen.getByPlaceholderText('#000000');
+        await user.clear(hexInput);
+        await user.type(hexInput, 'INVALID');
+        expect(hexInput).toHaveValue('INVALID');
+      });
+
+      it('Then collapsing the icons section hides the icon grid', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: /createDrawer\.iconSection/ }));
+        expect(within(pickerDialog).queryByRole('button', { name: 'restaurant' })).not.toBeInTheDocument();
+      });
+
+      it('Then collapsing the colors section hides the color grid', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: /createDrawer\.colorSection/ }));
+        expect(within(pickerDialog).queryByRole('button', { name: '#EF4444' })).not.toBeInTheDocument();
+      });
+
+      it('Then collapsing the custom color section hides the hex input', async () => {
+        const pickerDialog = screen.getByRole('dialog', { name: 'createDrawer.customizeIconColor' });
+        await user.click(within(pickerDialog).getByRole('button', { name: /createDrawer\.customColorSection/ }));
+        expect(screen.queryByPlaceholderText('#000000')).not.toBeInTheDocument();
+      });
+    });
+
     describe('When the user submits with the default icon and color', () => {
       it('Then onCreateCustomRoom is called with icon and color in the payload', async () => {
         await user.type(screen.getByRole('textbox', { name: 'createDrawer.nameLabel' }), 'Pop-up Store');
@@ -348,11 +413,7 @@ describe('Given the CreateStorageDrawer is open', () => {
     describe('When the type-selection renders with all warehouse slots filled', () => {
       it('Then the WAREHOUSE type card shows the count/limit badge', () => {
         renderDrawer({
-          storages: [
-            makeStorage('WAREHOUSE', '00000000-0000-0000-0000-000000000001'),
-            makeStorage('WAREHOUSE', '00000000-0000-0000-0000-000000000002'),
-            makeStorage('WAREHOUSE', '00000000-0000-0000-0000-000000000003'),
-          ],
+          typeCounts: { WAREHOUSE: 3, STORE_ROOM: 0, CUSTOM_ROOM: 0 },
         });
         expect(screen.getByText('3/3')).toBeInTheDocument();
       });

@@ -151,7 +151,7 @@ export default function StoragesPage(): React.ReactElement {
   const isAtTypeLimit = (type: StorageType): boolean => {
     const limit = storageLimits[type];
     if (limit === -1) return false;
-    return storages.filter((s) => s.type === type).length >= limit;
+    return typeCounts[type] >= limit;
   };
 
   // True when at least one storage type is allowed by the current tier AND has remaining quota.
@@ -191,7 +191,7 @@ export default function StoragesPage(): React.ReactElement {
       <CreateStorageDrawer
         open={isCreateDrawerOpen}
         onClose={() => setIsCreateDrawerOpen(false)}
-        storages={storages}
+        typeCounts={typeCounts}
         limits={storageLimits}
         tier={tier ?? 'FREE'}
         onCreateWarehouse={createWarehouse}
@@ -458,10 +458,10 @@ export default function StoragesPage(): React.ReactElement {
         ) : isTypeTabOnly ? (
           <div className="flex flex-1 items-center justify-center">
             <StateComposition
-              icon="inventory_2"
+              icon={filterType === 'WAREHOUSE' ? 'warehouse' : filterType === 'STORE_ROOM' ? 'inventory_2' : 'palette'}
               variant="neutral"
               title={t('empty.noTypeResults', { type: t(`tabs.${filterType === 'WAREHOUSE' ? 'warehouses' : filterType === 'STORE_ROOM' ? 'storeRooms' : 'customRooms'}`) })}
-              description={t('empty.noTypeResultsSubtitle')}
+              description={t('empty.noTypeResultsSubtitle', { type: t(`tabs.${filterType === 'WAREHOUSE' ? 'warehouses' : filterType === 'STORE_ROOM' ? 'storeRooms' : 'customRooms'}`) })}
               actions={
                 canCreate && (
                   <Button type="button" onClick={handleCreateClick} className="gap-2 bg-brand text-white hover:bg-brand-hover">
@@ -470,6 +470,11 @@ export default function StoragesPage(): React.ReactElement {
                   </Button>
                 )
               }
+              cards={[
+                { icon: 'hub', iconColor: 'text-brand', title: t('empty.valueCards.centralization'), description: t('empty.valueCards.centralizationDesc') },
+                { icon: 'speed', iconColor: 'text-brand', title: t('empty.valueCards.optimization'), description: t('empty.valueCards.optimizationDesc') },
+                { icon: 'shield_person', iconColor: 'text-brand', title: t('empty.valueCards.rolesPermissions'), description: t('empty.valueCards.rolesPermissionsDesc') },
+              ]}
             />
           </div>
         ) : (
