@@ -33,7 +33,7 @@ vi.mock('@/store/rbac.store', () => ({
 }));
 
 // Default: STARTER — all storage types allowed
-let mockIsAllowed = vi.fn((_feature: string) => true);
+let mockIsAllowed = vi.fn<(feature: string) => boolean>(() => true);
 
 vi.mock('@/shared/hooks/useTierCapabilities', () => ({
   useTierCapabilities: () => ({ isAllowed: mockIsAllowed }),
@@ -105,6 +105,11 @@ const mockPage: StoragesPage = {
   limit: 50,
   totalPages: 1,
   summary: { active: mockStoragesItems.length, frozen: 0, archived: 0 },
+  typeSummary: {
+    WAREHOUSE: { active: 0, frozen: 0, archived: 0 },
+    STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+    CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+  },
 };
 
 // Extended mock data with FROZEN and varied types for filter tests
@@ -179,6 +184,11 @@ const allStoragesMockPage: StoragesPage = {
   totalPages: 1,
   // 2 active (WAREHOUSE + CUSTOM_ROOM), 1 frozen (STORE_ROOM), 1 archived (WAREHOUSE)
   summary: { active: 2, frozen: 1, archived: 1 },
+  typeSummary: {
+    WAREHOUSE: { active: 1, frozen: 0, archived: 1 },
+    STORE_ROOM: { active: 0, frozen: 1, archived: 0 },
+    CUSTOM_ROOM: { active: 1, frozen: 0, archived: 0 },
+  },
 };
 
 function resetStore(): void {
@@ -807,6 +817,11 @@ describe('Given useStorages with multi-page results', () => {
     limit: 1,
     totalPages: 3,
     summary: { active: 3, frozen: 0, archived: 0 },
+    typeSummary: {
+      WAREHOUSE: { active: 0, frozen: 0, archived: 0 },
+      STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+      CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+    },
   };
 
   const pageTwoMock: StoragesPage = {
@@ -816,6 +831,11 @@ describe('Given useStorages with multi-page results', () => {
     limit: 1,
     totalPages: 3,
     summary: { active: 3, frozen: 0, archived: 0 },
+    typeSummary: {
+      WAREHOUSE: { active: 0, frozen: 0, archived: 0 },
+      STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+      CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+    },
   };
 
   beforeEach(() => {

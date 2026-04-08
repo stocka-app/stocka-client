@@ -183,14 +183,18 @@ describe('Given CreateEditStorageModal handles storage creation and editing', ()
   });
 
   describe('When the form has an invalid type value', () => {
-    const invalidSpace = {
+    const invalidSpace: Storage = {
       uuid: 'storage-bad',
       name: 'Bad Storage',
       type: 'INVALID_TYPE' as Storage['type'],
-      status: 'ACTIVE' as const,
+      status: 'ACTIVE',
       address: null,
       roomType: null,
+      icon: 'warehouse',
+      color: '#6B7280',
+      description: null,
       archivedAt: null,
+      frozenAt: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };

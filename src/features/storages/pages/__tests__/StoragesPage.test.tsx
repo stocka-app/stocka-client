@@ -19,7 +19,7 @@ vi.mock('sonner', () => ({
 }));
 
 const { mockCanDo } = vi.hoisted(() => ({
-  mockCanDo: vi.fn(() => true),
+  mockCanDo: vi.fn<(action: string) => boolean>(() => true),
 }));
 
 vi.mock('@/store/rbac.store', () => ({
@@ -31,7 +31,7 @@ vi.mock('@/store/rbac.store', () => ({
 
 const { mockOpenUpgradeModal, mockIsAllowed } = vi.hoisted(() => ({
   mockOpenUpgradeModal: vi.fn(),
-  mockIsAllowed: vi.fn(() => true),
+  mockIsAllowed: vi.fn<(feature: string) => boolean>(() => true),
 }));
 
 const mocks = vi.hoisted(() => ({

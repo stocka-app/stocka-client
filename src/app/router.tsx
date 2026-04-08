@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- router config file: the only export is `router` (non-component), and the lazy component declarations are internal bindings required for code splitting. */
 import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/shared/components';
