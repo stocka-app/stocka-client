@@ -227,5 +227,20 @@
     "keepEditing": "Keep editing",
     "abandon": "Abandon",
     "successToast": "\"{{name}}\" was added to the list."
+  },
+  "contextCurrent": "Current context",
+  "switcher": {
+    "header": "Select storage",
+    "createNew": "Create new storage",
+    "noStorages": "You don't have any storages yet",
+    "triggerAriaLabel": "Change active storage",
+    "chevronOpenAriaLabel": "Open storage selector",
+    "chevronCloseAriaLabel": "Close storage selector"
+  },
+  "banners": {
+    "frozen": "Storage <strong>{{name}}</strong> is frozen. It cannot receive or dispatch inventory.",
+    "archived": "Storage <strong>{{name}}</strong> is archived. You can restore it or permanently delete it.",
+    "reactivate": "Reactivate",
+    "close": "Close notice"
   }
 }
