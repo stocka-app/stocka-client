@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { useStoragesStore } from '../store/storages.store';
 import { useRBACStore } from '@/store/rbac.store';
@@ -49,9 +49,15 @@ const EMPTY_TYPE_COUNTS: TypeCounts = { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM
 
 export function useStorages(): {
   storages: Storage[];
+  /** Current page sorted with the active-context storage in position #0 (if present) and the rest A→Z by name. Consumed by StoragesPage grid to honor the "contexto actual primero" rule. */
+  sortedStorages: Storage[];
   activeStorages: Storage[];
   frozenStorages: Storage[];
   archivedStorages: Storage[];
+  /** UUID of the storage the user is currently operating in (persisted in localStorage via the store). Null when no selection has been made yet. */
+  activeStorageId: string | null;
+  /** Resolved `Storage` object for `activeStorageId`, or null if the id is unset, unknown, or points to a storage not present in the current page. */
+  activeStorage: Storage | null;
   summary: StorageStatusSummary;
   typeCounts: TypeCounts;
   total: number;
@@ -70,6 +76,10 @@ export function useStorages(): {
   setSearchQuery: (query: string) => void;
   setSortOrder: (order: 'ASC' | 'DESC') => void;
   setPage: (page: number) => void;
+  /** Set the active context storage. Passing `null` clears the selection. Persists via the store's tenant-scoped localStorage adapter. */
+  setActiveStorage: (id: string | null) => void;
+  /** Validates the persisted `activeStorageId` against the current storages. If the id is stale (storage no longer exists) or unset, auto-selects the first ACTIVE storage sorted A→Z. No-op if the persisted id is still valid. */
+  hydrateActiveStorage: () => void;
   canCreate: boolean;
   canUpdate: boolean;
   canFreeze: boolean;
@@ -86,6 +96,7 @@ export function useStorages(): {
 } {
   const {
     storages,
+    activeStorageId,
     total,
     page,
     totalPages,
@@ -97,6 +108,8 @@ export function useStorages(): {
     updateStorage,
     setLoading,
     setError,
+    setActiveStorage,
+    hydrateActiveStorage,
   } = useStoragesStore();
   const { canDo } = useRBACStore();
   const { isAllowed } = useTierCapabilities();
@@ -321,6 +334,31 @@ export function useStorages(): {
   const frozenStorages = storages.filter((s) => s.status === 'FROZEN');
   const archivedStorages = storages.filter((s) => s.status === 'ARCHIVED');
 
+  // ── Active-context derived data (H-03 — STOC-344) ─────────────────────────
+  //
+  // `activeStorage` resolves the persisted `activeStorageId` against the
+  // current page of storages. Returns null if the id is unset or points to a
+  // storage not in the current view (either stale/deleted or on another page
+  // of the paginated result — the caller must decide which).
+  //
+  // `sortedStorages` is the current page with the active storage moved to
+  // position #0 and the rest kept in server order. Consumed by `StoragesPage`
+  // (grid) to honor the "contexto actual primero" rule without disturbing
+  // the server-side sort.
+  const activeStorage = useMemo<Storage | null>(
+    () =>
+      activeStorageId !== null ? storages.find((s) => s.uuid === activeStorageId) ?? null : null,
+    [activeStorageId, storages],
+  );
+
+  const sortedStorages = useMemo<Storage[]>(() => {
+    if (activeStorageId === null) return storages;
+    const active = storages.find((s) => s.uuid === activeStorageId);
+    if (!active) return storages;
+    const rest = storages.filter((s) => s.uuid !== activeStorageId);
+    return [active, ...rest];
+  }, [activeStorageId, storages]);
+
   // ── Permission flags ───────────────────────────────────────────────────────
 
   const canCreate = canDo('STORAGE_CREATE');
@@ -331,9 +369,12 @@ export function useStorages(): {
 
   return {
     storages,
+    sortedStorages,
     activeStorages,
     frozenStorages,
     archivedStorages,
+    activeStorageId,
+    activeStorage,
     summary,
     typeCounts,
     total,
@@ -351,6 +392,8 @@ export function useStorages(): {
     setSearchQuery,
     setSortOrder,
     setPage,
+    setActiveStorage,
+    hydrateActiveStorage,
     canCreate,
     canUpdate,
     canFreeze,
