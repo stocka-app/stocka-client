@@ -46,10 +46,44 @@ const STATUS_DOT_CLASSES: Record<StorageStatus, string> = {
   ARCHIVED: 'bg-neutral-400',
 };
 
+// ─── Active-context treatment (H-03 / STOC-430) ──────────────────────────────
+//
+// When `isActiveContext === true` the card receives 3 visual signals that
+// override the neutral state: (1) bg pastel del tipo, (2) ring 2px del color
+// del tipo, (3) tag "Contexto actual" en la esquina superior derecha. The
+// status dot (verde/azul/gris) is preserved unchanged — the type palette
+// applies to the frame, not to the semantic state indicator.
+
+const TYPE_BG_SUBTLE_CLASSES: Record<StorageType, string> = {
+  WAREHOUSE: 'bg-inst-almacen-subtle',
+  STORE_ROOM: 'bg-inst-bodega-subtle',
+  CUSTOM_ROOM: 'bg-inst-custom-subtle',
+};
+
+const TYPE_RING_CLASSES: Record<StorageType, string> = {
+  WAREHOUSE: 'ring-inst-almacen-accent',
+  STORE_ROOM: 'ring-inst-bodega-accent',
+  CUSTOM_ROOM: 'ring-inst-custom-accent',
+};
+
+const TYPE_TAG_BG_CLASSES: Record<StorageType, string> = {
+  WAREHOUSE: 'bg-inst-almacen-accent',
+  STORE_ROOM: 'bg-inst-bodega-accent',
+  CUSTOM_ROOM: 'bg-inst-custom-accent',
+};
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface StorageCardProps {
   storage: Storage;
+  /**
+   * True when this storage is the user's active context (i.e.
+   * `storage.uuid === activeStorageId` from the store). Applies the
+   * "contexto actual" treatment: bg pastel + ring + tag + forces full
+   * opacity even on archived/frozen storages so the active card is
+   * always visually dominant in the grid.
+   */
+  isActiveContext?: boolean;
   onEdit?: (storage: Storage) => void;
   onArchive?: (storage: Storage) => void;
   onRestore?: (storage: Storage) => void;
@@ -60,6 +94,7 @@ interface StorageCardProps {
 
 export function StorageCard({
   storage,
+  isActiveContext = false,
   onEdit,
   onArchive,
   onRestore,
@@ -81,13 +116,30 @@ export function StorageCard({
   return (
     <div
       className={cn(
-        'flex min-h-[220px] overflow-hidden rounded-lg border border-border shadow-card',
-        isArchived
-          ? 'bg-neutral-50 opacity-50'
-          : isFrozen
-            ? 'border-blue-400/30 bg-surface-card'
-            : 'bg-surface-card',
+        'flex min-h-[220px] overflow-hidden rounded-lg shadow-card transition-all',
+        isActiveContext
+          ? cn(
+              'ring-2',
+              !isCustomRoom && TYPE_BG_SUBTLE_CLASSES[storage.type],
+              !isCustomRoom && TYPE_RING_CLASSES[storage.type],
+            )
+          : cn(
+              'border border-border',
+              isArchived
+                ? 'bg-neutral-50 opacity-50'
+                : isFrozen
+                  ? 'border-blue-400/30 bg-surface-card'
+                  : 'bg-surface-card',
+            ),
       )}
+      style={
+        isActiveContext && isCustomRoom
+          ? {
+              backgroundColor: `${storage.color}20`,
+              boxShadow: `0 0 0 2px ${storage.color}`,
+            }
+          : undefined
+      }
     >
       {/* Left color bracket */}
       <div
@@ -120,22 +172,35 @@ export function StorageCard({
             </span>
           </div>
 
-          {/* Badge + status dot aligned right */}
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                !isCustomRoom && TYPE_BADGE_CLASSES[storage.type],
-              )}
-              style={isCustomRoom ? { backgroundColor: `${storage.color}20`, color: storage.color } : undefined}
-            >
-              {t(`types.${storage.type}`)}
-            </span>
-            <span
-              className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT_CLASSES[storage.status])}
-              role="img"
-              aria-label={t(`statuses.${storage.status}`)}
-            />
+          {/* Right column — context tag (if active) stacked above badge + status dot */}
+          <div className="flex flex-col items-end gap-1.5">
+            {isActiveContext && (
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white',
+                  !isCustomRoom && TYPE_TAG_BG_CLASSES[storage.type],
+                )}
+                style={isCustomRoom ? { backgroundColor: storage.color } : undefined}
+              >
+                {t('contextCurrent')}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                  !isCustomRoom && TYPE_BADGE_CLASSES[storage.type],
+                )}
+                style={isCustomRoom ? { backgroundColor: `${storage.color}20`, color: storage.color } : undefined}
+              >
+                {t(`types.${storage.type}`)}
+              </span>
+              <span
+                className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT_CLASSES[storage.status])}
+                role="img"
+                aria-label={t(`statuses.${storage.status}`)}
+              />
+            </div>
           </div>
         </div>
 
