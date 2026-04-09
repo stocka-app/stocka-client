@@ -235,7 +235,12 @@
     "noStorages": "No tienes instalaciones",
     "triggerAriaLabel": "Cambiar instalación activa",
     "chevronOpenAriaLabel": "Abrir selector de instalación",
-    "chevronCloseAriaLabel": "Cerrar selector de instalación"
+    "chevronCloseAriaLabel": "Cerrar selector de instalación",
+    "sections": {
+      "warehouses": "Almacenes",
+      "storeRooms": "Bodegas",
+      "customRooms": "Áreas personalizadas"
+    }
   },
   "banners": {
     "frozen": "La instalación <strong>{{name}}</strong> está congelada. No puede recibir ni despachar inventario.",

@@ -235,7 +235,12 @@
     "noStorages": "You don't have any storages yet",
     "triggerAriaLabel": "Change active storage",
     "chevronOpenAriaLabel": "Open storage selector",
-    "chevronCloseAriaLabel": "Close storage selector"
+    "chevronCloseAriaLabel": "Close storage selector",
+    "sections": {
+      "warehouses": "Warehouses",
+      "storeRooms": "Store rooms",
+      "customRooms": "Custom rooms"
+    }
   },
   "banners": {
     "frozen": "Storage <strong>{{name}}</strong> is frozen. It cannot receive or dispatch inventory.",

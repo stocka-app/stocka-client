@@ -27,6 +27,14 @@ const STATUS_DOT_CLASS: Record<StorageStatus, string> = {
   ARCHIVED: 'bg-neutral-400',
 };
 
+// Section header i18n keys — one per storage type, rendered in the dropdown
+// as a sticky `SECTION NAME` label above each group of items.
+const SECTION_LABEL_KEY: Record<StorageType, string> = {
+  WAREHOUSE: 'switcher.sections.warehouses',
+  STORE_ROOM: 'switcher.sections.storeRooms',
+  CUSTOM_ROOM: 'switcher.sections.customRooms',
+};
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const byName = (a: Storage, b: Storage): number =>
@@ -48,9 +56,17 @@ const resolveIconClass = (storage: Storage): string => {
   return TYPE_ICON_COLOR_CLASS[storage.type];
 };
 
-const resolveIconStyle = (storage: Storage): React.CSSProperties | undefined => {
-  if (storage.type === 'CUSTOM_ROOM') return { color: storage.color };
-  return undefined;
+// All storage type icons render with the FILL axis set to 1 so that
+// WAREHOUSE (`warehouse`), STORE_ROOM (`inventory_2`) and CUSTOM_ROOM
+// (user-chosen) look consistently FILLED instead of a mix of outlined and
+// filled. The Material Symbols Outlined font supports the FILL variation
+// axis; setting `fontVariationSettings: "'FILL' 1"` swaps each glyph to
+// its filled variant without changing the font family.
+const ICON_FILL_STYLE: React.CSSProperties = { fontVariationSettings: "'FILL' 1" };
+
+const resolveIconStyle = (storage: Storage): React.CSSProperties => {
+  if (storage.type === 'CUSTOM_ROOM') return { ...ICON_FILL_STYLE, color: storage.color };
+  return ICON_FILL_STYLE;
 };
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -179,14 +195,29 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
     [activeStorageId, switcherStorages],
   );
 
-  // ── Derived: sorted list (active context first, rest A→Z) ───────────────
-  const sortedStorages = useMemo<Storage[]>(() => {
-    if (activeStorageId === null) return [...switcherStorages].sort(byName);
-    const active = switcherStorages.find((s) => s.uuid === activeStorageId);
-    if (!active) return [...switcherStorages].sort(byName);
-    const rest = switcherStorages.filter((s) => s.uuid !== activeStorageId).sort(byName);
-    return [active, ...rest];
-  }, [activeStorageId, switcherStorages]);
+  // ── Derived: storages grouped by type, each group A→Z ────────────────────
+  //
+  // The dropdown renders one section per storage type in the fixed order
+  // WAREHOUSE → STORE_ROOM → CUSTOM_ROOM, matching the Pencil spec `rop68`
+  // (Fase 2.3 "Tipos mixtos agrupados"). Section headers ("ALMACENES",
+  // "BODEGAS", "ÁREAS PERSONALIZADAS") are rendered only for non-empty
+  // groups. Within each group items are sorted A→Z by name; the active
+  // item keeps its natural alphabetical position and is highlighted via the
+  // row background + font weight (no "active first" reordering).
+  const groupedStorages = useMemo<{ type: StorageType; items: Storage[] }[]>(() => {
+    const buckets: Record<StorageType, Storage[]> = {
+      WAREHOUSE: [],
+      STORE_ROOM: [],
+      CUSTOM_ROOM: [],
+    };
+    for (const storage of switcherStorages) buckets[storage.type].push(storage);
+    const orderedTypes: StorageType[] = ['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'];
+    return orderedTypes
+      .map((type) => ({ type, items: buckets[type].sort(byName) }))
+      .filter((group) => group.items.length > 0);
+  }, [switcherStorages]);
+
+  const totalItemsCount = switcherStorages.length;
 
   // ── RBAC gate: user cannot read storages → do not render anything ────────
   if (!hasReadAccess) return null;
@@ -304,51 +335,70 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
             {t('switcher.header')}
           </header>
 
-          {/* Scrollable items area */}
-          {sortedStorages.length === 0 ? (
+          {/* Scrollable items area — grouped by type per Pencil spec rop68 */}
+          {totalItemsCount === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-neutral-500">
               {t('switcher.noStorages')}
             </div>
           ) : (
-            <div className="max-h-64 overflow-y-auto">
-              {sortedStorages.map((storage) => {
-                const isActive = storage.uuid === activeStorageId;
-                return (
-                  <button
-                    key={storage.uuid}
-                    type="button"
-                    role="option"
-                    aria-selected={isActive}
-                    onClick={() => handleSelect(storage.uuid)}
+            <div className="max-h-80 overflow-y-auto">
+              {groupedStorages.map((group) => (
+                <section key={group.type} aria-label={t(SECTION_LABEL_KEY[group.type])}>
+                  <header
                     className={cn(
-                      'flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors',
-                      isActive
-                        ? 'bg-neutral-100 font-semibold text-neutral-900'
-                        : 'text-neutral-700 hover:bg-neutral-50',
+                      'px-4 pt-3 pb-1',
+                      'text-[10px] font-semibold uppercase tracking-wider text-neutral-400',
                     )}
                   >
-                    <span
-                      className={cn(
-                        'material-symbols-outlined shrink-0 text-[20px]',
-                        resolveIconClass(storage),
-                      )}
-                      style={resolveIconStyle(storage)}
-                      aria-hidden="true"
-                    >
-                      {resolveIconName(storage)}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm">{storage.name}</span>
-                    <span
-                      className={cn(
-                        'h-2 w-2 shrink-0 rounded-full',
-                        STATUS_DOT_CLASS[storage.status],
-                      )}
-                      role="img"
-                      aria-label={t(`statuses.${storage.status}`)}
-                    />
-                  </button>
-                );
-              })}
+                    {t(SECTION_LABEL_KEY[group.type])}
+                  </header>
+                  {group.items.map((storage) => {
+                    const isActive = storage.uuid === activeStorageId;
+                    return (
+                      <button
+                        key={storage.uuid}
+                        type="button"
+                        role="option"
+                        aria-selected={isActive}
+                        onClick={() => handleSelect(storage.uuid)}
+                        className={cn(
+                          'flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors',
+                          // Active row uses `neutral-200` and hover uses
+                          // `neutral-100` so the two states progressively
+                          // darken in light mode and progressively brighten
+                          // in dark mode (the neutral scale is inverted in
+                          // dark). `neutral-100` alone for active was too
+                          // close to `surface-card` in dark mode and looked
+                          // less prominent than the hover state.
+                          isActive
+                            ? 'bg-neutral-200 font-semibold text-neutral-900'
+                            : 'text-neutral-700 hover:bg-neutral-100',
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'material-symbols-outlined shrink-0 text-[20px]',
+                            resolveIconClass(storage),
+                          )}
+                          style={resolveIconStyle(storage)}
+                          aria-hidden="true"
+                        >
+                          {resolveIconName(storage)}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-sm">{storage.name}</span>
+                        <span
+                          className={cn(
+                            'h-2 w-2 shrink-0 rounded-full',
+                            STATUS_DOT_CLASS[storage.status],
+                          )}
+                          role="img"
+                          aria-label={t(`statuses.${storage.status}`)}
+                        />
+                      </button>
+                    );
+                  })}
+                </section>
+              ))}
             </div>
           )}
 
