@@ -159,6 +159,16 @@ describe('Given the storages store manages storage state', () => {
     });
   });
 
+  describe('When setPagination is called with page metadata', () => {
+    it('Then total, page, and totalPages are updated', () => {
+      useStoragesStore.getState().setPagination(150, 3, 10);
+      const state = useStoragesStore.getState();
+      expect(state.total).toBe(150);
+      expect(state.page).toBe(3);
+      expect(state.totalPages).toBe(10);
+    });
+  });
+
   describe('When setError is called with null', () => {
     it('Then error is cleared', () => {
       useStoragesStore.getState().setError('loadFailed');
@@ -420,6 +430,30 @@ describe('Given the tenant-scoped localStorage adapter', () => {
 
       expect(localStorage.getItem('stocka:active-storage:tenant-1')).toContain('storage-001');
       expect(localStorage.getItem('stocka:active-storage:tenant-2')).toContain('storage-002');
+    });
+  });
+
+  describe('When the persist middleware clears storage for a logged-in tenant', () => {
+    it('Then the tenant-scoped localStorage key is removed', () => {
+      // Seed a value so removeItem has something to clear
+      useStoragesStore.getState().setActiveStorage('storage-001');
+      expect(localStorage.getItem('stocka:active-storage:tenant-1')).not.toBeNull();
+      // Drive the adapter's removeItem directly (Zustand's persist does this
+      // internally on rehydrate failure and other edge cases)
+      useStoragesStore.persist.clearStorage();
+      expect(localStorage.getItem('stocka:active-storage:tenant-1')).toBeNull();
+    });
+  });
+
+  describe('When the persist middleware attempts to clear storage with no logged-in tenant', () => {
+    it('Then removeItem is a no-op (no-throw, nothing removed)', () => {
+      // Seed a value for tenant-1
+      useStoragesStore.getState().setActiveStorage('storage-001');
+      // Log the user out and drive removeItem
+      mockAuthState.tenantId = null;
+      useStoragesStore.persist.clearStorage();
+      // The tenant-1 key is still present because removeItem short-circuited
+      expect(localStorage.getItem('stocka:active-storage:tenant-1')).not.toBeNull();
     });
   });
 });

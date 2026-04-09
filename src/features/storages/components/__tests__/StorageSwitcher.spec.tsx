@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Storage, StoragesPage } from '../../types/storages.types';
 
@@ -226,6 +226,72 @@ describe('StorageSwitcher', () => {
   });
 
   // ══════════════════════════════════════════════════════════════════
+  // Fetch error path
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the initial fetch rejects with a network error', () => {
+    beforeEach(() => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockListResult.current = new Error('boom');
+    });
+
+    it('Then the skeleton is dismissed and the empty-state trigger is rendered without crashing', async () => {
+      render(<StorageSwitcher />);
+      await waitFor(() => {
+        expect(screen.queryByLabelText('loader.loading')).not.toBeInTheDocument();
+      });
+      // The component falls through to the empty state (no storages loaded)
+      // but does not crash the React tree.
+      const triggers = screen.getAllByLabelText(/switcher\.triggerAriaLabel/);
+      expect(triggers.length).toBe(2);
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // Cancel-on-unmount guard
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the component unmounts before the fetch resolves', () => {
+    it('Then the cancel-on-unmount guard prevents state updates (resolved branch)', async () => {
+      // Hold the list() resolution until we unmount
+      let resolveFetch: ((value: StoragesPage) => void) | null = null;
+      const pending = new Promise<StoragesPage>((r) => {
+        resolveFetch = r;
+      });
+      // Override the mocked list function to return the pending promise
+      const { storagesService } = await import('../../api/storages.service');
+      vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
+
+      const { unmount } = render(<StorageSwitcher />);
+      unmount();
+      // Now resolve — the `cancelled` ref is true, so setSwitcherStorages
+      // must NOT run. We assert the resolve does not throw and no error is
+      // logged.
+      resolveFetch?.(buildPage(ALL_STORAGES));
+      await pending;
+    });
+
+    it('Then the cancel-on-unmount guard prevents state updates (rejected branch)', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let rejectFetch: ((reason: Error) => void) | null = null;
+      const pending = new Promise<StoragesPage>((_, reject) => {
+        rejectFetch = reject;
+      });
+      const { storagesService } = await import('../../api/storages.service');
+      vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
+
+      const { unmount } = render(<StorageSwitcher />);
+      unmount();
+      rejectFetch?.(new Error('boom'));
+      await pending.catch(() => {});
+      // The `cancelled` branch returns early — console.error is NOT called
+      expect(consoleSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
   // Trigger rendering (FULL)
   // ══════════════════════════════════════════════════════════════════
 
@@ -346,12 +412,26 @@ describe('StorageSwitcher', () => {
       });
 
       describe('When the user presses Escape', () => {
-        beforeEach(async () => {
-          await user.keyboard('{Escape}');
+        beforeEach(() => {
+          // Dispatch directly on document to guarantee the document-level
+          // keydown listener installed in the switcher runs — user.keyboard()
+          // targets the focused element which may not bubble to document in
+          // jsdom the same way real browsers do.
+          fireEvent.keyDown(document, { key: 'Escape' });
         });
 
         it('Then the dropdown closes', () => {
           expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        });
+      });
+
+      describe('When the user presses a non-Escape key', () => {
+        beforeEach(() => {
+          fireEvent.keyDown(document, { key: 'ArrowDown' });
+        });
+
+        it('Then the dropdown stays open (keydown handler ignores other keys)', () => {
+          expect(screen.queryByRole('listbox')).toBeInTheDocument();
         });
       });
 

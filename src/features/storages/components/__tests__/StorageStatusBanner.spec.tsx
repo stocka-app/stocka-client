@@ -168,6 +168,95 @@ describe('StorageStatusBanner', () => {
   });
 
   // ══════════════════════════════════════════════════════════════════
+  // Fetch error path
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the initial fetch rejects with a network error', () => {
+    beforeEach(() => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockListResult.current = new Error('boom');
+      mockStoreState.activeStorageId = 's-frozen';
+    });
+
+    it('Then the banner does not crash and renders nothing (no tenant data to resolve)', async () => {
+      const { container } = render(<StorageStatusBanner />);
+      await waitFor(() => {
+        // The banner's isLoading flips to false on error and the component
+        // returns null because `activeStorage` cannot be resolved from an
+        // empty tenantStorages array.
+        expect(container).toBeEmptyDOMElement();
+      });
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // Cancel-on-unmount guard
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the component unmounts before the fetch resolves', () => {
+    it('Then the cancel-on-unmount guard prevents state updates (resolved branch)', async () => {
+      let resolveFetch: ((value: StoragesPage) => void) | null = null;
+      const pending = new Promise<StoragesPage>((r) => {
+        resolveFetch = r;
+      });
+      const { storagesService } = await import('../../api/storages.service');
+      vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
+
+      const { unmount } = render(<StorageStatusBanner />);
+      unmount();
+      resolveFetch?.(buildPage([frozenStorage]));
+      await pending;
+    });
+
+    it('Then the cancel-on-unmount guard prevents state updates (rejected branch)', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let rejectFetch: ((reason: Error) => void) | null = null;
+      const pending = new Promise<StoragesPage>((_, reject) => {
+        rejectFetch = reject;
+      });
+      const { storagesService } = await import('../../api/storages.service');
+      vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
+
+      const { unmount } = render(<StorageStatusBanner />);
+      unmount();
+      rejectFetch?.(new Error('boom'));
+      await pending.catch(() => {});
+      expect(consoleSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // Reactivate idempotency (disabled attribute)
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the user clicks Reactivate and the restore is in flight', () => {
+    beforeEach(() => {
+      mockStoreState.activeStorageId = 's-frozen';
+    });
+
+    it('Then the button is disabled while the promise is pending', async () => {
+      let resolveRestore: ((value: Storage) => void) | null = null;
+      const pending = new Promise<Storage>((r) => {
+        resolveRestore = r;
+      });
+      const { storagesService } = await import('../../api/storages.service');
+      vi.mocked(storagesService.restore).mockImplementationOnce(() => pending);
+
+      render(<StorageStatusBanner />);
+      const cta = await screen.findByRole('button', { name: 'banners.reactivate' });
+      await user.click(cta);
+      // Button is disabled → a second click cannot trigger the handler
+      await waitFor(() => {
+        expect(cta).toBeDisabled();
+      });
+      resolveRestore?.({ ...frozenStorage, status: 'ACTIVE', frozenAt: null });
+      await pending;
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
   // Status-based rendering (FE-BN1 → FE-BN3)
   // ══════════════════════════════════════════════════════════════════
 

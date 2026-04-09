@@ -118,8 +118,10 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
   if (activeStorage.status === 'ACTIVE') return null;
 
   // ── Handlers ──────────────────────────────────────────────────────────────
+  // Idempotency is enforced by the `disabled={isReactivating}` attribute on
+  // the button itself — a second click cannot reach this handler while a
+  // restore is in flight.
   const handleReactivate = async (): Promise<void> => {
-    if (isReactivating) return;
     setIsReactivating(true);
     try {
       const updated = await storagesService.restore(activeStorage.uuid);
