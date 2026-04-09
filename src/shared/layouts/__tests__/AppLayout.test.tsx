@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AppLayout } from '../AppLayout';
 
@@ -84,6 +84,11 @@ vi.mock('@/shared/components/AvatarWithFallback', () => ({
     if (username) return username[0];
     return '?';
   },
+}));
+
+vi.mock('@/features/storages', () => ({
+  StorageSwitcher: () => <div data-testid="storage-switcher" />,
+  StorageStatusBanner: () => <div data-testid="storage-status-banner" />,
 }));
 
 describe('AppLayout', () => {
@@ -302,60 +307,20 @@ describe('AppLayout', () => {
   });
 
   // ══════════════════════════════════════════════════════════════════
-  // Business selector
+  // Storage context switcher (H-03 / STOC-346)
   // ══════════════════════════════════════════════════════════════════
 
-  describe('Given the business selector', () => {
+  describe('Given the storage context switcher is integrated in the sidebar', () => {
     beforeEach(() => {
       render(<AppLayout />);
     });
 
-    it('should show the default business name', () => {
-      expect(screen.getByText('Mi Negocio')).toBeInTheDocument();
+    it('Then the StorageSwitcher is mounted in the sidebar', () => {
+      expect(screen.getByTestId('storage-switcher')).toBeInTheDocument();
     });
 
-    describe('When the user clicks the business selector button', () => {
-      beforeEach(async () => {
-        const selectorButton = screen.getByLabelText('Mi Negocio');
-        await user.click(selectorButton);
-      });
-
-      it('should show the dropdown with business options', () => {
-        expect(screen.getByText('sidebar.selectBusiness')).toBeInTheDocument();
-      });
-
-      it('should list all 3 businesses', () => {
-        expect(screen.getAllByText('Mi Negocio').length).toBeGreaterThanOrEqual(1);
-        expect(screen.getByText('Tienda Norte')).toBeInTheDocument();
-        expect(screen.getByText('Sucursal Centro')).toBeInTheDocument();
-      });
-
-      describe('When the user selects a different business', () => {
-        beforeEach(async () => {
-          await user.click(screen.getByText('Tienda Norte'));
-        });
-
-        it('should update the selected business', () => {
-          expect(screen.getByLabelText('Tienda Norte')).toBeInTheDocument();
-        });
-
-        it('should close the dropdown', () => {
-          expect(screen.queryByText('sidebar.selectBusiness')).not.toBeInTheDocument();
-        });
-      });
-
-      describe('When the user clicks outside the selector', () => {
-        beforeEach(async () => {
-          // Simulate clicking outside
-          await act(async () => {
-            document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-          });
-        });
-
-        it('should close the dropdown', () => {
-          expect(screen.queryByText('sidebar.selectBusiness')).not.toBeInTheDocument();
-        });
-      });
+    it('Then the global StorageStatusBanner is mounted above the main content', () => {
+      expect(screen.getByTestId('storage-status-banner')).toBeInTheDocument();
     });
   });
 
