@@ -10,6 +10,20 @@ vi.mock('react-i18next', async () => {
   return i18nMock;
 });
 
+// react-router-dom — the page uses `useLocation`/`useNavigate` to auto-open
+// the create drawer when navigated from the sidebar StorageSwitcher with
+// router state `{ openCreateDrawer: true }`. Mock both so the component
+// renders without a real Router wrapper. Individual tests can override
+// `mockLocationState` to simulate the navigation intent.
+const { mockLocationState, mockNavigate } = vi.hoisted(() => ({
+  mockLocationState: { current: null as { openCreateDrawer?: boolean } | null },
+  mockNavigate: vi.fn(),
+}));
+vi.mock('react-router-dom', () => ({
+  useLocation: () => ({ pathname: '/storages', state: mockLocationState.current }),
+  useNavigate: () => mockNavigate,
+}));
+
 const { mockToastSuccess, mockToastError } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
