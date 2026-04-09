@@ -5,6 +5,74 @@ All notable changes to this project are documented here.
 
 ## [0.17.0](https://github.com/stocka-app/stocka-client/compare/v0.16.0...v0.17.0) (2026-04-09)
 
+> **Sprint 2 · H-03 StorageSwitcher end-to-end + Tier Capabilities polish**
+>
+> This release lands the full **H-03 storage context switcher** (STOC-317)
+> — the Zustand store with tenant-scoped persist, the `useStorages` hook
+> extension, the sidebar `StorageSwitcher` component with grouped
+> dropdown, the `StorageCard` active-context treatment, the global
+> `StorageStatusBanner`, and the AppLayout integration. The active storage
+> context is now a first-class preference that survives reloads per
+> tenant, drives the grid order, and surfaces FROZEN / ARCHIVED states as
+> a sticky banner above the main content.
+>
+> **Architectural decisions**
+>
+> - **Tenant-scoped persistence:** a custom `StateStorage` adapter reads
+>   `tenantId` from `useAuthenticationStore` and scopes the key as
+>   `stocka:active-storage:{tenantId}`, so switching accounts never leaks
+>   the previous tenant's selection. `partialize` keeps only
+>   `activeStorageId` in the persist payload.
+> - **Dual responsive trigger:** instead of conditional child spans, the
+>   switcher renders two sibling `<button>` elements with mutually
+>   exclusive visibility (FULL at mobile drawer + lg-expanded, COMPACT
+>   40×40 square at md + lg-collapsed). Eliminates a class of visual
+>   leakage bugs where hidden decorations bled into the compact state.
+> - **Router state for the create CTA:** clicking "+ Crear nueva
+>   instalación" navigates to `/storages` with `location.state =
+>   { openCreateDrawer: true }`. `StoragesPage` reacts in a `useEffect`
+>   (not a `useState` lazy initializer — the user may already be on
+>   `/storages` and the page does not remount) and immediately clears
+>   the history state via `navigate(pathname, { replace: true, state:
+>   null })` so reload/back navigation does not retrigger the drawer.
+> - **Design system semantic tokens:** both banners (FROZEN / ARCHIVED)
+>   and the grouped dropdown use the `info`, `neutral-*`, and `border`
+>   semantic tokens from `globals.css`, which auto-invert between light
+>   and dark mode via CSS vars. Hardcoded `blue-*` / `neutral-*` scales
+>   with manual `dark:` prefixes were replaced wholesale — the dropdown
+>   active item bg moved from `neutral-100` to `neutral-200` so the
+>   state delta reads correctly against the inverted dark scale.
+> - **Bodega palette shift:** `--color-inst-bodega-*` moved from the
+>   amber family (the `-text` token rendered as brown/café in light
+>   mode) to the orange family. A single token change propagates to
+>   cards, switcher, stats bar, and tabs without per-component overrides.
+>
+> **FASE 5 manual-validation feedback loop:** 10 follow-up fix commits
+> were merged in the same PR after Roberto's visual walkthrough — bodega
+> orange, banner DS tokens, active-item contrast in dark mode, icon
+> color collision with almacen, filled type icons via the `FILL`
+> Material Symbols axis, gradient fade on scroll, responsive dual
+> trigger, create CTA 404 → auto-open drawer, and the switcher fetch
+> hard cap (`limit: 100` matching the backend's `ListStoragesInDto`
+> `@Max(100)`).
+>
+> **FASE 6 tests:** consolidated unit coverage after the UX was stable —
+> 405 tests in `src/features/storages` at **100%** statements/branches/
+> functions/lines. New or extended specs: store (selectors + tenant-
+> scoped persistence), hook (active-context derived data), switcher
+> (FE-SW1→13), card (FE-SC4→8), banner (FE-BN1→8), page (FE-SP1→3
+> ordering + drawer auto-open).
+>
+> **FASE 7 E2E:** 3 new Playwright specs covering PW-8 through PW-15 —
+> active-context ordering, floating popover position, grouped sections,
+> FROZEN banner + dismiss + reload behavior, Reactivate flow, and the
+> mobile drawer variant with the popover anchored over the overlay.
+>
+> The release also bundles the **STOC-429 tier capabilities** work that
+> landed on main ahead of H-03 — global tier capabilities hook,
+> typeSummary consumption for tab counts, type-cards tier gating, and
+> the step-1 create flow quota guard.
+
 ### ✨ Features
 
 * **i18n:** [STOC-341](https://austins-industries.atlassian.net/browse/STOC-341) — add missing cancel key to createDrawer namespace ([6785330](https://github.com/stocka-app/stocka-client/commit/67853303d5877eb131bfedce82fbd49de75558d4))
