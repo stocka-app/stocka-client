@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StoragesPage from '../StoragesPage';
@@ -48,11 +48,15 @@ const { mockOpenUpgradeModal, mockIsAllowed } = vi.hoisted(() => ({
   mockIsAllowed: vi.fn<(feature: string) => boolean>(() => true),
 }));
 
+type MockStorage = { uuid: string; name: string; type: string; status: string };
+
 const mocks = vi.hoisted(() => ({
-  storages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
-  activeStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
-  frozenStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
-  archivedStorages: [] as Array<{ uuid: string; name: string; type: string; status: string }>,
+  storages: [] as MockStorage[],
+  sortedStorages: null as MockStorage[] | null,
+  activeStorageId: null as string | null,
+  activeStorages: [] as MockStorage[],
+  frozenStorages: [] as MockStorage[],
+  archivedStorages: [] as MockStorage[],
   summary: { active: 0, frozen: 0, archived: 0 },
   typeCounts: { WAREHOUSE: 0, STORE_ROOM: 0, CUSTOM_ROOM: 0, total: 0 },
   total: 0,
@@ -101,9 +105,12 @@ const {
 vi.mock('../../hooks/useStorages', () => ({
   useStorages: () => ({
     storages: mocks.storages,
-    sortedStorages: mocks.storages,
-    activeStorageId: null,
-    activeStorage: null,
+    sortedStorages: mocks.sortedStorages ?? mocks.storages,
+    activeStorageId: mocks.activeStorageId,
+    activeStorage:
+      mocks.activeStorageId !== null
+        ? mocks.storages.find((s) => s.uuid === mocks.activeStorageId) ?? null
+        : null,
     setActiveStorage: vi.fn(),
     hydrateActiveStorage: vi.fn(),
     activeStorages: mocks.activeStorages,
@@ -261,6 +268,8 @@ describe('StoragesPage', () => {
     vi.clearAllMocks();
     mockCanDo.mockReturnValue(true);
     mocks.storages = [];
+    mocks.sortedStorages = null;
+    mocks.activeStorageId = null;
     mocks.activeStorages = [];
     mocks.frozenStorages = [];
     mocks.archivedStorages = [];
@@ -1277,6 +1286,169 @@ describe('StoragesPage', () => {
 
     it('Then isAtTypeLimit is passed as a function to CreateEditStorageModal', () => {
       expect(typeof createEditModalProps.isAtTypeLimit).toBe('function');
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // Active-context ordering (H-03 / STOC-432) — FE-SP1 to FE-SP3
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the page renders the grid using `sortedStorages`', () => {
+    // ── FE-SP1 ──────────────────────────────────────────────────────────
+    describe('Given the active storage is the third alphabetically', () => {
+      beforeEach(() => {
+        setSuccessState({
+          storages: [
+            { uuid: 'a', name: 'Almacén A', type: 'WAREHOUSE', status: 'ACTIVE' },
+            { uuid: 'b', name: 'Bodega B', type: 'STORE_ROOM', status: 'ACTIVE' },
+            { uuid: 'c', name: 'Custom C', type: 'CUSTOM_ROOM', status: 'ACTIVE' },
+          ],
+        });
+        mocks.activeStorageId = 'c';
+        // Simulate the hook's active-first sorting
+        mocks.sortedStorages = [
+          { uuid: 'c', name: 'Custom C', type: 'CUSTOM_ROOM', status: 'ACTIVE' },
+          { uuid: 'a', name: 'Almacén A', type: 'WAREHOUSE', status: 'ACTIVE' },
+          { uuid: 'b', name: 'Bodega B', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ];
+        render(<StoragesPage />);
+      });
+
+      it('Then the first rendered card is the active-context storage', () => {
+        expect(storageCardInstances[0].storage).toMatchObject({ uuid: 'c' });
+      });
+
+      it('Then the active card receives `isActiveContext={true}`', () => {
+        const active = storageCardInstances.find((c) => (c.storage as { uuid: string }).uuid === 'c') as { storage: { uuid: string }; isActiveContext?: boolean };
+        expect(active?.isActiveContext).toBe(true);
+      });
+
+      it('Then the other cards receive `isActiveContext={false}`', () => {
+        const others = storageCardInstances.filter(
+          (c) => (c.storage as { uuid: string }).uuid !== 'c',
+        ) as Array<{ storage: { uuid: string }; isActiveContext?: boolean }>;
+        expect(others.every((c) => c.isActiveContext === false)).toBe(true);
+      });
+    });
+
+    // ── FE-SP2 ──────────────────────────────────────────────────────────
+    describe('Given the active storage is already the first alphabetically', () => {
+      beforeEach(() => {
+        setSuccessState({
+          storages: [
+            { uuid: 'a', name: 'Almacén A', type: 'WAREHOUSE', status: 'ACTIVE' },
+            { uuid: 'b', name: 'Bodega B', type: 'STORE_ROOM', status: 'ACTIVE' },
+          ],
+        });
+        mocks.activeStorageId = 'a';
+        mocks.sortedStorages = [
+          { uuid: 'a', name: 'Almacén A', type: 'WAREHOUSE', status: 'ACTIVE' },
+          { uuid: 'b', name: 'Bodega B', type: 'STORE_ROOM', status: 'ACTIVE' },
+        ];
+        render(<StoragesPage />);
+      });
+
+      it('Then the grid order matches the plain A→Z sequence', () => {
+        // StrictMode double-renders every component — dedupe by uuid while
+        // preserving the first occurrence of each to get the natural order.
+        const uniqueOrder = Array.from(
+          new Map(
+            storageCardInstances.map((c) => [
+              (c.storage as { uuid: string }).uuid,
+              (c.storage as { uuid: string }).uuid,
+            ]),
+          ).values(),
+        );
+        expect(uniqueOrder).toEqual(['a', 'b']);
+      });
+
+      it('Then the first card still gets `isActiveContext={true}`', () => {
+        expect(
+          (storageCardInstances[0] as { isActiveContext?: boolean }).isActiveContext,
+        ).toBe(true);
+      });
+    });
+
+    // ── FE-SP3 ──────────────────────────────────────────────────────────
+    describe('Given there is no active storage (activeStorageId === null)', () => {
+      beforeEach(() => {
+        setSuccessState({
+          storages: [
+            { uuid: 'b', name: 'Bodega B', type: 'STORE_ROOM', status: 'ACTIVE' },
+            { uuid: 'a', name: 'Almacén A', type: 'WAREHOUSE', status: 'ACTIVE' },
+          ],
+        });
+        mocks.activeStorageId = null;
+        mocks.sortedStorages = null; // Fall back to plain `mocks.storages` in the hook mock
+        render(<StoragesPage />);
+      });
+
+      it('Then the grid renders in the plain server order (no active-first reordering)', () => {
+        const uniqueOrder = Array.from(
+          new Map(
+            storageCardInstances.map((c) => [
+              (c.storage as { uuid: string }).uuid,
+              (c.storage as { uuid: string }).uuid,
+            ]),
+          ).values(),
+        );
+        expect(uniqueOrder).toEqual(['b', 'a']);
+      });
+
+      it('Then no card receives `isActiveContext={true}`', () => {
+        expect(
+          storageCardInstances.every(
+            (c) => (c as { isActiveContext?: boolean }).isActiveContext !== true,
+          ),
+        ).toBe(true);
+      });
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // Create drawer auto-open via router state (H-03 / STOC-346)
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('Given the page was navigated from the sidebar switcher CTA', () => {
+    describe('When location.state has openCreateDrawer=true and the user has STORAGE_CREATE', () => {
+      beforeEach(() => {
+        mockLocationState.current = { openCreateDrawer: true };
+        mockCanDo.mockReturnValue(true);
+        setSuccessState();
+        render(<StoragesPage />);
+      });
+
+      it('Then the create drawer is opened automatically', () => {
+        expect(screen.getByTestId('create-storage-drawer')).toBeInTheDocument();
+      });
+
+      it('Then navigate is called to clear the router state (replace:true)', () => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          '/storages',
+          expect.objectContaining({ replace: true, state: null }),
+        );
+      });
+
+      afterAll(() => {
+        mockLocationState.current = null;
+      });
+    });
+
+    describe('When location.state has openCreateDrawer=true but the user lacks STORAGE_CREATE', () => {
+      beforeEach(() => {
+        mockLocationState.current = { openCreateDrawer: true };
+        mockCanDo.mockImplementation((action: string) => action !== 'STORAGE_CREATE');
+        setSuccessState();
+        render(<StoragesPage />);
+      });
+
+      afterAll(() => {
+        mockLocationState.current = null;
+      });
+
+      it('Then the drawer is NOT opened', () => {
+        expect(screen.queryByTestId('create-storage-drawer')).not.toBeInTheDocument();
+      });
     });
   });
 });
