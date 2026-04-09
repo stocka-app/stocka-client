@@ -166,7 +166,10 @@ export function StorageCard({
                 'material-symbols-outlined text-2xl',
                 !isCustomRoom && TYPE_ICON_COLOR_CLASSES[storage.type],
               )}
-              style={isCustomRoom ? { color: storage.color } : undefined}
+              style={{
+                fontVariationSettings: "'FILL' 1",
+                ...(isCustomRoom ? { color: storage.color } : {}),
+              }}
             >
               {isCustomRoom ? storage.icon : TYPE_ICON_NAME[storage.type]}
             </span>
