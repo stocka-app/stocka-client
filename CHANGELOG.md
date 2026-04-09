@@ -3,6 +3,78 @@
 All notable changes to this project are documented here.
 
 
+## [0.17.0](https://github.com/stocka-app/stocka-client/compare/v0.16.0...v0.17.0) (2026-04-09)
+
+### ✨ Features
+
+* **i18n:** [STOC-341](https://austins-industries.atlassian.net/browse/STOC-341) — add missing cancel key to createDrawer namespace ([6785330](https://github.com/stocka-app/stocka-client/commit/67853303d5877eb131bfedce82fbd49de75558d4))
+* **layout:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — integrate StorageSwitcher + StorageStatusBanner into AppLayout ([db45fbb](https://github.com/stocka-app/stocka-client/commit/db45fbba077819d06e5e2ad24d1678697e64d85d))
+* **onboarding:** [Sprint 2] add icon and color picker to custom room form in Step4Spaces ([4727d72](https://github.com/stocka-app/stocka-client/commit/4727d72a36453e62a6a5b6a46d420ddf8e65fce6))
+* **shared:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — add global tier capabilities system ([6d6cd55](https://github.com/stocka-app/stocka-client/commit/6d6cd554aff275de024ecd13f56f1256c1853fdc))
+* **storages:** [STOC-343](https://austins-industries.atlassian.net/browse/STOC-343) — add activeStorageId state + sortedStorages selector with tenant-scoped persistence ([ce6df7d](https://github.com/stocka-app/stocka-client/commit/ce6df7d7dcc0b3365b970841bd6e28fac84b637d))
+* **storages:** [STOC-344](https://austins-industries.atlassian.net/browse/STOC-344) — extend useStorages hook with active context (activeStorage, sortedStorages, setActiveStorage, hydrate) ([2ab1290](https://github.com/stocka-app/stocka-client/commit/2ab12902df6644ef1385cc6cf29fc1dc867e7a33)), closes [#0](https://github.com/stocka-app/stocka-client/issues/0)
+* **storages:** [STOC-345](https://austins-industries.atlassian.net/browse/STOC-345) — implement StorageSwitcher with lateral dropdown, dot system, sticky CTA ([c9fc737](https://github.com/stocka-app/stocka-client/commit/c9fc7370e109223e1bcb819c7bde435e66e4596a)), closes [#0](https://github.com/stocka-app/stocka-client/issues/0)
+* **storages:** [STOC-347](https://austins-industries.atlassian.net/browse/STOC-347) — add i18n keys for StorageSwitcher and StorageStatusBanner ([779c3af](https://github.com/stocka-app/stocka-client/commit/779c3af9d760858dbbcf8282e9a58565bedd4a25))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — consume status summary from API for accurate StatsBar counts ([3fc5352](https://github.com/stocka-app/stocka-client/commit/3fc5352b2e9acb40a13b59734562e66494750228))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — consume typeSummary for tab counts, enforce tier limits per tab ([d416b21](https://github.com/stocka-app/stocka-client/commit/d416b210cba0a5d582fb1caf67800b25709a57d4))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — show search/filter controls disabled on tier-gated tabs ([6bff4d9](https://github.com/stocka-app/stocka-client/commit/6bff4d942945efd7f95733253291d459a53d29d9))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — tier gate UX polish — unified view, filter block, stats reset, archived stat ([f980271](https://github.com/stocka-app/stocka-client/commit/f980271777a2e73bab5a10ef82285e97ba0f69b2))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — tier-gate step 1 type cards, tab lock icon, modal quota guard ([7beccb8](https://github.com/stocka-app/stocka-client/commit/7beccb862590d0211ab3a89b29fb412d53563642))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — wire tier capabilities into storages feature ([ad0b86c](https://github.com/stocka-app/stocka-client/commit/ad0b86c11c6984add8db88f59404a0a67a4af7a3))
+* **storages:** [STOC-430](https://austins-industries.atlassian.net/browse/STOC-430) — add active-context treatment to StorageCard (bg pastel + ring + tag) ([e7e172f](https://github.com/stocka-app/stocka-client/commit/e7e172f572cf1e92fff98fef020b8e9de9f736bf))
+* **storages:** [STOC-431](https://austins-industries.atlassian.net/browse/STOC-431) — add StorageStatusBanner global for FROZEN/ARCHIVED active context ([3b71854](https://github.com/stocka-app/stocka-client/commit/3b7185478a240605d0325957c0db5b24a36b73dc))
+* **storages:** [STOC-432](https://austins-industries.atlassian.net/browse/STOC-432) — apply "contexto actual primero" ordering in StoragesPage grid ([89532c6](https://github.com/stocka-app/stocka-client/commit/89532c6a95f88a860f67095d4b8211a5e5b9623f)), closes [#0](https://github.com/stocka-app/stocka-client/issues/0)
+
+### 🐛 Bug Fixes
+
+* **build:** resolve pre-existing tsc and lint errors across codebase ([5307b9d](https://github.com/stocka-app/stocka-client/commit/5307b9dfe68665cb705a842d90d37522b58d62fc))
+* **design-system:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — bodega accent from amber to orange ([f77cc64](https://github.com/stocka-app/stocka-client/commit/f77cc643e4e8f03a9d16c7f75cf2774d4f629308)), closes [#d97706](https://github.com/stocka-app/stocka-client/issues/d97706) [#92400e](https://github.com/stocka-app/stocka-client/issues/92400e) [#92400e](https://github.com/stocka-app/stocka-client/issues/92400e) [#d97706](https://github.com/stocka-app/stocka-client/issues/d97706) [#d97706](https://github.com/stocka-app/stocka-client/issues/d97706) [#ea580c](https://github.com/stocka-app/stocka-client/issues/ea580c) [#fef3c7](https://github.com/stocka-app/stocka-client/issues/fef3c7) [#ffedd5](https://github.com/stocka-app/stocka-client/issues/ffedd5) [#92400e](https://github.com/stocka-app/stocka-client/issues/92400e) [#c2410c](https://github.com/stocka-app/stocka-client/issues/c2410c) [#fbbf24](https://github.com/stocka-app/stocka-client/issues/fbbf24) [#fb923c](https://github.com/stocka-app/stocka-client/issues/fb923c) [#fde68a](https://github.com/stocka-app/stocka-client/issues/fde68a) [#fed7aa](https://github.com/stocka-app/stocka-client/issues/fed7aa)
+* **storages:** [Sprint 2] use global typeCounts for tier limits and improve type-tab empty state ([2e2f185](https://github.com/stocka-app/stocka-client/commit/2e2f185ecd08583076654d9ae22dc555994bed27))
+* **storages:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — replace auto-advance with explicit Continue button in drawer Step 1 ([a9646e5](https://github.com/stocka-app/stocka-client/commit/a9646e5b179ea55ea344b29d94bf7b8d40562904))
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — add bottom gradient fade to switcher scroll area ([56a4022](https://github.com/stocka-app/stocka-client/commit/56a40222df0f2d04adb701241b5078731776c7fd))
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — banner colors use DS semantic tokens ([b09b498](https://github.com/stocka-app/stocka-client/commit/b09b4981e0544d542e139da0c51d803ce6664215)), closes [#60a5fa1F](https://github.com/stocka-app/stocka-client/issues/60a5fa1F) [#60a5fa](https://github.com/stocka-app/stocka-client/issues/60a5fa) [#1e293b](https://github.com/stocka-app/stocka-client/issues/1e293b) [#cbd5e1](https://github.com/stocka-app/stocka-client/issues/cbd5e1) [#94a3b8](https://github.com/stocka-app/stocka-client/issues/94a3b8) [#273d5c](https://github.com/stocka-app/stocka-client/issues/273d5c)
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — cap switcher + banner fetch limit at 100 ([83f1c3b](https://github.com/stocka-app/stocka-client/commit/83f1c3b722b448a5f61c2f77803235dfcda04914))
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — group switcher dropdown by type + fix dark mode active contrast ([112d8e9](https://github.com/stocka-app/stocka-client/commit/112d8e91fc6f9f0b16a866a83288fe4cc56dccac)), closes [#182437](https://github.com/stocka-app/stocka-client/issues/182437) [#1e293b](https://github.com/stocka-app/stocka-client/issues/1e293b) [#0f172a](https://github.com/stocka-app/stocka-client/issues/0f172a) [#E5E7EB](https://github.com/stocka-app/stocka-client/issues/E5E7EB) [#334155](https://github.com/stocka-app/stocka-client/issues/334155) [#F3F4F6](https://github.com/stocka-app/stocka-client/issues/F3F4F6) [#1e293b](https://github.com/stocka-app/stocka-client/issues/1e293b)
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — switcher CTA navigates to /storages and auto-opens drawer ([2015661](https://github.com/stocka-app/stocka-client/commit/2015661393c4e0040b0f1f4ab8f6e6d83b05087c))
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — switcher icon type color takes priority ([0ddcc2b](https://github.com/stocka-app/stocka-client/commit/0ddcc2b37be41d852b801ddd40594b9724f55227)), closes [#3b82f6](https://github.com/stocka-app/stocka-client/issues/3b82f6)
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — switcher visible at every breakpoint via dual trigger ([c50719e](https://github.com/stocka-app/stocka-client/commit/c50719ec8104e4a1df6875a6ecf3d0b5d698e0aa))
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — unify storage type icons as filled ([f664e6e](https://github.com/stocka-app/stocka-client/commit/f664e6eca2497a64903f0ac7961c447000d577c8))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — hide create card on All tab when every type is at tier limit ([00d0048](https://github.com/stocka-app/stocka-client/commit/00d004885b803528c78c64b08faab683962bae70))
+* **storages:** hide stale cards and block actions in STATE 6 when tab is tier-gated ([4a55569](https://github.com/stocka-app/stocka-client/commit/4a5556992293eaa860c7468ce90be191dce08f58))
+* **storages:** persist tab counts and center tier gate message in STATE 3.5 ([f96378e](https://github.com/stocka-app/stocka-client/commit/f96378e84812c0a5c767d5aa8f87da91a81f9160))
+
+### 🔧 Refactoring
+
+* **shared:** [Sprint 2] extract IconColorPicker to shared with constants file ([0b87214](https://github.com/stocka-app/stocka-client/commit/0b872148ab591b98ab3a20cb069369629f99ed2d))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — replace hardcoded tier check in CreateEditStorageModal ([ec23264](https://github.com/stocka-app/stocka-client/commit/ec232644bc32b0f17d992110be2a9df01869fbf0))
+* **storages:** absorb tier gate into STATE 5 instead of a separate early return ([7709c8d](https://github.com/stocka-app/stocka-client/commit/7709c8d7760ae10a10cddc0b6cf54c0e62c98349))
+
+### 🧹 Chores
+
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — fix lint + tsc regressions in new coverage tests ([e11d28d](https://github.com/stocka-app/stocka-client/commit/e11d28d45685fb2d4e0a4524009ca6ea9edb5926))
+
+### ✅ Tests
+
+* **e2e:** [STOC-433](https://austins-industries.atlassian.net/browse/STOC-433) — add Playwright specs for StorageSwitcher PW-8 to PW-15 ([eb40148](https://github.com/stocka-app/stocka-client/commit/eb40148cec04070de855f50b4afb498889aa5533))
+* **storages-e2e:** [STOC-316](https://austins-industries.atlassian.net/browse/STOC-316) — add tier limit E2E specs CD-39 through CD-46 ([0ff2f97](https://github.com/stocka-app/stocka-client/commit/0ff2f9768e193378911965a345e813fc375176e5))
+* **storages:** [STOC-342](https://austins-industries.atlassian.net/browse/STOC-342) — BDD unit tests for CreateStorageDrawer — 26 tests, 100% coverage ([1311b21](https://github.com/stocka-app/stocka-client/commit/1311b21625f9fd575e8038aaf11fc1dcc1b58062))
+* **storages:** [STOC-346](https://austins-industries.atlassian.net/browse/STOC-346) — mock react-router-dom in StoragesPage tests ([80267a7](https://github.com/stocka-app/stocka-client/commit/80267a747a58461105363dadbbf317e79aaf012f))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — close H-03 coverage gaps to 100% ([eaf0fd3](https://github.com/stocka-app/stocka-client/commit/eaf0fd30a33785ccb2aa1562acc8f5890b2bd901))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — cover active-context store, selectors and tenant-scoped persistence ([46a6cc9](https://github.com/stocka-app/stocka-client/commit/46a6cc91d8e63680a2223527b8531f13db1c5562))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — cover StorageCard active-context treatment FE-SC4 to FE-SC8 ([cfad6f0](https://github.com/stocka-app/stocka-client/commit/cfad6f0cf5d6e083c9c0c08e83512eb45ba6bdb9))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — cover StoragesPage active-context ordering and drawer auto-open ([b6dbd04](https://github.com/stocka-app/stocka-client/commit/b6dbd0477d793ab46c892aa0a6ae0d1d59b4fb67))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — cover StorageStatusBanner behavior FE-BN1 to FE-BN8 ([163301e](https://github.com/stocka-app/stocka-client/commit/163301e639ecb498de480c728831172c1c5d78b3))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — cover StorageSwitcher behavior FE-SW1 to FE-SW13 ([1539eef](https://github.com/stocka-app/stocka-client/commit/1539eefb0971e4e5fb4636d2c8bfadd1e13cbf78))
+* **storages:** [STOC-348](https://austins-industries.atlassian.net/browse/STOC-348) — cover useStorages active-context derived data and hydration ([f153377](https://github.com/stocka-app/stocka-client/commit/f153377a7457b98705e17b5458da19653b4d89d1))
+* **storages:** [STOC-424](https://austins-industries.atlassian.net/browse/STOC-424) — fix E2E specs — remove continueButton calls, align with auto-advance UX ([58e913f](https://github.com/stocka-app/stocka-client/commit/58e913f828e4435fff2e5e5f4b5297c5d32a1b62))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — add BDD coverage for tier capabilities system ([51ec41d](https://github.com/stocka-app/stocka-client/commit/51ec41daf7a1b85a4f5641ea65030710174ac747))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — fix test mocks for typeSummary/typeCounts — 100% coverage ([596df37](https://github.com/stocka-app/stocka-client/commit/596df3787c06e4543e1f604619dac666f80c4747))
+* **storages:** [STOC-429](https://austins-industries.atlassian.net/browse/STOC-429) — tier-gate UX unit + E2E coverage ([c95dcf4](https://github.com/stocka-app/stocka-client/commit/c95dcf4c5c7d4cfc5f52bbacaff989baf368a205))
+
+### 🎨 Styles
+
+* **storages:** unify card min-height to 220px across all card variants ([a1c6147](https://github.com/stocka-app/stocka-client/commit/a1c61470f1d0bece57c1a7fa1946d14c8ead67a0))
+
 ## [0.16.0](https://github.com/stocka-app/stocka-client/compare/v0.15.0...v0.16.0) (2026-04-05)
 
 ### ✨ Features
