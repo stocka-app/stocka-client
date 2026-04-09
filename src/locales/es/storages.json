@@ -227,5 +227,25 @@
     "keepEditing": "Seguir editando",
     "abandon": "Abandonar",
     "successToast": "\"{{name}}\" fue agregada a la lista."
+  },
+  "contextCurrent": "Contexto actual",
+  "switcher": {
+    "header": "Seleccionar instalación",
+    "createNew": "Crear nueva instalación",
+    "noStorages": "No tienes instalaciones",
+    "triggerAriaLabel": "Cambiar instalación activa",
+    "chevronOpenAriaLabel": "Abrir selector de instalación",
+    "chevronCloseAriaLabel": "Cerrar selector de instalación",
+    "sections": {
+      "warehouses": "Almacenes",
+      "storeRooms": "Bodegas",
+      "customRooms": "Áreas personalizadas"
+    }
+  },
+  "banners": {
+    "frozen": "La instalación <strong>{{name}}</strong> está congelada. No puede recibir ni despachar inventario.",
+    "archived": "La instalación <strong>{{name}}</strong> está archivada. Puedes restaurarla o eliminarla permanentemente.",
+    "reactivate": "Reactivar",
+    "close": "Cerrar aviso"
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,6 +22,7 @@ import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
 import { StockaIcon } from '@/shared/components/StockaIcon';
 import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
+import { StorageSwitcher, StorageStatusBanner } from '@/features/storages';
 import { AvatarWithFallback, getInitials } from '@/shared/components/AvatarWithFallback';
 
 interface NavItem {
@@ -48,20 +49,6 @@ export function AppLayout() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState('Mi Negocio');
-  const businesses = ['Mi Negocio', 'Tienda Norte', 'Sucursal Centro'];
-  const selectorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent): void => {
-      if (selectorRef.current && !selectorRef.current.contains(e.target as Node)) {
-        setIsSelectorOpen(false);
-      }
-    };
-    if (isSelectorOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isSelectorOpen]);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -128,61 +115,21 @@ export function AppLayout() {
 
         </div>
 
-        {/* Business selector — outside nav to avoid overflow-y-auto clipping the popover */}
-        <div ref={selectorRef} className={cn('relative flex-shrink-0 px-3 pt-2 pb-2', 'md:hidden', 'lg:block')}>
-          <button
-            className={cn(
-              'w-full flex items-center rounded-xl py-2.5 text-base hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors',
-              isCollapsed ? 'justify-center px-0' : 'gap-3 px-3',
-            )}
-            aria-label={selectedBusiness}
-            type="button"
-            onClick={() => setIsSelectorOpen((prev) => !prev)}
-          >
-            <Warehouse className="h-5 w-5 text-brand flex-shrink-0" />
-            {!isCollapsed && (
-              <>
-                <span className="text-neutral-700 dark:text-neutral-200 font-medium truncate flex-1 text-left">
-                  {selectedBusiness}
-                </span>
-                <ChevronRight
-                  className={cn(
-                    'h-4 w-4 text-neutral-400 flex-shrink-0 transition-transform duration-200',
-                    isSelectorOpen && 'rotate-180',
-                  )}
-                />
-              </>
-            )}
-          </button>
+        {/* ── Storage context switcher (H-03 / STOC-346) ── */}
+        {/*
+          Lives outside the scrollable nav so its floating popover (which
+          opens to the right with `left-full ml-2`) is not clipped by the
+          sidebar's `overflow-y-auto`.
 
-          {isSelectorOpen && (
-            <div className="absolute left-full top-0 ml-2 z-50 w-52 rounded-xl border border-border bg-surface-card shadow-dropdown overflow-hidden">
-              <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                {t('sidebar.selectBusiness')}
-              </p>
-              <div className="p-1.5 space-y-0.5">
-                {businesses.map((label) => {
-                  const isActive = label === selectedBusiness;
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => { setSelectedBusiness(label); setIsSelectorOpen(false); }}
-                      className={cn(
-                        'w-full text-left rounded-lg px-3 py-2.5 text-sm transition-colors flex items-center gap-2',
-                        isActive
-                          ? 'bg-neutral-100 dark:bg-white/[0.09] text-neutral-900 dark:text-white font-semibold'
-                          : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-white/[0.05] hover:text-neutral-900 dark:hover:text-white',
-                      )}
-                    >
-                      <span className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', isActive ? 'bg-brand' : 'bg-transparent')} />
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          Always visible across every breakpoint. The StorageSwitcher's
+          trigger is internally responsive:
+            - mobile drawer + lg expanded → full row `[icon · name · dot · chevron]`
+            - md (tablet) + lg collapsed   → compact 40x40 square `[icon + dot]`
+          The `isSidebarCollapsed` prop drives the lg-state; the md state is
+          handled via Tailwind `md:` classes inside the switcher itself.
+        */}
+        <div className="flex-shrink-0 relative px-3 pt-2 pb-2 md:px-2">
+          <StorageSwitcher isSidebarCollapsed={isCollapsed} />
         </div>
 
         {/* Navigation */}
@@ -349,6 +296,14 @@ export function AppLayout() {
           'pt-14 md:pt-0',
         )}
       >
+        {/*
+          Global status banner for the active storage context (H-03 / STOC-346).
+          Sits between the top of the main area and the scrollable <main> so it
+          stays visible as the user scrolls page content. Self-contained —
+          renders null when the active storage is ACTIVE, loading, or dismissed.
+        */}
+        <StorageStatusBanner />
+
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>

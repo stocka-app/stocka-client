@@ -305,4 +305,104 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       expect(screen.queryByText('SomeType')).not.toBeInTheDocument();
     });
   });
+
+  // ════════════════════════════════════════════════════════════════════
+  // Active context treatment (H-03 / STOC-430) — FE-SC4 to FE-SC8
+  // ════════════════════════════════════════════════════════════════════
+
+  describe('Given the card is rendered as the active context', () => {
+    describe('When the active-context storage is a WAREHOUSE (FE-SC4)', () => {
+      beforeEach(() => {
+        render(
+          <StorageCard
+            storage={activeWarehouse}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            isActiveContext
+          />,
+        );
+      });
+
+      it('Then the "Contexto actual" tag is visible', () => {
+        expect(screen.getByText('contextCurrent')).toBeInTheDocument();
+      });
+
+      it('Then the tag does NOT include a check icon — text only', () => {
+        const tag = screen.getByText('contextCurrent');
+        expect(tag.querySelector('[aria-label="check"]')).toBeNull();
+        expect(tag.textContent).toBe('contextCurrent');
+      });
+
+      it('Then the active status dot is still visible on the card', () => {
+        expect(screen.getByRole('img', { name: 'statuses.ACTIVE' })).toBeInTheDocument();
+      });
+    });
+
+    describe('When the active-context storage is a STORE_ROOM (FE-SC5)', () => {
+      const activeStoreRoom: Storage = {
+        ...frozenStoreRoom,
+        status: 'ACTIVE',
+        frozenAt: null,
+      };
+
+      beforeEach(() => {
+        render(
+          <StorageCard
+            storage={activeStoreRoom}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            isActiveContext
+          />,
+        );
+      });
+
+      it('Then the "Contexto actual" tag is visible', () => {
+        expect(screen.getByText('contextCurrent')).toBeInTheDocument();
+      });
+    });
+
+    describe('When the active-context storage is a CUSTOM_ROOM (FE-SC6)', () => {
+      const activeCustomRoom: Storage = {
+        ...archivedRoom,
+        status: 'ACTIVE',
+        archivedAt: null,
+        color: '#14b8a6',
+      };
+
+      beforeEach(() => {
+        render(
+          <StorageCard
+            storage={activeCustomRoom}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            isActiveContext
+          />,
+        );
+      });
+
+      it('Then the "Contexto actual" tag is visible', () => {
+        expect(screen.getByText('contextCurrent')).toBeInTheDocument();
+      });
+    });
+
+    describe('Given the same card is rendered WITHOUT isActiveContext (FE-SC8)', () => {
+      beforeEach(() => {
+        render(
+          <StorageCard
+            storage={activeWarehouse}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            onDelete={onDelete}
+          />,
+        );
+      });
+
+      it('Then the "Contexto actual" tag is NOT rendered', () => {
+        expect(screen.queryByText('contextCurrent')).not.toBeInTheDocument();
+      });
+    });
+  });
 });
