@@ -199,6 +199,7 @@ function resetStore(): void {
     totalPages: 0,
     isLoading: false,
     error: null,
+    activeStorageId: null,
   });
 }
 
@@ -1090,6 +1091,147 @@ describe('Given a STARTER tier tenant where all storage types are allowed', () =
           expect.objectContaining({ type: 'WAREHOUSE' }),
         );
       });
+    });
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════
+// Active context (H-03 — STOC-344)
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('Given useStorages exposes active-context derived data', () => {
+  beforeEach(() => {
+    resetStore();
+    vi.mocked(storagesService.list).mockResolvedValue(allStoragesMockPage);
+  });
+
+  // ── FE-UH8 ─────────────────────────────────────────────────────────────
+  describe('Given the store contains storages and an activeStorageId pointing to the CUSTOM_ROOM', () => {
+    it('Then `sortedStorages` has the active one first and the rest A→Z', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => {
+        result.current.setActiveStorage('storage-active-2'); // "Almacén Norte" CUSTOM_ROOM
+      });
+
+      await waitFor(() => {
+        expect(result.current.sortedStorages[0].uuid).toBe('storage-active-2');
+      });
+    });
+  });
+
+  describe('Given the store has no active storage set', () => {
+    it('Then `sortedStorages` preserves the server order from the current page', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.activeStorageId).toBeNull();
+      expect(result.current.sortedStorages).toEqual(result.current.storages);
+    });
+  });
+
+  describe('Given the activeStorageId points to a storage not on the current page', () => {
+    it('Then `sortedStorages` falls back to the plain server order', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => {
+        result.current.setActiveStorage('storage-ghost-that-does-not-exist');
+      });
+
+      // Fallback: sortedStorages === storages (server order)
+      expect(result.current.sortedStorages).toEqual(result.current.storages);
+    });
+  });
+
+  // ── FE-UH9 ─────────────────────────────────────────────────────────────
+  describe('When the user calls setActiveStorage with a new uuid', () => {
+    it('Then `activeStorageId` reflects the new value', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => {
+        result.current.setActiveStorage('storage-frozen-1');
+      });
+
+      expect(result.current.activeStorageId).toBe('storage-frozen-1');
+    });
+  });
+
+  // ── FE-UH10 ────────────────────────────────────────────────────────────
+  describe('Given a stale activeStorageId pointing to a deleted storage', () => {
+    it('Then hydrateActiveStorage promotes the first ACTIVE storage A→Z', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      // Set a stale id pointing to a storage not present in the fetched data
+      act(() => {
+        result.current.setActiveStorage('deleted-storage');
+      });
+
+      act(() => {
+        result.current.hydrateActiveStorage();
+      });
+
+      // allStoragesItems sorted by name A→Z filtering ACTIVE only:
+      //   "Almacén Central" (storage-active-1, WAREHOUSE, ACTIVE)
+      //   "Almacén Norte"   (storage-active-2, CUSTOM_ROOM, ACTIVE)
+      // First ACTIVE A→Z → storage-active-1
+      expect(result.current.activeStorageId).toBe('storage-active-1');
+    });
+  });
+
+  describe('Given the store has mixed statuses', () => {
+    it('Then `storages` includes ACTIVE + FROZEN + ARCHIVED items', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      const statuses = result.current.storages.map((s) => s.status);
+      expect(statuses).toContain('ACTIVE');
+      expect(statuses).toContain('FROZEN');
+      expect(statuses).toContain('ARCHIVED');
+    });
+  });
+
+  describe('Given the store is empty', () => {
+    beforeEach(() => {
+      vi.mocked(storagesService.list).mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 50,
+        totalPages: 0,
+        summary: { active: 0, frozen: 0, archived: 0 },
+        typeSummary: {
+          WAREHOUSE: { active: 0, frozen: 0, archived: 0 },
+          STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+          CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+        },
+      });
+    });
+
+    it('Then activeStorage is null and storages is empty', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.storages).toEqual([]);
+      expect(result.current.activeStorage).toBeNull();
+    });
+  });
+
+  describe('Given the activeStorageId is set to a visible storage', () => {
+    it('Then `activeStorage` resolves to the full Storage object', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      act(() => {
+        result.current.setActiveStorage('storage-active-1');
+      });
+
+      expect(result.current.activeStorage).not.toBeNull();
+      expect(result.current.activeStorage?.uuid).toBe('storage-active-1');
+      expect(result.current.activeStorage?.name).toBe('Almacén Central');
     });
   });
 });
