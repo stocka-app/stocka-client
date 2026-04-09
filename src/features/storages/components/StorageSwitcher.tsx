@@ -80,10 +80,13 @@ interface StorageSwitcherProps {
  *   param) is deferred to AppLayout integration in Paso 8.
  *
  * Data source: the component does its OWN fetch via
- * `storagesService.list({ limit: 1000 })` on mount. This is intentionally
+ * `storagesService.list({ limit: 100 })` on mount. This is intentionally
  * independent from the paginated fetch performed by `useStorages` inside
  * `StoragesPage`, because the switcher needs the full tenant list (all
- * pages, all statuses) while the page view is filter/search/paginated.
+ * statuses) while the page view is filter/search/paginated. The limit
+ * matches the backend's hard cap on the `limit` query param (see
+ * `ListStoragesInDto` `@Max(100)`); tenants with >100 storages fall under
+ * deuda técnica item `[S]` (scroll infinito / prefetch / shared fetch).
  */
 export function StorageSwitcher({ className }: StorageSwitcherProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
@@ -111,7 +114,7 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
     if (!hasReadAccess) return;
     let cancelled = false;
     storagesService
-      .list({ page: 1, limit: 1000, sortOrder: 'ASC' })
+      .list({ page: 1, limit: 100, sortOrder: 'ASC' })
       .then((result) => {
         if (cancelled) return;
         setSwitcherStorages(result.items);

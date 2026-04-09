@@ -46,13 +46,15 @@ interface StorageStatusBannerProps {
  *   banner immediately
  *
  * Data source:
- * - Own fetch on mount via `storagesService.list({ limit: 1000 })`
+ * - Own fetch on mount via `storagesService.list({ limit: 100 })`
+ * - The `limit: 100` matches the backend hard cap (`ListStoragesInDto`
+ *   `@Max(100)`); anything higher is rejected with 400
  * - Same pattern as `StorageSwitcher` (intentionally self-contained so the
  *   banner works on any route of the protected shell, not only on
  *   `/warehouse` where `StoragesPage` is mounted)
- * - The fetch duplication with the switcher is tracked as technical debt
- *   item `[S]` in the Deuda Técnica registry — deferred until we decide on
- *   scroll infinito / prefetch on login / shared fetch
+ * - The fetch duplication with the switcher AND tenants with >100 storages
+ *   are both tracked as technical debt item `[S]` — deferred until we
+ *   decide on scroll infinito / prefetch on login / shared fetch
  */
 export function StorageStatusBanner({ className }: StorageStatusBannerProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
@@ -73,7 +75,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
     if (!hasReadAccess) return;
     let cancelled = false;
     storagesService
-      .list({ page: 1, limit: 1000, sortOrder: 'ASC' })
+      .list({ page: 1, limit: 100, sortOrder: 'ASC' })
       .then((result) => {
         if (cancelled) return;
         setTenantStorages(result.items);
