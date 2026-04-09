@@ -341,8 +341,15 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
               {t('switcher.noStorages')}
             </div>
           ) : (
-            <div className="max-h-80 overflow-y-auto">
-              {groupedStorages.map((group) => (
+            // `relative` wrapper hosts the scroll area plus the gradient fade
+            // overlay (Pencil spec 2.4 "Con scroll"). The fade is an absolutely
+            // positioned, pointer-events-none div pinned to the bottom of the
+            // wrapper — it sits over the last ~56px of visible scroll content
+            // so the user perceives there is more to scroll. The gradient ends
+            // in `surface-card` which auto-adapts to light/dark via CSS vars.
+            <div className="relative">
+              <div className="max-h-80 overflow-y-auto">
+                {groupedStorages.map((group) => (
                 <section key={group.type} aria-label={t(SECTION_LABEL_KEY[group.type])}>
                   <header
                     className={cn(
@@ -398,7 +405,12 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
                     );
                   })}
                 </section>
-              ))}
+                ))}
+              </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-b from-transparent to-surface-card"
+              />
             </div>
           )}
 
