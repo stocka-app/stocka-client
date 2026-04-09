@@ -121,20 +121,15 @@ export function AppLayout() {
           opens to the right with `left-full ml-2`) is not clipped by the
           sidebar's `overflow-y-auto`.
 
-          Visibility: visible in the mobile drawer and on lg-expanded.
-          Hidden on md (tablet collapsed) and lg-collapsed because the
-          switcher's trigger (icon + name + dot + chevron) does not fit in
-          the compact 64px-wide sidebar. Users on collapsed states can
-          expand the sidebar or use the mobile drawer to access it.
+          Always visible across every breakpoint. The StorageSwitcher's
+          trigger is internally responsive:
+            - mobile drawer + lg expanded → full row `[icon · name · dot · chevron]`
+            - md (tablet) + lg collapsed   → compact 40x40 square `[icon + dot]`
+          The `isSidebarCollapsed` prop drives the lg-state; the md state is
+          handled via Tailwind `md:` classes inside the switcher itself.
         */}
-        <div
-          className={cn(
-            'flex-shrink-0 px-3 pt-2 pb-2',
-            'md:hidden',
-            isCollapsed ? 'lg:hidden' : 'lg:block',
-          )}
-        >
-          <StorageSwitcher />
+        <div className="flex-shrink-0 relative px-3 pt-2 pb-2 md:px-2">
+          <StorageSwitcher isSidebarCollapsed={isCollapsed} />
         </div>
 
         {/* Navigation */}

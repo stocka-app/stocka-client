@@ -73,6 +73,14 @@ const resolveIconStyle = (storage: Storage): React.CSSProperties => {
 
 interface StorageSwitcherProps {
   className?: string;
+  /**
+   * Whether the host sidebar is in its lg-collapsed state. When true the
+   * trigger renders as a compact 40x40 square (icon + dot only, no name
+   * or chevron) so it fits inside the 64px-wide sidebar. The md (tablet)
+   * compact state is handled purely via Tailwind `md:` breakpoints and
+   * does not depend on this prop.
+   */
+  isSidebarCollapsed?: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -107,7 +115,10 @@ interface StorageSwitcherProps {
  * `ListStoragesInDto` `@Max(100)`); tenants with >100 storages fall under
  * deuda técnica item `[S]` (scroll infinito / prefetch / shared fetch).
  */
-export function StorageSwitcher({ className }: StorageSwitcherProps): React.ReactElement | null {
+export function StorageSwitcher({
+  className,
+  isSidebarCollapsed = false,
+}: StorageSwitcherProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
   const navigate = useNavigate();
 
@@ -262,7 +273,22 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
 
   return (
     <div ref={containerRef} className={cn('relative', className)}>
-      {/* ─── Trigger ─── */}
+      {/* ─── Triggers ─── */}
+      {/*
+        Two separate buttons with opposite responsive visibility — avoids
+        any ambiguity from conditional classes on individual child spans:
+
+          - FULL trigger    [icon · name · dot · chevron]
+              visible at: mobile drawer (<md) AND lg-expanded
+          - COMPACT trigger [icon only]
+              visible at: md (tablet) AND lg-collapsed
+
+        Both share the same `handleToggle` and open the same popover. Only
+        one is ever visually present at a given viewport, so no duplicate
+        controls are perceived by the user.
+      */}
+
+      {/* FULL trigger */}
       <button
         type="button"
         aria-haspopup="listbox"
@@ -270,9 +296,10 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
         aria-label={t('switcher.triggerAriaLabel')}
         onClick={handleToggle}
         className={cn(
-          'flex w-full items-center gap-2 rounded-lg border border-border bg-surface-card px-3 py-2.5',
-          'transition-colors hover:bg-neutral-50',
-          'focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1',
+          'flex w-full items-center gap-2 rounded-lg border border-border bg-surface-card px-3 py-2.5 transition-colors',
+          'hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1',
+          'md:hidden',
+          isSidebarCollapsed ? 'lg:hidden' : 'lg:flex',
         )}
       >
         {activeStorage ? (
@@ -291,10 +318,7 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
               {activeStorage.name}
             </span>
             <span
-              className={cn(
-                'h-2 w-2 shrink-0 rounded-full',
-                STATUS_DOT_CLASS[activeStorage.status],
-              )}
+              className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT_CLASS[activeStorage.status])}
               role="img"
               aria-label={t(`statuses.${activeStorage.status}`)}
             />
@@ -313,6 +337,46 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
         >
           {chevronIcon}
         </span>
+      </button>
+
+      {/* COMPACT trigger — icon only, 40x40 square centered */}
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={
+          activeStorage
+            ? `${t('switcher.triggerAriaLabel')}: ${activeStorage.name}`
+            : t('switcher.triggerAriaLabel')
+        }
+        title={activeStorage?.name}
+        onClick={handleToggle}
+        className={cn(
+          'mx-auto hidden h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface-card transition-colors',
+          'hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-1',
+          'md:flex',
+          isSidebarCollapsed ? 'lg:flex' : 'lg:hidden',
+        )}
+      >
+        {activeStorage ? (
+          <span
+            className={cn(
+              'material-symbols-outlined shrink-0 text-[20px]',
+              resolveIconClass(activeStorage),
+            )}
+            style={resolveIconStyle(activeStorage)}
+            aria-hidden="true"
+          >
+            {resolveIconName(activeStorage)}
+          </span>
+        ) : (
+          <span
+            className="material-symbols-outlined shrink-0 text-[20px] text-neutral-400"
+            aria-hidden="true"
+          >
+            warehouse
+          </span>
+        )}
       </button>
 
       {/* ─── Dropdown popover — floats to the right of the trigger ─── */}
