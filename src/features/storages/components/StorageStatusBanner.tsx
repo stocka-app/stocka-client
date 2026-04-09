@@ -142,22 +142,43 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
+  //
+  // Tokens are sourced from the Stocka design system (`info` and `neutral`
+  // semantic tokens), which auto-adapt between light and dark mode via CSS
+  // vars in `globals.css`. Do NOT add `dark:` prefixes here — the scales are
+  // already inverted in dark mode:
+  //   FROZEN  → bg `info-bg`, fg `info`, border `info`
+  //             (dark: rgba(96,165,250,0.12) bg + #60a5fa fg)
+  //   ARCHIVED→ bg `neutral-100`, fg `neutral-600`, icon `neutral-500`,
+  //             border `border` (dark: #1e293b bg + #cbd5e1 text + #94a3b8 icon)
+  // Maps 1:1 to the Pencil spec `t7Jfg` (Fase 6 — Banners de contexto).
   const isFrozen = activeStorage.status === 'FROZEN';
   const bannerKey = isFrozen ? 'banners.frozen' : 'banners.archived';
+  const bannerIconName = isFrozen ? 'ac_unit' : 'inventory_2';
 
   return (
     <aside
       role="status"
       aria-live="polite"
       className={cn(
-        'flex items-center gap-3 border-b px-4 py-2',
+        'flex items-center gap-3 border-b px-6 py-3.5',
         isFrozen
-          ? 'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-100'
-          : 'border-neutral-300 bg-neutral-100 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200',
+          ? 'border-info bg-info-bg text-info'
+          : 'border-border bg-neutral-100 text-neutral-600',
         className,
       )}
     >
-      <div className="min-w-0 flex-1 text-sm">
+      <span
+        className={cn(
+          'material-symbols-outlined shrink-0 text-[20px]',
+          isFrozen ? 'text-info' : 'text-neutral-500',
+        )}
+        aria-hidden="true"
+      >
+        {bannerIconName}
+      </span>
+
+      <div className="min-w-0 flex-1 text-sm font-medium">
         <Trans
           i18nKey={bannerKey}
           ns="storages"
@@ -173,10 +194,10 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
         onClick={handleReactivate}
         disabled={isReactivating}
         className={cn(
-          'shrink-0',
+          'shrink-0 bg-transparent',
           isFrozen
-            ? 'border-blue-400 text-blue-700 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-200 dark:hover:bg-blue-900/40'
-            : 'border-neutral-400 text-neutral-700 hover:bg-neutral-200 dark:border-neutral-500 dark:text-neutral-200 dark:hover:bg-neutral-700',
+            ? 'border-info text-info hover:bg-info/10 hover:text-info'
+            : 'border-neutral-500 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-700',
         )}
       >
         {t('banners.reactivate')}
@@ -188,8 +209,10 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
         aria-label={t('banners.close')}
         className={cn(
           'shrink-0 rounded p-1 transition-colors',
-          'hover:bg-black/5 dark:hover:bg-white/10',
           'focus:outline-none focus:ring-2 focus:ring-brand',
+          isFrozen
+            ? 'text-info hover:bg-info/10'
+            : 'text-neutral-500 hover:bg-neutral-200',
         )}
       >
         <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
