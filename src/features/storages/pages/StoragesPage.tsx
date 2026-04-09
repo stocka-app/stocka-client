@@ -49,6 +49,8 @@ export default function StoragesPage(): React.ReactElement {
   const { storageLimits, isAllowed, openUpgradeModal } = useTierCapabilities();
   const {
     storages,
+    sortedStorages,
+    activeStorageId,
     activeStorages,
     summary,
     typeCounts,
@@ -621,10 +623,11 @@ export default function StoragesPage(): React.ReactElement {
             'grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4',
             isLoading && hadData && 'opacity-30',
           )}>
-            {storages.map((storage) => (
+            {sortedStorages.map((storage) => (
               <StorageCard
                 key={storage.uuid}
                 storage={storage}
+                isActiveContext={storage.uuid === activeStorageId}
                 onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
                 onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
                 onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}

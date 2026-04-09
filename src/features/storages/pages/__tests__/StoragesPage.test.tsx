@@ -87,6 +87,11 @@ const {
 vi.mock('../../hooks/useStorages', () => ({
   useStorages: () => ({
     storages: mocks.storages,
+    sortedStorages: mocks.storages,
+    activeStorageId: null,
+    activeStorage: null,
+    setActiveStorage: vi.fn(),
+    hydrateActiveStorage: vi.fn(),
     activeStorages: mocks.activeStorages,
     frozenStorages: mocks.frozenStorages,
     archivedStorages: mocks.archivedStorages,
