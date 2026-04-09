@@ -35,17 +35,20 @@ const byName = (a: Storage, b: Storage): number =>
 const resolveIconName = (storage: Storage): string =>
   storage.type === 'CUSTOM_ROOM' ? storage.icon : TYPE_ICON_NAME[storage.type];
 
-const resolveIconClass = (storage: Storage, isActive: boolean): string => {
-  if (isActive) return 'text-brand';
+// Each storage type always renders with its own type color — regardless of
+// whether the item is the active one in the dropdown. The active-item
+// highlight comes exclusively from the row background + font weight.
+//
+// WARNING: do NOT re-introduce a `text-brand` override for active items.
+// In light mode `--color-brand-primary` is `#3b82f6` (blue), which collides
+// with the almacen accent and makes an active STORE_ROOM item look like a
+// WAREHOUSE. The three type colors are the only allowed icon tints.
+const resolveIconClass = (storage: Storage): string => {
   if (storage.type === 'CUSTOM_ROOM') return '';
   return TYPE_ICON_COLOR_CLASS[storage.type];
 };
 
-const resolveIconStyle = (
-  storage: Storage,
-  isActive: boolean,
-): React.CSSProperties | undefined => {
-  if (isActive) return undefined;
+const resolveIconStyle = (storage: Storage): React.CSSProperties | undefined => {
   if (storage.type === 'CUSTOM_ROOM') return { color: storage.color };
   return undefined;
 };
@@ -75,9 +78,9 @@ interface StorageSwitcherProps {
  *   `bg-neutral-100` + `font-semibold` + `text-brand` icon. The status dot is
  *   preserved on the active item — the highlight does not replace it.
  * - Sticky-bottom CTA "+ Crear nueva instalación" — visible only when the
- *   user has `STORAGE_CREATE`. Clicking it navigates to `/warehouse` (where
- *   the create drawer lives); deeper integration (auto-open drawer via query
- *   param) is deferred to AppLayout integration in Paso 8.
+ *   user has `STORAGE_CREATE`. Clicking it navigates to `/storages` with
+ *   router state `{ openCreateDrawer: true }` so `StoragesPage` auto-opens
+ *   the create drawer on mount, then clears the state from history.
  *
  * Data source: the component does its OWN fetch via
  * `storagesService.list({ limit: 100 })` on mount. This is intentionally
@@ -213,7 +216,12 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
 
   const handleCreate = (): void => {
     setIsOpen(false);
-    navigate('/warehouse');
+    // Navigate to the storages list and signal the page (via router state)
+    // to auto-open the create drawer on mount. StoragesPage reads
+    // `location.state.openCreateDrawer`, opens the drawer, and immediately
+    // clears the state via `navigate(pathname, { replace: true })` so a
+    // reload or back-navigation does not re-trigger the drawer.
+    navigate('/storages', { state: { openCreateDrawer: true } });
   };
 
   const chevronIcon = isOpen ? 'keyboard_arrow_left' : 'keyboard_arrow_right';
@@ -241,9 +249,9 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
             <span
               className={cn(
                 'material-symbols-outlined shrink-0 text-[20px]',
-                resolveIconClass(activeStorage, false),
+                resolveIconClass(activeStorage),
               )}
-              style={resolveIconStyle(activeStorage, false)}
+              style={resolveIconStyle(activeStorage)}
               aria-hidden="true"
             >
               {resolveIconName(activeStorage)}
@@ -322,9 +330,9 @@ export function StorageSwitcher({ className }: StorageSwitcherProps): React.Reac
                     <span
                       className={cn(
                         'material-symbols-outlined shrink-0 text-[20px]',
-                        resolveIconClass(storage, isActive),
+                        resolveIconClass(storage),
                       )}
-                      style={resolveIconStyle(storage, isActive)}
+                      style={resolveIconStyle(storage)}
                       aria-hidden="true"
                     >
                       {resolveIconName(storage)}
