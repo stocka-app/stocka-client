@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/utils';
@@ -79,10 +80,30 @@ export default function StoragesPage(): React.ReactElement {
     restoreStorage,
   } = useStorages();
 
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+
+  // ── Auto-open create drawer when navigated from the sidebar StorageSwitcher
+  //
+  // The sidebar StorageSwitcher's "+ Crear nueva instalación" CTA navigates
+  // here with router state `{ openCreateDrawer: true }`. We react to that
+  // state change and open the drawer, then clear the history state via a
+  // replace-navigation so a reload or back-navigation does not re-trigger
+  // the drawer. This must be an effect (not a `useState` lazy initializer)
+  // because the user may ALREADY be on `/storages` when they click the CTA
+  // — in that case the page does not remount and the lazy init never reruns.
+  useEffect(() => {
+    const state = location.state as { openCreateDrawer?: boolean } | null;
+    if (state?.openCreateDrawer && canDo('STORAGE_CREATE')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: react to external navigation signal, see comment above.
+      setIsCreateDrawerOpen(true);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, canDo, navigate]);
 
   // ── Business rules ──────────────────────────────────────────────────────
 
