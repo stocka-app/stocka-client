@@ -62,7 +62,7 @@ vi.mock('../../api/storages.service', () => ({
 const { mockStoreState } = vi.hoisted(() => ({
   mockStoreState: {
     activeStorageId: null as string | null,
-    updateStorage: vi.fn((_: Storage): void => undefined),
+    updateStorage: vi.fn<(storage: Storage) => void>(),
   },
 }));
 vi.mock('../../store/storages.store', () => ({
@@ -173,8 +173,7 @@ describe('StorageStatusBanner', () => {
 
   describe('Given the initial fetch rejects with a network error', () => {
     beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
       mockListResult.current = new Error('boom');
       mockStoreState.activeStorageId = 's-frozen';
     });
@@ -196,33 +195,32 @@ describe('StorageStatusBanner', () => {
 
   describe('Given the component unmounts before the fetch resolves', () => {
     it('Then the cancel-on-unmount guard prevents state updates (resolved branch)', async () => {
-      let resolveFetch: ((value: StoragesPage) => void) | null = null;
+      const controls: { resolve: ((value: StoragesPage) => void) | null } = { resolve: null };
       const pending = new Promise<StoragesPage>((r) => {
-        resolveFetch = r;
+        controls.resolve = r;
       });
       const { storagesService } = await import('../../api/storages.service');
       vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
 
       const { unmount } = render(<StorageStatusBanner />);
       unmount();
-      resolveFetch?.(buildPage([frozenStorage]));
+      controls.resolve?.(buildPage([frozenStorage]));
       await pending;
     });
 
     it('Then the cancel-on-unmount guard prevents state updates (rejected branch)', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      let rejectFetch: ((reason: Error) => void) | null = null;
-      const pending = new Promise<StoragesPage>((_, reject) => {
-        rejectFetch = reject;
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const controls: { reject: ((reason: Error) => void) | null } = { reject: null };
+      const pending = new Promise<StoragesPage>((_resolve, r) => {
+        controls.reject = r;
       });
       const { storagesService } = await import('../../api/storages.service');
       vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
 
       const { unmount } = render(<StorageStatusBanner />);
       unmount();
-      rejectFetch?.(new Error('boom'));
-      await pending.catch(() => {});
+      controls.reject?.(new Error('boom'));
+      await pending.catch(() => undefined);
       expect(consoleSpy).not.toHaveBeenCalled();
     });
   });
@@ -237,9 +235,9 @@ describe('StorageStatusBanner', () => {
     });
 
     it('Then the button is disabled while the promise is pending', async () => {
-      let resolveRestore: ((value: Storage) => void) | null = null;
+      const controls: { resolve: ((value: Storage) => void) | null } = { resolve: null };
       const pending = new Promise<Storage>((r) => {
-        resolveRestore = r;
+        controls.resolve = r;
       });
       const { storagesService } = await import('../../api/storages.service');
       vi.mocked(storagesService.restore).mockImplementationOnce(() => pending);
@@ -247,11 +245,10 @@ describe('StorageStatusBanner', () => {
       render(<StorageStatusBanner />);
       const cta = await screen.findByRole('button', { name: 'banners.reactivate' });
       await user.click(cta);
-      // Button is disabled → a second click cannot trigger the handler
       await waitFor(() => {
         expect(cta).toBeDisabled();
       });
-      resolveRestore?.({ ...frozenStorage, status: 'ACTIVE', frozenAt: null });
+      controls.resolve?.({ ...frozenStorage, status: 'ACTIVE', frozenAt: null });
       await pending;
     });
   });

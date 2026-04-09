@@ -231,8 +231,7 @@ describe('StorageSwitcher', () => {
 
   describe('Given the initial fetch rejects with a network error', () => {
     beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
       mockListResult.current = new Error('boom');
     });
 
@@ -254,38 +253,38 @@ describe('StorageSwitcher', () => {
 
   describe('Given the component unmounts before the fetch resolves', () => {
     it('Then the cancel-on-unmount guard prevents state updates (resolved branch)', async () => {
-      // Hold the list() resolution until we unmount
-      let resolveFetch: ((value: StoragesPage) => void) | null = null;
+      const controls: {
+        resolve: ((value: StoragesPage) => void) | null;
+      } = { resolve: null };
       const pending = new Promise<StoragesPage>((r) => {
-        resolveFetch = r;
+        controls.resolve = r;
       });
-      // Override the mocked list function to return the pending promise
       const { storagesService } = await import('../../api/storages.service');
       vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
 
       const { unmount } = render(<StorageSwitcher />);
       unmount();
       // Now resolve — the `cancelled` ref is true, so setSwitcherStorages
-      // must NOT run. We assert the resolve does not throw and no error is
-      // logged.
-      resolveFetch?.(buildPage(ALL_STORAGES));
+      // must NOT run. We assert the resolve does not throw.
+      controls.resolve?.(buildPage(ALL_STORAGES));
       await pending;
     });
 
     it('Then the cancel-on-unmount guard prevents state updates (rejected branch)', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      let rejectFetch: ((reason: Error) => void) | null = null;
-      const pending = new Promise<StoragesPage>((_, reject) => {
-        rejectFetch = reject;
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const controls: {
+        reject: ((reason: Error) => void) | null;
+      } = { reject: null };
+      const pending = new Promise<StoragesPage>((_resolve, r) => {
+        controls.reject = r;
       });
       const { storagesService } = await import('../../api/storages.service');
       vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
 
       const { unmount } = render(<StorageSwitcher />);
       unmount();
-      rejectFetch?.(new Error('boom'));
-      await pending.catch(() => {});
+      controls.reject?.(new Error('boom'));
+      await pending.catch(() => undefined);
       // The `cancelled` branch returns early — console.error is NOT called
       expect(consoleSpy).not.toHaveBeenCalled();
     });
