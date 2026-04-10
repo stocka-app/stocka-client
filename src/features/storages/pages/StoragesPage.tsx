@@ -52,7 +52,6 @@ export default function StoragesPage(): React.ReactElement {
     storages,
     sortedStorages,
     activeStorageId,
-    activeStorages,
     summary,
     typeCounts,
     total,
@@ -109,17 +108,15 @@ export default function StoragesPage(): React.ReactElement {
 
   const canArchiveStorage = (storage: Storage): boolean => storage.status === 'ACTIVE';
 
-  const canRestoreStorage = (storage: Storage): boolean => {
-    const limit = storageLimits[storage.type];
-    if (limit === -1) return true;
-    const activeOfType = activeStorages.filter((s) => s.type === storage.type).length;
-    return activeOfType < limit;
-  };
-
   // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleCreateClick = (): void => {
     setIsCreateDrawerOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- handler placeholder until detail page is implemented
+  const handleViewClick = (_storage: Storage): void => {
+    // TODO: navigate to storage detail page when implemented
   };
 
   const handleEditClick = (storage: Storage): void => {
@@ -653,10 +650,14 @@ export default function StoragesPage(): React.ReactElement {
                 key={storage.uuid}
                 storage={storage}
                 isActiveContext={storage.uuid === activeStorageId}
-                onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
-                onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
-                onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
-                onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
+                canEdit={canDo('STORAGE_UPDATE')}
+                canArchive={canDo('STORAGE_ARCHIVE')}
+                canDelete={canDo('STORAGE_DELETE')}
+                onView={handleViewClick}
+                onEdit={handleEditClick}
+                onArchive={handleArchiveClick}
+                onRestore={handleRestoreClick}
+                onDelete={handleDeleteClick}
               />
             ))}
 
