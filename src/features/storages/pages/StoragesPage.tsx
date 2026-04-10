@@ -15,9 +15,9 @@ import type { Storage, StorageType } from '../types/storages.types';
 import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
-import { CreateEditStorageModal } from '../components/CreateEditStorageModal';
+import { EditStorageDrawer } from '../components/EditStorageDrawer';
 import { ArchiveStorageModal } from '../components/ArchiveStorageModal';
-import type { CreateStorageFormData } from '../schemas/storages.schema';
+import type { EditStoragePayload } from '../hooks/useStorages';
 
 // ─── Type tab configuration ─────────────────────────────────────────────────
 
@@ -141,11 +141,16 @@ export default function StoragesPage(): React.ReactElement {
     }
   };
 
-  const handleSave = async (data: CreateStorageFormData): Promise<boolean> => {
-    if (selectedStorage) {
-      return editStorage(selectedStorage.uuid, data);
+  const handleEdit = async (
+    id: string,
+    type: StorageType,
+    payload: EditStoragePayload,
+  ): Promise<{ error: 'name_taken' | 'archived' | 'address_required' | 'server_error' | null }> => {
+    const result = await editStorage(id, type, payload);
+    if (result.error === null) {
+      toast.success(t('editDrawer.toast.success'));
     }
-    return false;
+    return result;
   };
 
   const handleArchiveConfirm = async (): Promise<void> => {
@@ -224,16 +229,15 @@ export default function StoragesPage(): React.ReactElement {
         onCreateStoreRoom={createStoreRoom}
         onCreateCustomRoom={createCustomRoom}
       />
-      {/* Edit flow — existing modal */}
-      <CreateEditStorageModal
+      {/* Edit flow — drawer */}
+      <EditStorageDrawer
         open={isEditOpen}
         storage={selectedStorage}
         onClose={() => {
           setIsEditOpen(false);
           setSelectedStorage(null);
         }}
-        onSave={handleSave}
-        isAtTypeLimit={isAtTypeLimit}
+        onEdit={handleEdit}
       />
       <ArchiveStorageModal
         open={isArchiveOpen}
