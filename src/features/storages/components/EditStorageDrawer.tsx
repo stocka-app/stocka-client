@@ -561,7 +561,7 @@ export function EditStorageDrawer({
                           >
                             {t(sq.labelKey)}
                           </span>
-                          {atLimit && !isCurrent && (
+                          {limits[type] !== -1 && (
                             <span className="text-[10px] text-neutral-400">
                               {typeCounts[type]}/{limits[type]}
                             </span>
