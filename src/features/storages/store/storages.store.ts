@@ -136,7 +136,7 @@ export const useStoragesStore = create<StoragesState & StoragesActions>()(
       ...initialState,
 
       setStorages: (storages: Storage[]): void => {
-        set((state) => ({ storages, version: state.version + 1 }));
+        set({ storages });
       },
 
       setPagination: (total: number, page: number, totalPages: number): void => {
