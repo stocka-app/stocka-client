@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import Drawer from '@/shared/components/Drawer';
 import { IconColorPicker } from '@/shared/components/IconColorPicker';
+import { useThemeStore } from '@/store/theme.store';
 import type { Storage, StorageType } from '../types/storages.types';
 import type { EditStoragePayload } from '../hooks/useStorages';
 
@@ -88,6 +89,67 @@ const TYPE_BANNER_CONFIGS: Record<StorageType, TypeBannerConfig> = {
   },
 };
 
+// ─── Type square config (Pencil spec: fieldTipo) ──────────────────────────────
+
+interface TypeSquareConfig {
+  icon: string;
+  labelKey: string;
+  // Light mode
+  lightNormalBg: string;
+  lightNormalBorder: string;
+  lightNormalIcon: string;
+  lightNormalLabel: string;
+  lightSelectedBg: string;
+  lightSelectedBorder: string;
+  lightSelectedIcon: string;
+  lightSelectedLabel: string;
+  // Dark mode
+  darkNormalBg: string;
+  darkNormalBorder: string;
+  darkNormalIcon: string;
+  darkNormalLabel: string;
+  darkSelectedBg: string;
+  darkSelectedBorder: string;
+  darkSelectedIcon: string;
+  darkSelectedLabel: string;
+}
+
+const TYPE_SQUARE_BASE: Record<StorageType, TypeSquareConfig> = {
+  WAREHOUSE: {
+    icon: 'warehouse',
+    labelKey: 'createDrawer.warehouseLabel',
+    lightNormalBg: '#F9FAFB', lightNormalBorder: '#E5E7EB', lightNormalIcon: '#3b82f6', lightNormalLabel: '#374151',
+    lightSelectedBg: '#dbeafe', lightSelectedBorder: '#3b82f6', lightSelectedIcon: '#1e40af', lightSelectedLabel: '#1e40af',
+    darkNormalBg: '#0f172a', darkNormalBorder: '#273d5c', darkNormalIcon: '#60a5fa', darkNormalLabel: '#e2e8f0',
+    darkSelectedBg: '#60a5fa40', darkSelectedBorder: '#60a5fa', darkSelectedIcon: '#93bbfd', darkSelectedLabel: '#93bbfd',
+  },
+  STORE_ROOM: {
+    icon: 'inventory_2',
+    labelKey: 'createDrawer.storeRoomLabel',
+    lightNormalBg: '#F9FAFB', lightNormalBorder: '#E5E7EB', lightNormalIcon: '#d97706', lightNormalLabel: '#374151',
+    lightSelectedBg: '#fef3c7', lightSelectedBorder: '#d97706', lightSelectedIcon: '#92400e', lightSelectedLabel: '#92400e',
+    darkNormalBg: '#0f172a', darkNormalBorder: '#273d5c', darkNormalIcon: '#fbbf24', darkNormalLabel: '#e2e8f0',
+    darkSelectedBg: '#fbbf2440', darkSelectedBorder: '#fbbf24', darkSelectedIcon: '#fde68a', darkSelectedLabel: '#fde68a',
+  },
+  CUSTOM_ROOM: {
+    icon: 'palette',
+    labelKey: 'createDrawer.customRoomLabel',
+    lightNormalBg: '#F9FAFB', lightNormalBorder: '#E5E7EB', lightNormalIcon: '#6B7280', lightNormalLabel: '#374151',
+    lightSelectedBg: '#ec489920', lightSelectedBorder: '#ec4899', lightSelectedIcon: '#ec4899', lightSelectedLabel: '#ec4899',
+    darkNormalBg: '#0f172a', darkNormalBorder: '#273d5c', darkNormalIcon: '#94a3b8', darkNormalLabel: '#e2e8f0',
+    darkSelectedBg: '#ec489920', darkSelectedBorder: '#ec4899', darkSelectedIcon: '#ec4899', darkSelectedLabel: '#ec4899',
+  },
+};
+
+function resolveSquareColors(
+  base: TypeSquareConfig,
+  isDark: boolean,
+): { icon: string; labelKey: string; normalBg: string; normalBorder: string; normalIcon: string; normalLabel: string; selectedBg: string; selectedBorder: string; selectedIcon: string; selectedLabel: string } {
+  return isDark
+    ? { icon: base.icon, labelKey: base.labelKey, normalBg: base.darkNormalBg, normalBorder: base.darkNormalBorder, normalIcon: base.darkNormalIcon, normalLabel: base.darkNormalLabel, selectedBg: base.darkSelectedBg, selectedBorder: base.darkSelectedBorder, selectedIcon: base.darkSelectedIcon, selectedLabel: base.darkSelectedLabel }
+    : { icon: base.icon, labelKey: base.labelKey, normalBg: base.lightNormalBg, normalBorder: base.lightNormalBorder, normalIcon: base.lightNormalIcon, normalLabel: base.lightNormalLabel, selectedBg: base.lightSelectedBg, selectedBorder: base.lightSelectedBorder, selectedIcon: base.lightSelectedIcon, selectedLabel: base.lightSelectedLabel };
+}
+
 // ─── Unsaved Changes Dialog ───────────────────────────────────────────────────
 
 function UnsavedChangesDialog({
@@ -148,6 +210,13 @@ export function EditStorageDrawer({
   const { t } = useTranslation('storages');
   const formId = useId();
   const drawerId = useId();
+  const isDark = useThemeStore((s) => s.theme) === 'dark';
+
+  const TYPE_SQUARE_CONFIGS = useMemo(() => ({
+    WAREHOUSE: resolveSquareColors(TYPE_SQUARE_BASE.WAREHOUSE, isDark),
+    STORE_ROOM: resolveSquareColors(TYPE_SQUARE_BASE.STORE_ROOM, isDark),
+    CUSTOM_ROOM: resolveSquareColors(TYPE_SQUARE_BASE.CUSTOM_ROOM, isDark),
+  }), [isDark]);
 
   const [serverError, setServerError] = useState<EditError>(null);
   const [changeTypeError, setChangeTypeError] = useState<ChangeTypeError>(null);
@@ -442,43 +511,57 @@ export function EditStorageDrawer({
                 </div>
               </div>
 
-              {/* Type selector — E5 warnings + E6 tier block */}
+              {/* Type selector — Pencil spec fieldTipo */}
               {!isFrozen && !isArchived && (
                 <div className="mx-6 mt-4">
                   <p className="mb-2 text-xs font-medium text-neutral-500">
                     {t('createDrawer.step1Title')}
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     {(['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).map((type) => {
-                      const config = TYPE_BANNER_CONFIGS[type];
                       const isCurrent = storage.type === type;
                       const atLimit = isTypeAtLimit(type);
-                      const disabled = isChangingType || isSubmitting;
+                      const disabled = isChangingType || isSubmitting || atLimit;
+                      const sq = TYPE_SQUARE_CONFIGS[type];
 
                       return (
                         <button
                           key={type}
                           type="button"
-                          disabled={disabled || atLimit}
+                          disabled={disabled}
                           onClick={() => handleTypeChange(type)}
                           className={cn(
-                            'flex flex-1 flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-center transition-all',
-                            isCurrent
-                              ? 'border-brand bg-brand/5 dark:bg-brand/10'
-                              : atLimit
-                                ? 'cursor-not-allowed border-neutral-200 opacity-50 dark:border-white/[0.08]'
-                                : 'cursor-pointer border-neutral-200 hover:border-brand/40 dark:border-white/[0.08] dark:hover:border-brand/30',
+                            'flex flex-1 flex-col items-center justify-center gap-1.5 rounded-xl transition-all',
+                            atLimit && !isCurrent && 'cursor-not-allowed opacity-40',
+                            !atLimit && !isCurrent && 'cursor-pointer',
                           )}
+                          style={{
+                            padding: '14px 8px',
+                            backgroundColor: isCurrent ? sq.selectedBg : sq.normalBg,
+                            border: isCurrent
+                              ? `2px solid ${sq.selectedBorder}`
+                              : `1px solid ${sq.normalBorder}`,
+                          }}
                         >
-                          <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg', config.iconBg)}>
-                            <span className={cn('material-symbols-outlined text-[20px]', config.iconColor)}>
-                              {config.icon}
-                            </span>
-                          </div>
-                          <span className="text-[11px] font-medium text-neutral-700 dark:text-neutral-300">
-                            {t(config.titleKey)}
+                          <span
+                            className="material-symbols-outlined text-[24px]"
+                            style={{
+                              color: isCurrent ? sq.selectedIcon : sq.normalIcon,
+                              fontVariationSettings: "'FILL' 1",
+                            }}
+                          >
+                            {sq.icon}
                           </span>
-                          {atLimit && (
+                          <span
+                            className="text-[11px]"
+                            style={{
+                              color: isCurrent ? sq.selectedLabel : sq.normalLabel,
+                              fontWeight: isCurrent ? 600 : 500,
+                            }}
+                          >
+                            {t(sq.labelKey)}
+                          </span>
+                          {atLimit && !isCurrent && (
                             <span className="text-[10px] text-neutral-400">
                               {typeCounts[type]}/{limits[type]}
                             </span>
