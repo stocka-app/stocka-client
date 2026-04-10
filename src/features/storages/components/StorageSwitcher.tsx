@@ -131,6 +131,7 @@ export function StorageSwitcher({
   //    useStorages hook which would trigger a second fetch lifecycle) ───────
   const activeStorageId = useStoragesStore((state) => state.activeStorageId);
   const setActiveStorage = useStoragesStore((state) => state.setActiveStorage);
+  const storeVersion = useStoragesStore((state) => state.version);
 
   // ── RBAC ──────────────────────────────────────────────────────────────────
   const canCreate = useRBACStore((state) => state.canDo('STORAGE_CREATE'));
@@ -139,7 +140,8 @@ export function StorageSwitcher({
   // ── Container ref for click-outside detection ────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // ── Fetch the full tenant storage list once on mount ─────────────────────
+  // ── Fetch the full tenant storage list on mount and whenever the store
+  //    version changes (create, update, archive, restore, etc.) ────────────
   useEffect(() => {
     if (!hasReadAccess) return;
     let cancelled = false;
@@ -158,7 +160,7 @@ export function StorageSwitcher({
     return (): void => {
       cancelled = true;
     };
-  }, [hasReadAccess]);
+  }, [hasReadAccess, storeVersion]);
 
   // ── Validate & auto-select active context once data arrives ──────────────
   //

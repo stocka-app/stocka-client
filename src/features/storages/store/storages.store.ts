@@ -15,6 +15,8 @@ interface StoragesState {
   totalPages: number;
   isLoading: boolean;
   error: string | null;
+  /** Monotonic counter incremented on every mutation (add/update/setStorages). Consumers like StorageSwitcher watch this to know when to re-fetch. */
+  version: number;
 }
 
 interface StoragesActions {
@@ -42,6 +44,7 @@ const initialState: StoragesState = {
   totalPages: 0,
   isLoading: true,
   error: null,
+  version: 0,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -133,7 +136,7 @@ export const useStoragesStore = create<StoragesState & StoragesActions>()(
       ...initialState,
 
       setStorages: (storages: Storage[]): void => {
-        set({ storages });
+        set((state) => ({ storages, version: state.version + 1 }));
       },
 
       setPagination: (total: number, page: number, totalPages: number): void => {
@@ -141,12 +144,13 @@ export const useStoragesStore = create<StoragesState & StoragesActions>()(
       },
 
       addStorage: (storage: Storage): void => {
-        set((state) => ({ storages: [...state.storages, storage] }));
+        set((state) => ({ storages: [...state.storages, storage], version: state.version + 1 }));
       },
 
       updateStorage: (storage: Storage): void => {
         set((state) => ({
           storages: state.storages.map((s) => (s.uuid === storage.uuid ? storage : s)),
+          version: state.version + 1,
         }));
       },
 

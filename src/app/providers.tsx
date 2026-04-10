@@ -140,7 +140,7 @@ export function Providers({ children }: ProvidersProps) {
     <ThemeInitializer>
       <AuthInitializer>
         <RouterProvider router={router} />
-        <Toaster richColors position="bottom-center" theme={theme} />
+        <Toaster richColors closeButton position="bottom-center" theme={theme} />
         {children}
       </AuthInitializer>
     </ThemeInitializer>
