@@ -228,6 +228,35 @@
     "abandon": "Abandonar",
     "successToast": "\"{{name}}\" fue agregada a la lista."
   },
+  "editDrawer": {
+    "title": "Editar instalación",
+    "subtitle": "Modifica los detalles de esta instalación.",
+    "submit": "Guardar cambios",
+    "submitting": "Guardando...",
+    "cancel": "Cancelar",
+    "errors": {
+      "nameTooShort": "El nombre debe tener al menos 3 caracteres",
+      "nameDuplicate": "Ya existe una instalación con ese nombre",
+      "addressRequired": "La dirección es obligatoria para almacenes"
+    },
+    "toast": {
+      "success": "Instalación actualizada correctamente",
+      "error": "No se pudieron guardar los cambios. Revisa tu conexión e intenta de nuevo."
+    },
+    "unsaved": {
+      "title": "¿Descartar cambios?",
+      "description": "Tienes cambios sin guardar. Si sales ahora, se perderán.",
+      "keep": "Seguir editando",
+      "leave": "Descartar cambios"
+    },
+    "warnings": {
+      "iconChange": "Al cambiar el tipo, el ícono y color se restablecerán a los valores por defecto.",
+      "historyAffected": "El historial de actividad reflejará el cambio de tipo.",
+      "customLost": "El ícono y color personalizados se perderán al cambiar a un tipo fijo.",
+      "tierLimit": "Has alcanzado el límite de {{type}} en tu plan {{tier}}.",
+      "seePlans": "Ver planes"
+    }
+  },
   "contextCurrent": "Contexto actual",
   "switcher": {
     "header": "Seleccionar instalación",

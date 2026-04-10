@@ -7,7 +7,6 @@ import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
 import type {
   CreateStorageFormData,
-  UpdateStorageFormData,
   CreateWarehouseFormData,
   CreateStoreRoomFormData,
   CreateCustomRoomFormData,
@@ -17,6 +16,16 @@ import type { Storage, StorageStatus, StorageType, StorageStatusSummary } from '
 const STORAGES_PAGE_LIMIT = 50;
 
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
+type EditError = 'name_taken' | 'archived' | 'address_required' | 'server_error' | null;
+
+export interface EditStoragePayload {
+  name?: string;
+  description?: string | null;
+  address?: string;
+  icon?: string;
+  color?: string;
+  roomType?: string;
+}
 
 function resolveCreateError(err: unknown): CreateError {
   // The response interceptor transforms AxiosErrors into plain ApiError objects
@@ -31,6 +40,22 @@ function resolveCreateError(err: unknown): CreateError {
     const code = (err.response?.data as { error?: string } | undefined)?.error;
     if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
     if (status === 403) return 'tier_limit';
+  }
+
+  return 'server_error';
+}
+
+function resolveEditError(err: unknown): EditError {
+  const apiErr = err as Partial<{ statusCode: number; error: string }>;
+  if (apiErr?.error === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
+  if (apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+  if (apiErr?.error === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
+
+  if (axios.isAxiosError(err)) {
+    const code = (err.response?.data as { error?: string } | undefined)?.error;
+    if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
+    if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+    if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
   }
 
   return 'server_error';
@@ -90,7 +115,7 @@ export function useStorages(): {
   createWarehouse: (payload: CreateWarehouseFormData) => Promise<{ error: CreateError }>;
   createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
   createCustomRoom: (payload: CreateCustomRoomFormData) => Promise<{ error: CreateError }>;
-  editStorage: (id: string, payload: UpdateStorageFormData) => Promise<boolean>;
+  editStorage: (id: string, type: StorageType, payload: EditStoragePayload) => Promise<{ error: EditError }>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
 } {
@@ -290,16 +315,26 @@ export function useStorages(): {
   );
 
   const editStorage = useCallback(
-    async (id: string, payload: UpdateStorageFormData): Promise<boolean> => {
+    async (id: string, type: StorageType, payload: EditStoragePayload): Promise<{ error: EditError }> => {
       try {
-        const storage = await storagesService.update(id, payload);
-        updateStorage(storage);
-        return true;
-      } catch {
-        return false;
+        switch (type) {
+          case 'WAREHOUSE':
+            await storagesService.updateWarehouse(id, payload);
+            break;
+          case 'STORE_ROOM':
+            await storagesService.updateStoreRoom(id, payload);
+            break;
+          case 'CUSTOM_ROOM':
+            await storagesService.updateCustomRoom(id, payload);
+            break;
+        }
+        await fetchStorages();
+        return { error: null };
+      } catch (err) {
+        return { error: resolveEditError(err) };
       }
     },
-    [updateStorage],
+    [fetchStorages],
   );
 
   const archiveStorage = useCallback(

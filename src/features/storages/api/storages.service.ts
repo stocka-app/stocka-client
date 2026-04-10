@@ -1,6 +1,6 @@
 import axiosInstance from '@/shared/lib/axios';
 import { storageSchema, storagesPageSchema } from '../schemas/storages.schema';
-import type { CreateStorageFormData, UpdateStorageFormData } from '../schemas/storages.schema';
+import type { CreateStorageFormData } from '../schemas/storages.schema';
 import type { Storage, StoragesPage, StorageStatus, StorageType, TenantCapabilities } from '../types/storages.types';
 
 export interface ListStoragesParams {
@@ -63,9 +63,34 @@ export const storagesService = {
     return unwrap(data) as { storageUUID: string };
   },
 
-  async update(id: string, payload: UpdateStorageFormData): Promise<Storage> {
-    const { data } = await axiosInstance.patch(`/storages/${id}`, payload);
-    return storageSchema.parse(unwrap(data));
+  async updateWarehouse(id: string, payload: {
+    name?: string;
+    description?: string | null;
+    address?: string;
+  }): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.patch(`/storages/warehouses/${id}`, payload);
+    return unwrap(data) as { storageUUID: string };
+  },
+
+  async updateStoreRoom(id: string, payload: {
+    name?: string;
+    description?: string | null;
+    address?: string;
+  }): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.patch(`/storages/store-rooms/${id}`, payload);
+    return unwrap(data) as { storageUUID: string };
+  },
+
+  async updateCustomRoom(id: string, payload: {
+    name?: string;
+    description?: string | null;
+    address?: string;
+    icon?: string;
+    color?: string;
+    roomType?: string;
+  }): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.patch(`/storages/custom-rooms/${id}`, payload);
+    return unwrap(data) as { storageUUID: string };
   },
 
   async archive(id: string): Promise<Storage> {
