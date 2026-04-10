@@ -323,6 +323,7 @@ export function EditStorageDrawer({
   const isCustomRoom = storage?.type === 'CUSTOM_ROOM';
   const isWarehouse = storage?.type === 'WAREHOUSE';
   const isFrozen = storage?.status === 'FROZEN';
+  const isArchived = storage?.status === 'ARCHIVED';
 
   const nameCharsLeft = 80 - nameValue.length;
   const addressCharsLeft = 200 - addressValue.length;
