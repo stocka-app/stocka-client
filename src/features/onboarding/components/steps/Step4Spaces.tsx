@@ -584,7 +584,7 @@ export function Step4Spaces({
                 )}
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
                     {t('step4.storeRoom.nameLabel')}
                   </label>
                   <Input
@@ -603,7 +603,7 @@ export function Step4Spaces({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
                     {t('step4.storeRoom.addressLabel')}
                   </label>
                   <Input
@@ -734,7 +734,7 @@ export function Step4Spaces({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
                     {t('step4.customRoom.nameLabel')}
                   </label>
                   <Input
@@ -753,7 +753,7 @@ export function Step4Spaces({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
                     {t('step4.customRoom.addressLabel')}
                   </label>
                   <Input
@@ -772,7 +772,7 @@ export function Step4Spaces({
                     type="button"
                     onClick={() => setOpenPickerIndex(index)}
                     disabled={isLoading}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-neutral-800 p-2.5 transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-neutral-200 dark:border-white/[0.08] bg-white dark:bg-[#1e293b] p-2.5 transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <div
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
@@ -786,14 +786,14 @@ export function Step4Spaces({
                       </span>
                     </div>
                     <div
-                      className="h-8 w-8 shrink-0 rounded-lg border border-neutral-200"
+                      className="h-8 w-8 shrink-0 rounded-lg border border-neutral-200 dark:border-white/[0.08]"
                       style={{ backgroundColor: room.color }}
                     />
                     <div className="flex-1 text-left">
-                      <p className="text-xs font-medium text-neutral-700">{room.icon}</p>
+                      <p className="text-xs font-medium text-neutral-700 dark:text-neutral-200">{room.icon}</p>
                       <p className="text-[10px] text-neutral-400">{room.color}</p>
                     </div>
-                    <span className="material-symbols-outlined text-[18px] text-neutral-400">
+                    <span className="material-symbols-outlined text-[18px] text-neutral-400 dark:text-neutral-500">
                       chevron_right
                     </span>
                   </button>
@@ -810,7 +810,7 @@ export function Step4Spaces({
                       }}
                       onClose={() => setOpenPickerIndex(null)}
                       onApply={() => setOpenPickerIndex(null)}
-                      positionClassName="absolute bottom-full right-0 z-50 mb-2"
+                      positionClassName="fixed top-1/2 left-1/2 z-[70] -translate-x-1/2 -translate-y-1/2"
                     />
                   )}
                 </div>
@@ -903,7 +903,7 @@ export function Step4Spaces({
               <div key={index} className="space-y-3">
                 {/* Name */}
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
                     {t('step4.warehouse.nameLabel')}
                   </label>
                   <Input
@@ -923,7 +923,7 @@ export function Step4Spaces({
 
                 {/* Address (required for warehouses) */}
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
                     {t('step4.warehouse.addressLabel')}
                   </label>
                   <Input
