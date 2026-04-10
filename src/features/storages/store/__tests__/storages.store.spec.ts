@@ -145,6 +145,31 @@ describe('Given the storages store manages storage state', () => {
     });
   });
 
+  describe('When setStorages is called', () => {
+    it('Then version does not increment', () => {
+      const before = useStoragesStore.getState().version;
+      useStoragesStore.getState().setStorages([space1]);
+      expect(useStoragesStore.getState().version).toBe(before);
+    });
+  });
+
+  describe('When addStorage is called', () => {
+    it('Then version increments by 1', () => {
+      const before = useStoragesStore.getState().version;
+      useStoragesStore.getState().addStorage(space1);
+      expect(useStoragesStore.getState().version).toBe(before + 1);
+    });
+  });
+
+  describe('When updateStorage is called', () => {
+    it('Then version increments by 1', () => {
+      useStoragesStore.getState().setStorages([space1]);
+      const before = useStoragesStore.getState().version;
+      useStoragesStore.getState().updateStorage({ ...space1, name: 'Changed' });
+      expect(useStoragesStore.getState().version).toBe(before + 1);
+    });
+  });
+
   describe('When setLoading is called with true', () => {
     it('Then isLoading becomes true', () => {
       useStoragesStore.getState().setLoading(true);
