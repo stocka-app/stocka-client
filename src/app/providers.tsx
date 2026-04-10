@@ -134,11 +134,13 @@ function ThemeInitializer({ children }: { readonly children: React.ReactNode }) 
 }
 
 export function Providers({ children }: ProvidersProps) {
+  const theme = useThemeStore((s) => s.theme);
+
   return (
     <ThemeInitializer>
       <AuthInitializer>
         <RouterProvider router={router} />
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="bottom-center" theme={theme} />
         {children}
       </AuthInitializer>
     </ThemeInitializer>
