@@ -17,6 +17,7 @@ const STORAGES_PAGE_LIMIT = 50;
 
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
 type EditError = 'name_taken' | 'archived' | 'address_required' | 'server_error' | null;
+type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
 
 export interface EditStoragePayload {
   name?: string;
@@ -56,6 +57,24 @@ function resolveEditError(err: unknown): EditError {
     if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
     if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
     if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
+  }
+
+  return 'server_error';
+}
+
+function resolveChangeTypeError(err: unknown): ChangeTypeError {
+  const apiErr = err as Partial<{ statusCode: number; error: string }>;
+  if (apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+  if (apiErr?.error === 'STORAGE_TYPE_LOCKED_WHILE_FROZEN') return 'frozen';
+  if (apiErr?.error === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
+  if (apiErr?.statusCode === 403) return 'tier_limit';
+
+  if (axios.isAxiosError(err)) {
+    const code = (err.response?.data as { error?: string } | undefined)?.error;
+    if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+    if (code === 'STORAGE_TYPE_LOCKED_WHILE_FROZEN') return 'frozen';
+    if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
+    if (err.response?.status === 403) return 'tier_limit';
   }
 
   return 'server_error';
@@ -116,6 +135,7 @@ export function useStorages(): {
   createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
   createCustomRoom: (payload: CreateCustomRoomFormData) => Promise<{ error: CreateError }>;
   editStorage: (id: string, type: StorageType, payload: EditStoragePayload) => Promise<{ error: EditError }>;
+  changeStorageType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
 } {
@@ -337,6 +357,19 @@ export function useStorages(): {
     [fetchStorages],
   );
 
+  const changeStorageType = useCallback(
+    async (id: string, targetType: StorageType): Promise<{ error: ChangeTypeError }> => {
+      try {
+        await storagesService.changeType(id, targetType);
+        await fetchStorages();
+        return { error: null };
+      } catch (err) {
+        return { error: resolveChangeTypeError(err) };
+      }
+    },
+    [fetchStorages],
+  );
+
   const archiveStorage = useCallback(
     async (id: string): Promise<boolean> => {
       try {
@@ -447,6 +480,7 @@ export function useStorages(): {
     createStoreRoom,
     createCustomRoom,
     editStorage,
+    changeStorageType,
     archiveStorage,
     restoreStorage,
   };

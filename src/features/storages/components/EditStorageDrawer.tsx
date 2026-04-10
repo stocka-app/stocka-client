@@ -11,6 +11,7 @@ import type { EditStoragePayload } from '../hooks/useStorages';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type EditError = 'name_taken' | 'archived' | 'address_required' | 'server_error' | null;
+type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
 
 interface EditFormValues {
   name: string;
@@ -25,6 +26,12 @@ export interface EditStorageDrawerProps {
   storage: Storage | null;
   onClose: () => void;
   onEdit: (id: string, type: StorageType, payload: EditStoragePayload) => Promise<{ error: EditError }>;
+  onChangeType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
+  /** Per-type limits from tier. -1 = unlimited */
+  limits: Record<StorageType, number>;
+  /** Per-type active counts */
+  typeCounts: Record<StorageType, number>;
+  tier: string;
 }
 
 // ─── Type visual config (mirrors CreateStorageDrawer) ─────────────────────────
@@ -133,12 +140,18 @@ export function EditStorageDrawer({
   storage,
   onClose,
   onEdit,
+  onChangeType,
+  limits,
+  typeCounts,
+  tier,
 }: EditStorageDrawerProps): React.ReactElement {
   const { t } = useTranslation('storages');
   const formId = useId();
   const drawerId = useId();
 
   const [serverError, setServerError] = useState<EditError>(null);
+  const [changeTypeError, setChangeTypeError] = useState<ChangeTypeError>(null);
+  const [isChangingType, setIsChangingType] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerBackup, setPickerBackup] = useState({ icon: '', color: '' });
@@ -199,6 +212,8 @@ export function EditStorageDrawer({
     }
     if (!storage) return;
     setServerError(null);
+    setChangeTypeError(null);
+    setIsChangingType(false);
     setShowUnsavedDialog(false);
     setShowPicker(false);
     reset({
@@ -278,11 +293,36 @@ export function EditStorageDrawer({
     setShowPicker(false);
   };
 
+  // ── Type change handler ────────────────────────────────────────────────────
+
+  const handleTypeChange = async (targetType: StorageType): Promise<void> => {
+    if (!storage || targetType === storage.type) return;
+    setChangeTypeError(null);
+    setIsChangingType(true);
+    const result = await onChangeType(storage.uuid, targetType);
+    setIsChangingType(false);
+    if (result.error === null) {
+      onClose();
+    } else {
+      setChangeTypeError(result.error);
+    }
+  };
+
+  const isTypeAtLimit = (type: StorageType): boolean => {
+    if (!storage || type === storage.type) return false;
+    const limit = limits[type];
+    if (limit === -1) return false;
+    return typeCounts[type] >= limit;
+  };
+
+  const capitalizedTier = tier.charAt(0).toUpperCase() + tier.slice(1).toLowerCase();
+
   // ── Derived state ─────────────────────────────────────────────────────────
 
   const typeConfig = storage ? TYPE_BANNER_CONFIGS[storage.type] : null;
   const isCustomRoom = storage?.type === 'CUSTOM_ROOM';
   const isWarehouse = storage?.type === 'WAREHOUSE';
+  const isFrozen = storage?.status === 'FROZEN';
 
   const nameCharsLeft = 80 - nameValue.length;
   const addressCharsLeft = 200 - addressValue.length;
@@ -400,6 +440,91 @@ export function EditStorageDrawer({
                   </div>
                 </div>
               </div>
+
+              {/* Type selector — E5 warnings + E6 tier block */}
+              {!isFrozen && !isArchived && (
+                <div className="mx-6 mt-4">
+                  <p className="mb-2 text-xs font-medium text-neutral-500">
+                    {t('createDrawer.step1Title')}
+                  </p>
+                  <div className="flex gap-2">
+                    {(['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).map((type) => {
+                      const config = TYPE_BANNER_CONFIGS[type];
+                      const isCurrent = storage.type === type;
+                      const atLimit = isTypeAtLimit(type);
+                      const disabled = isChangingType || isSubmitting;
+
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          disabled={disabled || atLimit}
+                          onClick={() => handleTypeChange(type)}
+                          className={cn(
+                            'flex flex-1 flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-center transition-all',
+                            isCurrent
+                              ? 'border-brand bg-brand/5 dark:bg-brand/10'
+                              : atLimit
+                                ? 'cursor-not-allowed border-neutral-200 opacity-50 dark:border-white/[0.08]'
+                                : 'cursor-pointer border-neutral-200 hover:border-brand/40 dark:border-white/[0.08] dark:hover:border-brand/30',
+                          )}
+                        >
+                          <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg', config.iconBg)}>
+                            <span className={cn('material-symbols-outlined text-[20px]', config.iconColor)}>
+                              {config.icon}
+                            </span>
+                          </div>
+                          <span className="text-[11px] font-medium text-neutral-700 dark:text-neutral-300">
+                            {t(config.titleKey)}
+                          </span>
+                          {atLimit && (
+                            <span className="text-[10px] text-neutral-400">
+                              {typeCounts[type]}/{limits[type]}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Tier limit warning */}
+                  {changeTypeError === 'tier_limit' && (
+                    <div className="mt-2 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-bg p-2.5">
+                      <span className="material-symbols-outlined shrink-0 text-[16px] text-warning">info</span>
+                      <p className="text-xs text-neutral-700 dark:text-neutral-300">
+                        {t('editDrawer.warnings.tierLimit', { type: typeLabel(), tier: capitalizedTier })}{' '}
+                        <button type="button" className="font-medium text-brand hover:underline">
+                          {t('editDrawer.warnings.seePlans')}
+                        </button>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Frozen warning */}
+                  {changeTypeError === 'frozen' && (
+                    <div className="mt-2 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger-bg p-2.5">
+                      <span className="material-symbols-outlined shrink-0 text-[16px] text-danger">lock</span>
+                      <p className="text-xs text-danger">{t('editDrawer.warnings.iconChange')}</p>
+                    </div>
+                  )}
+
+                  {/* Changing type spinner */}
+                  {isChangingType && (
+                    <div className="mt-2 flex items-center justify-center gap-2 py-1">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+                      <span className="text-xs text-neutral-500">{t('editDrawer.submitting')}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Frozen notice — type change blocked */}
+              {isFrozen && (
+                <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg border border-blue-400/30 bg-blue-50 p-2.5 dark:bg-blue-900/20">
+                  <span className="material-symbols-outlined shrink-0 text-[16px] text-blue-500">ac_unit</span>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">{t('editDrawer.warnings.iconChange')}</p>
+                </div>
+              )}
 
               {/* Fields */}
               <div className="flex flex-col gap-4 px-6 py-5">

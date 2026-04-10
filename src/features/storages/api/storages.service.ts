@@ -93,6 +93,11 @@ export const storagesService = {
     return unwrap(data) as { storageUUID: string };
   },
 
+  async changeType(id: string, type: StorageType): Promise<{ storageUUID: string }> {
+    const { data } = await axiosInstance.patch(`/storages/${id}/type`, { type });
+    return unwrap(data) as { storageUUID: string };
+  },
+
   async archive(id: string): Promise<Storage> {
     const { data } = await axiosInstance.delete(`/storages/${id}`);
     return storageSchema.parse(unwrap(data));

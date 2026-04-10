@@ -75,6 +75,7 @@ export default function StoragesPage(): React.ReactElement {
     createStoreRoom,
     createCustomRoom,
     editStorage,
+    changeStorageType,
     archiveStorage,
     restoreStorage,
   } = useStorages();
@@ -144,6 +145,17 @@ export default function StoragesPage(): React.ReactElement {
     payload: EditStoragePayload,
   ): Promise<{ error: 'name_taken' | 'archived' | 'address_required' | 'server_error' | null }> => {
     const result = await editStorage(id, type, payload);
+    if (result.error === null) {
+      toast.success(t('editDrawer.toast.success'));
+    }
+    return result;
+  };
+
+  const handleChangeType = async (
+    id: string,
+    targetType: StorageType,
+  ): Promise<{ error: 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null }> => {
+    const result = await changeStorageType(id, targetType);
     if (result.error === null) {
       toast.success(t('editDrawer.toast.success'));
     }
@@ -235,6 +247,10 @@ export default function StoragesPage(): React.ReactElement {
           setSelectedStorage(null);
         }}
         onEdit={handleEdit}
+        onChangeType={handleChangeType}
+        limits={storageLimits}
+        typeCounts={typeCounts}
+        tier={tier ?? 'FREE'}
       />
       <ArchiveStorageModal
         open={isArchiveOpen}
