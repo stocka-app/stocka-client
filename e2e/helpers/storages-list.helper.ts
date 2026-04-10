@@ -395,3 +395,88 @@ export async function mockCreatePost(
     },
   );
 }
+
+// ─── Edit PATCH mock ─────────────────────────────────────────────────────────
+
+type EditPatchType = 'warehouses' | 'store-rooms' | 'custom-rooms';
+
+interface MockEditPatchOptions {
+  status?: number;
+  errorCode?: string;
+  delay?: number;
+}
+
+/**
+ * Registers a page.route() mock for one of the three PATCH update endpoints.
+ * Must be called BEFORE navigating to /storages.
+ */
+export async function mockEditPatch(
+  page: Page,
+  type: EditPatchType,
+  uuid: string,
+  opts: MockEditPatchOptions = {},
+): Promise<void> {
+  const { status = 200, delay = 0, errorCode } = opts;
+  const urlSuffix = `/api/storages/${type}/${uuid}`;
+
+  const body = errorCode
+    ? { error: errorCode, message: errorCode }
+    : { success: true, data: { storageUUID: uuid } };
+
+  await page.route(
+    (url) => url.pathname === urlSuffix,
+    async (route) => {
+      if (route.request().method() !== 'PATCH') {
+        await route.continue();
+        return;
+      }
+      if (delay > 0) {
+        await new Promise((r) => setTimeout(r, delay));
+      }
+      await route.fulfill({
+        status,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      });
+    },
+  );
+}
+
+// ─── Change type PATCH mock ─────────────────────────────────────────────────
+
+interface MockChangeTypeOptions {
+  status?: number;
+  errorCode?: string;
+}
+
+/**
+ * Registers a page.route() mock for PATCH /api/storages/:uuid/type.
+ * Must be called BEFORE navigating to /storages.
+ */
+export async function mockChangeTypePatch(
+  page: Page,
+  uuid: string,
+  opts: MockChangeTypeOptions = {},
+): Promise<void> {
+  const { status = 200, errorCode } = opts;
+  const urlSuffix = `/api/storages/${uuid}/type`;
+
+  const body = errorCode
+    ? { error: errorCode, message: errorCode }
+    : { success: true, data: { storageUUID: uuid } };
+
+  await page.route(
+    (url) => url.pathname === urlSuffix,
+    async (route) => {
+      if (route.request().method() !== 'PATCH') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      });
+    },
+  );
+}
