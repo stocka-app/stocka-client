@@ -59,37 +59,16 @@ interface StorageStatusBannerProps {
 export function StorageStatusBanner({ className }: StorageStatusBannerProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
 
-  // ── Local data state (independent fetch) ─────────────────────────────────
-  const [tenantStorages, setTenantStorages] = useState<Storage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // ── State ────────────────────────────────────────────────────────────────
   const [isReactivating, setIsReactivating] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  // ── Active context from store (direct subscription) ──────────────────────
+  // ── Store subscriptions (no independent fetch — uses store data) ────────
   const activeStorageId = useStoragesStore((state) => state.activeStorageId);
+  const storages = useStoragesStore((state) => state.storages);
+  const isLoading = useStoragesStore((state) => state.isLoading);
   const updateStorageInStore = useStoragesStore((state) => state.updateStorage);
   const hasReadAccess = useRBACStore((state) => state.canDo('STORAGE_READ'));
-
-  // ── Fetch the tenant storage list once on mount ──────────────────────────
-  useEffect(() => {
-    if (!hasReadAccess) return;
-    let cancelled = false;
-    storagesService
-      .list({ page: 1, limit: 100, sortOrder: 'ASC' })
-      .then((result) => {
-        if (cancelled) return;
-        setTenantStorages(result.items);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        console.error('[StorageStatusBanner] failed to fetch storages:', err);
-        setIsLoading(false);
-      });
-    return (): void => {
-      cancelled = true;
-    };
-  }, [hasReadAccess]);
 
   // ── Reset dismissed flag when active context changes ─────────────────────
   //
@@ -105,9 +84,9 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
   const activeStorage = useMemo<Storage | null>(
     () =>
       activeStorageId !== null
-        ? tenantStorages.find((s) => s.uuid === activeStorageId) ?? null
+        ? storages.find((s) => s.uuid === activeStorageId) ?? null
         : null,
-    [activeStorageId, tenantStorages],
+    [activeStorageId, storages],
   );
 
   // ── Guards ────────────────────────────────────────────────────────────────
@@ -125,10 +104,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
     setIsReactivating(true);
     try {
       const updated = await storagesService.restore(activeStorage.uuid);
-      // Update local tenant list so the useMemo re-resolves to the new state
-      setTenantStorages((prev) => prev.map((s) => (s.uuid === updated.uuid ? updated : s)));
-      // Update the store so any other mounted consumer (StoragesPage grid,
-      // StorageSwitcher dropdown) sees the updated state without a refetch
+      // Update the store — all consumers (grid, switcher, this banner) react automatically
       updateStorageInStore(updated);
       toast.success(t('toast.restored', { name: updated.name }));
     } catch (err) {

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 import { useRBACStore } from '@/store/rbac.store';
-import { storagesService } from '../api/storages.service';
 import { useStoragesStore } from '../store/storages.store';
 import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
 
@@ -106,14 +105,9 @@ interface StorageSwitcherProps {
  *   router state `{ openCreateDrawer: true }` so `StoragesPage` auto-opens
  *   the create drawer on mount, then clears the state from history.
  *
- * Data source: the component does its OWN fetch via
- * `storagesService.list({ limit: 100 })` on mount. This is intentionally
- * independent from the paginated fetch performed by `useStorages` inside
- * `StoragesPage`, because the switcher needs the full tenant list (all
- * statuses) while the page view is filter/search/paginated. The limit
- * matches the backend's hard cap on the `limit` query param (see
- * `ListStoragesInDto` `@Max(100)`); tenants with >100 storages fall under
- * deuda técnica item `[S]` (scroll infinito / prefetch / shared fetch).
+ * Data source: reads directly from the Zustand storages store. The store
+ * is populated by `useStorages` in `StoragesPage` or any other consumer.
+ * This avoids duplicate fetches on page load.
  */
 export function StorageSwitcher({
   className,
@@ -122,15 +116,12 @@ export function StorageSwitcher({
   const { t } = useTranslation('storages');
   const navigate = useNavigate();
 
-  // ── Local data state (independent from StoragesPage's paginated hook) ─────
-  const [switcherStorages, setSwitcherStorages] = useState<Storage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-
-  // ── Active context (direct store subscription — avoids pulling the full
-  //    useStorages hook which would trigger a second fetch lifecycle) ───────
+  // ── Store subscriptions (no independent fetch — uses store data) ─────────
+  const switcherStorages = useStoragesStore((state) => state.storages);
+  const isLoading = useStoragesStore((state) => state.isLoading);
   const activeStorageId = useStoragesStore((state) => state.activeStorageId);
   const setActiveStorage = useStoragesStore((state) => state.setActiveStorage);
+  const [isOpen, setIsOpen] = useState(false);
 
   // ── RBAC ──────────────────────────────────────────────────────────────────
   const canCreate = useRBACStore((state) => state.canDo('STORAGE_CREATE'));
@@ -138,27 +129,6 @@ export function StorageSwitcher({
 
   // ── Container ref for click-outside detection ────────────────────────────
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // ── Fetch the full tenant storage list once on mount ─────────────────────
-  useEffect(() => {
-    if (!hasReadAccess) return;
-    let cancelled = false;
-    storagesService
-      .list({ page: 1, limit: 100, sortOrder: 'ASC' })
-      .then((result) => {
-        if (cancelled) return;
-        setSwitcherStorages(result.items);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        console.error('[StorageSwitcher] failed to fetch storages:', err);
-        setIsLoading(false);
-      });
-    return (): void => {
-      cancelled = true;
-    };
-  }, [hasReadAccess]);
 
   // ── Validate & auto-select active context once data arrives ──────────────
   //

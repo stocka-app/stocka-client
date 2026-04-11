@@ -15,9 +15,9 @@ import type { Storage, StorageType } from '../types/storages.types';
 import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
-import { CreateEditStorageModal } from '../components/CreateEditStorageModal';
+import { EditStorageDrawer } from '../components/EditStorageDrawer';
 import { ArchiveStorageModal } from '../components/ArchiveStorageModal';
-import type { CreateStorageFormData } from '../schemas/storages.schema';
+import type { EditStoragePayload } from '../hooks/useStorages';
 
 // ─── Type tab configuration ─────────────────────────────────────────────────
 
@@ -52,7 +52,6 @@ export default function StoragesPage(): React.ReactElement {
     storages,
     sortedStorages,
     activeStorageId,
-    activeStorages,
     summary,
     typeCounts,
     total,
@@ -76,6 +75,7 @@ export default function StoragesPage(): React.ReactElement {
     createStoreRoom,
     createCustomRoom,
     editStorage,
+    changeStorageType,
     archiveStorage,
     restoreStorage,
   } = useStorages();
@@ -109,17 +109,15 @@ export default function StoragesPage(): React.ReactElement {
 
   const canArchiveStorage = (storage: Storage): boolean => storage.status === 'ACTIVE';
 
-  const canRestoreStorage = (storage: Storage): boolean => {
-    const limit = storageLimits[storage.type];
-    if (limit === -1) return true;
-    const activeOfType = activeStorages.filter((s) => s.type === storage.type).length;
-    return activeOfType < limit;
-  };
-
   // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleCreateClick = (): void => {
     setIsCreateDrawerOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- handler placeholder until detail page is implemented
+  const handleViewClick = (_storage: Storage): void => {
+    // TODO: navigate to storage detail page when implemented
   };
 
   const handleEditClick = (storage: Storage): void => {
@@ -141,11 +139,27 @@ export default function StoragesPage(): React.ReactElement {
     }
   };
 
-  const handleSave = async (data: CreateStorageFormData): Promise<boolean> => {
-    if (selectedStorage) {
-      return editStorage(selectedStorage.uuid, data);
+  const handleEdit = async (
+    id: string,
+    type: StorageType,
+    payload: EditStoragePayload,
+  ): Promise<{ error: 'name_taken' | 'archived' | 'address_required' | 'server_error' | null }> => {
+    const result = await editStorage(id, type, payload);
+    if (result.error === null) {
+      toast.success(t('editDrawer.toast.success'));
     }
-    return false;
+    return result;
+  };
+
+  const handleChangeType = async (
+    id: string,
+    targetType: StorageType,
+  ): Promise<{ error: 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null }> => {
+    const result = await changeStorageType(id, targetType);
+    if (result.error === null) {
+      toast.success(t('editDrawer.toast.success'));
+    }
+    return result;
   };
 
   const handleArchiveConfirm = async (): Promise<void> => {
@@ -224,16 +238,19 @@ export default function StoragesPage(): React.ReactElement {
         onCreateStoreRoom={createStoreRoom}
         onCreateCustomRoom={createCustomRoom}
       />
-      {/* Edit flow — existing modal */}
-      <CreateEditStorageModal
+      {/* Edit flow — drawer */}
+      <EditStorageDrawer
         open={isEditOpen}
         storage={selectedStorage}
         onClose={() => {
           setIsEditOpen(false);
           setSelectedStorage(null);
         }}
-        onSave={handleSave}
-        isAtTypeLimit={isAtTypeLimit}
+        onEdit={handleEdit}
+        onChangeType={handleChangeType}
+        limits={storageLimits}
+        typeCounts={typeCounts}
+        tier={tier ?? 'FREE'}
       />
       <ArchiveStorageModal
         open={isArchiveOpen}
@@ -649,10 +666,14 @@ export default function StoragesPage(): React.ReactElement {
                 key={storage.uuid}
                 storage={storage}
                 isActiveContext={storage.uuid === activeStorageId}
-                onEdit={canDo('STORAGE_UPDATE') ? handleEditClick : undefined}
-                onArchive={canDo('STORAGE_ARCHIVE') && canArchiveStorage(storage) ? handleArchiveClick : undefined}
-                onRestore={canDo('STORAGE_UPDATE') && canRestoreStorage(storage) ? handleRestoreClick : undefined}
-                onDelete={canDo('STORAGE_DELETE') && storage.status === 'ARCHIVED' ? handleDeleteClick : undefined}
+                canEdit={canDo('STORAGE_UPDATE')}
+                canArchive={canDo('STORAGE_ARCHIVE')}
+                canDelete={canDo('STORAGE_DELETE')}
+                onView={handleViewClick}
+                onEdit={handleEditClick}
+                onArchive={handleArchiveClick}
+                onRestore={handleRestoreClick}
+                onDelete={handleDeleteClick}
               />
             ))}
 

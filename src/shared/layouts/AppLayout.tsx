@@ -22,6 +22,7 @@ import { LanguageSwitcher } from '@/shared/components/LanguageSwitcher';
 import { StockaIcon } from '@/shared/components/StockaIcon';
 import { UpgradeModal } from '@/shared/components/UpgradeModal';
 import { useAuthentication } from '@/features/authentication';
+import { useRBACStore } from '@/store/rbac.store';
 import { StorageSwitcher, StorageStatusBanner } from '@/features/storages';
 import { AvatarWithFallback, getInitials } from '@/shared/components/AvatarWithFallback';
 
@@ -30,12 +31,14 @@ interface NavItem {
   path: string;
   icon: LucideIcon;
   hasSubNav?: boolean;
+  /** RBAC action required to see this nav item. If omitted, always visible. */
+  requiredAction?: import('@/features/team/types/team.types').RBACAction;
 }
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'dashboard', path: '/dashboard', icon: LayoutDashboard },
   { key: 'categories', path: '/categories', icon: Tag, hasSubNav: true },
-  { key: 'storages', path: '/storages', icon: Warehouse, hasSubNav: true },
+  { key: 'storages', path: '/storages', icon: Warehouse, hasSubNav: true, requiredAction: 'STORAGE_READ' },
   { key: 'products', path: '/products', icon: Package, hasSubNav: true },
   { key: 'suppliers', path: '/suppliers', icon: Truck },
   { key: 'settings', path: '/settings/organization', icon: Settings },
@@ -46,6 +49,7 @@ export function AppLayout() {
   const { t } = useTranslation('layout');
   const navigate = useNavigate();
   const { user, logout } = useAuthentication();
+  const { canDo } = useRBACStore();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -134,7 +138,7 @@ export function AppLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto pt-14 pb-3 space-y-1 px-3" aria-label={t('sidebar.nav')}>
-          {NAV_ITEMS.map(({ key, path, icon: Icon, hasSubNav }) => (
+          {NAV_ITEMS.filter((item) => !item.requiredAction || canDo(item.requiredAction)).map(({ key, path, icon: Icon, hasSubNav }) => (
             <NavLink
               key={key}
               to={path}

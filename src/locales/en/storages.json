@@ -228,6 +228,35 @@
     "abandon": "Abandon",
     "successToast": "\"{{name}}\" was added to the list."
   },
+  "editDrawer": {
+    "title": "Edit storage",
+    "subtitle": "Modify the details of this storage.",
+    "submit": "Save changes",
+    "submitting": "Saving...",
+    "cancel": "Cancel",
+    "errors": {
+      "nameTooShort": "Name must be at least 3 characters",
+      "nameDuplicate": "A storage with this name already exists",
+      "addressRequired": "Address is required for warehouses"
+    },
+    "toast": {
+      "success": "Storage updated successfully",
+      "error": "Could not save changes. Check your connection and try again."
+    },
+    "unsaved": {
+      "title": "Discard changes?",
+      "description": "You have unsaved changes. If you leave now, your changes will be lost.",
+      "keep": "Keep editing",
+      "leave": "Discard changes"
+    },
+    "warnings": {
+      "iconChange": "Changing the type will reset the icon and color to the default values.",
+      "historyAffected": "Activity history will reflect the type change.",
+      "customLost": "Custom icon and color will be lost when switching to a fixed type.",
+      "tierLimit": "You have reached the limit for {{type}} in your {{tier}} plan.",
+      "seePlans": "See plans"
+    }
+  },
   "contextCurrent": "Current context",
   "switcher": {
     "header": "Select storage",

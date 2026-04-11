@@ -84,10 +84,17 @@ interface StorageCardProps {
    * always visually dominant in the grid.
    */
   isActiveContext?: boolean;
-  onEdit?: (storage: Storage) => void;
-  onArchive?: (storage: Storage) => void;
-  onRestore?: (storage: Storage) => void;
-  onDelete?: (storage: Storage) => void;
+  /** RBAC: user has STORAGE_UPDATE permission */
+  canEdit?: boolean;
+  /** RBAC: user has STORAGE_ARCHIVE permission */
+  canArchive?: boolean;
+  /** RBAC: user has STORAGE_DELETE permission */
+  canDelete?: boolean;
+  onView: (storage: Storage) => void;
+  onEdit: (storage: Storage) => void;
+  onArchive: (storage: Storage) => void;
+  onRestore: (storage: Storage) => void;
+  onDelete: (storage: Storage) => void;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -95,6 +102,10 @@ interface StorageCardProps {
 export function StorageCard({
   storage,
   isActiveContext = false,
+  canEdit = false,
+  canArchive = false,
+  canDelete = false,
+  onView,
   onEdit,
   onArchive,
   onRestore,
@@ -102,16 +113,14 @@ export function StorageCard({
 }: StorageCardProps): React.ReactElement {
   const { t } = useTranslation('storages');
 
-  // Action visibility is fully driven by the handlers passed from the parent.
-  // The parent (StoragesPage) decides which handlers to pass based on RBAC + business rules.
-  const showEdit = !!onEdit;
-  const showArchive = !!onArchive && storage.status === 'ACTIVE';
-  const showRestore = !!onRestore && storage.status === 'ARCHIVED';
-  const showDelete = !!onDelete && storage.status === 'ARCHIVED';
-
   const isFrozen = storage.status === 'FROZEN';
   const isArchived = storage.status === 'ARCHIVED';
   const isCustomRoom = storage.type === 'CUSTOM_ROOM';
+
+  // Menu item enabled state — always visible, conditionally disabled.
+  const editDisabled = !canEdit || isArchived;
+  const archiveDisabled = !canArchive || isArchived || isFrozen;
+  const deleteDisabled = !canDelete || !isArchived;
 
   return (
     <div
@@ -239,22 +248,43 @@ export function StorageCard({
                 <span className="material-symbols-outlined text-[18px]">more_horiz</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[140px]">
-              <DropdownMenuItem>{t('actions.view')}</DropdownMenuItem>
-              {showEdit && onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(storage)}>{t('actions.edit')}</DropdownMenuItem>
-              )}
-              {showArchive && onArchive && (
-                <DropdownMenuItem onClick={() => onArchive(storage)}>{t('actions.archive')}</DropdownMenuItem>
-              )}
-              {showRestore && onRestore && (
-                <DropdownMenuItem onClick={() => onRestore(storage)}>{t('actions.restore')}</DropdownMenuItem>
-              )}
-              {showDelete && onDelete && (
-                <DropdownMenuItem className="text-destructive" onClick={() => onDelete(storage)}>
-                  {t('actions.delete')}
+            <DropdownMenuContent align="end" className="min-w-[160px]">
+              <DropdownMenuItem onClick={() => onView(storage)}>
+                <span className="material-symbols-outlined mr-2 text-[16px]">visibility</span>
+                {t('actions.view')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={editDisabled}
+                onClick={() => !editDisabled && onEdit(storage)}
+              >
+                <span className="material-symbols-outlined mr-2 text-[16px]">edit</span>
+                {t('actions.edit')}
+              </DropdownMenuItem>
+              {isArchived ? (
+                <DropdownMenuItem
+                  disabled={!canArchive}
+                  onClick={() => canArchive && onRestore(storage)}
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px]">unarchive</span>
+                  {t('actions.restore')}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  disabled={archiveDisabled}
+                  onClick={() => !archiveDisabled && onArchive(storage)}
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px]">archive</span>
+                  {t('actions.archive')}
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem
+                disabled={deleteDisabled}
+                className={!deleteDisabled ? 'text-destructive focus:text-destructive' : ''}
+                onClick={() => !deleteDisabled && onDelete(storage)}
+              >
+                <span className="material-symbols-outlined mr-2 text-[16px]">delete</span>
+                {t('actions.delete')}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

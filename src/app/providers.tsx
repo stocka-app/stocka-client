@@ -134,11 +134,23 @@ function ThemeInitializer({ children }: { readonly children: React.ReactNode }) 
 }
 
 export function Providers({ children }: ProvidersProps) {
+  const theme = useThemeStore((s) => s.theme);
+
   return (
     <ThemeInitializer>
       <AuthInitializer>
         <RouterProvider router={router} />
-        <Toaster richColors position="top-right" />
+        <Toaster
+          richColors
+          closeButton
+          position="bottom-center"
+          theme={theme}
+          toastOptions={{
+            classNames: {
+              closeButton: '!left-auto !right-0 !translate-x-[35%] !-translate-y-[35%]',
+            },
+          }}
+        />
         {children}
       </AuthInitializer>
     </ThemeInitializer>
