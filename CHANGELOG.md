@@ -3,6 +3,70 @@
 All notable changes to this project are documented here.
 
 
+## [0.18.0](https://github.com/stocka-app/stocka-client/compare/v0.17.0...v0.18.0) (2026-04-13)
+
+### ✨ Features
+
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — add freezeStorage, unfreezeStorage, getIsLastActive, canUnfreeze to useStorages hook ([25186fa](https://github.com/stocka-app/stocka-client/commit/25186fa7d510bf3e16d4efe6a34b347eac93125e))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — add i18n keys ES/EN + fix icon size + remove defaultValues ([2c76de8](https://github.com/stocka-app/stocka-client/commit/2c76de89c0d76c43a5ecb3f35966822c623ecaa1))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — align StorageCard dropdown menu with H-05 Pencil design ([a418c8f](https://github.com/stocka-app/stocka-client/commit/a418c8ff7b08c69f559dbdfbb31f95ff80f01601))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — EditStorageDrawer FROZEN mode — fix banner text + add type-disabled explanation ([dd1c501](https://github.com/stocka-app/stocka-client/commit/dd1c5019c9e00ae5a8623e5d17a04b90aff05f5f))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — implement FreezeConfirmDialog with 5 variants ([67a0a9a](https://github.com/stocka-app/stocka-client/commit/67a0a9a0bd63e5132686640649a05db470c91207))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — StorageStatusBanner uses unfreezeStorage for FROZEN CTA + permission guard ([1037cf3](https://github.com/stocka-app/stocka-client/commit/1037cf397c5465d6605920613a372e541bd77c54))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — wire freeze/unfreeze actions in StoragesPage → StorageCard ([8df1c65](https://github.com/stocka-app/stocka-client/commit/8df1c65b070e8dd474d7d4cd911c240e281eac96))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — wire FreezeConfirmDialog in StoragesPage with 5 variants ([7b60232](https://github.com/stocka-app/stocka-client/commit/7b602322456022283fa9c11df76e6d988d644bcc))
+* **storages:** [STOC-352](https://austins-industries.atlassian.net/browse/STOC-352) — add type selector to EditStorageDrawer with tier validation ([01dea0b](https://github.com/stocka-app/stocka-client/commit/01dea0ba2972d9bf0a862d422635bb90065727fa))
+* **storages:** [STOC-352](https://austins-industries.atlassian.net/browse/STOC-352) — implement EditStorageDrawer with dirty detection and per-type edit ([d7006a7](https://github.com/stocka-app/stocka-client/commit/d7006a796687008a7b1379a9af84164b25258cde))
+* **storages:** [STOC-352](https://austins-industries.atlassian.net/browse/STOC-352) — wire EditStorageDrawer into StoragesPage with success toast ([e46f2a1](https://github.com/stocka-app/stocka-client/commit/e46f2a128649f98c70b677cd245b03036ca799e2))
+* **storages:** [STOC-353] [STOC-354] | Sprint 2 | add i18n edit keys and per-type update service + hook ([841ee3d](https://github.com/stocka-app/stocka-client/commit/841ee3d38f685dc647534e5145cc5e438bef74b2))
+* **storages:** [STOC-438](https://austins-industries.atlassian.net/browse/STOC-438) — RBAC-gate sidebar nav items by requiredAction ([6d3ab51](https://github.com/stocka-app/stocka-client/commit/6d3ab5161050efd201ff8b5845967d0d39e51e94))
+
+### 🐛 Bug Fixes
+
+* **onboarding:** dark mode fixes for Step4 icon/color picker button and picker position ([864a5c1](https://github.com/stocka-app/stocka-client/commit/864a5c1b5ede73eb76e0df3b13af016caab1dfcc))
+* **rbac:** ensure permissions are loaded before rendering protected routes ([5c27510](https://github.com/stocka-app/stocka-client/commit/5c27510eaa70e4042714c41682858e6bd09064f4))
+* **storages:** add missing isArchived derived state in EditStorageDrawer ([49e5ee5](https://github.com/stocka-app/stocka-client/commit/49e5ee5ca0a741939d4188457a972ac8bbf2da64))
+* **storages:** match type selector to Pencil spec with exact per-type colors ([3d1b225](https://github.com/stocka-app/stocka-client/commit/3d1b225e1fb5133c7913b2d42a402f1da0811b5f)), closes [#F9FAFB](https://github.com/stocka-app/stocka-client/issues/F9FAFB) [#E5E7EB](https://github.com/stocka-app/stocka-client/issues/E5E7EB) [#dbeafe](https://github.com/stocka-app/stocka-client/issues/dbeafe) [#3b82f6](https://github.com/stocka-app/stocka-client/issues/3b82f6) [#1e40af](https://github.com/stocka-app/stocka-client/issues/1e40af) [#fef3c7](https://github.com/stocka-app/stocka-client/issues/fef3c7) [#d97706](https://github.com/stocka-app/stocka-client/issues/d97706) [#92400e](https://github.com/stocka-app/stocka-client/issues/92400e) [#ec489920](https://github.com/stocka-app/stocka-client/issues/ec489920) [#ec4899](https://github.com/stocka-app/stocka-client/issues/ec4899) [#0f172a](https://github.com/stocka-app/stocka-client/issues/0f172a) [#273d5c](https://github.com/stocka-app/stocka-client/issues/273d5c) [#60a5fa40](https://github.com/stocka-app/stocka-client/issues/60a5fa40) [#60a5fa](https://github.com/stocka-app/stocka-client/issues/60a5fa) [#93bbfd](https://github.com/stocka-app/stocka-client/issues/93bbfd) [#fbbf2440](https://github.com/stocka-app/stocka-client/issues/fbbf2440) [#fbbf24](https://github.com/stocka-app/stocka-client/issues/fbbf24) [#fde68a](https://github.com/stocka-app/stocka-client/issues/fde68a)
+* **storages:** show tier counters on all type cards, not just at-limit ones ([d2267d8](https://github.com/stocka-app/stocka-client/commit/d2267d8d3edb7d901f0efe389a0f4dcbd2b2b495))
+* **storages:** stop version increment on setStorages to prevent fetch cascade ([8f5b6ae](https://github.com/stocka-app/stocka-client/commit/8f5b6ae5b626a8bc62611f308683fd1bc973fb6b))
+* **storages:** sync StorageSwitcher with store mutations + add close button to toasts ([0e21d29](https://github.com/stocka-app/stocka-client/commit/0e21d291fb924b24d69a1f656593bcf2647542ac))
+* **ui:** move toast close button to the right side ([4604802](https://github.com/stocka-app/stocka-client/commit/46048029fc296ee53729a6250f10c4571bdcd97c))
+* **ui:** position toasts at bottom-center and sync theme with dark mode ([e985193](https://github.com/stocka-app/stocka-client/commit/e985193b216d9b33857bc59d757990a952eb3997))
+
+### ⚡ Performance
+
+* **storages:** eliminate independent fetch in StorageStatusBanner ([499ce81](https://github.com/stocka-app/stocka-client/commit/499ce81865653f234a876a1a136cab17f6ea08f4))
+* **storages:** eliminate independent fetch in StorageSwitcher — read from store ([fd072a0](https://github.com/stocka-app/stocka-client/commit/fd072a0ba104a02bcacd8647e8a2d99b6f4f8a9b))
+
+### 🔧 Refactoring
+
+* **storages:** always show 4 context menu options per Pencil spec ([6bab4f9](https://github.com/stocka-app/stocka-client/commit/6bab4f9e9a44a634414b8a04eebb55701de58d87))
+
+### 📚 Documentation
+
+* **changelog:** [skip ci] add H-03 narrative blockquote to 0.17.0 ([7e865d5](https://github.com/stocka-app/stocka-client/commit/7e865d5abe1ecb921d69a715357a44f3a4009662))
+
+### ✅ Tests
+
+* **e2e:** [STOC-355](https://austins-industries.atlassian.net/browse/STOC-355) — add Playwright E2E spec for edit storage flow ([e84e390](https://github.com/stocka-app/stocka-client/commit/e84e39003433f7a673c1b861b3c69a1e6856d6cb))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — add Playwright E2E specs for freeze/unfreeze (PW-H05-1 to PW-H05-7) ([f5ebb71](https://github.com/stocka-app/stocka-client/commit/f5ebb717728585f5febed6a908c5fd1267ac4e54))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — FE unit tests 100% coverage — FreezeConfirmDialog + all gaps closed ([bd5e4a2](https://github.com/stocka-app/stocka-client/commit/bd5e4a27940e047cae8f347a73a6958e8f7ee0de))
+* **storages:** [STOC-355](https://austins-industries.atlassian.net/browse/STOC-355) — add EditStorageDrawer unit tests — 36 BDD scenarios ([f93a979](https://github.com/stocka-app/stocka-client/commit/f93a9797bd3b267fe6aaa77e4b632e455a07234b))
+* **storages:** [STOC-355](https://austins-industries.atlassian.net/browse/STOC-355) — add version counter unit tests to storages store ([66ba590](https://github.com/stocka-app/stocka-client/commit/66ba5906d68abd2d761280dcc48833e59f3598a5))
+
+### 🎨 Styles
+
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — all dropdown menu icons show semantic color on hover only ([6166294](https://github.com/stocka-app/stocka-client/commit/6166294c39fc80cb4b20987201701348379ecf1c))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — differentiate Ver detalle hover from Editar ([23f1e4d](https://github.com/stocka-app/stocka-client/commit/23f1e4d544df4bb738750d77b21b0e60ae099c81))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — freeze/unfreeze icons neutral by default, colored on hover ([9935cce](https://github.com/stocka-app/stocka-client/commit/9935cceba66294fb14aed541298c3f6ed339a3f4))
+* **storages:** dropdown opens below and right-aligned to the trigger ([1a69282](https://github.com/stocka-app/stocka-client/commit/1a692821ed801e157c71286ace8199f501ac87ad))
+* **storages:** dropdown opens to the right of the trigger ([43f25c0](https://github.com/stocka-app/stocka-client/commit/43f25c0549483e418494b9f41cc718d025384147))
+* **storages:** fine-tune dropdown position — shift left 8px + down 32px ([225c2e9](https://github.com/stocka-app/stocka-client/commit/225c2e9b608eaf4d973926de8fe733b7bdcb5bb1))
+* **storages:** lighten Ver detalle icon hover to neutral-600/300 ([892cd36](https://github.com/stocka-app/stocka-client/commit/892cd360b865bc508d580a8f9034c640af2fbb23))
+* **storages:** offset dropdown 24px below trigger top edge ([54e2348](https://github.com/stocka-app/stocka-client/commit/54e23480190386076108c564df11ec68cb41bb02))
+* **storages:** shift dropdown further left (sideOffset -24) ([6fb2fea](https://github.com/stocka-app/stocka-client/commit/6fb2fea842bd030238e80c1b66c0228eec1d13ca))
+* **storages:** Ver detalle icon hover to info (blue) — consistent color language ([1a02f13](https://github.com/stocka-app/stocka-client/commit/1a02f136d6abf6c27b173d3cb6c3e37bb5753340))
+
 ## [0.17.0](https://github.com/stocka-app/stocka-client/compare/v0.16.0...v0.17.0) (2026-04-09)
 
 > **Sprint 2 · H-03 StorageSwitcher end-to-end + Tier Capabilities polish**
