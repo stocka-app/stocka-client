@@ -380,7 +380,7 @@ export function Step4Spaces({
                 <Package className="w-5 h-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-neutral-900">
+                <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
                   {t('step4.storeRoom.title')}
                 </p>
                 <p className="text-xs text-neutral-500 mt-0.5">
@@ -403,7 +403,7 @@ export function Step4Spaces({
                 <Store className="w-5 h-5 text-brand" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-neutral-900">
+                <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
                   {t('step4.customRoom.title')}
                 </p>
                 <p className="text-xs text-neutral-500 mt-0.5">
@@ -444,7 +444,7 @@ export function Step4Spaces({
                   <p
                     className={cn(
                       'font-semibold text-sm',
-                      isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900',
+                      isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900 dark:text-neutral-100',
                     )}
                   >
                     {t('step4.warehouse.title')}
@@ -545,7 +545,7 @@ export function Step4Spaces({
             <Package className="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-neutral-900">
+            <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
               {t('step4.storeRoom.title')}
             </p>
             <p className="text-xs text-neutral-500">
@@ -650,7 +650,7 @@ export function Step4Spaces({
             <Store className="w-4 h-4 text-brand" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-neutral-900">
+            <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
               {t('step4.customRoom.title')}
             </p>
             <p className="text-xs text-neutral-500">
@@ -690,7 +690,7 @@ export function Step4Spaces({
 
                 {/* Room type — suggestion chips + free text input */}
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 block mb-2">
+                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-2">
                     {t('step4.customRoom.roomTypeLabel')}
                   </label>
 
@@ -872,7 +872,7 @@ export function Step4Spaces({
               <p
                 className={cn(
                   'font-semibold text-sm',
-                  isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900',
+                  isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900 dark:text-neutral-100',
                 )}
               >
                 {t('step4.warehouse.title')}
