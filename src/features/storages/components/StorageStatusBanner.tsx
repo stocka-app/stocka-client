@@ -69,6 +69,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
   const isLoading = useStoragesStore((state) => state.isLoading);
   const updateStorageInStore = useStoragesStore((state) => state.updateStorage);
   const hasReadAccess = useRBACStore((state) => state.canDo('STORAGE_READ'));
+  const canUnfreeze = useRBACStore((state) => state.canDo('STORAGE_UNFREEZE'));
 
   // ── Reset dismissed flag when active context changes ─────────────────────
   //
@@ -103,13 +104,23 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
   const handleReactivate = async (): Promise<void> => {
     setIsReactivating(true);
     try {
-      const updated = await storagesService.restore(activeStorage.uuid);
-      // Update the store — all consumers (grid, switcher, this banner) react automatically
-      updateStorageInStore(updated);
-      toast.success(t('toast.restored', { name: updated.name }));
+      if (isFrozen) {
+        // H-05: FROZEN → ACTIVE uses the per-type /unfreeze endpoint
+        await storagesService.unfreeze(activeStorage.uuid, activeStorage.type);
+        // Refetch to get the updated storage from the server
+        const result = await storagesService.list({ limit: 1, search: activeStorage.name });
+        const updated = result.items.find((s) => s.uuid === activeStorage.uuid);
+        if (updated) updateStorageInStore(updated);
+        toast.success(t('toasts.reactivated', { name: activeStorage.name }));
+      } else {
+        // ARCHIVED → ACTIVE uses the unified /restore endpoint (out of scope H-05)
+        const updated = await storagesService.restore(activeStorage.uuid);
+        updateStorageInStore(updated);
+        toast.success(t('toast.restored', { name: updated.name }));
+      }
     } catch (err) {
-      console.error('[StorageStatusBanner] restore failed:', err);
-      toast.error(t('toast.restoreFailed'));
+      console.error('[StorageStatusBanner] reactivate failed:', err);
+      toast.error(isFrozen ? t('toasts.errors.unfreezeFailed') : t('toast.restoreFailed'));
     } finally {
       setIsReactivating(false);
     }
@@ -165,21 +176,25 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
         />
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={handleReactivate}
-        disabled={isReactivating}
-        className={cn(
-          'shrink-0 bg-transparent',
-          isFrozen
-            ? 'border-info text-info hover:bg-info/10 hover:text-info'
-            : 'border-neutral-500 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-700',
-        )}
-      >
-        {t('banners.reactivate')}
-      </Button>
+      {/* H-05: CTA visible only for roles with the correct permission.
+          FROZEN → canUnfreeze (STORAGE_UNFREEZE). ARCHIVED → always shown (existing behavior). */}
+      {(isFrozen ? canUnfreeze : true) && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleReactivate}
+          disabled={isReactivating}
+          className={cn(
+            'shrink-0 bg-transparent',
+            isFrozen
+              ? 'border-info text-info hover:bg-info/10 hover:text-info'
+              : 'border-neutral-500 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-700',
+          )}
+        >
+          {t('banners.reactivate')}
+        </Button>
+      )}
 
       <button
         type="button"
