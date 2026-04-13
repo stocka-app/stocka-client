@@ -316,6 +316,7 @@ export function EditStorageDrawer({
   // ── Form submission ───────────────────────────────────────────────────────
 
   const handleFormSubmit = async (values: EditFormValues): Promise<void> => {
+    /* v8 ignore next — !originalValues is unreachable: originalValues is derived from storage (line 253-262) */
     if (!storage || !originalValues) return;
     setServerError(null);
 
@@ -409,6 +410,7 @@ export function EditStorageDrawer({
     serverError === 'archived';
 
   const typeLabel = (): string => {
+    /* v8 ignore next — storage is always non-null here (guarded at line 418) */
     if (!storage) return '';
     if (storage.type === 'WAREHOUSE') return t('createDrawer.warehouseLabel');
     if (storage.type === 'STORE_ROOM') return t('createDrawer.storeRoomLabel');

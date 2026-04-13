@@ -173,17 +173,63 @@ describe('storagesService', () => {
     });
   });
 
-  // ── update ───────────────────────────────────────────────────────────────
+  // ── updateWarehouse ──────────────────────────────────────────────────────
 
-  describe('update', () => {
-    it('calls PATCH /storages/:id with payload', async () => {
-      const updated = { ...storageFixture, name: 'Almacen Norte' };
-      mockedAxios.patch.mockResolvedValueOnce(envelope(updated));
+  describe('updateWarehouse', () => {
+    it('calls PATCH /storages/warehouses/:id with payload and returns storageUUID', async () => {
+      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-1' }));
 
-      const result = await storagesService.update('uuid-1', { name: 'Almacen Norte' });
+      const result = await storagesService.updateWarehouse('uuid-1', { name: 'Almacen Norte' });
 
-      expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/uuid-1', { name: 'Almacen Norte' });
-      expect(result).toEqual(updated);
+      expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/warehouses/uuid-1', { name: 'Almacen Norte' });
+      expect(result).toEqual({ storageUUID: 'uuid-1' });
+    });
+  });
+
+  // ── updateStoreRoom ───────────────────────────────────────────────────────
+
+  describe('updateStoreRoom', () => {
+    it('calls PATCH /storages/store-rooms/:id with payload and returns storageUUID', async () => {
+      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-2' }));
+
+      const result = await storagesService.updateStoreRoom('uuid-2', { name: 'Back Store Updated' });
+
+      expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/store-rooms/uuid-2', { name: 'Back Store Updated' });
+      expect(result).toEqual({ storageUUID: 'uuid-2' });
+    });
+  });
+
+  // ── updateCustomRoom ──────────────────────────────────────────────────────
+
+  describe('updateCustomRoom', () => {
+    it('calls PATCH /storages/custom-rooms/:id with payload and returns storageUUID', async () => {
+      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-3' }));
+
+      const result = await storagesService.updateCustomRoom('uuid-3', {
+        name: 'Updated Kitchen',
+        icon: 'kitchen',
+        color: '#0D9488',
+      });
+
+      expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/custom-rooms/uuid-3', {
+        name: 'Updated Kitchen',
+        icon: 'kitchen',
+        color: '#0D9488',
+      });
+      expect(result).toEqual({ storageUUID: 'uuid-3' });
+    });
+  });
+
+  // ── changeType ────────────────────────────────────────────────────────────
+
+  describe('changeType', () => {
+    it('calls PATCH /storages/:id/type with the new type and returns storageUUID', async () => {
+      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-1' }));
+
+      const result = await storagesService.changeType('uuid-1', 'STORE_ROOM');
+
+      expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/uuid-1/type', { type: 'STORE_ROOM' });
+      expect(result).toEqual({ storageUUID: 'uuid-1' });
     });
   });
 
@@ -223,6 +269,62 @@ describe('storagesService', () => {
       await storagesService.destroy('uuid-1');
 
       expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/uuid-1/permanent');
+    });
+  });
+
+  // ── freeze ───────────────────────────────────────────────────────────────
+
+  describe('freeze', () => {
+    it('calls POST /storages/warehouses/:id/freeze for WAREHOUSE type', async () => {
+      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+
+      await storagesService.freeze('uuid-1', 'WAREHOUSE');
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/warehouses/uuid-1/freeze');
+    });
+
+    it('calls POST /storages/store-rooms/:id/freeze for STORE_ROOM type', async () => {
+      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+
+      await storagesService.freeze('uuid-2', 'STORE_ROOM');
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/store-rooms/uuid-2/freeze');
+    });
+
+    it('calls POST /storages/custom-rooms/:id/freeze for CUSTOM_ROOM type', async () => {
+      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+
+      await storagesService.freeze('uuid-3', 'CUSTOM_ROOM');
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/custom-rooms/uuid-3/freeze');
+    });
+  });
+
+  // ── unfreeze ─────────────────────────────────────────────────────────────
+
+  describe('unfreeze', () => {
+    it('calls POST /storages/warehouses/:id/unfreeze for WAREHOUSE type', async () => {
+      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+
+      await storagesService.unfreeze('uuid-1', 'WAREHOUSE');
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/warehouses/uuid-1/unfreeze');
+    });
+
+    it('calls POST /storages/store-rooms/:id/unfreeze for STORE_ROOM type', async () => {
+      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+
+      await storagesService.unfreeze('uuid-2', 'STORE_ROOM');
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/store-rooms/uuid-2/unfreeze');
+    });
+
+    it('calls POST /storages/custom-rooms/:id/unfreeze for CUSTOM_ROOM type', async () => {
+      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+
+      await storagesService.unfreeze('uuid-3', 'CUSTOM_ROOM');
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/custom-rooms/uuid-3/unfreeze');
     });
   });
 

@@ -11,9 +11,15 @@ vi.mock('../../api/storages.service', () => ({
     createWarehouse: vi.fn(),
     createStoreRoom: vi.fn(),
     createCustomRoom: vi.fn(),
-    update: vi.fn(),
+    updateWarehouse: vi.fn(),
+    updateStoreRoom: vi.fn(),
+    updateCustomRoom: vi.fn(),
+    changeType: vi.fn(),
     archive: vi.fn(),
     restore: vi.fn(),
+    freeze: vi.fn(),
+    unfreeze: vi.fn(),
+    destroy: vi.fn(),
   },
 }));
 
@@ -497,22 +503,292 @@ describe('Given useStorages orchestrates storage operations', () => {
   });
 
   describe('When editStorage is called with a valid id and payload', () => {
-    it('Then it calls the service and returns true on success', async () => {
-      vi.mocked(storagesService.update).mockResolvedValue({ ...mockStoragesItems[0], name: 'Updated' });
+    it('Then it calls the service and returns error: null on success', async () => {
+      // mockStoragesItems[0] is type STORE_ROOM — hook dispatches to updateStoreRoom
+      vi.mocked(storagesService.updateStoreRoom).mockResolvedValue({ storageUUID: 'storage-001' });
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.editStorage('storage-001', { name: 'Updated' });
-      expect(success).toBe(true);
+      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Updated' });
+      expect(response.error).toBeNull();
     });
 
-    it('Then returns false when the service throws', async () => {
-      vi.mocked(storagesService.update).mockRejectedValue(new Error('Update failed'));
+    it('Then returns error when the service throws', async () => {
+      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue(new Error('Update failed'));
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.editStorage('storage-001', { name: 'Updated' });
-      expect(success).toBe(false);
+      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Updated' });
+      expect(response.error).toBe('server_error');
+    });
+  });
+
+  describe('When editStorage is called and the service throws a plain ApiError', () => {
+    it('Then returns error: archived when plain ApiError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
+      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue({
+        error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED',
+        statusCode: 422,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Archived' });
+      expect(response.error).toBe('archived');
+    });
+
+    it('Then returns error: address_required when plain ApiError carries STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE', async () => {
+      vi.mocked(storagesService.updateWarehouse).mockRejectedValue({
+        error: 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE',
+        statusCode: 400,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-wh', 'WAREHOUSE', { address: '' });
+      expect(response.error).toBe('address_required');
+    });
+  });
+
+  describe('When editStorage is called and the service throws a raw AxiosError', () => {
+    it('Then returns error: server_error when AxiosError has no matching error code', async () => {
+      const axiosError = Object.assign(new Error('Internal Error'), {
+        isAxiosError: true,
+        response: { status: 500, data: { error: 'UNKNOWN_ERROR' } },
+      });
+      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'New' });
+      expect(response.error).toBe('server_error');
+    });
+
+    it('Then returns error: name_taken when AxiosError carries STORAGE_NAME_ALREADY_EXISTS', async () => {
+      const axiosError = Object.assign(new Error('Conflict'), {
+        isAxiosError: true,
+        response: { status: 409, data: { error: 'STORAGE_NAME_ALREADY_EXISTS' } },
+      });
+      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Dup' });
+      expect(response.error).toBe('name_taken');
+    });
+
+    it('Then returns error: archived when AxiosError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
+      const axiosError = Object.assign(new Error('Conflict'), {
+        isAxiosError: true,
+        response: { status: 422, data: { error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED' } },
+      });
+      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Archived' });
+      expect(response.error).toBe('archived');
+    });
+
+    it('Then returns error: address_required when AxiosError carries STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE', async () => {
+      const axiosError = Object.assign(new Error('BadRequest'), {
+        isAxiosError: true,
+        response: { status: 400, data: { error: 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE' } },
+      });
+      vi.mocked(storagesService.updateWarehouse).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-wh', 'WAREHOUSE', { address: '' });
+      expect(response.error).toBe('address_required');
+    });
+  });
+
+  describe('When editStorage is called with a WAREHOUSE type', () => {
+    it('Then it dispatches to updateWarehouse and returns error: null on success', async () => {
+      vi.mocked(storagesService.updateWarehouse).mockResolvedValue({ storageUUID: 'storage-wh' });
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-wh', 'WAREHOUSE', { name: 'Updated WH' });
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.updateWarehouse)).toHaveBeenCalledWith(
+        'storage-wh',
+        { name: 'Updated WH' },
+      );
+    });
+
+    it('Then returns a resolved edit error when updateWarehouse throws', async () => {
+      vi.mocked(storagesService.updateWarehouse).mockRejectedValue(new Error('WH update failed'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-wh', 'WAREHOUSE', { name: 'Updated WH' });
+      expect(response.error).toBe('server_error');
+    });
+  });
+
+  describe('When editStorage is called with a CUSTOM_ROOM type', () => {
+    it('Then it dispatches to updateCustomRoom and returns error: null on success', async () => {
+      vi.mocked(storagesService.updateCustomRoom).mockResolvedValue({ storageUUID: 'storage-cr' });
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-cr', 'CUSTOM_ROOM', { name: 'Updated CR' });
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.updateCustomRoom)).toHaveBeenCalledWith(
+        'storage-cr',
+        { name: 'Updated CR' },
+      );
+    });
+
+    it('Then returns a resolved edit error when updateCustomRoom throws with name_taken', async () => {
+      vi.mocked(storagesService.updateCustomRoom).mockRejectedValue({
+        error: 'STORAGE_NAME_ALREADY_EXISTS',
+        statusCode: 409,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage('storage-cr', 'CUSTOM_ROOM', { name: 'Duplicate' });
+      expect(response.error).toBe('name_taken');
+    });
+  });
+
+  describe('When changeStorageType is called with a valid id and target type', () => {
+    it('Then it calls service.changeType and returns error: null on success', async () => {
+      vi.mocked(storagesService.changeType).mockResolvedValue({ storageUUID: 'storage-001' });
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'CUSTOM_ROOM');
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.changeType)).toHaveBeenCalledWith('storage-001', 'CUSTOM_ROOM');
+    });
+
+    it('Then returns error: tier_limit when the service responds with 403', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: {} },
+      });
+      vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'WAREHOUSE');
+      expect(response.error).toBe('tier_limit');
+    });
+
+    it('Then returns error: frozen when service responds with STORAGE_TYPE_LOCKED_WHILE_FROZEN', async () => {
+      vi.mocked(storagesService.changeType).mockRejectedValue({
+        error: 'STORAGE_TYPE_LOCKED_WHILE_FROZEN',
+        statusCode: 422,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'STORE_ROOM');
+      expect(response.error).toBe('frozen');
+    });
+
+    it('Then returns error: server_error for a generic failure', async () => {
+      vi.mocked(storagesService.changeType).mockRejectedValue(new Error('Generic fail'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'WAREHOUSE');
+      expect(response.error).toBe('server_error');
+    });
+
+    it('Then returns error: archived when plain ApiError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
+      vi.mocked(storagesService.changeType).mockRejectedValue({
+        error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED',
+        statusCode: 422,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'STORE_ROOM');
+      expect(response.error).toBe('archived');
+    });
+
+    it('Then returns error: address_required when plain ApiError carries STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE', async () => {
+      vi.mocked(storagesService.changeType).mockRejectedValue({
+        error: 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE',
+        statusCode: 400,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'WAREHOUSE');
+      expect(response.error).toBe('address_required');
+    });
+
+    it('Then returns error: tier_limit when plain ApiError carries statusCode 403', async () => {
+      vi.mocked(storagesService.changeType).mockRejectedValue({
+        error: 'TIER_LIMIT_REACHED',
+        statusCode: 403,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'WAREHOUSE');
+      expect(response.error).toBe('tier_limit');
+    });
+
+    it('Then returns error: archived when raw AxiosError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
+      const axiosError = Object.assign(new Error('Unprocessable'), {
+        isAxiosError: true,
+        response: { status: 422, data: { error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED' } },
+      });
+      vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'STORE_ROOM');
+      expect(response.error).toBe('archived');
+    });
+
+    it('Then returns error: frozen when raw AxiosError carries STORAGE_TYPE_LOCKED_WHILE_FROZEN', async () => {
+      const axiosError = Object.assign(new Error('Unprocessable'), {
+        isAxiosError: true,
+        response: { status: 422, data: { error: 'STORAGE_TYPE_LOCKED_WHILE_FROZEN' } },
+      });
+      vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'STORE_ROOM');
+      expect(response.error).toBe('frozen');
+    });
+
+    it('Then returns error: address_required when raw AxiosError carries STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE', async () => {
+      const axiosError = Object.assign(new Error('BadRequest'), {
+        isAxiosError: true,
+        response: { status: 400, data: { error: 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE' } },
+      });
+      vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'WAREHOUSE');
+      expect(response.error).toBe('address_required');
+    });
+
+    it('Then returns error: server_error when raw AxiosError has no matching error code and non-403 status', async () => {
+      const axiosError = Object.assign(new Error('Internal Server Error'), {
+        isAxiosError: true,
+        response: { status: 500, data: { error: 'UNKNOWN_ERROR' } },
+      });
+      vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('storage-001', 'CUSTOM_ROOM');
+      expect(response.error).toBe('server_error');
     });
   });
 
@@ -553,6 +829,186 @@ describe('Given useStorages orchestrates storage operations', () => {
 
       const success = await result.current.restoreStorage('storage-003');
       expect(success).toBe(false);
+    });
+  });
+
+  describe('When freezeStorage is called with a valid id', () => {
+    it('Then it calls service.freeze with the correct id and type, and returns true on success', async () => {
+      vi.mocked(storagesService.freeze).mockResolvedValue(undefined);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      // mockStoragesItems[0] is STORE_ROOM type
+      const success = await result.current.freezeStorage('storage-001');
+
+      expect(success).toBe(true);
+      expect(vi.mocked(storagesService.freeze)).toHaveBeenCalledWith('storage-001', 'STORE_ROOM');
+    });
+
+    it('Then it triggers a refetch after successfully freezing', async () => {
+      vi.mocked(storagesService.freeze).mockResolvedValue(undefined);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      vi.mocked(storagesService.freeze).mockResolvedValue(undefined);
+
+      await act(async () => {
+        await result.current.freezeStorage('storage-001');
+      });
+
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1);
+    });
+
+    it('Then returns false when the target storage id does not exist in the current list', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.freezeStorage('non-existent-uuid');
+
+      expect(success).toBe(false);
+      expect(vi.mocked(storagesService.freeze)).not.toHaveBeenCalled();
+    });
+
+    it('Then returns false when the service throws', async () => {
+      vi.mocked(storagesService.freeze).mockRejectedValue(new Error('Freeze failed'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.freezeStorage('storage-001');
+      expect(success).toBe(false);
+    });
+  });
+
+  describe('When unfreezeStorage is called with a valid id', () => {
+    it('Then it calls service.unfreeze with the correct id and type, and returns true on success', async () => {
+      const frozenItem: Storage = {
+        ...mockStoragesItems[0],
+        uuid: 'storage-frozen',
+        status: 'FROZEN',
+        type: 'WAREHOUSE',
+        frozenAt: '2026-02-01T00:00:00.000Z',
+      };
+      const pageWithFrozen: StoragesPage = {
+        ...mockPage,
+        items: [...mockStoragesItems, frozenItem],
+        total: mockStoragesItems.length + 1,
+      };
+      vi.mocked(storagesService.list).mockResolvedValue(pageWithFrozen);
+      vi.mocked(storagesService.unfreeze).mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.unfreezeStorage('storage-frozen');
+
+      expect(success).toBe(true);
+      expect(vi.mocked(storagesService.unfreeze)).toHaveBeenCalledWith('storage-frozen', 'WAREHOUSE');
+    });
+
+    it('Then it triggers a refetch after successfully unfreezing', async () => {
+      const frozenItem: Storage = {
+        ...mockStoragesItems[0],
+        uuid: 'storage-frozen',
+        status: 'FROZEN',
+        type: 'STORE_ROOM',
+        frozenAt: '2026-02-01T00:00:00.000Z',
+      };
+      const pageWithFrozen: StoragesPage = {
+        ...mockPage,
+        items: [...mockStoragesItems, frozenItem],
+        total: mockStoragesItems.length + 1,
+      };
+      vi.mocked(storagesService.list).mockResolvedValue(pageWithFrozen);
+      vi.mocked(storagesService.unfreeze).mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      vi.clearAllMocks();
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      vi.mocked(storagesService.unfreeze).mockResolvedValue(undefined);
+
+      await act(async () => {
+        await result.current.unfreezeStorage('storage-frozen');
+      });
+
+      expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1);
+    });
+
+    it('Then returns false when the target storage id does not exist in the current list', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.unfreezeStorage('non-existent-uuid');
+
+      expect(success).toBe(false);
+      expect(vi.mocked(storagesService.unfreeze)).not.toHaveBeenCalled();
+    });
+
+    it('Then returns false when the service throws', async () => {
+      const frozenItem: Storage = {
+        ...mockStoragesItems[0],
+        uuid: 'storage-frozen',
+        status: 'FROZEN',
+        type: 'CUSTOM_ROOM',
+        frozenAt: '2026-02-01T00:00:00.000Z',
+      };
+      vi.mocked(storagesService.list).mockResolvedValue({
+        ...mockPage,
+        items: [...mockStoragesItems, frozenItem],
+      });
+      vi.mocked(storagesService.unfreeze).mockRejectedValue(new Error('Unfreeze failed'));
+
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.unfreezeStorage('storage-frozen');
+      expect(success).toBe(false);
+    });
+  });
+
+  describe('When getIsLastActive is called', () => {
+    it('Then returns true when the given storage is the only ACTIVE one in the list', async () => {
+      // mockStoragesItems has 2 ACTIVE + 1 ARCHIVED — narrow to 1 ACTIVE
+      const singleActivePage: StoragesPage = {
+        ...mockPage,
+        items: [
+          mockStoragesItems[0], // ACTIVE
+          mockStoragesItems[2], // ARCHIVED
+        ],
+        summary: { active: 1, frozen: 0, archived: 1 },
+      };
+      vi.mocked(storagesService.list).mockResolvedValue(singleActivePage);
+
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      expect(result.current.getIsLastActive('storage-001')).toBe(true);
+    });
+
+    it('Then returns false when there are multiple ACTIVE storages in the list', async () => {
+      const { result } = renderHook(() => useStorages());
+      // mockPage has 2 ACTIVE storages (storage-001 and storage-002)
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      expect(result.current.getIsLastActive('storage-001')).toBe(false);
+    });
+
+    it('Then returns false when the id points to a non-ACTIVE storage', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      // storage-003 is ARCHIVED
+      expect(result.current.getIsLastActive('storage-003')).toBe(false);
+    });
+
+    it('Then returns false when the id does not exist in the current list', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      expect(result.current.getIsLastActive('non-existent-uuid')).toBe(false);
     });
   });
 });
@@ -956,19 +1412,35 @@ describe('Given useStorages resolves permission flags from the RBAC store', () =
         'STORAGE_UPDATE',
         'STORAGE_DELETE',
         'STORAGE_FREEZE',
+        'STORAGE_UNFREEZE',
         'STORAGE_ARCHIVE',
       ];
     });
 
-    it('Then canCreate, canUpdate, canFreeze, canArchive, canDelete are all true', async () => {
+    it('Then canCreate, canUpdate, canFreeze, canUnfreeze, canArchive, canDelete are all true', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       expect(result.current.canCreate).toBe(true);
       expect(result.current.canUpdate).toBe(true);
       expect(result.current.canFreeze).toBe(true);
+      expect(result.current.canUnfreeze).toBe(true);
       expect(result.current.canArchive).toBe(true);
       expect(result.current.canDelete).toBe(true);
+    });
+  });
+
+  describe('When the user has STORAGE_UNFREEZE but not STORAGE_FREEZE', () => {
+    beforeEach(() => {
+      mockPermissions = ['STORAGE_READ', 'STORAGE_UNFREEZE'];
+    });
+
+    it('Then canUnfreeze is true and canFreeze is false', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      expect(result.current.canUnfreeze).toBe(true);
+      expect(result.current.canFreeze).toBe(false);
     });
   });
 
@@ -982,6 +1454,13 @@ describe('Given useStorages resolves permission flags from the RBAC store', () =
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       expect(result.current.canFreeze).toBe(false);
+    });
+
+    it('Then canUnfreeze is false', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      expect(result.current.canUnfreeze).toBe(false);
     });
 
     it('Then canCreate is false', async () => {

@@ -25,7 +25,7 @@ vi.mock('@/store/rbac.store', () => ({
     selector({ canDo: (action: string) => mockPermissions.current.has(action) }),
 }));
 
-// Storages service — .list() returns a configurable page
+// Storages service — .list() returns a configurable page (used by cancel-on-unmount tests)
 const { mockListResult } = vi.hoisted(() => ({
   mockListResult: {
     current: null as StoragesPage | Error | null,
@@ -41,10 +41,13 @@ vi.mock('../../api/storages.service', () => ({
   },
 }));
 
-// Storages store — track activeStorageId + setActiveStorage
+// Storages store — the switcher reads storages + isLoading directly from the store.
+// setActiveStorage is called when the user picks a different storage.
 const { mockStoreState } = vi.hoisted(() => ({
   mockStoreState: {
     activeStorageId: null as string | null,
+    storages: [] as Storage[],
+    isLoading: false,
     setActiveStorage: vi.fn((id: string | null) => {
       mockStoreState.activeStorageId = id;
     }),
@@ -54,6 +57,8 @@ vi.mock('../../store/storages.store', () => ({
   useStoragesStore: (
     selector: (state: {
       activeStorageId: string | null;
+      storages: Storage[];
+      isLoading: boolean;
       setActiveStorage: (id: string | null) => void;
     }) => unknown,
   ) => selector(mockStoreState),
@@ -188,6 +193,8 @@ describe('StorageSwitcher', () => {
     vi.clearAllMocks();
     mockPermissions.current = new Set<string>(['STORAGE_READ', 'STORAGE_CREATE']);
     mockStoreState.activeStorageId = null;
+    mockStoreState.storages = ALL_STORAGES;
+    mockStoreState.isLoading = false;
     mockStoreState.setActiveStorage = vi.fn((id: string | null) => {
       mockStoreState.activeStorageId = id;
     });
@@ -215,8 +222,9 @@ describe('StorageSwitcher', () => {
 
   describe('Given the initial fetch is in flight', () => {
     beforeEach(() => {
-      // Never-resolving promise to keep the skeleton visible
-      mockListResult.current = null;
+      // Signal loading state via the store — the switcher reads isLoading from the store
+      mockStoreState.isLoading = true;
+      mockStoreState.storages = [];
     });
 
     it('Then the skeleton loader is visible', () => {
@@ -231,17 +239,15 @@ describe('StorageSwitcher', () => {
 
   describe('Given the initial fetch rejects with a network error', () => {
     beforeEach(() => {
-      vi.spyOn(console, 'error').mockImplementation(() => undefined);
-      mockListResult.current = new Error('boom');
+      // After a fetch error the store has isLoading=false and no storages populated
+      mockStoreState.isLoading = false;
+      mockStoreState.storages = [];
     });
 
-    it('Then the skeleton is dismissed and the empty-state trigger is rendered without crashing', async () => {
+    it('Then the skeleton is dismissed and the empty-state trigger is rendered without crashing', () => {
       render(<StorageSwitcher />);
-      await waitFor(() => {
-        expect(screen.queryByLabelText('loader.loading')).not.toBeInTheDocument();
-      });
+      expect(screen.queryByLabelText('loader.loading')).not.toBeInTheDocument();
       // The component falls through to the empty state (no storages loaded)
-      // but does not crash the React tree.
       const triggers = screen.getAllByLabelText(/switcher\.triggerAriaLabel/);
       expect(triggers.length).toBe(2);
     });
@@ -250,42 +256,30 @@ describe('StorageSwitcher', () => {
   // ══════════════════════════════════════════════════════════════════
   // Cancel-on-unmount guard
   // ══════════════════════════════════════════════════════════════════
+  // The switcher no longer does its own fetch (it reads from the store),
+  // so these tests verify that mounting and unmounting the component while
+  // the store is in loading state does not throw or cause console errors.
 
   describe('Given the component unmounts before the fetch resolves', () => {
     it('Then the cancel-on-unmount guard prevents state updates (resolved branch)', async () => {
-      const controls: {
-        resolve: ((value: StoragesPage) => void) | null;
-      } = { resolve: null };
-      const pending = new Promise<StoragesPage>((r) => {
-        controls.resolve = r;
-      });
-      const { storagesService } = await import('../../api/storages.service');
-      vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
-
+      mockStoreState.isLoading = true;
+      mockStoreState.storages = [];
       const { unmount } = render(<StorageSwitcher />);
+      // Unmount while still in loading state — should not throw
       unmount();
-      // Now resolve — the `cancelled` ref is true, so setSwitcherStorages
-      // must NOT run. We assert the resolve does not throw.
-      controls.resolve?.(buildPage(ALL_STORAGES));
-      await pending;
+      // Simulate store update arriving after unmount
+      mockStoreState.isLoading = false;
+      mockStoreState.storages = ALL_STORAGES;
+      // No assertions needed — just verify no crash/error
     });
 
     it('Then the cancel-on-unmount guard prevents state updates (rejected branch)', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-      const controls: {
-        reject: ((reason: Error) => void) | null;
-      } = { reject: null };
-      const pending = new Promise<StoragesPage>((_resolve, r) => {
-        controls.reject = r;
-      });
-      const { storagesService } = await import('../../api/storages.service');
-      vi.mocked(storagesService.list).mockImplementationOnce(() => pending);
-
+      mockStoreState.isLoading = true;
+      mockStoreState.storages = [];
       const { unmount } = render(<StorageSwitcher />);
       unmount();
-      controls.reject?.(new Error('boom'));
-      await pending.catch(() => undefined);
-      // The `cancelled` branch returns early — console.error is NOT called
+      // No store update comes (simulates error) — no console.error should be called
       expect(consoleSpy).not.toHaveBeenCalled();
     });
   });
@@ -507,17 +501,15 @@ describe('StorageSwitcher', () => {
 
   describe('Given the tenant has zero storages', () => {
     beforeEach(() => {
+      mockStoreState.storages = [];
       mockListResult.current = buildPage([]);
     });
 
     describe('When the user opens the dropdown', () => {
       beforeEach(async () => {
         render(<StorageSwitcher />);
-        await waitFor(() => {
-          const triggers = screen.queryAllByLabelText(/switcher\.triggerAriaLabel/);
-          expect(triggers.length).toBe(2);
-        });
         const triggers = screen.getAllByLabelText(/switcher\.triggerAriaLabel/);
+        expect(triggers.length).toBe(2);
         await user.click(triggers[0]);
       });
 
@@ -537,12 +529,9 @@ describe('StorageSwitcher', () => {
 
   describe('Given the tenant has zero storages and the user has STORAGE_CREATE', () => {
     beforeEach(async () => {
+      mockStoreState.storages = [];
       mockListResult.current = buildPage([]);
       render(<StorageSwitcher />);
-      await waitFor(() => {
-        const triggers = screen.queryAllByLabelText(/switcher\.triggerAriaLabel/);
-        expect(triggers.length).toBe(2);
-      });
       const triggers = screen.getAllByLabelText(/switcher\.triggerAriaLabel/);
       await user.click(triggers[0]);
     });

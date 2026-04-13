@@ -91,6 +91,12 @@ vi.mock('@/features/storages', () => ({
   StorageStatusBanner: () => <div data-testid="storage-status-banner" />,
 }));
 
+vi.mock('@/store/rbac.store', () => ({
+  useRBACStore: () => ({
+    canDo: () => true,
+  }),
+}));
+
 describe('AppLayout', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
