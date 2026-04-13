@@ -282,16 +282,22 @@ export function StorageCard({
               {/* Group 2 — State-change actions */}
               {/* H-05: Congelar / Reactivar are mutually exclusive depending on status */}
               {!isFrozen && !isArchived && canFreeze && (
-                <DropdownMenuItem onClick={() => onFreeze(storage)}>
-                  <span className="material-symbols-outlined mr-2 text-[16px] text-info">
+                <DropdownMenuItem
+                  onClick={() => onFreeze(storage)}
+                  className="group"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-info">
                     ac_unit
                   </span>
                   {t('actions.freeze', { defaultValue: 'Congelar' })}
                 </DropdownMenuItem>
               )}
               {isFrozen && canUnfreeze && (
-                <DropdownMenuItem onClick={() => onUnfreeze(storage)}>
-                  <span className="material-symbols-outlined mr-2 text-[16px] text-success">
+                <DropdownMenuItem
+                  onClick={() => onUnfreeze(storage)}
+                  className="group"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-success">
                     play_circle
                   </span>
                   {t('actions.unfreeze', { defaultValue: 'Reactivar' })}
