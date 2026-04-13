@@ -608,15 +608,11 @@ export function EditStorageDrawer({
                   <div className="flex items-start gap-2.5 rounded-lg border border-info bg-info-bg p-3">
                     <span className="material-symbols-outlined shrink-0 text-[16px] text-info" aria-hidden="true">ac_unit</span>
                     <p className="text-xs leading-snug text-info">
-                      {t('editInFrozen.banner', {
-                        defaultValue: 'Esta instalación está congelada. Puedes editar sus datos pero no operar con ella.',
-                      })}
+                      {t('editInFrozen.banner')}
                     </p>
                   </div>
                   <p className="mx-0.5 text-[11px] text-neutral-400">
-                    {t('editInFrozen.typeDisabledTooltip', {
-                      defaultValue: 'No se puede cambiar el tipo de una instalación congelada. Reactívala primero.',
-                    })}
+                    {t('editInFrozen.typeDisabledTooltip')}
                   </p>
                 </div>
               )}

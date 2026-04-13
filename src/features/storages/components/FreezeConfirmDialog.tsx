@@ -78,7 +78,8 @@ export function FreezeConfirmDialog({
         {/* Icon */}
         <div className="mb-5 flex justify-center">
           <span
-            className="material-symbols-outlined text-[40px] text-info"
+            className="material-symbols-outlined text-info"
+            style={{ fontSize: '48px' }}
             aria-hidden="true"
           >
             ac_unit
@@ -157,7 +158,7 @@ export function FreezeConfirmDialog({
             disabled={isLoading}
             className={cn(isLoading && 'opacity-50')}
           >
-            {t('modals.freeze.cancel', { defaultValue: 'Cancelar' })}
+            {t('modals.freeze.cancel')}
           </Button>
           <Button
             type="button"
@@ -173,12 +174,12 @@ export function FreezeConfirmDialog({
                 >
                   progress_activity
                 </span>
-                {t('modals.freeze.loading', { defaultValue: 'Congelando...' })}
+                {t('modals.freeze.loading')}
               </span>
             ) : showWarningBlock ? (
-              t('modals.freeze.confirmAnyway', { defaultValue: 'Congelar de todos modos' })
+              t('modals.freeze.confirmAnyway')
             ) : (
-              t('modals.freeze.confirm', { defaultValue: 'Congelar' })
+              t('modals.freeze.confirm')
             )}
           </Button>
         </div>

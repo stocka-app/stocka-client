@@ -148,7 +148,7 @@ export default function StoragesPage(): React.ReactElement {
     setIsFreezeLoading(false);
     if (ok) {
       setIsFreezeOpen(false);
-      toast.success(t('toasts.frozen', { name: selectedStorage.name, defaultValue: `"${selectedStorage.name}" fue congelada` }));
+      toast.success(t('toasts.frozen', { name: selectedStorage.name }));
     } else {
       setFreezeError('server_error');
     }
@@ -164,9 +164,9 @@ export default function StoragesPage(): React.ReactElement {
   const handleUnfreezeClick = async (storage: Storage): Promise<void> => {
     const ok = await unfreezeStorage(storage.uuid);
     if (ok) {
-      toast.success(t('toasts.reactivated', { name: storage.name, defaultValue: `"${storage.name}" fue reactivada` }));
+      toast.success(t('toasts.reactivated', { name: storage.name }));
     } else {
-      toast.error(t('toasts.errors.unfreezeFailed', { defaultValue: 'No pudimos reactivar la instalación. Intenta de nuevo.' }));
+      toast.error(t('toasts.errors.unfreezeFailed'));
     }
   };
 

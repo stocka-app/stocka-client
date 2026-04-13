@@ -116,6 +116,8 @@
     "createInline": "Create storage",
     "view": "View",
     "edit": "Edit",
+    "freeze": "Freeze",
+    "unfreeze": "Reactivate",
     "archive": "Archive",
     "restore": "Restore",
     "delete": "Delete",
@@ -272,9 +274,35 @@
     }
   },
   "banners": {
-    "frozen": "Storage <strong>{{name}}</strong> is frozen. It cannot receive or dispatch inventory.",
-    "archived": "Storage <strong>{{name}}</strong> is archived. You can restore it or permanently delete it.",
+    "frozen": "This storage is frozen. It cannot receive or dispatch merchandise.",
+    "archived": "This storage is archived. You can only view its history — it can no longer operate or receive merchandise.",
     "reactivate": "Reactivate",
     "close": "Close notice"
+  },
+  "modals": {
+    "freeze": {
+      "title": "Freeze \"{{name}}\"?",
+      "body": "This storage will stop operating — it won't be able to receive or dispatch merchandise. Your team won't be able to move products within it.",
+      "safetyLine": "You can reactivate it at any time.",
+      "confirm": "Freeze",
+      "confirmAnyway": "Freeze anyway",
+      "cancel": "Cancel",
+      "loading": "Freezing...",
+      "contextBlock": "You're currently working in this storage. Freezing it will switch the module to view-only mode until you reactivate it.",
+      "lastActiveBlock": "This is your last operational storage. If you freeze it, you won't be able to perform any operations until you reactivate a storage.",
+      "serverError": "We couldn't freeze the storage. Check your connection and try again."
+    }
+  },
+  "toasts": {
+    "frozen": "\"{{name}}\" was frozen",
+    "reactivated": "\"{{name}}\" was reactivated",
+    "errors": {
+      "freezeFailed": "We couldn't freeze the storage. Try again.",
+      "unfreezeFailed": "We couldn't reactivate the storage. Try again."
+    }
+  },
+  "editInFrozen": {
+    "banner": "This storage is frozen. You can edit its details but not operate with it.",
+    "typeDisabledTooltip": "You can't change the type of a frozen storage. Reactivate it first."
   }
 }
