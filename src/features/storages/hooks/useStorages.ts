@@ -127,6 +127,7 @@ export function useStorages(): {
   canCreate: boolean;
   canUpdate: boolean;
   canFreeze: boolean;
+  canUnfreeze: boolean;
   canArchive: boolean;
   canDelete: boolean;
   fetchStorages: () => Promise<void>;
@@ -138,6 +139,9 @@ export function useStorages(): {
   changeStorageType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
+  freezeStorage: (id: string) => Promise<boolean>;
+  unfreezeStorage: (id: string) => Promise<boolean>;
+  getIsLastActive: (id: string) => boolean;
 } {
   const {
     storages,
@@ -396,6 +400,45 @@ export function useStorages(): {
     [updateStorage],
   );
 
+  const freezeStorage = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return false;
+      try {
+        await storagesService.freeze(id, target.type);
+        await fetchStorages();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [storages, fetchStorages],
+  );
+
+  const unfreezeStorage = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return false;
+      try {
+        await storagesService.unfreeze(id, target.type);
+        await fetchStorages();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [storages, fetchStorages],
+  );
+
+  const getIsLastActive = useCallback(
+    (id: string): boolean => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target || target.status !== 'ACTIVE') return false;
+      return storages.filter((s) => s.status === 'ACTIVE').length === 1;
+    },
+    [storages],
+  );
+
   // ── Derived status subsets from current page items ─────────────────────────
 
   const activeStorages = storages.filter((s) => s.status === 'ACTIVE');
@@ -432,6 +475,7 @@ export function useStorages(): {
   const canCreate = canDo('STORAGE_CREATE');
   const canUpdate = canDo('STORAGE_UPDATE');
   const canFreeze = canDo('STORAGE_FREEZE');
+  const canUnfreeze = canDo('STORAGE_UNFREEZE');
   const canArchive = canDo('STORAGE_ARCHIVE');
   const canDelete = canDo('STORAGE_DELETE');
 
@@ -465,6 +509,7 @@ export function useStorages(): {
     canCreate,
     canUpdate,
     canFreeze,
+    canUnfreeze,
     canArchive,
     canDelete,
     fetchStorages: () =>
@@ -483,5 +528,8 @@ export function useStorages(): {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    freezeStorage,
+    unfreezeStorage,
+    getIsLastActive,
   };
 }

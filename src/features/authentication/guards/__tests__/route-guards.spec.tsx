@@ -16,6 +16,29 @@ vi.mock('@/app/page-loader', () => ({
   PageLoader: () => null,
 }));
 
+const mockLoadPermissions = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/store/rbac.store', () => {
+  const store = {
+    loaded: false,
+    loadPermissions: vi.fn().mockResolvedValue(undefined),
+    canDo: vi.fn().mockReturnValue(false),
+    setRole: vi.fn(),
+    setTier: vi.fn(),
+    setTenantStatus: vi.fn(),
+    addGrant: vi.fn(),
+    removeGrant: vi.fn(),
+    reset: vi.fn(),
+    role: null,
+    tier: null,
+    tenantStatus: 'ACTIVE',
+    permissions: [],
+    grants: [],
+  };
+  const useRBACStore = vi.fn(() => store);
+  useRBACStore.getState = vi.fn(() => ({ loadPermissions: mockLoadPermissions }));
+  return { useRBACStore };
+});
+
 // ---------------------------------------------------------------------------
 // Store state factories
 // ---------------------------------------------------------------------------
@@ -158,6 +181,51 @@ describe('ProtectedRoute', () => {
           <div>Protected Content</div>
         </ProtectedRoute>,
       );
+      expect(screen.getByText('Protected Content')).toBeInTheDocument();
+    });
+  });
+
+  describe('Given the user is authenticated with a tenant and RBAC permissions are not yet loaded', () => {
+    beforeEach(() => {
+      vi.mocked(useAuthenticationStore).mockReturnValue(
+        buildStoreState({
+          isInitializing: false,
+          isAuthenticated: true,
+          user: {
+            uuid: 'user-001',
+            email: 'user@test.com',
+            firstName: 'Test',
+            lastName: 'User',
+            tenantId: 'tenant-001',
+            role: 'OWNER',
+            isEmailVerified: true,
+            oauthProvider: null,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          } as StoreState['user'],
+        }),
+      );
+    });
+
+    it('Then it triggers loadPermissions to bootstrap RBAC', () => {
+      renderWithRouter(
+        <ProtectedRoute>
+          <div>Protected Content</div>
+        </ProtectedRoute>,
+      );
+      expect(screen.getByText('Protected Content')).toBeInTheDocument();
+      expect(mockLoadPermissions).toHaveBeenCalled();
+    });
+
+    it('Then a loadPermissions failure is silently swallowed (no crash)', async () => {
+      mockLoadPermissions.mockRejectedValueOnce(new Error('Network error'));
+      renderWithRouter(
+        <ProtectedRoute>
+          <div>Protected Content</div>
+        </ProtectedRoute>,
+      );
+      // Allow the rejected promise to settle — the catch handler silences the error
+      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(screen.getByText('Protected Content')).toBeInTheDocument();
     });
   });

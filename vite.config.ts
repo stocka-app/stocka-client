@@ -25,7 +25,7 @@ export default defineConfig({
     pool: 'forks',
     fileParallelism: false,
     // Exclude Playwright e2e specs — they run via `npm run test:e2e`, not Vitest
-    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/dist-e2e/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],

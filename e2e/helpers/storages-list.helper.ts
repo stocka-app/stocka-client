@@ -161,7 +161,15 @@ export function buildLargeDataset(): MockStorage[] {
 
 export const RBAC_OWNER: RbacPayload = {
   role: 'owner',
-  actions: ['STORAGE_READ', 'STORAGE_CREATE', 'STORAGE_UPDATE', 'STORAGE_ARCHIVE', 'STORAGE_DELETE'],
+  actions: [
+    'STORAGE_READ',
+    'STORAGE_CREATE',
+    'STORAGE_UPDATE',
+    'STORAGE_FREEZE',
+    'STORAGE_UNFREEZE',
+    'STORAGE_ARCHIVE',
+    'STORAGE_DELETE',
+  ],
 };
 
 export const RBAC_MANAGER: RbacPayload = {

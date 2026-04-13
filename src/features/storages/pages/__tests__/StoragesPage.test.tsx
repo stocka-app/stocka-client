@@ -86,6 +86,10 @@ const {
   mockEditStorage,
   mockArchiveStorage,
   mockRestoreStorage,
+  mockFreezeStorage,
+  mockUnfreezeStorage,
+  mockGetIsLastActive,
+  mockChangeStorageType,
 } = vi.hoisted(() => ({
   mockFetchStorages: vi.fn(),
   mockSetFilterType: vi.fn(),
@@ -100,6 +104,10 @@ const {
   mockEditStorage: vi.fn().mockResolvedValue(true),
   mockArchiveStorage: vi.fn().mockResolvedValue(true),
   mockRestoreStorage: vi.fn().mockResolvedValue(true),
+  mockFreezeStorage: vi.fn().mockResolvedValue(true),
+  mockUnfreezeStorage: vi.fn().mockResolvedValue(true),
+  mockGetIsLastActive: vi.fn().mockReturnValue(false),
+  mockChangeStorageType: vi.fn().mockResolvedValue({ error: null }),
 }));
 
 vi.mock('../../hooks/useStorages', () => ({
@@ -134,6 +142,8 @@ vi.mock('../../hooks/useStorages', () => ({
     setPage: mockSetPage,
     canCreate: mocks.canCreate,
     isGated: mocks.isGated,
+    canFreeze: true,
+    canUnfreeze: true,
     fetchStorages: mockFetchStorages,
     createStorage: mockCreateStorage,
     createWarehouse: mockCreateWarehouse,
@@ -142,6 +152,10 @@ vi.mock('../../hooks/useStorages', () => ({
     editStorage: mockEditStorage,
     archiveStorage: mockArchiveStorage,
     restoreStorage: mockRestoreStorage,
+    freezeStorage: mockFreezeStorage,
+    unfreezeStorage: mockUnfreezeStorage,
+    getIsLastActive: mockGetIsLastActive,
+    changeStorageType: mockChangeStorageType,
   }),
 }));
 
@@ -196,12 +210,23 @@ vi.mock('../../components/CreateEditStorageModal', () => ({
   },
 }));
 
+vi.mock('../../components/EditStorageDrawer', () => ({
+  EditStorageDrawer: (props: Record<string, unknown>) => {
+    createEditModalProps = props;
+    return props.open ? <div data-testid="create-edit-modal">Modal</div> : null;
+  },
+}));
+
 let archiveModalProps: Record<string, unknown> = {};
 vi.mock('../../components/ArchiveStorageModal', () => ({
   ArchiveStorageModal: (props: Record<string, unknown>) => {
     archiveModalProps = props;
     return props.open ? <div data-testid="archive-modal">ArchiveModal</div> : null;
   },
+}));
+
+vi.mock('../../components/FreezeConfirmDialog', () => ({
+  FreezeConfirmDialog: () => <div data-testid="freeze-confirm-dialog" />,
 }));
 
 vi.mock('@/shared/components/StateComposition', () => ({
@@ -819,7 +844,7 @@ describe('StoragesPage', () => {
     });
   });
 
-  // ── Modal: save in edit mode via onSave ─────────────────────────────
+  // ── Modal: save in edit mode via onEdit ─────────────────────────────
 
   describe('Given the edit modal is open and user saves changes', () => {
     beforeEach(async () => {
@@ -828,12 +853,12 @@ describe('StoragesPage', () => {
       const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
       await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
       await act(async () => {
-        await (createEditModalProps.onSave as (data: { name: string; type: string }) => Promise<boolean>)({ name: 'Updated', type: 'WAREHOUSE' });
+        await (createEditModalProps.onEdit as (id: string, type: string, data: { name: string }) => Promise<{ error: null }>)('1', 'WAREHOUSE', { name: 'Updated' });
       });
     });
 
     it('Then editStorage is called with the selected storage uuid', () => {
-      expect(mockEditStorage).toHaveBeenCalledWith('1', { name: 'Updated', type: 'WAREHOUSE' });
+      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' });
     });
   });
 
@@ -1093,11 +1118,11 @@ describe('StoragesPage', () => {
       render(<StoragesPage />);
       const firstCard = storageCardInstances.find(c => (c.storage as { uuid: string }).uuid === '1');
       await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
-      await act(async () => { await (createEditModalProps.onSave as (data: { name: string }) => Promise<boolean>)({ name: 'Updated' }); });
+      await act(async () => { await (createEditModalProps.onEdit as (id: string, type: string, data: { name: string }) => Promise<{ error: null }>)('1', 'WAREHOUSE', { name: 'Updated' }); });
     });
 
     it('should call editStorage with the UUID and data', () => {
-      expect(mockEditStorage).toHaveBeenCalledWith('1', { name: 'Updated' });
+      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' });
     });
   });
 
@@ -1125,9 +1150,9 @@ describe('StoragesPage', () => {
       render(<StoragesPage />);
     });
 
-    it('should not pass onEdit to any storage card', () => {
-      const hasEdit = storageCardInstances.some(c => c.onEdit !== undefined);
-      expect(hasEdit).toBe(false);
+    it('should pass canEdit=false to all storage cards', () => {
+      const allDisabled = storageCardInstances.every(c => c.canEdit === false);
+      expect(allDisabled).toBe(true);
     });
   });
 
@@ -1274,7 +1299,7 @@ describe('StoragesPage', () => {
     });
   });
 
-  // ── isAtTypeLimit prop forwarded to CreateEditStorageModal ──────────────
+  // ── onEdit and onChangeType handlers forwarded to EditStorageDrawer ──────────────
 
   describe('Given the edit modal is opened for a storage', () => {
     beforeEach(async () => {
@@ -1284,8 +1309,8 @@ describe('StoragesPage', () => {
       await act(async () => { firstCard?.onEdit?.(firstCard.storage); });
     });
 
-    it('Then isAtTypeLimit is passed as a function to CreateEditStorageModal', () => {
-      expect(typeof createEditModalProps.isAtTypeLimit).toBe('function');
+    it('Then onEdit is passed as a function to EditStorageDrawer', () => {
+      expect(typeof createEditModalProps.onEdit).toBe('function');
     });
   });
 

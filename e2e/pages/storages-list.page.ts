@@ -131,6 +131,30 @@ export class StoragesListPage {
     };
   }
 
+  /**
+   * Shorthand menu item locators using the ES locale labels rendered by default
+   * in E2E (i18n detects the test browser language as Spanish).
+   */
+  get menuItems(): {
+    view: Locator;
+    edit: Locator;
+    freeze: Locator;
+    unfreeze: Locator;
+    archive: Locator;
+    restore: Locator;
+    delete: Locator;
+  } {
+    return {
+      view: this.page.getByRole('menuitem', { name: /ver más/i }),
+      edit: this.page.getByRole('menuitem', { name: /editar/i }),
+      freeze: this.page.getByRole('menuitem', { name: /congelar/i }),
+      unfreeze: this.page.getByRole('menuitem', { name: /reactivar/i }),
+      archive: this.page.getByRole('menuitem', { name: /archivar/i }),
+      restore: this.page.getByRole('menuitem', { name: /restaurar/i }),
+      delete: this.page.getByRole('menuitem', { name: /eliminar/i }),
+    };
+  }
+
   /** Get the type badge text for a card */
   cardTypeBadge(cardName: string): Locator {
     const scope = this.card(cardName);

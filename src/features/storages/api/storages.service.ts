@@ -22,6 +22,12 @@ function unwrap<T>(envelope: { data: T; success: boolean }): T {
   return envelope.data;
 }
 
+const TYPE_SLUG: Record<StorageType, string> = {
+  WAREHOUSE: 'warehouses',
+  STORE_ROOM: 'store-rooms',
+  CUSTOM_ROOM: 'custom-rooms',
+};
+
 export const storagesService = {
   async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
     const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
@@ -106,6 +112,14 @@ export const storagesService = {
   async restore(id: string): Promise<Storage> {
     const { data } = await axiosInstance.post(`/storages/${id}/restore`);
     return storageSchema.parse(unwrap(data));
+  },
+
+  async freeze(id: string, type: StorageType): Promise<void> {
+    await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/freeze`);
+  },
+
+  async unfreeze(id: string, type: StorageType): Promise<void> {
+    await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/unfreeze`);
   },
 
   async destroy(id: string): Promise<void> {

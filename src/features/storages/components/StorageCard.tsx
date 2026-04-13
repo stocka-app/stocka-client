@@ -4,6 +4,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 import type { Storage, StorageStatus, StorageType } from '../types/storages.types';
@@ -88,10 +89,16 @@ interface StorageCardProps {
   canEdit?: boolean;
   /** RBAC: user has STORAGE_ARCHIVE permission */
   canArchive?: boolean;
+  /** RBAC: user has STORAGE_FREEZE permission */
+  canFreeze?: boolean;
+  /** RBAC: user has STORAGE_UNFREEZE permission */
+  canUnfreeze?: boolean;
   /** RBAC: user has STORAGE_DELETE permission */
   canDelete?: boolean;
   onView: (storage: Storage) => void;
   onEdit: (storage: Storage) => void;
+  onFreeze: (storage: Storage) => void;
+  onUnfreeze: (storage: Storage) => void;
   onArchive: (storage: Storage) => void;
   onRestore: (storage: Storage) => void;
   onDelete: (storage: Storage) => void;
@@ -103,10 +110,14 @@ export function StorageCard({
   storage,
   isActiveContext = false,
   canEdit = false,
+  canFreeze = false,
+  canUnfreeze = false,
   canArchive = false,
   canDelete = false,
   onView,
   onEdit,
+  onFreeze,
+  onUnfreeze,
   onArchive,
   onRestore,
   onDelete,
@@ -119,7 +130,8 @@ export function StorageCard({
 
   // Menu item enabled state — always visible, conditionally disabled.
   const editDisabled = !canEdit || isArchived;
-  const archiveDisabled = !canArchive || isArchived || isFrozen;
+  // H-05: FROZEN → ARCHIVED is allowed directly (no need to unfreeze first)
+  const archiveDisabled = !canArchive || isArchived;
   const deleteDisabled = !canDelete || !isArchived;
 
   return (
@@ -248,43 +260,89 @@ export function StorageCard({
                 <span className="material-symbols-outlined text-[18px]">more_horiz</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[160px]">
-              <DropdownMenuItem onClick={() => onView(storage)}>
-                <span className="material-symbols-outlined mr-2 text-[16px]">visibility</span>
+            <DropdownMenuContent align="start" side="right" sideOffset={-24} alignOffset={32} className="min-w-[180px]">
+              {/* Group 1 — Navigation / edit */}
+              <DropdownMenuItem onClick={() => onView(storage)} className="group">
+                <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-info">
+                  visibility
+                </span>
                 {t('actions.view')}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={editDisabled}
-                onClick={() => !editDisabled && onEdit(storage)}
-              >
-                <span className="material-symbols-outlined mr-2 text-[16px]">edit</span>
-                {t('actions.edit')}
-              </DropdownMenuItem>
+              {!isArchived && (
+                <DropdownMenuItem
+                  disabled={editDisabled}
+                  onClick={() => !editDisabled && onEdit(storage)}
+                  className="group"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-brand">
+                    edit
+                  </span>
+                  {t('actions.edit')}
+                </DropdownMenuItem>
+              )}
+
+              {/* Divider — separates navigation from state-change actions (H-05 Pencil FASE 1) */}
+              <DropdownMenuSeparator />
+
+              {/* Group 2 — State-change actions */}
+              {/* H-05: Congelar / Reactivar are mutually exclusive depending on status */}
+              {!isFrozen && !isArchived && canFreeze && (
+                <DropdownMenuItem
+                  onClick={() => onFreeze(storage)}
+                  className="group"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-info">
+                    ac_unit
+                  </span>
+                  {t('actions.freeze', { defaultValue: 'Congelar' })}
+                </DropdownMenuItem>
+              )}
+              {isFrozen && canUnfreeze && (
+                <DropdownMenuItem
+                  onClick={() => onUnfreeze(storage)}
+                  className="group"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-success">
+                    play_circle
+                  </span>
+                  {t('actions.unfreeze', { defaultValue: 'Reactivar' })}
+                </DropdownMenuItem>
+              )}
               {isArchived ? (
                 <DropdownMenuItem
                   disabled={!canArchive}
                   onClick={() => canArchive && onRestore(storage)}
+                  className="group"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[16px]">unarchive</span>
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-success">
+                    unarchive
+                  </span>
                   {t('actions.restore')}
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem
                   disabled={archiveDisabled}
                   onClick={() => !archiveDisabled && onArchive(storage)}
+                  className="group"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[16px]">archive</span>
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-warning">
+                    inventory_2
+                  </span>
                   {t('actions.archive')}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                disabled={deleteDisabled}
-                className={!deleteDisabled ? 'text-destructive focus:text-destructive' : ''}
-                onClick={() => !deleteDisabled && onDelete(storage)}
-              >
-                <span className="material-symbols-outlined mr-2 text-[16px]">delete</span>
-                {t('actions.delete')}
-              </DropdownMenuItem>
+              {isArchived && (
+                <DropdownMenuItem
+                  disabled={deleteDisabled}
+                  onClick={() => !deleteDisabled && onDelete(storage)}
+                  className="group"
+                >
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-destructive">
+                    delete
+                  </span>
+                  {t('actions.delete')}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

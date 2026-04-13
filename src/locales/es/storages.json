@@ -116,6 +116,8 @@
     "createInline": "Crear instalación",
     "view": "Ver más",
     "edit": "Editar",
+    "freeze": "Congelar",
+    "unfreeze": "Reactivar",
     "archive": "Archivar",
     "restore": "Restaurar",
     "delete": "Eliminar",
@@ -272,9 +274,35 @@
     }
   },
   "banners": {
-    "frozen": "La instalación <strong>{{name}}</strong> está congelada. No puede recibir ni despachar inventario.",
-    "archived": "La instalación <strong>{{name}}</strong> está archivada. Puedes restaurarla o eliminarla permanentemente.",
+    "frozen": "Esta instalación está congelada. No puede recibir ni despachar mercancía.",
+    "archived": "Esta instalación está archivada. Solo puedes consultar su historial — ya no puede operar ni recibir mercancía.",
     "reactivate": "Reactivar",
     "close": "Cerrar aviso"
+  },
+  "modals": {
+    "freeze": {
+      "title": "¿Congelar \"{{name}}\"?",
+      "body": "Esta instalación dejará de operar — no podrá recibir ni despachar mercancía. Tu equipo no podrá mover productos dentro de ella.",
+      "safetyLine": "Podrás reactivarla en cualquier momento.",
+      "confirm": "Congelar",
+      "confirmAnyway": "Congelar de todos modos",
+      "cancel": "Cancelar",
+      "loading": "Congelando...",
+      "contextBlock": "Estás trabajando en esta instalación ahora. Al congelarla, el módulo pasará a modo consulta hasta que la reactives.",
+      "lastActiveBlock": "Esta es tu última instalación operativa. Si la congelas, no podrás realizar ninguna operación hasta que reactives una instalación.",
+      "serverError": "No pudimos congelar la instalación. Revisa tu conexión e intenta de nuevo."
+    }
+  },
+  "toasts": {
+    "frozen": "\"{{name}}\" fue congelada",
+    "reactivated": "\"{{name}}\" fue reactivada",
+    "errors": {
+      "freezeFailed": "No pudimos congelar la instalación. Intenta de nuevo.",
+      "unfreezeFailed": "No pudimos reactivar la instalación. Intenta de nuevo."
+    }
+  },
+  "editInFrozen": {
+    "banner": "Esta instalación está congelada. Puedes editar sus datos pero no operar con ella.",
+    "typeDisabledTooltip": "No se puede cambiar el tipo de una instalación congelada. Reactívala primero."
   }
 }

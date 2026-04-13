@@ -17,6 +17,7 @@ import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
 import { EditStorageDrawer } from '../components/EditStorageDrawer';
 import { ArchiveStorageModal } from '../components/ArchiveStorageModal';
+import { FreezeConfirmDialog } from '../components/FreezeConfirmDialog';
 import type { EditStoragePayload } from '../hooks/useStorages';
 
 // ─── Type tab configuration ─────────────────────────────────────────────────
@@ -78,6 +79,11 @@ export default function StoragesPage(): React.ReactElement {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    freezeStorage,
+    unfreezeStorage,
+    getIsLastActive,
+    canFreeze,
+    canUnfreeze,
   } = useStorages();
 
   const location = useLocation();
@@ -86,6 +92,9 @@ export default function StoragesPage(): React.ReactElement {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+  const [isFreezeOpen, setIsFreezeOpen] = useState(false);
+  const [isFreezeLoading, setIsFreezeLoading] = useState(false);
+  const [freezeError, setFreezeError] = useState<string | null>(null);
 
   // ── Auto-open create drawer when navigated from the sidebar StorageSwitcher
   //
@@ -123,6 +132,42 @@ export default function StoragesPage(): React.ReactElement {
   const handleEditClick = (storage: Storage): void => {
     setSelectedStorage(storage);
     setIsEditOpen(true);
+  };
+
+  const handleFreezeClick = (storage: Storage): void => {
+    setSelectedStorage(storage);
+    setFreezeError(null);
+    setIsFreezeOpen(true);
+  };
+
+  const handleFreezeConfirm = async (): Promise<void> => {
+    if (!selectedStorage) return;
+    setIsFreezeLoading(true);
+    setFreezeError(null);
+    const ok = await freezeStorage(selectedStorage.uuid);
+    setIsFreezeLoading(false);
+    if (ok) {
+      setIsFreezeOpen(false);
+      toast.success(t('toasts.frozen', { name: selectedStorage.name }));
+    } else {
+      setFreezeError('server_error');
+    }
+  };
+
+  const handleFreezeClose = (): void => {
+    if (!isFreezeLoading) {
+      setIsFreezeOpen(false);
+      setFreezeError(null);
+    }
+  };
+
+  const handleUnfreezeClick = async (storage: Storage): Promise<void> => {
+    const ok = await unfreezeStorage(storage.uuid);
+    if (ok) {
+      toast.success(t('toasts.reactivated', { name: storage.name }));
+    } else {
+      toast.error(t('toasts.errors.unfreezeFailed'));
+    }
   };
 
   const handleArchiveClick = (storage: Storage): void => {
@@ -258,6 +303,17 @@ export default function StoragesPage(): React.ReactElement {
         canArchive={selectedStorage !== null ? canArchiveStorage(selectedStorage) : false}
         onClose={() => setIsArchiveOpen(false)}
         onConfirm={handleArchiveConfirm}
+      />
+
+      <FreezeConfirmDialog
+        open={isFreezeOpen}
+        storage={selectedStorage}
+        isContextActive={selectedStorage?.uuid === activeStorageId}
+        isLastActive={selectedStorage ? getIsLastActive(selectedStorage.uuid) : false}
+        isLoading={isFreezeLoading}
+        serverError={freezeError}
+        onClose={handleFreezeClose}
+        onConfirm={handleFreezeConfirm}
       />
     </>
   );
@@ -667,10 +723,14 @@ export default function StoragesPage(): React.ReactElement {
                 storage={storage}
                 isActiveContext={storage.uuid === activeStorageId}
                 canEdit={canDo('STORAGE_UPDATE')}
+                canFreeze={canFreeze}
+                canUnfreeze={canUnfreeze}
                 canArchive={canDo('STORAGE_ARCHIVE')}
                 canDelete={canDo('STORAGE_DELETE')}
                 onView={handleViewClick}
                 onEdit={handleEditClick}
+                onFreeze={handleFreezeClick}
+                onUnfreeze={handleUnfreezeClick}
                 onArchive={handleArchiveClick}
                 onRestore={handleRestoreClick}
                 onDelete={handleDeleteClick}
