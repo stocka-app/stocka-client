@@ -263,7 +263,7 @@ export function StorageCard({
             <DropdownMenuContent align="end" className="min-w-[180px]">
               {/* Group 1 — Navigation / edit */}
               <DropdownMenuItem onClick={() => onView(storage)} className="group">
-                <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-neutral-900 dark:group-hover:text-neutral-100">
+                <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-neutral-600 dark:group-hover:text-neutral-300">
                   visibility
                 </span>
                 {t('actions.view')}
