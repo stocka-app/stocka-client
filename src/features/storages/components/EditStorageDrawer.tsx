@@ -602,11 +602,22 @@ export function EditStorageDrawer({
                 </div>
               )}
 
-              {/* Frozen notice — type change blocked */}
+              {/* H-05: Frozen notice — metadata editable but type change blocked */}
               {isFrozen && (
-                <div className="mx-6 mt-4 flex items-start gap-2 rounded-lg border border-blue-400/30 bg-blue-50 p-2.5 dark:bg-blue-900/20">
-                  <span className="material-symbols-outlined shrink-0 text-[16px] text-blue-500">ac_unit</span>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">{t('editDrawer.warnings.iconChange')}</p>
+                <div className="mx-6 mt-4 flex flex-col gap-2">
+                  <div className="flex items-start gap-2.5 rounded-lg border border-info bg-info-bg p-3">
+                    <span className="material-symbols-outlined shrink-0 text-[16px] text-info" aria-hidden="true">ac_unit</span>
+                    <p className="text-xs leading-snug text-info">
+                      {t('editInFrozen.banner', {
+                        defaultValue: 'Esta instalación está congelada. Puedes editar sus datos pero no operar con ella.',
+                      })}
+                    </p>
+                  </div>
+                  <p className="mx-0.5 text-[11px] text-neutral-400">
+                    {t('editInFrozen.typeDisabledTooltip', {
+                      defaultValue: 'No se puede cambiar el tipo de una instalación congelada. Reactívala primero.',
+                    })}
+                  </p>
                 </div>
               )}
 
