@@ -262,16 +262,21 @@ export function StorageCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[180px]">
               {/* Group 1 — Navigation / edit */}
-              <DropdownMenuItem onClick={() => onView(storage)}>
-                <span className="material-symbols-outlined mr-2 text-[16px]">visibility</span>
+              <DropdownMenuItem onClick={() => onView(storage)} className="group">
+                <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-brand">
+                  visibility
+                </span>
                 {t('actions.view')}
               </DropdownMenuItem>
               {!isArchived && (
                 <DropdownMenuItem
                   disabled={editDisabled}
                   onClick={() => !editDisabled && onEdit(storage)}
+                  className="group"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[16px]">edit</span>
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-brand">
+                    edit
+                  </span>
                   {t('actions.edit')}
                 </DropdownMenuItem>
               )}
@@ -307,16 +312,20 @@ export function StorageCard({
                 <DropdownMenuItem
                   disabled={!canArchive}
                   onClick={() => canArchive && onRestore(storage)}
+                  className="group"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[16px]">unarchive</span>
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-success">
+                    unarchive
+                  </span>
                   {t('actions.restore')}
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem
                   disabled={archiveDisabled}
                   onClick={() => !archiveDisabled && onArchive(storage)}
+                  className="group"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[16px]">
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-warning">
                     inventory_2
                   </span>
                   {t('actions.archive')}
@@ -325,10 +334,12 @@ export function StorageCard({
               {isArchived && (
                 <DropdownMenuItem
                   disabled={deleteDisabled}
-                  className={!deleteDisabled ? 'text-destructive focus:text-destructive' : ''}
                   onClick={() => !deleteDisabled && onDelete(storage)}
+                  className="group"
                 >
-                  <span className="material-symbols-outlined mr-2 text-[16px]">delete</span>
+                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-destructive">
+                    delete
+                  </span>
                   {t('actions.delete')}
                 </DropdownMenuItem>
               )}
