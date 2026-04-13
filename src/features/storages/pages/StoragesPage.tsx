@@ -78,6 +78,10 @@ export default function StoragesPage(): React.ReactElement {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    freezeStorage,
+    unfreezeStorage,
+    canFreeze,
+    canUnfreeze,
   } = useStorages();
 
   const location = useLocation();
@@ -123,6 +127,24 @@ export default function StoragesPage(): React.ReactElement {
   const handleEditClick = (storage: Storage): void => {
     setSelectedStorage(storage);
     setIsEditOpen(true);
+  };
+
+  const handleFreezeClick = async (storage: Storage): Promise<void> => {
+    const ok = await freezeStorage(storage.uuid);
+    if (ok) {
+      toast.success(t('toasts.frozen', { name: storage.name, defaultValue: `"${storage.name}" fue congelada` }));
+    } else {
+      toast.error(t('toasts.errors.freezeFailed', { defaultValue: 'No pudimos congelar la instalación. Intenta de nuevo.' }));
+    }
+  };
+
+  const handleUnfreezeClick = async (storage: Storage): Promise<void> => {
+    const ok = await unfreezeStorage(storage.uuid);
+    if (ok) {
+      toast.success(t('toasts.reactivated', { name: storage.name, defaultValue: `"${storage.name}" fue reactivada` }));
+    } else {
+      toast.error(t('toasts.errors.unfreezeFailed', { defaultValue: 'No pudimos reactivar la instalación. Intenta de nuevo.' }));
+    }
   };
 
   const handleArchiveClick = (storage: Storage): void => {
@@ -667,10 +689,14 @@ export default function StoragesPage(): React.ReactElement {
                 storage={storage}
                 isActiveContext={storage.uuid === activeStorageId}
                 canEdit={canDo('STORAGE_UPDATE')}
+                canFreeze={canFreeze}
+                canUnfreeze={canUnfreeze}
                 canArchive={canDo('STORAGE_ARCHIVE')}
                 canDelete={canDo('STORAGE_DELETE')}
                 onView={handleViewClick}
                 onEdit={handleEditClick}
+                onFreeze={handleFreezeClick}
+                onUnfreeze={handleUnfreezeClick}
                 onArchive={handleArchiveClick}
                 onRestore={handleRestoreClick}
                 onDelete={handleDeleteClick}
