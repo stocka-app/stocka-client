@@ -260,7 +260,7 @@ export function StorageCard({
                 <span className="material-symbols-outlined text-[18px]">more_horiz</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="right" sideOffset={-8} alignOffset={32} className="min-w-[180px]">
+            <DropdownMenuContent align="start" side="right" sideOffset={-24} alignOffset={32} className="min-w-[180px]">
               {/* Group 1 — Navigation / edit */}
               <DropdownMenuItem onClick={() => onView(storage)} className="group">
                 <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-info">
