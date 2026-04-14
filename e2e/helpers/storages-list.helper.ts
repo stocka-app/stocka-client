@@ -396,10 +396,19 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
-  // Wait briefly for auth refresh to settle, then wait for actual content.
-  await page.waitForLoadState('networkidle', { timeout: 3_000 }).catch(() => {});
-  // Ensure the page rendered data (heading always present even during loading)
-  await page.getByRole('heading', { name: 'Storages' }).waitFor({ state: 'visible', timeout: 5_000 });
+  // Wait for the storages data to render — this proves the mock intercepted and
+  // the page processed it. More reliable than networkidle which competes with
+  // background refresh polling for the timeout budget.
+  const hasItems = storagesResponse && storagesResponse.data.items.length > 0;
+  if (errorOnLoad) {
+    await page.getByText("We couldn't load your storages").waitFor({ state: 'visible', timeout: 10_000 });
+  } else if (hasItems) {
+    await page.locator('h3').first().waitFor({ state: 'visible', timeout: 10_000 });
+  } else {
+    await page.getByText("You don't have any storages yet").or(
+      page.getByRole('button', { name: /Create my first storage|New storage/ }),
+    ).first().waitFor({ state: 'visible', timeout: 10_000 });
+  }
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────
