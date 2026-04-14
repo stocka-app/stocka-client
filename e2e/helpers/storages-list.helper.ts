@@ -396,9 +396,10 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
-  // Wait for network to settle so auth refresh completes before tests interact.
-  // Use a short timeout — if it doesn't settle in 5s, proceed anyway.
-  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+  // Wait briefly for auth refresh to settle, then wait for actual content.
+  await page.waitForLoadState('networkidle', { timeout: 3_000 }).catch(() => {});
+  // Ensure the page rendered data (heading always present even during loading)
+  await page.getByRole('heading', { name: 'Storages' }).waitFor({ state: 'visible', timeout: 5_000 });
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────
