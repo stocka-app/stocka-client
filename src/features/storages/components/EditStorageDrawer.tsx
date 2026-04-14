@@ -513,8 +513,12 @@ export function EditStorageDrawer({
                 </div>
               </div>
 
-              {/* Type selector — Pencil spec fieldTipo */}
-              {!isFrozen && !isArchived && (
+              {/* Type selector — Pencil spec fieldTipo.
+                  FROZEN: squares render disabled with opacity-50 + native tooltip
+                  explaining why (DT-H05-17 — alignment with Pencil FASE 5.2).
+                  ARCHIVED: section hidden entirely because editing metadata on an
+                  archived storage is out of scope. */}
+              {!isArchived && (
                 <div className="mx-6 mt-4">
                   <p className="mb-2 text-xs font-medium text-neutral-500">
                     {t('createDrawer.step1Title')}
@@ -523,7 +527,7 @@ export function EditStorageDrawer({
                     {(['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).map((type) => {
                       const isCurrent = storage.type === type;
                       const atLimit = isTypeAtLimit(type);
-                      const disabled = isChangingType || isSubmitting || atLimit;
+                      const disabled = isFrozen || isChangingType || isSubmitting || atLimit;
                       const sq = TYPE_SQUARE_CONFIGS[type];
 
                       return (
@@ -531,11 +535,13 @@ export function EditStorageDrawer({
                           key={type}
                           type="button"
                           disabled={disabled}
-                          onClick={() => handleTypeChange(type)}
+                          title={isFrozen ? t('editInFrozen.typeDisabledTooltip') : undefined}
+                          onClick={() => !isFrozen && handleTypeChange(type)}
                           className={cn(
                             'flex flex-1 flex-col items-center justify-center gap-1.5 rounded-xl transition-all',
-                            atLimit && !isCurrent && 'cursor-not-allowed opacity-40',
-                            !atLimit && !isCurrent && 'cursor-pointer',
+                            isFrozen && 'cursor-not-allowed opacity-50',
+                            !isFrozen && atLimit && !isCurrent && 'cursor-not-allowed opacity-40',
+                            !isFrozen && !atLimit && !isCurrent && 'cursor-pointer',
                           )}
                           style={{
                             padding: '14px 8px',
@@ -604,17 +610,14 @@ export function EditStorageDrawer({
                 </div>
               )}
 
-              {/* H-05: Frozen notice — metadata editable but type change blocked */}
+              {/* H-05: Frozen notice — metadata editable but type change blocked.
+                  The selector above is now visible-but-disabled; this banner
+                  still explains why so users aren't left guessing. */}
               {isFrozen && (
-                <div className="mx-6 mt-4 flex flex-col gap-2">
-                  <div className="flex items-start gap-2.5 rounded-lg border border-info bg-info-bg p-3">
-                    <span className="material-symbols-outlined shrink-0 text-[16px] text-info" aria-hidden="true">ac_unit</span>
-                    <p className="text-xs leading-snug text-info">
-                      {t('editInFrozen.banner')}
-                    </p>
-                  </div>
-                  <p className="mx-0.5 text-[11px] text-neutral-400">
-                    {t('editInFrozen.typeDisabledTooltip')}
+                <div className="mx-6 mt-4 flex items-start gap-2.5 rounded-lg border border-info bg-info-bg p-3">
+                  <span className="material-symbols-outlined shrink-0 text-[16px] text-info" aria-hidden="true">ac_unit</span>
+                  <p className="text-xs leading-snug text-info">
+                    {t('editInFrozen.banner')}
                   </p>
                 </div>
               )}

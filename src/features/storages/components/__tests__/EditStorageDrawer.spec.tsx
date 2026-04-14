@@ -557,13 +557,18 @@ describe('Given the EditStorageDrawer opens with a frozen storage', () => {
       renderDrawer();
     });
 
-    it('Then the type selector is not visible', () => {
+    it('Then the type selector renders with every option disabled', () => {
+      // Per DT-H05-17 the selector is visible-but-disabled on frozen storages
+      // so users see the current type and get a tooltip explaining why changes
+      // are blocked. It's no longer hidden.
       const typeButtons = screen.getAllByRole('button').filter(
-        (btn) => btn.textContent?.includes('createDrawer.warehouseLabel') ||
-                 btn.textContent?.includes('createDrawer.storeRoomLabel') ||
-                 btn.textContent?.includes('createDrawer.customRoomLabel'),
+        (btn) =>
+          btn.textContent?.includes('createDrawer.warehouseLabel') ||
+          btn.textContent?.includes('createDrawer.storeRoomLabel') ||
+          btn.textContent?.includes('createDrawer.customRoomLabel'),
       );
-      expect(typeButtons).toHaveLength(0);
+      expect(typeButtons).toHaveLength(3);
+      typeButtons.forEach((btn) => expect(btn).toBeDisabled());
     });
 
     it('Then a frozen notice is visible', () => {
