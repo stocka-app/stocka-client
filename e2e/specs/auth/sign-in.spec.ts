@@ -72,7 +72,7 @@ test.describe('Given a verified user on the Sign In page', () => {
 });
 
 test.describe('Given a user who is already signed in', () => {
-  test.skip('When they try to access the login page, Then they are redirected to the dashboard', async ({
+  test('When they try to access the login page, Then they are redirected to the dashboard', async ({
     authenticatedPage,
   }) => {
     await authenticatedPage.goto('/authentication/sign-in');
