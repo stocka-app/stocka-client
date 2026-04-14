@@ -18,7 +18,7 @@ export class EditStorageDrawerPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.drawer = page.getByRole('dialog');
+    this.drawer = page.getByRole('dialog', { name: /edit storage|editar instalación/i });
     this.title = this.drawer.getByRole('heading', { name: /edit storage|editar instalación/i });
     this.nameInput = this.drawer.locator('input[id*="name"]');
     this.addressInput = this.drawer.locator('input[id*="address"]');
