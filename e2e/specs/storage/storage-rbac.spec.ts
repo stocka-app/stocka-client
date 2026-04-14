@@ -56,6 +56,12 @@ const MOCK_STORAGES_RESPONSE = {
     page: 1,
     limit: 50,
     totalPages: 1,
+    summary: { active: 1, frozen: 0, archived: 1 },
+    typeSummary: {
+      WAREHOUSE: { active: 1, frozen: 0, archived: 0 },
+      STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+      CUSTOM_ROOM: { active: 0, frozen: 0, archived: 1 },
+    },
   },
 };
 

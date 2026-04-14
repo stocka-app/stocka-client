@@ -13,7 +13,7 @@ export class SpacesPage {
   constructor(page: Page) {
     this.page = page;
 
-    this.heading = page.getByRole('heading', { name: /Spaces/i });
+    this.heading = page.getByRole('heading', { name: /Storages|Spaces/i });
     this.createButton = page.getByRole('button', { name: /New storage/i });
   }
 
