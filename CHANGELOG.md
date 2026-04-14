@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.18.1](https://github.com/stocka-app/stocka-client/compare/v0.18.0...v0.18.1) (2026-04-14)
+
+### 🐛 Bug Fixes
+
+* **onboarding:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — add dark mode variants to Step4 labels and titles ([4717478](https://github.com/stocka-app/stocka-client/commit/471747809039875a0b5d7d28dcba457db9501938))
+
 ## [0.18.0](https://github.com/stocka-app/stocka-client/compare/v0.17.0...v0.18.0) (2026-04-13)
 
 ### ✨ Features
