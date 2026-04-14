@@ -77,14 +77,22 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
 
-    // Each at-limit type opens the upgrade modal when clicked
+    // Each at-limit type opens the upgrade modal when clicked. Dismiss the
+    // modal (scoped to `upgrade-modal-title` so the locator skips the drawer's
+    // own Cancel/Close buttons, which sit under the modal's pointer overlay).
+    const dismissUpgradeModal = async (): Promise<void> => {
+      const modal = page.getByRole('dialog', { name: /upgrade|plan/i });
+      await modal.getByRole('button', { name: /Cancel|Close/i }).first().click();
+      await expect(drawer.upgradeModal).not.toBeVisible({ timeout: 5_000 });
+    };
+
     await drawer.warehouseCard.click();
     await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
-    await page.getByRole('button', { name: /Cancel|Close/i }).first().click();
+    await dismissUpgradeModal();
 
     await drawer.customRoomCard.click();
     await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
-    await page.getByRole('button', { name: /Cancel|Close/i }).first().click();
+    await dismissUpgradeModal();
 
     await drawer.storeRoomCard.click();
     await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
