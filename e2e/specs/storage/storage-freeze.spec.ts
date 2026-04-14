@@ -7,9 +7,6 @@ import {
   RBAC_OWNER,
 } from '../../helpers/storages-list.helper';
 
-// Freeze tests need extra timeout — networkidle 10s + card menu interaction
-test.describe.configure({ timeout: 60_000 });
-
 // ═════════════════════════════════════════════════════════════════════════════
 // H-05 · Congelar / Reactivar instalación — PW-1, PW-2, PW-H05-1 through
 //         PW-H05-5, PW-H05-7
