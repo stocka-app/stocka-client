@@ -114,12 +114,14 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
-  async freeze(id: string, type: StorageType): Promise<void> {
-    await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/freeze`);
+  async freeze(id: string, type: StorageType): Promise<Storage> {
+    const { data } = await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/freeze`);
+    return storageSchema.parse(unwrap(data));
   },
 
-  async unfreeze(id: string, type: StorageType): Promise<void> {
-    await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/unfreeze`);
+  async unfreeze(id: string, type: StorageType): Promise<Storage> {
+    const { data } = await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/unfreeze`);
+    return storageSchema.parse(unwrap(data));
   },
 
   async destroy(id: string): Promise<void> {

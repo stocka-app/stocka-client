@@ -400,19 +400,35 @@ export function useStorages(): {
     [updateStorage],
   );
 
+  // Applies a status-flip (ACTIVE ↔ FROZEN) locally to the summary and
+  // typeSummary counters so we don't have to refetch the whole list after a
+  // freeze/unfreeze. DT-H05-14 — now that the endpoint returns the updated
+  // storage (DT-H05-13) we can propagate the change in place.
+  const shiftStatusCounters = useCallback(
+    (type: StorageType, from: StorageStatus, to: StorageStatus): void => {
+      setSummary((prev) => ({
+        active: prev.active + (to === 'ACTIVE' ? 1 : 0) - (from === 'ACTIVE' ? 1 : 0),
+        frozen: prev.frozen + (to === 'FROZEN' ? 1 : 0) - (from === 'FROZEN' ? 1 : 0),
+        archived: prev.archived + (to === 'ARCHIVED' ? 1 : 0) - (from === 'ARCHIVED' ? 1 : 0),
+      }));
+    },
+    [],
+  );
+
   const freezeStorage = useCallback(
     async (id: string): Promise<boolean> => {
       const target = storages.find((s) => s.uuid === id);
       if (!target) return false;
       try {
-        await storagesService.freeze(id, target.type);
-        await fetchStorages();
+        const updated = await storagesService.freeze(id, target.type);
+        updateStorage(updated);
+        shiftStatusCounters(target.type, target.status, updated.status);
         return true;
       } catch {
         return false;
       }
     },
-    [storages, fetchStorages],
+    [storages, updateStorage, shiftStatusCounters],
   );
 
   const unfreezeStorage = useCallback(
@@ -420,14 +436,15 @@ export function useStorages(): {
       const target = storages.find((s) => s.uuid === id);
       if (!target) return false;
       try {
-        await storagesService.unfreeze(id, target.type);
-        await fetchStorages();
+        const updated = await storagesService.unfreeze(id, target.type);
+        updateStorage(updated);
+        shiftStatusCounters(target.type, target.status, updated.status);
         return true;
       } catch {
         return false;
       }
     },
-    [storages, fetchStorages],
+    [storages, updateStorage, shiftStatusCounters],
   );
 
   const getIsLastActive = useCallback(

@@ -834,7 +834,8 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When freezeStorage is called with a valid id', () => {
     it('Then it calls service.freeze with the correct id and type, and returns true on success', async () => {
-      vi.mocked(storagesService.freeze).mockResolvedValue(undefined);
+      const frozen: Storage = { ...mockStoragesItems[0], status: 'FROZEN', frozenAt: '2026-02-01T00:00:00.000Z' };
+      vi.mocked(storagesService.freeze).mockResolvedValue(frozen);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -845,20 +846,24 @@ describe('Given useStorages orchestrates storage operations', () => {
       expect(vi.mocked(storagesService.freeze)).toHaveBeenCalledWith('storage-001', 'STORE_ROOM');
     });
 
-    it('Then it triggers a refetch after successfully freezing', async () => {
-      vi.mocked(storagesService.freeze).mockResolvedValue(undefined);
+    it('Then it applies the updated storage in place without a full refetch (DT-H05-14)', async () => {
+      const frozen: Storage = { ...mockStoragesItems[0], status: 'FROZEN', frozenAt: '2026-02-01T00:00:00.000Z' };
+      vi.mocked(storagesService.freeze).mockResolvedValue(frozen);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       vi.clearAllMocks();
-      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
-      vi.mocked(storagesService.freeze).mockResolvedValue(undefined);
+      vi.mocked(storagesService.freeze).mockResolvedValue(frozen);
 
       await act(async () => {
         await result.current.freezeStorage('storage-001');
       });
 
-      expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1);
+      // No additional list() call — we trust the DTO returned by freeze().
+      expect(vi.mocked(storagesService.list)).not.toHaveBeenCalled();
+      expect(
+        result.current.storages.find((s) => s.uuid === 'storage-001')?.status,
+      ).toBe('FROZEN');
     });
 
     it('Then returns false when the target storage id does not exist in the current list', async () => {
@@ -890,13 +895,14 @@ describe('Given useStorages orchestrates storage operations', () => {
         type: 'WAREHOUSE',
         frozenAt: '2026-02-01T00:00:00.000Z',
       };
+      const reactivated: Storage = { ...frozenItem, status: 'ACTIVE', frozenAt: null };
       const pageWithFrozen: StoragesPage = {
         ...mockPage,
         items: [...mockStoragesItems, frozenItem],
         total: mockStoragesItems.length + 1,
       };
       vi.mocked(storagesService.list).mockResolvedValue(pageWithFrozen);
-      vi.mocked(storagesService.unfreeze).mockResolvedValue(undefined);
+      vi.mocked(storagesService.unfreeze).mockResolvedValue(reactivated);
 
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
@@ -907,7 +913,7 @@ describe('Given useStorages orchestrates storage operations', () => {
       expect(vi.mocked(storagesService.unfreeze)).toHaveBeenCalledWith('storage-frozen', 'WAREHOUSE');
     });
 
-    it('Then it triggers a refetch after successfully unfreezing', async () => {
+    it('Then it applies the updated storage in place without a full refetch (DT-H05-14)', async () => {
       const frozenItem: Storage = {
         ...mockStoragesItems[0],
         uuid: 'storage-frozen',
@@ -915,26 +921,29 @@ describe('Given useStorages orchestrates storage operations', () => {
         type: 'STORE_ROOM',
         frozenAt: '2026-02-01T00:00:00.000Z',
       };
+      const reactivated: Storage = { ...frozenItem, status: 'ACTIVE', frozenAt: null };
       const pageWithFrozen: StoragesPage = {
         ...mockPage,
         items: [...mockStoragesItems, frozenItem],
         total: mockStoragesItems.length + 1,
       };
       vi.mocked(storagesService.list).mockResolvedValue(pageWithFrozen);
-      vi.mocked(storagesService.unfreeze).mockResolvedValue(undefined);
+      vi.mocked(storagesService.unfreeze).mockResolvedValue(reactivated);
 
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
       vi.clearAllMocks();
-      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
-      vi.mocked(storagesService.unfreeze).mockResolvedValue(undefined);
+      vi.mocked(storagesService.unfreeze).mockResolvedValue(reactivated);
 
       await act(async () => {
         await result.current.unfreezeStorage('storage-frozen');
       });
 
-      expect(vi.mocked(storagesService.list)).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(storagesService.list)).not.toHaveBeenCalled();
+      expect(
+        result.current.storages.find((s) => s.uuid === 'storage-frozen')?.status,
+      ).toBe('ACTIVE');
     });
 
     it('Then returns false when the target storage id does not exist in the current list', async () => {

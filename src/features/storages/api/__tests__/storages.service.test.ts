@@ -276,7 +276,7 @@ describe('storagesService', () => {
 
   describe('freeze', () => {
     it('calls POST /storages/warehouses/:id/freeze for WAREHOUSE type', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
       await storagesService.freeze('uuid-1', 'WAREHOUSE');
 
@@ -284,7 +284,7 @@ describe('storagesService', () => {
     });
 
     it('calls POST /storages/store-rooms/:id/freeze for STORE_ROOM type', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
       await storagesService.freeze('uuid-2', 'STORE_ROOM');
 
@@ -292,7 +292,7 @@ describe('storagesService', () => {
     });
 
     it('calls POST /storages/custom-rooms/:id/freeze for CUSTOM_ROOM type', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
       await storagesService.freeze('uuid-3', 'CUSTOM_ROOM');
 
@@ -304,7 +304,7 @@ describe('storagesService', () => {
 
   describe('unfreeze', () => {
     it('calls POST /storages/warehouses/:id/unfreeze for WAREHOUSE type', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
       await storagesService.unfreeze('uuid-1', 'WAREHOUSE');
 
@@ -312,7 +312,7 @@ describe('storagesService', () => {
     });
 
     it('calls POST /storages/store-rooms/:id/unfreeze for STORE_ROOM type', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
       await storagesService.unfreeze('uuid-2', 'STORE_ROOM');
 
@@ -320,7 +320,7 @@ describe('storagesService', () => {
     });
 
     it('calls POST /storages/custom-rooms/:id/unfreeze for CUSTOM_ROOM type', async () => {
-      mockedAxios.post.mockResolvedValueOnce({ data: {} });
+      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
       await storagesService.unfreeze('uuid-3', 'CUSTOM_ROOM');
 
