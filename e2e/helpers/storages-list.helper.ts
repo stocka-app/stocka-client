@@ -27,6 +27,18 @@ interface RbacPayload {
   actions: string[];
 }
 
+interface StatusSummary {
+  active: number;
+  frozen: number;
+  archived: number;
+}
+
+interface TypeSummary {
+  WAREHOUSE: StatusSummary;
+  STORE_ROOM: StatusSummary;
+  CUSTOM_ROOM: StatusSummary;
+}
+
 interface MockStoragesPageResponse {
   success: boolean;
   data: {
@@ -35,6 +47,8 @@ interface MockStoragesPageResponse {
     page: number;
     limit: number;
     totalPages: number;
+    summary: StatusSummary;
+    typeSummary: TypeSummary;
   };
 }
 
@@ -80,11 +94,27 @@ export function buildStorage(overrides: Partial<MockStorage> = {}): MockStorage 
   };
 }
 
+function computeSummaries(items: MockStorage[]): { summary: StatusSummary; typeSummary: TypeSummary } {
+  const empty = (): StatusSummary => ({ active: 0, frozen: 0, archived: 0 });
+  const typeSummary: TypeSummary = { WAREHOUSE: empty(), STORE_ROOM: empty(), CUSTOM_ROOM: empty() };
+  for (const item of items) {
+    const key = item.status === 'ACTIVE' ? 'active' : item.status === 'FROZEN' ? 'frozen' : 'archived';
+    typeSummary[item.type][key]++;
+  }
+  const summary: StatusSummary = {
+    active: typeSummary.WAREHOUSE.active + typeSummary.STORE_ROOM.active + typeSummary.CUSTOM_ROOM.active,
+    frozen: typeSummary.WAREHOUSE.frozen + typeSummary.STORE_ROOM.frozen + typeSummary.CUSTOM_ROOM.frozen,
+    archived: typeSummary.WAREHOUSE.archived + typeSummary.STORE_ROOM.archived + typeSummary.CUSTOM_ROOM.archived,
+  };
+  return { summary, typeSummary };
+}
+
 export function buildStoragesResponse(
   items: MockStorage[],
   page = 1,
   limit = 50,
 ): MockStoragesPageResponse {
+  const { summary, typeSummary } = computeSummaries(items);
   return {
     success: true,
     data: {
@@ -93,6 +123,8 @@ export function buildStoragesResponse(
       page,
       limit,
       totalPages: Math.ceil(items.length / limit) || 1,
+      summary,
+      typeSummary,
     },
   };
 }
@@ -104,6 +136,7 @@ export function buildPaginatedResponse(
 ): MockStoragesPageResponse {
   const start = (page - 1) * limit;
   const pageItems = allItems.slice(start, start + limit);
+  const { summary, typeSummary } = computeSummaries(allItems);
   return {
     success: true,
     data: {
@@ -112,6 +145,8 @@ export function buildPaginatedResponse(
       page,
       limit,
       totalPages: Math.ceil(allItems.length / limit),
+      summary,
+      typeSummary,
     },
   };
 }
@@ -277,6 +312,8 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
               page: reqPage,
               limit,
               totalPages: storagesResponse.data.totalPages,
+              summary: storagesResponse.data.summary,
+              typeSummary: storagesResponse.data.typeSummary,
             },
           }),
         });
@@ -337,6 +374,7 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
+  await page.waitForLoadState('networkidle', { timeout: 10_000 });
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────

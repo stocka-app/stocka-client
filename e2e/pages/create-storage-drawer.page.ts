@@ -42,7 +42,7 @@ export class CreateStorageDrawerPage {
   // ── Step 2 — Navigation / actions ────────────────────────────────────────
   /** "← Change type" link inside the type banner */
   readonly changeTypeButton: Locator;
-  /** "Create installation" submit button */
+  /** "Create storage" submit button */
   readonly submitButton: Locator;
   /** "Back" / cancel button in the step-2 footer */
   readonly cancelButton: Locator;
@@ -76,8 +76,8 @@ export class CreateStorageDrawerPage {
   constructor(page: Page) {
     this.page = page;
 
-    // The drawer panel — matches the `role="dialog"` with the heading "New installation"
-    this.drawer = page.getByRole('dialog', { name: 'New installation' });
+    // The drawer panel — matches the `role="dialog"` with the heading "New storage"
+    this.drawer = page.getByRole('dialog', { name: 'New storage' });
 
     // Type cards — located by data-testid attribute set in TypeSelectionBody
     this.warehouseCard = page.getByTestId('type-card-WAREHOUSE');
@@ -88,7 +88,7 @@ export class CreateStorageDrawerPage {
     // Footer buttons — scoped to the drawer so we don't pick up the picker dialog buttons
     this.cancelButton = this.drawer.getByRole('button', { name: 'Back' });
     this.upgradeModal = page.getByRole('dialog', { name: 'Upgrade your plan' });
-    this.submitButton = this.drawer.getByRole('button', { name: /Create installation|Creating\.\.\./ });
+    this.submitButton = this.drawer.getByRole('button', { name: /Create storage|Creating\.\.\./ });
 
     // Close button — aria-label="Close" on the × icon in the header
     this.closeButton = this.drawer.getByRole('button', { name: 'Close' });
@@ -184,7 +184,7 @@ export class CreateStorageDrawerPage {
   }
 
   /**
-   * Clicks the "Create installation" submit button.
+   * Clicks the "Create storage" submit button.
    */
   async submit(): Promise<void> {
     await this.submitButton.click();
