@@ -4,6 +4,7 @@ import {
   setupAndNavigate,
   buildStorage,
   buildStoragesResponse,
+  getRealTenantId,
   RBAC_OWNER,
 } from '../../helpers/storages-list.helper';
 
@@ -244,8 +245,8 @@ test.describe('Given an Owner opens the freeze dialog for the storage that is th
   test('PW-H05-1: Then the dialog shows a blue info block about the active context', async ({
     preAuthPage: page,
   }) => {
-    // Seed the active storage id in localStorage so the card shows "Contexto actual"
-    const tenantId = 'mock-tenant-id';
+    // Seed the active storage id in localStorage so the card shows "Current context"
+    const tenantId = getRealTenantId() ?? 'mock-tenant-id';
     await page.addInitScript(
       ({ storageId, tId }: { storageId: string; tId: string }) => {
         const key = `stocka:active-storage:${tId}`;

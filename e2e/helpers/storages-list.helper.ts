@@ -11,6 +11,26 @@ const USERS_FILE = resolve(__dirname, '../.auth/users.json');
 export type StorageType = 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM';
 export type StorageStatus = 'ACTIVE' | 'FROZEN' | 'ARCHIVED';
 
+/**
+ * Reads the real tenantId from the storageState file saved by globalSetup.
+ * Used by tests that need to seed localStorage keys scoped by tenantId.
+ */
+export function getRealTenantId(): string | null {
+  try {
+    const stateFile = resolve(__dirname, '../.auth/user.json');
+    const state = JSON.parse(readFileSync(stateFile, 'utf-8'));
+    for (const origin of state.origins ?? []) {
+      for (const item of origin.localStorage ?? []) {
+        if (item.name === 'authentication-storage') {
+          const parsed = JSON.parse(item.value);
+          return parsed?.state?.user?.tenantId ?? null;
+        }
+      }
+    }
+  } catch { /* storageState not available */ }
+  return null;
+}
+
 export interface MockStorage {
   uuid: string;
   name: string;
