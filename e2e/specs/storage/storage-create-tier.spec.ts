@@ -201,6 +201,6 @@ test.describe('Given the user is on a tier with storage limits', () => {
     await drawer.storeRoomCard.click();
 
     await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.tierLimitCta).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Learn about plans' })).toBeVisible();
   });
 });
