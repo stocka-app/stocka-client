@@ -13,7 +13,7 @@ import {
 // ─── Shared mock data ─────────────────────────────────────────────────────────
 
 const STORAGE = buildStorage({
-  uuid: 'edit-test-uuid-001',
+  uuid: '12345678-0000-4000-8000-000000000099',
   name: 'Bodega Central',
   type: 'STORE_ROOM',
   status: 'ACTIVE',
@@ -147,8 +147,7 @@ test.describe('Given a Viewer user opens the card menu', () => {
     const list = new StoragesListPage(page);
     await list.openCardMenu(STORAGE.name);
 
-    const editItem = list.menuItems.edit;
-    await expect(editItem).toBeVisible();
-    await expect(editItem).toHaveAttribute('data-disabled', 'true');
+    await expect(list.menuItems.edit).toBeVisible();
+    await expect(list.menuItems.edit).toBeDisabled();
   });
 });
