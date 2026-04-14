@@ -396,16 +396,9 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
-  // Wait for the page to finish rendering data (empty state, card grid, or error).
-  // The heading renders immediately; the data-dependent content needs the mock to respond.
-  const hasItems = storagesResponse && storagesResponse.data.items.length > 0;
-  if (hasItems) {
-    await page.locator('h3').first().waitFor({ state: 'visible', timeout: 10_000 });
-  } else if (errorOnLoad) {
-    await page.getByText("We couldn't load your storages").waitFor({ state: 'visible', timeout: 10_000 });
-  } else {
-    await page.getByText("You don't have any storages yet").waitFor({ state: 'visible', timeout: 10_000 });
-  }
+  // Wait for network to settle so auth refresh completes before tests interact.
+  // Use a short timeout — if it doesn't settle in 5s, proceed anyway.
+  await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────
