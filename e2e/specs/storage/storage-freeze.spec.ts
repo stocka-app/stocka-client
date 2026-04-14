@@ -20,7 +20,7 @@ import {
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const ACTIVE_WAREHOUSE = buildStorage({
-  uuid: 'freeze-test-uuid-001',
+  uuid: '12345678-0000-4000-8000-000000000101',
   name: 'Almacén Central',
   type: 'WAREHOUSE',
   status: 'ACTIVE',
@@ -28,7 +28,7 @@ const ACTIVE_WAREHOUSE = buildStorage({
 });
 
 const FROZEN_WAREHOUSE = buildStorage({
-  uuid: 'freeze-test-uuid-002',
+  uuid: '12345678-0000-4000-8000-000000000102',
   name: 'Almacén Norte',
   type: 'WAREHOUSE',
   status: 'FROZEN',
@@ -37,7 +37,7 @@ const FROZEN_WAREHOUSE = buildStorage({
 });
 
 const SECOND_ACTIVE = buildStorage({
-  uuid: 'freeze-test-uuid-003',
+  uuid: '12345678-0000-4000-8000-000000000103',
   name: 'Bodega Sur',
   type: 'STORE_ROOM',
   status: 'ACTIVE',
@@ -191,13 +191,13 @@ test.describe('Given an Owner opens the actions menu on an active storage', () =
     // Dialog opens
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
-    await expect(dialog).toContainText('¿Congelar');
+    await expect(dialog).toContainText(/Freeze "/i);
 
     // Confirm freeze
-    await dialog.getByRole('button', { name: /^Congelar$/i }).click();
+    await dialog.getByRole('button', { name: /^Freeze$/i }).click();
 
     // Toast appears
-    await expect(page.getByText(`"${ACTIVE_WAREHOUSE.name}" fue congelada`)).toBeVisible({
+    await expect(page.getByText(`"${ACTIVE_WAREHOUSE.name}" was frozen`)).toBeVisible({
       timeout: 5_000,
     });
 
@@ -230,7 +230,7 @@ test.describe('Given an Owner opens the actions menu on a frozen storage', () =>
     await list.menuItems.unfreeze.click();
 
     // No dialog — toast appears immediately
-    await expect(page.getByText(`"${FROZEN_WAREHOUSE.name}" fue reactivada`)).toBeVisible({
+    await expect(page.getByText(`"${FROZEN_WAREHOUSE.name}" was reactivated`)).toBeVisible({
       timeout: 5_000,
     });
   });
@@ -269,7 +269,7 @@ test.describe('Given an Owner opens the freeze dialog for the storage that is th
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Blue info block — "Estás trabajando en esta instalación..."
-    await expect(dialog.getByText(/Estás trabajando en esta instalación/i)).toBeVisible();
+    await expect(dialog.getByText(/currently working in this storage/i)).toBeVisible();
   });
 });
 
@@ -297,10 +297,10 @@ test.describe('Given an Owner opens the freeze dialog for the only active storag
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Amber warning block — "Esta es tu última instalación operativa..."
-    await expect(dialog.getByText(/última instalación operativa/i)).toBeVisible();
+    await expect(dialog.getByText(/last operational storage/i)).toBeVisible();
 
     // Button label changes to "Congelar de todos modos"
-    await expect(dialog.getByRole('button', { name: /congelar de todos modos/i })).toBeVisible();
+    await expect(dialog.getByRole('button', { name: /freeze anyway/i })).toBeVisible();
   });
 });
 
@@ -350,10 +350,10 @@ test.describe('Given an Owner confirms freezing the only active storage', () => 
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
-    await dialog.getByRole('button', { name: /congelar de todos modos/i }).click();
+    await dialog.getByRole('button', { name: /freeze anyway/i }).click();
 
     // Toast confirms freeze
-    await expect(page.getByText(`"${ACTIVE_WAREHOUSE.name}" fue congelada`)).toBeVisible({
+    await expect(page.getByText(`"${ACTIVE_WAREHOUSE.name}" was frozen`)).toBeVisible({
       timeout: 5_000,
     });
 
@@ -393,7 +393,7 @@ test.describe('Given an Owner opens the actions menu on a frozen storage', () =>
     // Archive confirmation dialog
     const archiveDialog = page.getByRole('dialog');
     await expect(archiveDialog).toBeVisible({ timeout: 5_000 });
-    await archiveDialog.getByRole('button', { name: /archivar/i }).click();
+    await archiveDialog.getByRole('button', { name: /^archive$/i }).click();
 
     // Dialog closes — storage moved to archived
     await expect(archiveDialog).not.toBeVisible({ timeout: 5_000 });
@@ -426,13 +426,13 @@ test.describe('Given an Owner opens the edit drawer for a frozen storage', () =>
     await expect(drawer).toBeVisible({ timeout: 5_000 });
 
     // Frozen info banner — "Esta instalación está congelada. Puedes editar..."
-    await expect(drawer.getByText(/está congelada/i)).toBeVisible();
+    await expect(drawer.getByText(/is frozen/i)).toBeVisible();
 
     // Edit name and save
     const nameInput = drawer.locator('input[id*="name"]');
     await nameInput.clear();
     await nameInput.fill('Almacén Norte Actualizado');
-    await drawer.getByRole('button', { name: /guardar cambios/i }).click();
+    await drawer.getByRole('button', { name: /save changes/i }).click();
 
     // Drawer closes — save succeeded
     await expect(drawer).not.toBeVisible({ timeout: 5_000 });
@@ -464,16 +464,16 @@ test.describe('Given an Owner opens the freeze dialog and the server returns an 
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
     // Confirm — server will return 500
-    await dialog.getByRole('button', { name: /^Congelar$/i }).click();
+    await dialog.getByRole('button', { name: /^Freeze$/i }).click();
 
     // Dialog stays open
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
-    // Inline error banner — "No pudimos congelar la instalación..."
-    await expect(dialog.getByText(/No pudimos congelar/i)).toBeVisible({ timeout: 5_000 });
+    // Inline error banner
+    await expect(dialog.getByText(/couldn't freeze/i)).toBeVisible({ timeout: 5_000 });
 
     // Confirm button is re-enabled (not loading, not disabled) for retry
-    const confirmButton = dialog.getByRole('button', { name: /^Congelar$/i });
+    const confirmButton = dialog.getByRole('button', { name: /^Freeze$/i });
     await expect(confirmButton).toBeEnabled();
   });
 });
