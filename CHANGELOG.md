@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.18.2](https://github.com/stocka-app/stocka-client/compare/v0.18.1...v0.18.2) (2026-04-14)
+
+### 🐛 Bug Fixes
+
+* **e2e:** align Playwright mocks with current storages API schema ([e1368b6](https://github.com/stocka-app/stocka-client/commit/e1368b67b622800c748a1689fca80dc83597d2af))
+
 ## [0.18.1](https://github.com/stocka-app/stocka-client/compare/v0.18.0...v0.18.1) (2026-04-14)
 
 ### 🐛 Bug Fixes
