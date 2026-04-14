@@ -57,6 +57,7 @@ test.describe('Section 10: Actions — Active storage', () => {
     await expect(actions.view).toBeVisible();
     await expect(actions.edit).toBeVisible();
     await expect(actions.archive).toBeVisible();
+    // Restore + Delete only render for archived storages
     await expect(actions.restore).not.toBeVisible();
     await expect(actions.delete).not.toBeVisible();
   });
@@ -88,7 +89,9 @@ test.describe('Section 10: Actions — Active storage', () => {
     const actions = storagesPage.cardActions('Active Storage');
     await expect(actions.view).toBeVisible();
     await expect(actions.edit).toBeVisible();
-    await expect(actions.archive).not.toBeVisible();
+    // Warehouse keeper has no STORAGE_ARCHIVE → archive disabled
+    await expect(actions.archive).toBeDisabled();
+    // Delete only renders for archived storages
     await expect(actions.delete).not.toBeVisible();
   });
 
@@ -101,8 +104,9 @@ test.describe('Section 10: Actions — Active storage', () => {
 
     const actions = storagesPage.cardActions('Active Storage');
     await expect(actions.view).toBeVisible();
-    await expect(actions.edit).not.toBeVisible();
-    await expect(actions.archive).not.toBeVisible();
+    await expect(actions.edit).toBeDisabled();
+    await expect(actions.archive).toBeDisabled();
+    // Delete only renders for archived storages
     await expect(actions.delete).not.toBeVisible();
   });
 });
@@ -121,7 +125,7 @@ test.describe('Section 10: Actions — Frozen storage', () => {
     await expect(actions.view).toBeVisible();
     await expect(actions.edit).toBeVisible();
     // Frozen storages cannot be archived
-    await expect(actions.archive).not.toBeVisible();
+    await expect(actions.archive).toBeDisabled();
   });
 
   // R-06: Manager on frozen storage
@@ -159,7 +163,7 @@ test.describe('Section 10: Actions — Frozen storage', () => {
 
     const actions = storagesPage.cardActions('Frozen Storage');
     await expect(actions.view).toBeVisible();
-    await expect(actions.edit).not.toBeVisible();
+    await expect(actions.edit).toBeDisabled();
   });
 });
 
@@ -180,7 +184,7 @@ test.describe('Section 10: Actions — Archived storage', () => {
     await expect(actions.edit).toBeVisible();
     await expect(actions.delete).toBeVisible();
     // Owner has STORAGE_DELETE so no restore shown (restore is for non-delete roles)
-    await expect(actions.archive).not.toBeVisible();
+    await expect(actions.archive).toBeDisabled();
   });
 
   // R-10: Manager on archived storage (has STORAGE_DELETE → sees Delete, not Restore)
@@ -212,7 +216,7 @@ test.describe('Section 10: Actions — Archived storage', () => {
     await expect(actions.edit).toBeVisible();
     // Has STORAGE_UPDATE but not STORAGE_DELETE → shows Restore
     await expect(actions.restore).toBeVisible();
-    await expect(actions.delete).not.toBeVisible();
+    await expect(actions.delete).toBeDisabled();
   });
 
   // R-12: Viewer on archived storage
@@ -224,8 +228,8 @@ test.describe('Section 10: Actions — Archived storage', () => {
 
     const actions = storagesPage.cardActions('Archived Storage');
     await expect(actions.view).toBeVisible();
-    await expect(actions.edit).not.toBeVisible();
-    await expect(actions.restore).not.toBeVisible();
-    await expect(actions.delete).not.toBeVisible();
+    await expect(actions.edit).toBeDisabled();
+    await expect(actions.restore).toBeDisabled();
+    await expect(actions.delete).toBeDisabled();
   });
 });

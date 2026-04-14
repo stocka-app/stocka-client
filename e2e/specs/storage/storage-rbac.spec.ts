@@ -151,10 +151,11 @@ test.describe('Given a Viewer (STORAGE_READ only) on the Spaces page', () => {
       await spacesPage.openCardMenu('E2E Active Warehouse');
 
       await expect(spacesPage.viewButtons().first()).toBeVisible();
-      // For viewers, write actions are visible but disabled (Radix DropdownMenu pattern)
+      // For viewers, Edit/Archive are visible but disabled (Radix pattern).
+      // Delete only renders for archived storages — not present at all here.
       await expect(spacesPage.editButtons().first()).toBeDisabled();
       await expect(spacesPage.archiveButtons().first()).toBeDisabled();
-      await expect(spacesPage.deleteButtons().first()).toBeDisabled();
+      await expect(spacesPage.deleteButtons()).not.toBeVisible();
     });
 
     test('Then the New space button is not shown', async ({ preAuthPage: page }) => {
