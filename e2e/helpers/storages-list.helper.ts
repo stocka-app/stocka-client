@@ -1,4 +1,10 @@
 import type { Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const USERS_FILE = resolve(__dirname, '../.auth/users.json');
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -274,10 +280,19 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
   // Always fabricate a JWT instantly — never proxy to the real backend.
   // route.fetch() inside a handler blocks all subsequent handlers until it
   // resolves, which causes the storages mock to hang → error state.
+  // Use the real user ID from globalSetup so the app recognizes the session.
+  let userId = 'e2e-fallback-uuid';
+  let userEmail = 'e2e@stocka.test';
+  try {
+    const users = JSON.parse(readFileSync(USERS_FILE, 'utf-8'));
+    userId = users.verifiedUser?.userId ?? userId;
+    userEmail = users.verifiedUser?.email ?? userEmail;
+  } catch { /* users.json not available — use fallbacks */ }
+
   await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(JSON.stringify({
-      sub: 'e2e-mock-uuid', email: 'e2e@stocka.test',
+      sub: userId, email: userEmail,
       tenantId: 'e2e-mock-tenant', role: rbac.role, displayName: 'E2E User',
       tierLimits: capabilities
         ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
