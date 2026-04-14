@@ -281,19 +281,35 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
   // route.fetch() inside a handler blocks all subsequent handlers until it
   // resolves, which causes the storages mock to hang → error state.
   // Use the real user ID from globalSetup so the app recognizes the session.
+  // Read real user data from globalSetup for the fabricated JWT
   let userId = 'e2e-fallback-uuid';
   let userEmail = 'e2e@stocka.test';
+  let tenantId: string | null = null;
   try {
     const users = JSON.parse(readFileSync(USERS_FILE, 'utf-8'));
     userId = users.verifiedUser?.userId ?? userId;
     userEmail = users.verifiedUser?.email ?? userEmail;
   } catch { /* users.json not available — use fallbacks */ }
+  // Read tenantId from storageState localStorage (saved by globalSetup/fixture)
+  try {
+    const stateFile = resolve(__dirname, '../.auth/user.json');
+    const state = JSON.parse(readFileSync(stateFile, 'utf-8'));
+    const origins = state.origins ?? [];
+    for (const origin of origins) {
+      for (const item of origin.localStorage ?? []) {
+        if (item.name === 'authentication-storage') {
+          const parsed = JSON.parse(item.value);
+          tenantId = parsed?.state?.user?.tenantId ?? null;
+        }
+      }
+    }
+  } catch { /* storageState not available */ }
 
   await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(JSON.stringify({
       sub: userId, email: userEmail,
-      tenantId: 'e2e-mock-tenant', role: rbac.role, displayName: 'E2E User',
+      tenantId: tenantId ?? 'e2e-mock-tenant', role: rbac.role, displayName: 'E2E User',
       tierLimits: capabilities
         ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
         : { tier: rbac.tier ?? 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 },
