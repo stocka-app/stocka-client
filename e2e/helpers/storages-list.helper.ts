@@ -396,7 +396,9 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
-  await page.waitForLoadState('networkidle', { timeout: 10_000 });
+  // Wait for the page heading — more reliable than networkidle which hangs
+  // when background requests (refresh polling, analytics) stay in-flight.
+  await page.getByRole('heading', { name: 'Storages' }).waitFor({ state: 'visible', timeout: 10_000 });
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────

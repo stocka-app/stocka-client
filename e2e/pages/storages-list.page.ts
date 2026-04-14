@@ -145,13 +145,13 @@ export class StoragesListPage {
     delete: Locator;
   } {
     return {
-      view: this.page.getByRole('menuitem', { name: /ver más/i }),
-      edit: this.page.getByRole('menuitem', { name: /editar/i }),
-      freeze: this.page.getByRole('menuitem', { name: /congelar/i }),
-      unfreeze: this.page.getByRole('menuitem', { name: /reactivar/i }),
-      archive: this.page.getByRole('menuitem', { name: /archivar/i }),
-      restore: this.page.getByRole('menuitem', { name: /restaurar/i }),
-      delete: this.page.getByRole('menuitem', { name: /eliminar/i }),
+      view: this.page.getByRole('menuitem', { name: /view/i }),
+      edit: this.page.getByRole('menuitem', { name: /edit/i }),
+      freeze: this.page.getByRole('menuitem', { name: /freeze/i }),
+      unfreeze: this.page.getByRole('menuitem', { name: /reactivate/i }),
+      archive: this.page.getByRole('menuitem', { name: /archive/i }),
+      restore: this.page.getByRole('menuitem', { name: /restore/i }),
+      delete: this.page.getByRole('menuitem', { name: /delete/i }),
     };
   }
 
