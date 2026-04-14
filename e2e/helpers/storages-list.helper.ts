@@ -271,28 +271,50 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
   });
 
   // ── Refresh session mock ──
-  // Fabricate a JWT locally so tests never depend on real backend token state.
-  // The frontend decodes JWTs without verifying signatures.
+  // Proxy to the real backend. If the real refresh fails (token rotated/expired),
+  // fabricate a JWT from the existing localStorage auth data so the test can proceed.
   await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-    const payload = btoa(JSON.stringify({
-      sub: 'e2e-mock-user-uuid',
-      email: 'e2e@stocka.test',
-      tenantId: 'e2e-mock-tenant-uuid',
-      role: rbac.role,
-      displayName: 'E2E User',
-      tierLimits: capabilities
-        ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
-        : { tier: rbac.tier ?? 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 },
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 900,
-    })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    const fakeToken = `${header.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}.${payload}.e2e-mock-signature`;
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: { accessToken: fakeToken } }),
-    });
+    const response = await route.fetch();
+    if (response.ok()) {
+      // Real refresh succeeded — forward the response (includes rotated cookie)
+      const json = await response.json();
+      const token: string | undefined = json?.data?.accessToken;
+      if (token && capabilities) {
+        const [h, p, s] = token.split('.');
+        const decoded = JSON.parse(atob(p.replace(/-/g, '+').replace(/_/g, '/')));
+        decoded.tierLimits = {
+          tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses,
+          maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms,
+        };
+        const patched = btoa(JSON.stringify(decoded)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        json.data.accessToken = [h, patched, s].join('.');
+      }
+      await route.fulfill({ response, json });
+    } else {
+      // Real refresh failed — fabricate a token from localStorage user data
+      const authData = await route.request().frame().page().evaluate(() => {
+        const raw = localStorage.getItem('authentication-storage');
+        if (!raw) return null;
+        try { return JSON.parse(raw)?.state?.user; } catch { return null; }
+      });
+      const sub = authData?.id ?? 'e2e-fallback-uuid';
+      const email = authData?.email ?? 'e2e@stocka.test';
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify({
+        sub, email, tenantId: authData?.tenantId ?? 'e2e-tenant-uuid',
+        role: rbac.role, displayName: authData?.displayName ?? 'E2E User',
+        tierLimits: capabilities
+          ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
+          : { tier: rbac.tier ?? 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 },
+        iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 900,
+      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const fakeToken = `${header.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}.${payload}.e2e-fake`;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { accessToken: fakeToken } }),
+      });
+    }
   });
 
   // ── Storages API mock ──
