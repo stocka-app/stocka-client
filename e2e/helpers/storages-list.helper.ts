@@ -312,7 +312,7 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
       tenantId: tenantId ?? 'e2e-mock-tenant', role: rbac.role, displayName: 'E2E User',
       tierLimits: capabilities
         ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
-        : { tier: rbac.tier ?? 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 },
+        : { tier: rbac.tier ?? 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
       iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 7200,
     })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const fakeToken = `${header.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}.${payload}.e2e-fake`;
