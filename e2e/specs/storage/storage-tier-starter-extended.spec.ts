@@ -30,13 +30,12 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('CUSTOM_ROOM');
+    await drawer.customRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
-  test('CD-45: When the Store Room limit is reached (3/3) and the user selects Store Room, Then a tier limit banner is shown and submit is disabled', async ({
+  test('CD-45: When the Store Room limit is reached (3/3) and the user clicks Store Room, Then the upgrade modal opens', async ({
     preAuthPage: page,
   }) => {
     await setupAndNavigate(page, {
@@ -51,10 +50,9 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('STORE_ROOM');
+    await drawer.storeRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
   test('CD-46: When all 9 STARTER slots are consumed (3 of each type), Then every type shows a tier limit banner', async ({
@@ -77,20 +75,18 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
     });
 
     const drawer = new CreateStorageDrawerPage(page);
-
-    // Warehouse — all 3 slots used
     await drawer.openDrawer();
-    await drawer.selectType('WAREHOUSE');
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
 
-    // Custom area — all 3 slots used
-    await drawer.changeTypeButton.click();
-    await drawer.selectType('CUSTOM_ROOM');
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
+    // Each at-limit type opens the upgrade modal when clicked
+    await drawer.warehouseCard.click();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
+    await page.getByRole('button', { name: /Cancel|Close/i }).first().click();
 
-    // Store Room — all 3 slots used
-    await drawer.changeTypeButton.click();
-    await drawer.selectType('STORE_ROOM');
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
+    await drawer.customRoomCard.click();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
+    await page.getByRole('button', { name: /Cancel|Close/i }).first().click();
+
+    await drawer.storeRoomCard.click();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 });

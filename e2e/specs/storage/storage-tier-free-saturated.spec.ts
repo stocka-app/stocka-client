@@ -21,7 +21,7 @@ const FREE_SATURATED = buildStoragesResponse([
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe('Given the user is on FREE tier with all storage slots consumed', () => {
-  test('CD-42: When 1 custom area and 1 store room exist (2/2 combined) and the user selects Custom area, Then a tier limit banner is shown and submit is disabled', async ({
+  test('CD-42: When 1 custom area and 1 store room exist (2/2 combined) and the user clicks Custom area, Then the upgrade modal opens', async ({
     preAuthPage: page,
   }) => {
     await setupAndNavigate(page, {
@@ -32,14 +32,12 @@ test.describe('Given the user is on FREE tier with all storage slots consumed', 
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
+    await drawer.customRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
-  test('CD-43: When 1 custom area and 1 store room exist (2/2 combined) and the user selects Store Room, Then a tier limit banner is shown and submit is disabled', async ({
+  test('CD-43: When 1 custom area and 1 store room exist (2/2 combined) and the user clicks Store Room, Then the upgrade modal opens', async ({
     preAuthPage: page,
   }) => {
     await setupAndNavigate(page, {
@@ -50,10 +48,8 @@ test.describe('Given the user is on FREE tier with all storage slots consumed', 
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
+    await drawer.storeRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 });
