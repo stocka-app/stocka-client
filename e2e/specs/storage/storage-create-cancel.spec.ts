@@ -140,9 +140,7 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     // Step 1 is shown (type-selection)
     await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
 
-    // All radio cards are unchecked
-    await expect(drawer.warehouseCard).toHaveAttribute('aria-checked', 'false');
-    await expect(drawer.storeRoomCard).toHaveAttribute('aria-checked', 'false');
-    await expect(drawer.customRoomCard).toHaveAttribute('aria-checked', 'false');
+    // No type is pre-selected — Continue button is disabled
+    await expect(drawer.continueButton).toBeDisabled();
   });
 });

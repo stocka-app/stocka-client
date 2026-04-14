@@ -39,6 +39,10 @@ export class CreateStorageDrawerPage {
   /** Description textarea */
   readonly descriptionTextarea: Locator;
 
+  // ── Step 1 — Continue button ──────────────────────────────────────────────
+  /** "Continue" button that advances from Step 1 to Step 2 */
+  readonly continueButton: Locator;
+
   // ── Step 2 — Navigation / actions ────────────────────────────────────────
   /** "← Change type" link inside the type banner */
   readonly changeTypeButton: Locator;
@@ -84,6 +88,9 @@ export class CreateStorageDrawerPage {
     this.storeRoomCard = page.getByTestId('type-card-STORE_ROOM');
     this.customRoomCard = page.getByTestId('type-card-CUSTOM_ROOM');
     this.warehouseLockedBadge = page.getByTestId('type-card-WAREHOUSE').getByText('STARTER+');
+
+    // Step 1 continue button
+    this.continueButton = this.drawer.getByRole('button', { name: 'Continue' });
 
     // Footer buttons — scoped to the drawer so we don't pick up the picker dialog buttons
     this.cancelButton = this.drawer.getByRole('button', { name: 'Back' });
@@ -153,9 +160,25 @@ export class CreateStorageDrawerPage {
   }
 
   /**
-   * Selects a storage type in step 1 by clicking the corresponding radio card.
+   * Selects a storage type in step 1 and advances to Step 2.
+   * Clicks the type card, then clicks "Continue" and waits for the name input.
    */
   async selectType(type: 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM'): Promise<void> {
+    const card = {
+      WAREHOUSE: this.warehouseCard,
+      STORE_ROOM: this.storeRoomCard,
+      CUSTOM_ROOM: this.customRoomCard,
+    }[type];
+    await card.click();
+    await this.continueButton.click();
+    await this.nameInput.waitFor({ state: 'visible', timeout: 5_000 });
+  }
+
+  /**
+   * Selects a storage type in step 1 WITHOUT advancing to Step 2.
+   * Use when testing step-1-only behavior (tier locks, card selection).
+   */
+  async selectTypeOnly(type: 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM'): Promise<void> {
     const card = {
       WAREHOUSE: this.warehouseCard,
       STORE_ROOM: this.storeRoomCard,
