@@ -291,18 +291,12 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
       }
       await route.fulfill({ response, json });
     } else {
-      // Real refresh failed — fabricate a token from localStorage user data
-      const authData = await route.request().frame().page().evaluate(() => {
-        const raw = localStorage.getItem('authentication-storage');
-        if (!raw) return null;
-        try { return JSON.parse(raw)?.state?.user; } catch { return null; }
-      });
-      const sub = authData?.id ?? 'e2e-fallback-uuid';
-      const email = authData?.email ?? 'e2e@stocka.test';
+      // Real refresh failed — fabricate a token with static data (no page.evaluate
+      // which can deadlock when called inside a route handler during navigation).
       const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
       const payload = btoa(JSON.stringify({
-        sub, email, tenantId: authData?.tenantId ?? 'e2e-tenant-uuid',
-        role: rbac.role, displayName: authData?.displayName ?? 'E2E User',
+        sub: 'e2e-fallback-uuid', email: 'e2e@stocka.test',
+        tenantId: 'e2e-tenant-uuid', role: rbac.role, displayName: 'E2E User',
         tierLimits: capabilities
           ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
           : { tier: rbac.tier ?? 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 },
