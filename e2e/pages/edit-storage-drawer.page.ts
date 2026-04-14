@@ -24,8 +24,15 @@ export class EditStorageDrawerPage {
     this.addressInput = this.drawer.locator('input[id*="address"]');
     this.descriptionInput = this.drawer.locator('textarea');
     this.submitButton = this.drawer.getByRole('button', { name: /save changes|guardar cambios/i });
-    this.cancelButton = this.drawer.getByRole('button', { name: /cancel|cancelar/i });
-    this.closeButton = this.drawer.getByLabel(/cancel|cancelar/i);
+    // Footer Cancel button has visible text "Cancel" (unlike the × close icon
+    // which uses aria-label="Cancel" but has no text content).
+    this.cancelButton = this.drawer.locator('button:has-text("Cancel")').filter({
+      hasNot: page.locator('.material-symbols-outlined'),
+    });
+    // Header × close button — contains the "close" material icon.
+    this.closeButton = this.drawer.locator('button').filter({
+      has: page.locator('.material-symbols-outlined', { hasText: 'close' }),
+    });
 
     // Unsaved dialog is rendered outside the drawer
     this.unsavedDialog = page.getByRole('dialog').filter({ hasText: /discard|descartar/i });
