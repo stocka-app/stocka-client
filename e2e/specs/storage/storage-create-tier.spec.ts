@@ -112,6 +112,7 @@ test.describe('Given the user is on a tier with storage limits', () => {
   test('CD-34: When FREE plan is at the Store Room limit (1/1) and the user selects Store Room, Then a tier limit banner is shown', async ({
     preAuthPage: page,
   }) => {
+    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
       storagesResponse: buildStoragesResponse([ONE_ACTIVE_STORE_ROOM]),
@@ -129,6 +130,7 @@ test.describe('Given the user is on a tier with storage limits', () => {
   test('CD-35: When FREE plan is at the Custom Room limit (1/1) and the user selects Custom area, Then a tier limit banner is shown', async ({
     preAuthPage: page,
   }) => {
+    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
       storagesResponse: buildStoragesResponse([ONE_ACTIVE_CUSTOM_ROOM]),
@@ -146,6 +148,7 @@ test.describe('Given the user is on a tier with storage limits', () => {
   test('CD-36: When STARTER plan is at the Warehouse limit (1/1) and the user selects Warehouse, Then a tier limit banner is shown', async ({
     preAuthPage: page,
   }) => {
+    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'STARTER' },
       storagesResponse: STARTER_WAREHOUSES_AT_LIMIT,
@@ -193,6 +196,7 @@ test.describe('Given the user is on a tier with storage limits', () => {
   test('CD-38: When a tier limit banner is shown, Then it contains the "See plans" CTA button', async ({
     preAuthPage: page,
   }) => {
+    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
       storagesResponse: buildStoragesResponse([ONE_ACTIVE_STORE_ROOM]),

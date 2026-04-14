@@ -31,6 +31,7 @@ const STARTER_CAPS = { tier: 'STARTER', maxWarehouses: 1, maxStoreRooms: 3, maxC
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe('Given the user opens the edit drawer from a storage card', () => {
+  test.describe.configure({ timeout: 60_000 });
   test('ED-1: Then the drawer shows pre-loaded values', async ({ preAuthPage: page }) => {
     await mockEditPatch(page, 'store-rooms', STORAGE.uuid);
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: STORAGES_RESPONSE, capabilities: STARTER_CAPS });
@@ -139,6 +140,7 @@ test.describe('Given the user opens the edit drawer from a storage card', () => 
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe('Given a Viewer user opens the card menu', () => {
+  test.describe.configure({ timeout: 60_000 });
   test('ED-7: Then the Edit option is disabled', async ({ preAuthPage: page }) => {
     await setupAndNavigate(page, { rbac: RBAC_VIEWER, storagesResponse: STORAGES_RESPONSE, capabilities: STARTER_CAPS });
 

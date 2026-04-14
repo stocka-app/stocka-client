@@ -118,7 +118,7 @@ test.describe('Given the user has filled the Step 2 form and submits', () => {
     await expect(drawer.addressInput).toHaveValue('Av. Industrial 500');
   });
 
-  test('CD-32: When the server returns 403, Then the drawer stays open and the submit button is re-enabled so the user can retry', async ({
+  test('CD-32: When the server returns 403, Then the drawer stays open and shows a tier limit banner', async ({
     preAuthPage: page,
   }) => {
     await mockCreatePost(page, 'warehouse', { status: 403 });
@@ -131,10 +131,10 @@ test.describe('Given the user has filled the Step 2 form and submits', () => {
     await drawer.fillStep2({ name: 'Blocked Warehouse', address: 'Calle Bloqueada 1' });
     await drawer.submit();
 
-    // 403 → resolves to 'tier_limit' error code; the drawer stays open and
-    // the submit button becomes enabled again (isSubmitting reverts to false).
-    // The server error banner does NOT appear for tier_limit errors — only for 'server_error'.
+    // 403 → resolves to 'tier_limit' — the drawer stays open and shows the
+    // tier limit banner. Submit becomes disabled (tier_limit disables it).
     await expect(drawer.drawer).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeEnabled({ timeout: 5_000 });
+    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
+    await expect(drawer.submitButton).toBeDisabled();
   });
 });
