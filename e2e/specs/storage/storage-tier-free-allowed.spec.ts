@@ -27,7 +27,6 @@ test.describe('Given the user is on FREE tier with storage quota available', () 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.nameInput).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitBanner).not.toBeVisible();
@@ -45,7 +44,6 @@ test.describe('Given the user is on FREE tier with storage quota available', () 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.nameInput).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitBanner).not.toBeVisible();
@@ -65,7 +63,6 @@ test.describe('Given the user is on FREE tier with storage quota available', () 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.nameInput).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitBanner).not.toBeVisible();

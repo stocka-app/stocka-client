@@ -31,7 +31,6 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
     await expect(drawer.submitButton).toBeDisabled();
@@ -53,7 +52,6 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
 
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
     await expect(drawer.submitButton).toBeDisabled();
@@ -83,19 +81,16 @@ test.describe('Given the user is on STARTER tier with per-type storage limits', 
     // Warehouse — all 3 slots used
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.continueButton.click();
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
 
     // Custom area — all 3 slots used
     await drawer.changeTypeButton.click();
     await drawer.selectType('CUSTOM_ROOM');
-    await drawer.continueButton.click();
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
 
     // Store Room — all 3 slots used
     await drawer.changeTypeButton.click();
     await drawer.selectType('STORE_ROOM');
-    await drawer.continueButton.click();
     await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
   });
 });

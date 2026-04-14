@@ -99,12 +99,9 @@ test.describe('StorageSwitcher — Active context ordering', () => {
     // mismatch) the component still auto-selects the first ACTIVE A→Z, which
     // is "Almacén Central" — also acceptable for this assertion because the
     // grid's `sortedStorages` puts whichever storage is active in position #1.
-    const cards = page.locator('[role="article"], .storage-card, article').filter({
-      hasText: /Almacén|Bodega|Tienda/i,
-    });
-    await expect(cards.first()).toBeVisible();
-    const firstCardText = await cards.first().textContent();
-    expect(firstCardText).toMatch(/Bodega Principal|Almacén Central/);
+    // Card names render as h3 elements — check the first one
+    const firstCardName = await page.locator('h3').first().textContent();
+    expect(firstCardName).toMatch(/Bodega Principal|Almacén Central/);
   });
 });
 
@@ -251,7 +248,7 @@ test.describe('StorageSwitcher — Selection flow', () => {
     // The grid reorders: "Tienda Centro" should now be the first visible card.
     // Defer the assertion until the store state propagates to `sortedStorages`.
     await expect(
-      page.locator('article, [role="article"]').filter({ hasText: 'Tienda Centro' }).first(),
+      page.locator('h3').filter({ hasText: 'Tienda Centro' }).first(),
     ).toBeVisible();
   });
 

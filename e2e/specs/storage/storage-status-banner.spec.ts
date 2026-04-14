@@ -54,8 +54,8 @@ test.describe('StorageStatusBanner — FROZEN state', () => {
     await listbox.getByText('Bodega Norte').click();
     await expect(listbox).toHaveCount(0);
 
-    // Banner should now be visible
-    const banner = page.getByRole('status').filter({ hasText: 'Bodega Norte' });
+    // Banner should now be visible — contains text about frozen state
+    const banner = page.getByRole('status').filter({ hasText: /frozen|congelada/i });
     await expect(banner).toBeVisible({ timeout: 5_000 });
 
     // Reactivate CTA (outlined button)
@@ -86,7 +86,7 @@ test.describe('StorageStatusBanner — Dismiss behavior', () => {
     await trigger.click();
     await page.getByRole('listbox', { name: /Select storage/i }).getByText('Bodega Norte').click();
 
-    const banner = page.getByRole('status').filter({ hasText: 'Bodega Norte' });
+    const banner = page.getByRole('status').filter({ hasText: /frozen|congelada/i });
     await expect(banner).toBeVisible();
 
     // Dismiss
@@ -98,7 +98,7 @@ test.describe('StorageStatusBanner — Dismiss behavior', () => {
     // After reload, the storages API mock still applies thanks to addInitScript-style
     // route persistence on the BrowserContext. The active storage id is persisted
     // per-tenant in localStorage, so the switcher will re-read "Bodega Norte" on mount.
-    await expect(page.getByRole('status').filter({ hasText: 'Bodega Norte' })).toBeVisible({
+    await expect(page.getByRole('status').filter({ hasText: /frozen|congelada/i })).toBeVisible({
       timeout: 10_000,
     });
   });
@@ -139,7 +139,7 @@ test.describe('StorageStatusBanner — Reactivate flow', () => {
     await trigger.click();
     await page.getByRole('listbox', { name: /Select storage/i }).getByText('Bodega Norte').click();
 
-    const banner = page.getByRole('status').filter({ hasText: 'Bodega Norte' });
+    const banner = page.getByRole('status').filter({ hasText: /frozen|congelada/i });
     await expect(banner).toBeVisible();
 
     // Click Reactivate
