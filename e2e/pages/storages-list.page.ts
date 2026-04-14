@@ -179,7 +179,8 @@ export class StoragesListPage {
   // ── Empty state ────────────────────────────────────────────────────
 
   emptyTitle(): Locator {
-    return this.page.getByText("You don't have any storages yet");
+    // Scope to h2/h3 heading — the sidebar storage switcher also shows this text
+    return this.page.getByRole('heading', { name: "You don't have any storages yet" });
   }
 
   emptyCreateButton(): Locator {

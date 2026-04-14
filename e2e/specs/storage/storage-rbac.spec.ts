@@ -85,7 +85,7 @@ async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
   const rbacStorageValue = JSON.stringify({
     state: {
       role: rbac.role,
-      tier: 'FREE',
+      tier: 'STARTER',
       tenantStatus: 'ACTIVE',
       permissions: rbac.actions,
       grants: [],
@@ -107,7 +107,7 @@ async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
         success: true,
         data: {
           role: rbac.role,
-          tier: 'FREE',
+          tier: 'STARTER',
           actions: rbac.actions,
           grants: [],
         },
