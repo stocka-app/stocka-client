@@ -110,10 +110,10 @@ export class CreateStorageDrawerPage {
 
     // Error states
     this.nameTakenError = page.getByText(
-      'An installation with that name already exists. Choose a different one so your team can tell them apart.',
+      'A storage with that name already exists. Choose a different one so your team can tell them apart.',
     );
     this.serverErrorBanner = page.getByText(
-      "We couldn't create the installation. Check your connection and try again. Your data was not lost.",
+      "We couldn't create the storage. Check your connection and try again. Your data was not lost.",
     );
     this.tierLimitBanner = page.getByText(/Upgrade to add more\./);
     this.tierLimitCta = page.getByRole('button', { name: 'See plans' });

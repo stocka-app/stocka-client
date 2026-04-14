@@ -93,8 +93,8 @@ test.describe('Section 3: Empty state', () => {
     await storagesPage.emptyCreateButton().click();
 
     // Drawer should open at Step 1
-    await expect(page.getByRole('dialog', { name: 'New installation' })).toBeVisible();
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'New storage' })).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
   });
 });
 

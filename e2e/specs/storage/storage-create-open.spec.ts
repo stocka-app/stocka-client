@@ -30,7 +30,7 @@ test.describe('Given the user has STORAGE_CREATE permission and storages exist',
     await drawer.openDrawer();
 
     await expect(drawer.drawer).toBeVisible();
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
   });
 
   test('CD-02: When the user clicks the empty-state CTA, Then Step 1 of the drawer opens', async ({
@@ -48,7 +48,7 @@ test.describe('Given the user has STORAGE_CREATE permission and storages exist',
     await storagesPage.emptyCreateButton().click();
 
     await expect(drawer.drawer).toBeVisible();
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
   });
 
   test('CD-03: When the user clicks the inline create card in the grid, Then Step 1 of the drawer opens', async ({
@@ -63,7 +63,7 @@ test.describe('Given the user has STORAGE_CREATE permission and storages exist',
     await storagesPage.createInlineCard.click();
 
     await expect(drawer.drawer).toBeVisible();
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
   });
 
   test('CD-04: When the drawer is opened from any entry point, Then all 3 type cards are visible in Step 1', async ({

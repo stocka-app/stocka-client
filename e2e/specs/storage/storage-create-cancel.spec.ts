@@ -138,9 +138,10 @@ test.describe('Given the user has the Create Installation drawer open', () => {
     await storagesPage.emptyCreateButton().click();
 
     // Step 1 is shown (type-selection)
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
 
-    // No type is pre-selected — Continue button is disabled
-    await expect(drawer.continueButton).toBeDisabled();
+    // Drawer is back at Step 1 (not Step 2 with previous data)
+    await expect(drawer.warehouseCard).toBeVisible();
+    await expect(drawer.nameInput).not.toBeVisible();
   });
 });
