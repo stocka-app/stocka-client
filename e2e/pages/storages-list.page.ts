@@ -93,20 +93,23 @@ export class StoragesListPage {
 
   // ── Queries ────────────────────────────────────────────────────────
 
-  /** All visible storage card names in order */
+  /**
+   * All visible storage card names in order.
+   * Scoped to `main h3` excluding any `h3` that lives inside a dialog/drawer —
+   * the Create/Edit drawers render their own `<h3>` (e.g. "Storage type") which
+   * would otherwise inflate the card count.
+   */
   async getCardNames(): Promise<string[]> {
-    // Scope to main content — sidebar storage switcher also uses h3
-    const names = this.page.locator('main h3');
-    return names.allTextContents();
+    return this.page.locator('main h3:not([role="dialog"] *)').allTextContents();
   }
 
-  /** Get a storage card container by its name */
+  /** Get a storage card container by its name (excludes dialog-nested h3) */
   card(name: string): Locator {
     return this.page
-      .locator('main h3')
+      .locator('main h3:not([role="dialog"] *)')
       .filter({ hasText: name })
-      .locator('..') // parent content div
-      .locator('..'); // card root with bracket
+      .locator('..')
+      .locator('..');
   }
 
   /** Open the three-dot context menu on a card and return menu item locators */
@@ -156,16 +159,24 @@ export class StoragesListPage {
     };
   }
 
-  /** Get the type badge text for a card */
+  /**
+   * Get the type badge text for a card.
+   * Scoped to the `text-xs` variant to exclude the "Current context" tag which
+   * also uses `rounded-full px-2` but renders at `text-[10px]`.
+   */
   cardTypeBadge(cardName: string): Locator {
     const scope = this.card(cardName);
-    return scope.locator('.rounded-full.px-2');
+    return scope.locator('.rounded-full.px-2.text-xs').first();
   }
 
-  /** Get the status label for a card */
+  /**
+   * Get the status indicator for a card.
+   * The status is rendered as a colored dot with `role="img"` and an aria-label
+   * that reads "Active"/"Frozen"/"Archived" — there is no visible text label.
+   */
   cardStatusLabel(cardName: string): Locator {
     const scope = this.card(cardName);
-    return scope.locator('.text-xs.text-neutral-500').first();
+    return scope.getByRole('img', { name: /^(Active|Frozen|Archived)$/ });
   }
 
   /** Filter chip buttons (status / search chips) */
@@ -227,7 +238,10 @@ export class StoragesListPage {
   // ── Helpers ────────────────────────────────────────────────────────
 
   async waitForCards(): Promise<void> {
-    await this.page.locator('main h3').first().waitFor({ state: 'visible', timeout: 10_000 });
+    await this.page
+      .locator('main h3:not([role="dialog"] *)')
+      .first()
+      .waitFor({ state: 'visible', timeout: 10_000 });
   }
 
   async selectStatus(status: 'ACTIVE' | 'FROZEN' | 'ARCHIVED' | ''): Promise<void> {

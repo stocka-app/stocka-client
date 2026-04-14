@@ -38,6 +38,38 @@ async function setupWithSmartFiltering(
     });
   });
 
+  // Without a tierLimits-bearing JWT the app treats the user as FREE tier and
+  // tier-locks the Warehouse tab + disables search/sort controls. Fabricate a
+  // STARTER tier refresh response so filtering tests exercise the unlocked UI.
+  await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    const payload = btoa(
+      JSON.stringify({
+        sub: 'e2e-smart-filter-user',
+        email: 'filters@stocka.test',
+        tenantId: 'e2e-mock-tenant',
+        role: 'owner',
+        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 7200,
+      }),
+    )
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { accessToken: `${header}.${payload}.e2e-fake` },
+      }),
+    });
+  });
+
   await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
     if (route.request().method() !== 'GET') {
       await route.continue();
@@ -380,9 +412,11 @@ test.describe('Section 7: Search by name', () => {
 
     await storagesPage.search('xyznonexistent');
 
-    await expect(page.locator('main h3').filter({ hasText: 'Check spelling' }).first()).toBeVisible();
-    await expect(page.locator('main h3').filter({ hasText: 'Adjust filters' }).first()).toBeVisible();
-    await expect(page.locator('main h3').filter({ hasText: 'Create new' }).first()).toBeVisible();
+    // Suggestion card titles render as <span> inside the StateComposition,
+    // not as <h3>. Match by visible text instead.
+    await expect(page.getByText('Check spelling', { exact: true })).toBeVisible();
+    await expect(page.getByText('Adjust filters', { exact: true })).toBeVisible();
+    await expect(page.getByText('Create new', { exact: true })).toBeVisible();
   });
 });
 
@@ -419,15 +453,22 @@ test.describe('Section 8: Sorting', () => {
 
     const ascNames = await storagesPage.getCardNames();
 
+    // Wait for the refetch triggered by toggleSort — otherwise getCardNames
+    // can read the stale (pre-refetch) order before React has re-rendered.
+    const descResponse = page.waitForResponse(
+      (res) => res.url().includes('/api/storages') && res.url().includes('sortOrder=DESC'),
+    );
     await storagesPage.toggleSort();
+    await descResponse;
 
-    // Wait for re-render
-    await page.waitForTimeout(500);
+    // Give React a micro-tick to commit the new list.
+    await expect(storagesPage.sortButton).toContainText('Z → A');
 
     const descNames = await storagesPage.getCardNames();
 
-    // The first and last items should be swapped
-    expect(ascNames[0]).not.toBe(descNames[0]);
+    // The active-context card is always pinned first regardless of sort
+    // (H-03 active storage treatment). Compare the non-pinned tail instead.
+    expect(ascNames.slice(1)[0]).not.toBe(descNames.slice(1)[0]);
   });
 });
 

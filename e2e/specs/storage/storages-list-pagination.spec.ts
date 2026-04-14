@@ -9,18 +9,12 @@ import {
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 
-// 55 items → 2 pages (50 per page)
+// 55 items → 2 pages (50 per page). Use `buildStoragesResponse` so the payload
+// includes the `summary` and `typeSummary` fields demanded by the frontend
+// schema — raw objects without them fail Zod parsing and drop the page into
+// the error state, which broke P-01 through P-04.
 const LARGE = buildLargeDataset();
-const LARGE_RESPONSE = {
-  success: true,
-  data: {
-    items: LARGE,
-    total: LARGE.length,
-    page: 1,
-    limit: 50,
-    totalPages: Math.ceil(LARGE.length / 50),
-  },
-};
+const LARGE_RESPONSE = buildStoragesResponse(LARGE);
 
 // Small dataset: 10 items → 1 page → no pagination
 const SMALL_ITEMS = LARGE.slice(0, 10);
@@ -75,6 +69,24 @@ test.describe('Section 15: Pagination', () => {
       });
     });
 
+    // Fabricate a STARTER-tier JWT so the FE does not render the FREE-tier
+     // lock overlay (which disables search/pagination controls).
+    await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const payload = btoa(JSON.stringify({
+        sub: 'e2e-pagination-user', email: 'pagination@stocka.test',
+        tenantId: 'e2e-mock-tenant', role: 'owner',
+        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+        iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 7200,
+      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { accessToken: `${header}.${payload}.e2e-fake` } }),
+      });
+    });
+
     await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
       const url = new URL(route.request().url());
       const reqPage = Number(url.searchParams.get('page') ?? '1');
@@ -93,6 +105,12 @@ test.describe('Section 15: Pagination', () => {
             page: reqPage,
             limit,
             totalPages: Math.ceil(LARGE.length / limit),
+            summary: { active: LARGE.length, frozen: 0, archived: 0 },
+            typeSummary: {
+              WAREHOUSE: { active: LARGE.length, frozen: 0, archived: 0 },
+              STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+              CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+            },
           },
         }),
       });
@@ -131,6 +149,24 @@ test.describe('Section 15: Pagination', () => {
       });
     });
 
+    // Fabricate a STARTER-tier JWT so the FE does not render the FREE-tier
+     // lock overlay (which disables search/pagination controls).
+    await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const payload = btoa(JSON.stringify({
+        sub: 'e2e-pagination-user', email: 'pagination@stocka.test',
+        tenantId: 'e2e-mock-tenant', role: 'owner',
+        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+        iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 7200,
+      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { accessToken: `${header}.${payload}.e2e-fake` } }),
+      });
+    });
+
     await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
       const url = new URL(route.request().url());
       const reqPage = Number(url.searchParams.get('page') ?? '1');
@@ -149,6 +185,12 @@ test.describe('Section 15: Pagination', () => {
             page: reqPage,
             limit,
             totalPages: Math.ceil(LARGE.length / limit),
+            summary: { active: LARGE.length, frozen: 0, archived: 0 },
+            typeSummary: {
+              WAREHOUSE: { active: LARGE.length, frozen: 0, archived: 0 },
+              STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+              CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+            },
           },
         }),
       });

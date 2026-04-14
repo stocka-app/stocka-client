@@ -112,26 +112,59 @@ test.describe('StorageStatusBanner — Reactivate flow', () => {
   test('PW-14: Clicking Reactivate calls the API, hides the banner, and shows a success toast', async ({
     preAuthPage: page,
   }) => {
-    // Intercept the restore endpoint with a successful response that flips
-    // the storage status to ACTIVE.
-    await page.route(/\/api\/storages\/[^/]+\/restore$/, async (route) => {
+    // Track when unfreeze has been called so the subsequent list refetch
+    // returns Bodega Norte as ACTIVE (banner will hide on the next render).
+    let unfreezeCalled = false;
+
+    // FROZEN → ACTIVE uses the per-type /unfreeze endpoint
+    // (e.g. POST /api/storages/store-rooms/<id>/unfreeze). The /restore route is
+    // only used for ARCHIVED → ACTIVE, not FROZEN — so mock /unfreeze here.
+    await page.route(/\/api\/storages\/[^/]+\/[^/]+\/unfreeze$/, async (route) => {
       if (route.request().method() !== 'POST') {
         await route.continue();
         return;
       }
+      unfreezeCalled = true;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: { ...FROZEN_STORAGE, status: 'ACTIVE', frozenAt: null },
-        }),
+        body: JSON.stringify({ success: true, data: null }),
       });
     });
 
     await setupAndNavigate(page, {
       rbac: RBAC_OWNER,
       storagesResponse: buildStoragesResponse(MIXED),
+    });
+
+    // After unfreeze the component refetches the storage by name to sync the store.
+    // Override the list mock to return Bodega Norte as ACTIVE once unfreeze fired.
+    await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
+      if (route.request().method() !== 'GET' || !unfreezeCalled) {
+        await route.fallback();
+        return;
+      }
+      const reactivated = { ...FROZEN_STORAGE, status: 'ACTIVE' as const, frozenAt: null };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            items: [reactivated],
+            total: 1,
+            page: 1,
+            limit: 50,
+            totalPages: 1,
+            summary: { active: 1, frozen: 0, archived: 0 },
+            typeSummary: {
+              WAREHOUSE: { active: 0, frozen: 0, archived: 0 },
+              STORE_ROOM: { active: 1, frozen: 0, archived: 0 },
+              CUSTOM_ROOM: { active: 0, frozen: 0, archived: 0 },
+            },
+          },
+        }),
+      });
     });
 
     const trigger = page.getByRole('button', { name: /Change active storage/i }).first();

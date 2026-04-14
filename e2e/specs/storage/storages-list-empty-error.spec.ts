@@ -21,8 +21,14 @@ test.describe('Section 3: Empty state', () => {
     const storagesPage = new StoragesListPage(page);
 
     await expect(storagesPage.emptyTitle()).toBeVisible();
-    // Warehouse icon in the state composition
-    await expect(page.getByText('warehouse').first()).toBeVisible();
+    // The `warehouse` material-symbols glyph is rendered with aria-hidden (and
+    // Playwright's getByText skips accessibility-hidden matches). Target the
+    // icon span directly inside the empty-state `[role="status"]` composition.
+    const emptyStateIcon = page
+      .locator('[role="status"]')
+      .locator('span.material-symbols-outlined', { hasText: 'warehouse' })
+      .first();
+    await expect(emptyStateIcon).toBeAttached();
   });
 
   // E-02
@@ -176,6 +182,23 @@ test.describe('Section 4: Error state', () => {
       });
     });
 
+    // Fabricate STARTER-tier JWT so the tier lock does not hide search/sort on the success state.
+    await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const payload = btoa(JSON.stringify({
+        sub: 'e2e-retry-user', email: 'retry@stocka.test',
+        tenantId: 'e2e-mock-tenant', role: 'owner',
+        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+        iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 7200,
+      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { accessToken: `${header}.${payload}.e2e-fake` } }),
+      });
+    });
+
     const successResponse = buildStoragesResponse([
       buildStorage({ uuid: '12345678-0000-4000-8000-000000000099', name: 'Recovered Storage', type: 'WAREHOUSE', status: 'ACTIVE', address: 'Calle 1' }),
     ]);
@@ -198,7 +221,8 @@ test.describe('Section 4: Error state', () => {
     // Click retry
     await storagesPage.retryButton().click();
 
-    // Data should now load
-    await expect(page.getByText('Recovered Storage')).toBeVisible();
+    // Data should now load. Scope to the card heading — the sidebar switcher
+    // also renders the storage name as a button label.
+    await expect(page.getByRole('heading', { name: 'Recovered Storage' })).toBeVisible();
   });
 });
