@@ -95,14 +95,15 @@ export class StoragesListPage {
 
   /** All visible storage card names in order */
   async getCardNames(): Promise<string[]> {
-    const names = this.page.locator('h3');
+    // Scope to main content — sidebar storage switcher also uses h3
+    const names = this.page.locator('main h3');
     return names.allTextContents();
   }
 
   /** Get a storage card container by its name */
   card(name: string): Locator {
     return this.page
-      .locator('h3')
+      .locator('main h3')
       .filter({ hasText: name })
       .locator('..') // parent content div
       .locator('..'); // card root with bracket
@@ -226,7 +227,7 @@ export class StoragesListPage {
   // ── Helpers ────────────────────────────────────────────────────────
 
   async waitForCards(): Promise<void> {
-    await this.page.locator('h3').first().waitFor({ state: 'visible', timeout: 10_000 });
+    await this.page.locator('main h3').first().waitFor({ state: 'visible', timeout: 10_000 });
   }
 
   async selectStatus(status: 'ACTIVE' | 'FROZEN' | 'ARCHIVED' | ''): Promise<void> {
