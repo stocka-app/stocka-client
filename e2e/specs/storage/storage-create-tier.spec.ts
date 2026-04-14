@@ -109,10 +109,9 @@ test.describe('Given the user is on a tier with storage limits', () => {
 
   // ── Step 2 quota limits ─────────────────────────────────────────────────────
 
-  test('CD-34: When FREE plan is at the Store Room limit (1/1) and the user selects Store Room, Then a tier limit banner is shown', async ({
+  test('CD-34: When FREE plan is at the Store Room limit (1/1) and the user clicks Store Room, Then the upgrade modal opens', async ({
     preAuthPage: page,
   }) => {
-    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
       storagesResponse: buildStoragesResponse([ONE_ACTIVE_STORE_ROOM]),
@@ -121,16 +120,14 @@ test.describe('Given the user is on a tier with storage limits', () => {
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('STORE_ROOM');
+    await drawer.storeRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
-  test('CD-35: When FREE plan is at the Custom Room limit (1/1) and the user selects Custom area, Then a tier limit banner is shown', async ({
+  test('CD-35: When FREE plan is at the Custom Room limit (1/1) and the user clicks Custom area, Then the upgrade modal opens', async ({
     preAuthPage: page,
   }) => {
-    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
       storagesResponse: buildStoragesResponse([ONE_ACTIVE_CUSTOM_ROOM]),
@@ -139,16 +136,14 @@ test.describe('Given the user is on a tier with storage limits', () => {
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('CUSTOM_ROOM');
+    await drawer.customRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
-  test('CD-36: When STARTER plan is at the Warehouse limit (1/1) and the user selects Warehouse, Then a tier limit banner is shown', async ({
+  test('CD-36: When STARTER plan is at the Warehouse limit (1/1) and the user clicks Warehouse, Then the upgrade modal opens', async ({
     preAuthPage: page,
   }) => {
-    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'STARTER' },
       storagesResponse: STARTER_WAREHOUSES_AT_LIMIT,
@@ -157,10 +152,9 @@ test.describe('Given the user is on a tier with storage limits', () => {
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('WAREHOUSE');
+    await drawer.warehouseCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
   test('CD-37: When STARTER plan has available quota for all types, Then no tier limit banner appears on any type selection', async ({
@@ -193,10 +187,9 @@ test.describe('Given the user is on a tier with storage limits', () => {
     await expect(drawer.tierLimitBanner).not.toBeVisible();
   });
 
-  test('CD-38: When a tier limit banner is shown, Then it contains the "See plans" CTA button', async ({
+  test('CD-38: When a quota-blocked type card is clicked, Then the upgrade modal contains the "See plans" CTA button', async ({
     preAuthPage: page,
   }) => {
-    test.slow();
     await setupAndNavigate(page, {
       rbac: { ...RBAC_OWNER, tier: 'FREE' },
       storagesResponse: buildStoragesResponse([ONE_ACTIVE_STORE_ROOM]),
@@ -205,9 +198,9 @@ test.describe('Given the user is on a tier with storage limits', () => {
 
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
-    await drawer.selectType('STORE_ROOM');
+    await drawer.storeRoomCard.click();
 
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
+    await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
     await expect(drawer.tierLimitCta).toBeVisible();
   });
 });
