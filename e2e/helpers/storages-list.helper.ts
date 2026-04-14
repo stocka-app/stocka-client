@@ -398,7 +398,7 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
   await page.waitForURL('**/storages', { timeout: 15_000 });
   // Wait for network to settle so auth refresh completes before tests interact.
   // Use a short timeout — if it doesn't settle in 5s, proceed anyway.
-  await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────
