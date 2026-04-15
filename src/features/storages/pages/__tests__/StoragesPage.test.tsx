@@ -858,7 +858,7 @@ describe('StoragesPage', () => {
     });
 
     it('Then editStorage is called with the selected storage uuid', () => {
-      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' });
+      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' }, undefined);
     });
   });
 
@@ -1127,7 +1127,7 @@ describe('StoragesPage', () => {
     });
 
     it('should call editStorage with the UUID and data', () => {
-      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' });
+      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' }, undefined);
     });
   });
 

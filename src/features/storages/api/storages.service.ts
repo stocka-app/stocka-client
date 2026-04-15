@@ -34,6 +34,16 @@ const TYPE_SLUG_SINGULAR: Record<StorageType, string> = {
   CUSTOM_ROOM: 'custom-room',
 };
 
+export interface ChangeTypeMetadata {
+  name?: string;
+  description?: string | null;
+  /** null clears the address (STORE_ROOM / CUSTOM_ROOM targets only). */
+  address?: string | null;
+  roomType?: string;
+  icon?: string;
+  color?: string;
+}
+
 export const storagesService = {
   async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
     const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
@@ -51,7 +61,7 @@ export const storagesService = {
 
   async createStoreRoom(payload: {
     name: string;
-    address: string;
+    address?: string | null;
     description?: string;
   }): Promise<{ storageUUID: string }> {
     const { data } = await axiosInstance.post('/storages/store-rooms', payload);
@@ -61,7 +71,7 @@ export const storagesService = {
   async createCustomRoom(payload: {
     name: string;
     roomType: string;
-    address: string;
+    address?: string | null;
     description?: string;
     icon?: string;
     color?: string;
@@ -82,7 +92,7 @@ export const storagesService = {
   async updateStoreRoom(id: string, payload: {
     name?: string;
     description?: string | null;
-    address?: string;
+    address?: string | null;
   }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/store-rooms/${id}`, payload);
     return storageSchema.parse(unwrap(data));
@@ -91,7 +101,7 @@ export const storagesService = {
   async updateCustomRoom(id: string, payload: {
     name?: string;
     description?: string | null;
-    address?: string;
+    address?: string | null;
     icon?: string;
     color?: string;
     roomType?: string;
@@ -104,9 +114,10 @@ export const storagesService = {
     id: string,
     sourceType: StorageType,
     targetType: StorageType,
+    metadata?: ChangeTypeMetadata,
   ): Promise<{ storageUUID: string }> {
     const url = `/storages/${TYPE_SLUG[sourceType]}/${id}/convert-to-${TYPE_SLUG_SINGULAR[targetType]}`;
-    const { data } = await axiosInstance.patch(url);
+    const { data } = await axiosInstance.patch(url, metadata ?? {});
     return unwrap(data) as { storageUUID: string };
   },
 

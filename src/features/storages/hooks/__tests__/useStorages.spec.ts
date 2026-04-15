@@ -620,6 +620,91 @@ describe('Given useStorages orchestrates storage operations', () => {
     });
   });
 
+  describe('When changeStorageType is called with an id that is not in the current list', () => {
+    it('Then it short-circuits to server_error without touching the network', async () => {
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.changeStorageType('unknown-uuid', 'WAREHOUSE');
+      expect(response.error).toBe('server_error');
+      expect(vi.mocked(storagesService.changeType)).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('When editStorage is called with a different targetType (unified change-type + metadata)', () => {
+    it('Then it routes to service.changeType with the metadata payload and refetches', async () => {
+      vi.mocked(storagesService.changeType).mockResolvedValue({ storageUUID: 'storage-001' });
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const payload = {
+        name: 'Cocina Principal',
+        icon: 'restaurant',
+        color: '#0D9488',
+        roomType: 'Kitchen',
+      };
+      const response = await result.current.editStorage(
+        'storage-001',
+        'STORE_ROOM',
+        payload,
+        'CUSTOM_ROOM',
+      );
+
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.changeType)).toHaveBeenCalledWith(
+        'storage-001',
+        'STORE_ROOM',
+        'CUSTOM_ROOM',
+        payload,
+      );
+      expect(vi.mocked(storagesService.updateStoreRoom)).not.toHaveBeenCalled();
+    });
+
+    it('Then resolves change-type errors (e.g. tier_limit) back to the caller', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: {} },
+      });
+      vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage(
+        'storage-001',
+        'STORE_ROOM',
+        { address: 'Ruta 1' },
+        'WAREHOUSE',
+      );
+      expect(response.error).toBe('tier_limit');
+    });
+
+    it('Then falls through to the per-type update when targetType equals source type', async () => {
+      vi.mocked(storagesService.updateStoreRoom).mockResolvedValue({
+        ...mockStoragesItems[0],
+        uuid: 'storage-001',
+        name: 'Same Type Renamed',
+      });
+      vi.mocked(storagesService.list).mockResolvedValue(mockPage);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.editStorage(
+        'storage-001',
+        'STORE_ROOM',
+        { name: 'Same Type Renamed' },
+        'STORE_ROOM',
+      );
+      expect(response.error).toBeNull();
+      expect(vi.mocked(storagesService.changeType)).not.toHaveBeenCalled();
+      expect(vi.mocked(storagesService.updateStoreRoom)).toHaveBeenCalledWith(
+        'storage-001',
+        { name: 'Same Type Renamed' },
+      );
+    });
+  });
+
   describe('When changeStorageType is called with a valid id and target type', () => {
     it('Then it calls service.changeType and returns error: null on success', async () => {
       vi.mocked(storagesService.changeType).mockResolvedValue({ storageUUID: 'storage-001' });

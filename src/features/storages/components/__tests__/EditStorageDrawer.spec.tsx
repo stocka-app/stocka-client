@@ -289,6 +289,7 @@ describe('Given the EditStorageDrawer opens with an active warehouse', () => {
         ACTIVE_WAREHOUSE.uuid,
         'WAREHOUSE',
         expect.objectContaining({ name: 'Renamed Warehouse' }),
+        undefined,
       );
     });
 
@@ -441,15 +442,17 @@ describe('Given the EditStorageDrawer opens with an active warehouse', () => {
     });
   });
 
-  describe('When a type change is attempted and the server returns a tier limit error', () => {
+  describe('When a pending type change is submitted and the server returns a tier limit error', () => {
     beforeEach(async () => {
-      onChangeType.mockResolvedValue({ error: 'tier_limit' });
+      onEdit.mockResolvedValue({ error: 'tier_limit' });
       renderDrawer();
-      // Click the CUSTOM_ROOM type button (not current type, which is WAREHOUSE)
+      // Click the CUSTOM_ROOM type button (not current type, which is WAREHOUSE).
+      // This only stages the change locally — submit is required to fire the request.
       const buttons = screen.getAllByRole('button').filter(
         (btn) => btn.textContent?.includes('createDrawer.customRoomLabel'),
       );
       await user.click(buttons[0]);
+      await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
     });
 
     it('Then the tier limit warning message appears', () => {
@@ -596,6 +599,7 @@ describe('Given the EditStorageDrawer opens with a frozen storage', () => {
         FROZEN_STORE_ROOM.uuid,
         'STORE_ROOM',
         expect.objectContaining({ name: 'Renamed Cold Storage' }),
+        undefined,
       );
     });
   });
@@ -665,6 +669,7 @@ describe('Given the EditStorageDrawer opens with a custom room', () => {
         ACTIVE_CUSTOM_ROOM.uuid,
         'CUSTOM_ROOM',
         { description: 'A nice custom room' },
+        undefined,
       );
     });
   });
@@ -683,6 +688,7 @@ describe('Given the EditStorageDrawer opens with a custom room', () => {
         ACTIVE_CUSTOM_ROOM.uuid,
         'CUSTOM_ROOM',
         expect.objectContaining({ address: 'New Address 456' }),
+        undefined,
       );
     });
   });
@@ -700,6 +706,7 @@ describe('Given the EditStorageDrawer opens with a custom room', () => {
         ACTIVE_CUSTOM_ROOM.uuid,
         'CUSTOM_ROOM',
         { description: null },
+        undefined,
       );
     });
   });
@@ -731,6 +738,7 @@ describe('Given the EditStorageDrawer opens with a custom room', () => {
           ACTIVE_CUSTOM_ROOM.uuid,
           'CUSTOM_ROOM',
           expect.objectContaining({ icon: 'hotel' }),
+          undefined,
         );
       } else {
         // If picker interaction didn't work as expected, skip — not a test failure
@@ -870,29 +878,35 @@ describe('Given the EditStorageDrawer opens with an active warehouse and a type 
     user = userEvent.setup();
   });
 
-  it('Then onClose is called after a successful type change', async () => {
+  it('Then onEdit is invoked with the targetType and onClose runs after a successful type change', async () => {
     const onClose = vi.fn();
-    const onChangeType = vi.fn().mockResolvedValue({ error: null });
+    const onEdit = vi.fn().mockResolvedValue({ error: null });
     render(
       <EditStorageDrawer
         open={true}
         storage={ACTIVE_WAREHOUSE}
         onClose={onClose}
-        onEdit={vi.fn().mockResolvedValue({ error: null })}
-        onChangeType={onChangeType}
+        onEdit={onEdit}
+        onChangeType={vi.fn()}
         limits={DEFAULT_LIMITS}
         typeCounts={DEFAULT_TYPE_COUNTS}
         tier="STARTER"
       />,
     );
 
-    // Click the STORE_ROOM type button (a different type from WAREHOUSE)
+    // Stage a type change by clicking the STORE_ROOM type button.
     const buttons = screen.getAllByRole('button').filter(
       (btn) => btn.textContent?.includes('createDrawer.storeRoomLabel'),
     );
     await user.click(buttons[0]);
+    await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
 
-    await screen.findByRole('dialog');
+    expect(onEdit).toHaveBeenCalledWith(
+      ACTIVE_WAREHOUSE.uuid,
+      'WAREHOUSE',
+      expect.any(Object),
+      'STORE_ROOM',
+    );
     expect(onClose).toHaveBeenCalled();
   });
 });
@@ -908,26 +922,27 @@ describe('Given the EditStorageDrawer opens with an active storage and a type ch
     user = userEvent.setup();
   });
 
-  it('Then the frozen error warning is displayed', async () => {
-    const onChangeType = vi.fn().mockResolvedValue({ error: 'frozen' });
+  it('Then the frozen error warning is displayed after submitting the pending type change', async () => {
+    const onEdit = vi.fn().mockResolvedValue({ error: 'frozen' });
     render(
       <EditStorageDrawer
         open={true}
         storage={ACTIVE_WAREHOUSE}
         onClose={vi.fn()}
-        onEdit={vi.fn().mockResolvedValue({ error: null })}
-        onChangeType={onChangeType}
+        onEdit={onEdit}
+        onChangeType={vi.fn()}
         limits={DEFAULT_LIMITS}
         typeCounts={DEFAULT_TYPE_COUNTS}
         tier="STARTER"
       />,
     );
 
-    // Click a different type
+    // Stage a type change then submit to trigger the request
     const buttons = screen.getAllByRole('button').filter(
       (btn) => btn.textContent?.includes('createDrawer.storeRoomLabel'),
     );
     await user.click(buttons[0]);
+    await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
 
     expect(screen.getByText('editDrawer.warnings.iconChange')).toBeInTheDocument();
   });
@@ -1014,6 +1029,7 @@ describe('Given the EditStorageDrawer opens with a custom room and the user chan
         ACTIVE_CUSTOM_ROOM.uuid,
         'CUSTOM_ROOM',
         expect.objectContaining({ color: '#EF4444' }),
+        undefined,
       );
     } else {
       // Picker interaction didn't produce a dirty state — at minimum verify picker opened
@@ -1059,5 +1075,152 @@ describe('Given the EditStorageDrawer opens with an ARCHIVED storage', () => {
       'button[title="editInArchived.typeDisabledTooltip"]',
     );
     expect(disabledSquares.length).toBeGreaterThan(0);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Unified change-type + metadata flow (pendingType + revert + roomType input)
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('Given the user stages a pending type change in the drawer', () => {
+  let user: ReturnType<typeof userEvent.setup>;
+  let onClose: Mock;
+  let onEdit: Mock;
+
+  beforeEach(() => {
+    user = userEvent.setup();
+    onClose = vi.fn();
+    onEdit = vi.fn().mockResolvedValue({ error: null });
+  });
+
+  function renderWith(storage: Storage): void {
+    render(
+      <EditStorageDrawer
+        open={true}
+        storage={storage}
+        onClose={onClose}
+        onEdit={onEdit as unknown as EditStorageDrawerProps['onEdit']}
+        onChangeType={vi.fn()}
+        limits={DEFAULT_LIMITS}
+        typeCounts={DEFAULT_TYPE_COUNTS}
+        tier="STARTER"
+      />,
+    );
+  }
+
+  describe('When clicking a different type button on a warehouse', () => {
+    beforeEach(async () => {
+      renderWith(ACTIVE_WAREHOUSE);
+      const targets = screen.getAllByRole('button').filter((btn) =>
+        btn.textContent?.includes('createDrawer.customRoomLabel'),
+      );
+      await user.click(targets[0]);
+    });
+
+    it('Then the pending type-change banner is displayed', () => {
+      expect(screen.getByText(/editDrawer\.pendingTypeChange\.banner/)).toBeInTheDocument();
+    });
+
+    it('Then the roomType input becomes visible because the effective type is CUSTOM_ROOM', () => {
+      expect(screen.getByLabelText('editDrawer.roomTypeLabel')).toBeInTheDocument();
+    });
+
+    it('Then clicking the revert button clears the pending state and hides the banner', async () => {
+      await user.click(screen.getByRole('button', { name: 'editDrawer.pendingTypeChange.revert' }));
+      expect(screen.queryByText(/editDrawer\.pendingTypeChange\.banner/)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('editDrawer.roomTypeLabel')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('When a custom-room is switched away to a warehouse and submitted', () => {
+    beforeEach(async () => {
+      renderWith(ACTIVE_CUSTOM_ROOM);
+      const targets = screen.getAllByRole('button').filter((btn) =>
+        btn.textContent?.includes('createDrawer.warehouseLabel'),
+      );
+      await user.click(targets[0]);
+      await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
+    });
+
+    it('Then onEdit is invoked with the WAREHOUSE targetType and no custom-room fields in the payload', () => {
+      expect(onEdit).toHaveBeenCalledWith(
+        ACTIVE_CUSTOM_ROOM.uuid,
+        'CUSTOM_ROOM',
+        expect.any(Object),
+        'WAREHOUSE',
+      );
+      const payload = onEdit.mock.calls[0][2] as Record<string, unknown>;
+      expect(payload.icon).toBeUndefined();
+      expect(payload.color).toBeUndefined();
+      expect(payload.roomType).toBeUndefined();
+    });
+  });
+
+  describe('When a warehouse is switched to custom-room and a roomType is entered', () => {
+    beforeEach(async () => {
+      renderWith(ACTIVE_WAREHOUSE);
+      const targets = screen.getAllByRole('button').filter((btn) =>
+        btn.textContent?.includes('createDrawer.customRoomLabel'),
+      );
+      await user.click(targets[0]);
+      const roomTypeInput = screen.getByLabelText('editDrawer.roomTypeLabel');
+      await user.clear(roomTypeInput);
+      await user.type(roomTypeInput, 'Laboratory');
+      await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
+    });
+
+    it('Then onEdit payload carries roomType, icon and color with the CUSTOM_ROOM targetType', () => {
+      expect(onEdit).toHaveBeenCalledWith(
+        ACTIVE_WAREHOUSE.uuid,
+        'WAREHOUSE',
+        expect.objectContaining({
+          roomType: 'Laboratory',
+          icon: expect.any(String),
+          color: expect.any(String),
+        }),
+        'CUSTOM_ROOM',
+      );
+    });
+  });
+
+  describe('When a warehouse is switched to custom-room and the roomType is left blank', () => {
+    beforeEach(async () => {
+      renderWith(ACTIVE_WAREHOUSE);
+      const targets = screen.getAllByRole('button').filter((btn) =>
+        btn.textContent?.includes('createDrawer.customRoomLabel'),
+      );
+      await user.click(targets[0]);
+      const roomTypeInput = screen.getByLabelText('editDrawer.roomTypeLabel');
+      await user.clear(roomTypeInput);
+      await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
+    });
+
+    it('Then onEdit payload falls back to the default "General" room type', () => {
+      expect(onEdit).toHaveBeenCalledWith(
+        ACTIVE_WAREHOUSE.uuid,
+        'WAREHOUSE',
+        expect.objectContaining({ roomType: 'General' }),
+        'CUSTOM_ROOM',
+      );
+    });
+  });
+
+  describe('When the user edits only the roomType of a custom-room without changing type', () => {
+    beforeEach(async () => {
+      renderWith(ACTIVE_CUSTOM_ROOM);
+      const roomTypeInput = screen.getByLabelText('editDrawer.roomTypeLabel');
+      await user.clear(roomTypeInput);
+      await user.type(roomTypeInput, 'Lounge');
+      await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
+    });
+
+    it('Then onEdit is called with the new roomType and no targetType', () => {
+      expect(onEdit).toHaveBeenCalledWith(
+        ACTIVE_CUSTOM_ROOM.uuid,
+        'CUSTOM_ROOM',
+        expect.objectContaining({ roomType: 'Lounge' }),
+        undefined,
+      );
+    });
   });
 });

@@ -13,6 +13,7 @@ import type { EditStoragePayload } from '../hooks/useStorages';
 
 type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
+type EditOrChangeTypeError = EditError | ChangeTypeError;
 
 interface EditFormValues {
   name: string;
@@ -20,13 +21,23 @@ interface EditFormValues {
   description: string;
   icon: string;
   color: string;
+  roomType: string;
 }
+
+const CUSTOM_ROOM_DEFAULT_ICON = 'palette';
+const CUSTOM_ROOM_DEFAULT_COLOR = '#EC4899';
+const CUSTOM_ROOM_DEFAULT_ROOM_TYPE = 'General';
 
 export interface EditStorageDrawerProps {
   open: boolean;
   storage: Storage | null;
   onClose: () => void;
-  onEdit: (id: string, type: StorageType, payload: EditStoragePayload) => Promise<{ error: EditError }>;
+  onEdit: (
+    id: string,
+    type: StorageType,
+    payload: EditStoragePayload,
+    targetType?: StorageType,
+  ) => Promise<{ error: EditOrChangeTypeError }>;
   onChangeType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   /** Per-type limits from tier. -1 = unlimited */
   limits: Record<StorageType, number>;
@@ -202,7 +213,6 @@ export function EditStorageDrawer({
   storage,
   onClose,
   onEdit,
-  onChangeType,
   limits,
   typeCounts,
   tier,
@@ -218,9 +228,9 @@ export function EditStorageDrawer({
     CUSTOM_ROOM: resolveSquareColors(TYPE_SQUARE_BASE.CUSTOM_ROOM, isDark),
   }), [isDark]);
 
-  const [serverError, setServerError] = useState<EditError>(null);
+  const [serverError, setServerError] = useState<EditOrChangeTypeError>(null);
   const [changeTypeError, setChangeTypeError] = useState<ChangeTypeError>(null);
-  const [isChangingType, setIsChangingType] = useState(false);
+  const [pendingType, setPendingType] = useState<StorageType | null>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [pickerBackup, setPickerBackup] = useState({ icon: '', color: '' });
@@ -239,6 +249,7 @@ export function EditStorageDrawer({
       description: '',
       icon: '',
       color: '',
+      roomType: '',
     },
   });
 
@@ -247,6 +258,14 @@ export function EditStorageDrawer({
   const descriptionValue = watch('description');
   const iconValue = watch('icon');
   const colorValue = watch('color');
+  const roomTypeValue = watch('roomType');
+
+  // ── Derived type state — pendingType takes precedence over storage.type ───
+
+  const effectiveType: StorageType | undefined = pendingType ?? storage?.type;
+  const isTypeChange = pendingType !== null && storage !== null && pendingType !== storage.type;
+  const effectiveIsCustomRoom = effectiveType === 'CUSTOM_ROOM';
+  const effectiveIsWarehouse = effectiveType === 'WAREHOUSE';
 
   // ── Original values for dirty detection ───────────────────────────────────
 
@@ -258,19 +277,22 @@ export function EditStorageDrawer({
       description: storage.description ?? '',
       icon: storage.icon,
       color: storage.color,
+      roomType: storage.roomType ?? '',
     };
   }, [storage]);
 
   const isDirty = useMemo<boolean>(() => {
     if (!originalValues) return false;
+    if (isTypeChange) return true;
     return (
       nameValue !== originalValues.name ||
       addressValue !== originalValues.address ||
       descriptionValue !== originalValues.description ||
       iconValue !== originalValues.icon ||
-      colorValue !== originalValues.color
+      colorValue !== originalValues.color ||
+      roomTypeValue !== originalValues.roomType
     );
-  }, [originalValues, nameValue, addressValue, descriptionValue, iconValue, colorValue]);
+  }, [originalValues, isTypeChange, nameValue, addressValue, descriptionValue, iconValue, colorValue, roomTypeValue]);
 
   // ── Reset form when drawer opens with a storage ───────────────────────────
 
@@ -282,7 +304,7 @@ export function EditStorageDrawer({
     if (!storage) return;
     setServerError(null);
     setChangeTypeError(null);
-    setIsChangingType(false);
+    setPendingType(null);
     setShowUnsavedDialog(false);
     setShowPicker(false);
     reset({
@@ -291,6 +313,7 @@ export function EditStorageDrawer({
       description: storage.description ?? '',
       icon: storage.icon,
       color: storage.color,
+      roomType: storage.roomType ?? '',
     });
   }, [open, storage, reset]);
 
@@ -319,23 +342,54 @@ export function EditStorageDrawer({
     /* v8 ignore next — !originalValues is unreachable: originalValues is derived from storage (line 253-262) */
     if (!storage || !originalValues) return;
     setServerError(null);
+    setChangeTypeError(null);
+
+    const targetType = pendingType ?? storage.type;
+    const changingType = pendingType !== null && pendingType !== storage.type;
 
     const payload: EditStoragePayload = {};
 
+    // Always send changed metadata fields; when also changing type, the BE
+    // merges them into the new target. The per-type update endpoint only
+    // applies when target matches source.
     if (values.name !== originalValues.name) payload.name = values.name;
-    if (values.address !== originalValues.address) payload.address = values.address;
+    if (values.address !== originalValues.address) {
+      // WAREHOUSE requires a non-empty address; for STORE_ROOM / CUSTOM_ROOM
+      // the user can clear it — send explicit null so the BE nullifies the column
+      // (sending '' would be ignored by the model's update() dirty-check).
+      const isWarehouseTarget = targetType === 'WAREHOUSE';
+      const trimmed = values.address.trim();
+      payload.address = trimmed === '' && !isWarehouseTarget ? null : values.address;
+    }
     if (values.description !== originalValues.description) {
       payload.description = values.description || null;
     }
-    if (storage.type === 'CUSTOM_ROOM') {
-      if (values.icon !== originalValues.icon) payload.icon = values.icon;
-      if (values.color !== originalValues.color) payload.color = values.color;
+
+    if (targetType === 'CUSTOM_ROOM') {
+      if (changingType) {
+        // Switching TO custom: send icon/color/roomType always so BE persists
+        // the user's choice instead of falling back to BE defaults.
+        payload.icon = values.icon;
+        payload.color = values.color;
+        payload.roomType = values.roomType || CUSTOM_ROOM_DEFAULT_ROOM_TYPE;
+      } else {
+        if (values.icon !== originalValues.icon) payload.icon = values.icon;
+        if (values.color !== originalValues.color) payload.color = values.color;
+        if (values.roomType !== originalValues.roomType) payload.roomType = values.roomType;
+      }
     }
 
-    const result = await onEdit(storage.uuid, storage.type, payload);
+    const result = await onEdit(
+      storage.uuid,
+      storage.type,
+      payload,
+      changingType ? targetType : undefined,
+    );
 
     if (result.error === null) {
       onClose();
+    } else if (changingType) {
+      setChangeTypeError(result.error as ChangeTypeError);
     } else {
       setServerError(result.error);
     }
@@ -363,19 +417,41 @@ export function EditStorageDrawer({
     setShowPicker(false);
   };
 
-  // ── Type change handler ────────────────────────────────────────────────────
+  // ── Type change handler (local only — applied on submit) ─────────────────
 
-  const handleTypeChange = async (targetType: StorageType): Promise<void> => {
-    if (!storage || targetType === storage.type) return;
+  const handleTypePick = (targetType: StorageType): void => {
+    /* v8 ignore next — unreachable: the drawer short-circuits to a spinner when !storage (line 485-494). */
+    if (!storage) return;
     setChangeTypeError(null);
-    setIsChangingType(true);
-    const result = await onChangeType(storage.uuid, targetType);
-    setIsChangingType(false);
-    if (result.error === null) {
-      onClose();
-    } else {
-      setChangeTypeError(result.error);
+    if (targetType === storage.type) {
+      setPendingType(null);
+      return;
     }
+    setPendingType(targetType);
+    // When switching to CUSTOM_ROOM from a fixed-icon type, pre-populate icon,
+    // color, and roomType with sensible defaults the user can override.
+    if (targetType === 'CUSTOM_ROOM' && storage.type !== 'CUSTOM_ROOM') {
+      setValue('icon', CUSTOM_ROOM_DEFAULT_ICON, { shouldDirty: true });
+      setValue('color', CUSTOM_ROOM_DEFAULT_COLOR, { shouldDirty: true });
+      setValue('roomType', CUSTOM_ROOM_DEFAULT_ROOM_TYPE, { shouldDirty: true });
+    }
+    // When switching AWAY from CUSTOM_ROOM, restore the original (non-custom)
+    // storage's icon/color so the submit payload is coherent with BE defaults.
+    if (targetType !== 'CUSTOM_ROOM' && storage.type === 'CUSTOM_ROOM' && originalValues) {
+      setValue('icon', originalValues.icon, { shouldDirty: false });
+      setValue('color', originalValues.color, { shouldDirty: false });
+      setValue('roomType', '', { shouldDirty: false });
+    }
+  };
+
+  const handleRevertTypeChange = (): void => {
+    /* v8 ignore next — unreachable: button only renders when storage + originalValues exist. */
+    if (!storage || !originalValues) return;
+    setPendingType(null);
+    setChangeTypeError(null);
+    setValue('icon', originalValues.icon);
+    setValue('color', originalValues.color);
+    setValue('roomType', originalValues.roomType);
   };
 
   const isTypeAtLimit = (type: StorageType): boolean => {
@@ -389,9 +465,9 @@ export function EditStorageDrawer({
 
   // ── Derived state ─────────────────────────────────────────────────────────
 
-  const typeConfig = storage ? TYPE_BANNER_CONFIGS[storage.type] : null;
-  const isCustomRoom = storage?.type === 'CUSTOM_ROOM';
-  const isWarehouse = storage?.type === 'WAREHOUSE';
+  const typeConfig = effectiveType ? TYPE_BANNER_CONFIGS[effectiveType] : null;
+  const isCustomRoom = effectiveIsCustomRoom;
+  const isWarehouse = effectiveIsWarehouse;
   const isFrozen = storage?.status === 'FROZEN';
   const isArchived = storage?.status === 'ARCHIVED';
 
@@ -408,11 +484,12 @@ export function EditStorageDrawer({
     nameValue.trim().length < 3 ||
     (isWarehouse && addressValue.trim().length === 0);
 
-  const typeLabel = (): string => {
-    /* v8 ignore next — storage is always non-null here (guarded at line 418) */
-    if (!storage) return '';
-    if (storage.type === 'WAREHOUSE') return t('createDrawer.warehouseLabel');
-    if (storage.type === 'STORE_ROOM') return t('createDrawer.storeRoomLabel');
+  const typeLabel = (type?: StorageType): string => {
+    const target = type ?? effectiveType;
+    /* v8 ignore next — unreachable: target is always defined when this branch renders. */
+    if (!target) return '';
+    if (target === 'WAREHOUSE') return t('createDrawer.warehouseLabel');
+    if (target === 'STORE_ROOM') return t('createDrawer.storeRoomLabel');
     return t('createDrawer.customRoomLabel');
   };
 
@@ -524,10 +601,10 @@ export function EditStorageDrawer({
                 </p>
                 <div className="flex gap-2.5">
                     {(['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).map((type) => {
-                      const isCurrent = storage.type === type;
+                      const isCurrent = effectiveType === type;
                       const atLimit = isTypeAtLimit(type);
                       const typeLocked = isFrozen || isArchived;
-                      const disabled = typeLocked || isChangingType || isSubmitting || atLimit;
+                      const disabled = typeLocked || isSubmitting || atLimit;
                       const sq = TYPE_SQUARE_CONFIGS[type];
                       const lockedTooltip = isArchived
                         ? t('editInArchived.typeDisabledTooltip')
@@ -541,7 +618,7 @@ export function EditStorageDrawer({
                           type="button"
                           disabled={disabled}
                           title={lockedTooltip}
-                          onClick={() => !typeLocked && handleTypeChange(type)}
+                          onClick={() => !typeLocked && handleTypePick(type)}
                           className={cn(
                             'flex flex-1 flex-col items-center justify-center gap-1.5 rounded-xl transition-all',
                             typeLocked && 'cursor-not-allowed opacity-50',
@@ -605,11 +682,25 @@ export function EditStorageDrawer({
                     </div>
                   )}
 
-                  {/* Changing type spinner */}
-                  {isChangingType && (
-                    <div className="mt-2 flex items-center justify-center gap-2 py-1">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />
-                      <span className="text-xs text-neutral-500">{t('editDrawer.submitting')}</span>
+                  {/* Pending type-change banner — shown while user hasn't saved yet */}
+                  {isTypeChange && (
+                    <div className="mt-2 flex items-start gap-2.5 rounded-lg border border-info bg-info-bg p-2.5">
+                      <span className="material-symbols-outlined shrink-0 text-[16px] text-info" aria-hidden="true">swap_horiz</span>
+                      <div className="flex-1">
+                        <p className="text-xs leading-snug text-info">
+                          {t('editDrawer.pendingTypeChange.banner', {
+                            from: typeLabel(storage.type),
+                            to: typeLabel(pendingType!),
+                          })}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleRevertTypeChange}
+                          className="mt-1 text-xs font-medium text-info underline hover:opacity-80"
+                        >
+                          {t('editDrawer.pendingTypeChange.revert')}
+                        </button>
+                      </div>
                     </div>
                   )}
               </div>
@@ -807,6 +898,27 @@ export function EditStorageDrawer({
                     </div>
                   )}
                 </div>
+
+                {/* Room type — editable only when effective type is CUSTOM_ROOM */}
+                {isCustomRoom && (
+                  <div>
+                    <label
+                      htmlFor={`${formId}-roomType`}
+                      className="mb-1.5 block text-sm font-medium text-neutral-700"
+                    >
+                      {t('editDrawer.roomTypeLabel')}
+                    </label>
+                    <input
+                      id={`${formId}-roomType`}
+                      type="text"
+                      placeholder={t('editDrawer.roomTypePlaceholder')}
+                      maxLength={50}
+                      {...register('roomType')}
+                      disabled={isSubmitting}
+                      className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-ring disabled:opacity-50 dark:bg-neutral-100"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Server error banner */}

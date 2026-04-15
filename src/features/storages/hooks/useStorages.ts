@@ -17,11 +17,18 @@ const STORAGES_PAGE_LIMIT = 50;
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
 type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
+/** Unified error returned by the combined edit + change-type flow. */
+export type EditOrChangeTypeError =
+  | Exclude<EditError, null>
+  | Exclude<ChangeTypeError, null>
+  | 'name_taken'
+  | null;
 
 export interface EditStoragePayload {
   name?: string;
   description?: string | null;
-  address?: string;
+  /** null clears the address (STORE_ROOM / CUSTOM_ROOM only — WAREHOUSE requires non-empty). */
+  address?: string | null;
   icon?: string;
   color?: string;
   roomType?: string;
@@ -139,7 +146,12 @@ export function useStorages(): {
   createWarehouse: (payload: CreateWarehouseFormData) => Promise<{ error: CreateError }>;
   createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
   createCustomRoom: (payload: CreateCustomRoomFormData) => Promise<{ error: CreateError }>;
-  editStorage: (id: string, type: StorageType, payload: EditStoragePayload) => Promise<{ error: EditError }>;
+  editStorage: (
+    id: string,
+    type: StorageType,
+    payload: EditStoragePayload,
+    targetType?: StorageType,
+  ) => Promise<{ error: EditOrChangeTypeError }>;
   changeStorageType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
@@ -331,10 +343,24 @@ export function useStorages(): {
   );
 
   const editStorage = useCallback(
-    async (id: string, type: StorageType, payload: EditStoragePayload): Promise<{ error: EditError }> => {
+    async (
+      id: string,
+      type: StorageType,
+      payload: EditStoragePayload,
+      targetType?: StorageType,
+    ): Promise<{ error: EditOrChangeTypeError }> => {
+      const isTypeChange = targetType !== undefined && targetType !== type;
+      if (isTypeChange) {
+        try {
+          await storagesService.changeType(id, type, targetType, payload);
+          await fetchStorages();
+          return { error: null };
+        } catch (err) {
+          return { error: resolveChangeTypeError(err) };
+        }
+      }
+
       try {
-        // DT-H07-4: BE now returns the updated Storage — propagate in place
-        // via updateStorage instead of a full refetch (drops one network trip).
         let updated: Storage;
         switch (type) {
           case 'WAREHOUSE':
@@ -353,7 +379,7 @@ export function useStorages(): {
         return { error: resolveEditError(err) };
       }
     },
-    [updateStorage],
+    [updateStorage, fetchStorages],
   );
 
   const changeStorageType = useCallback(

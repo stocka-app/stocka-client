@@ -257,7 +257,13 @@
       "customLost": "El ícono y color personalizados se perderán al cambiar a un tipo fijo.",
       "tierLimit": "Has alcanzado el límite de {{type}} en tu plan {{tier}}.",
       "seePlans": "Ver planes"
-    }
+    },
+    "pendingTypeChange": {
+      "banner": "Estás cambiando el tipo: {{from}} → {{to}}. Personaliza los datos y guarda para aplicar.",
+      "revert": "Cancelar cambio"
+    },
+    "roomTypeLabel": "Categoría",
+    "roomTypePlaceholder": "Ej. Cocina, Laboratorio, Lounge"
   },
   "contextCurrent": "Contexto actual",
   "switcher": {

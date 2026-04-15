@@ -257,7 +257,13 @@
       "customLost": "Custom icon and color will be lost when switching to a fixed type.",
       "tierLimit": "You have reached the limit for {{type}} in your {{tier}} plan.",
       "seePlans": "See plans"
-    }
+    },
+    "pendingTypeChange": {
+      "banner": "You are changing the type: {{from}} → {{to}}. Customize the data and save to apply.",
+      "revert": "Cancel change"
+    },
+    "roomTypeLabel": "Category",
+    "roomTypePlaceholder": "e.g. Kitchen, Laboratory, Lounge"
   },
   "contextCurrent": "Current context",
   "switcher": {

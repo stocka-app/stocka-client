@@ -195,8 +195,9 @@ export default function StoragesPage(): React.ReactElement {
     id: string,
     type: StorageType,
     payload: EditStoragePayload,
-  ): Promise<{ error: 'name_taken' | 'address_required' | 'server_error' | null }> => {
-    const result = await editStorage(id, type, payload);
+    targetType?: StorageType,
+  ): Promise<ReturnType<typeof editStorage> extends Promise<infer R> ? R : never> => {
+    const result = await editStorage(id, type, payload, targetType);
     if (result.error === null) {
       toast.success(t('editDrawer.toast.success'));
     }

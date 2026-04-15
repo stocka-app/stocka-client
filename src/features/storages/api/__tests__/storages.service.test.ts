@@ -222,13 +222,14 @@ describe('storagesService', () => {
   // ── changeType ────────────────────────────────────────────────────────────
 
   describe('changeType', () => {
-    it('calls PATCH /storages/{source-plural}/:id/convert-to-{target-singular} per-transition endpoint', async () => {
+    it('calls PATCH /storages/{source-plural}/:id/convert-to-{target-singular} with empty body by default', async () => {
       mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-1' }));
 
       const result = await storagesService.changeType('uuid-1', 'WAREHOUSE', 'STORE_ROOM');
 
       expect(mockedAxios.patch).toHaveBeenCalledWith(
         '/storages/warehouses/uuid-1/convert-to-store-room',
+        {},
       );
       expect(result).toEqual({ storageUUID: 'uuid-1' });
     });
@@ -240,6 +241,28 @@ describe('storagesService', () => {
 
       expect(mockedAxios.patch).toHaveBeenCalledWith(
         '/storages/custom-rooms/uuid-2/convert-to-warehouse',
+        {},
+      );
+    });
+
+    it('forwards metadata payload as the request body when provided', async () => {
+      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-3' }));
+
+      await storagesService.changeType('uuid-3', 'WAREHOUSE', 'CUSTOM_ROOM', {
+        name: 'Kitchen',
+        roomType: 'Restaurant',
+        icon: 'restaurant',
+        color: '#0D9488',
+      });
+
+      expect(mockedAxios.patch).toHaveBeenCalledWith(
+        '/storages/warehouses/uuid-3/convert-to-custom-room',
+        {
+          name: 'Kitchen',
+          roomType: 'Restaurant',
+          icon: 'restaurant',
+          color: '#0D9488',
+        },
       );
     });
   });
