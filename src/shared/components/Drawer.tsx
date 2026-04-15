@@ -27,7 +27,7 @@ export default function Drawer({ open, onClose, children, className }: DrawerPro
       <div
         className={cn(
           'fixed inset-0 z-[55] bg-black/40 transition-opacity duration-300',
-          open ? 'opacity-100' : 'pointer-events-none opacity-0',
+          open ? 'opacity-100 backdrop-blur' : 'pointer-events-none opacity-0',
         )}
         onClick={onClose}
         aria-hidden="true"

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/components/ui/button';
+import Dialog from '@/shared/components/Dialog';
 import type { TenantRole } from '../types/team.types';
 
 interface RoleChangeConfirmModalProps {
@@ -11,11 +12,6 @@ interface RoleChangeConfirmModalProps {
   onCancel: () => void;
 }
 
-/**
- * RoleChangeConfirmModal
- *
- * Confirmation dialog before changing a member's role.
- */
 export function RoleChangeConfirmModal({
   memberName,
   oldRole,
@@ -33,13 +29,14 @@ export function RoleChangeConfirmModal({
   });
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="change-role-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    <Dialog
+      open={true}
+      onClose={onCancel}
+      closable={!isLoading}
+      ariaLabelledBy="change-role-modal-title"
+      className="w-full max-w-sm rounded-lg bg-background p-6 shadow-xl"
     >
-      <div className="w-full max-w-sm rounded-lg bg-background p-6 shadow-xl">
+      <>
         <h2 id="change-role-modal-title" className="mb-2 text-lg font-semibold">
           {t('changeRole.title')}
         </h2>
@@ -53,7 +50,7 @@ export function RoleChangeConfirmModal({
             {t('changeRole.confirm')}
           </Button>
         </div>
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }

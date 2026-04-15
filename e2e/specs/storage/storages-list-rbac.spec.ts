@@ -180,14 +180,15 @@ test.describe('Section 10: Actions — Frozen storage', () => {
 
 // ── Archived storage ─────────────────────────────────────────────────────────
 
-// Card menu rules for ARCHIVED (from StorageCard.tsx):
+// Card menu rules for ARCHIVED (from StorageCard.tsx, post H-07 UX #E5.2):
 //   - View always renders
-//   - Edit does NOT render for archived storages (gated by !isArchived)
-//   - Archive is replaced by Restore (renders, enabled = canArchive)
+//   - Edit renders (metadata is editable in ARCHIVED; only type-change is
+//     locked inside the drawer)
+//   - Archive is replaced by Restore (enabled = canRestore)
 //   - Delete renders, enabled = canDelete
 test.describe('Section 10: Actions — Archived storage', () => {
   // R-09: Owner on archived storage
-  test('R-09: Owner sees View, Restore, Delete on archived storage', async ({
+  test('R-09: Owner sees View, Edit, Restore and Delete on archived storage', async ({
     preAuthPage: page,
   }) => {
     const storagesPage = new StoragesListPage(page);
@@ -197,14 +198,13 @@ test.describe('Section 10: Actions — Archived storage', () => {
 
     const actions = storagesPage.cardActions('Archived Storage');
     await expect(actions.view).toBeVisible();
-    // Edit is hidden for archived storages — not just disabled.
-    await expect(actions.edit).not.toBeVisible();
+    await expect(actions.edit).toBeVisible();
     await expect(actions.restore).toBeVisible();
     await expect(actions.delete).toBeVisible();
   });
 
   // R-10: Manager on archived storage
-  test('R-10: Manager sees View, Restore, Delete on archived storage', async ({
+  test('R-10: Manager sees View, Edit, Restore and Delete on archived storage', async ({
     preAuthPage: page,
   }) => {
     const storagesPage = new StoragesListPage(page);
@@ -214,13 +214,13 @@ test.describe('Section 10: Actions — Archived storage', () => {
 
     const actions = storagesPage.cardActions('Archived Storage');
     await expect(actions.view).toBeVisible();
-    await expect(actions.edit).not.toBeVisible();
+    await expect(actions.edit).toBeVisible();
     await expect(actions.restore).toBeVisible();
     await expect(actions.delete).toBeVisible();
   });
 
-  // R-11: Warehouse keeper on archived storage (no STORAGE_ARCHIVE, no STORAGE_DELETE)
-  test('R-11: Warehouse keeper sees View with Restore and Delete both disabled', async ({
+  // R-11: Warehouse keeper on archived storage (no STORAGE_RESTORE, no STORAGE_DELETE)
+  test('R-11: Warehouse keeper sees View, Edit, and disabled Restore and Delete', async ({
     preAuthPage: page,
   }) => {
     const storagesPage = new StoragesListPage(page);
@@ -230,14 +230,13 @@ test.describe('Section 10: Actions — Archived storage', () => {
 
     const actions = storagesPage.cardActions('Archived Storage');
     await expect(actions.view).toBeVisible();
-    await expect(actions.edit).not.toBeVisible();
-    // Restore is gated by canArchive — warehouse keeper lacks STORAGE_ARCHIVE
+    await expect(actions.edit).toBeVisible();
     await expect(actions.restore).toBeDisabled();
     await expect(actions.delete).toBeDisabled();
   });
 
   // R-12: Viewer on archived storage
-  test('R-12: Viewer sees only View on archived storage', async ({ preAuthPage: page }) => {
+  test('R-12: Viewer sees View with Restore and Delete disabled on archived storage', async ({ preAuthPage: page }) => {
     const storagesPage = new StoragesListPage(page);
     await setupAndNavigate(page, { rbac: RBAC_VIEWER, storagesResponse: ALL_RESPONSE });
     await storagesPage.waitForCards();
@@ -245,7 +244,6 @@ test.describe('Section 10: Actions — Archived storage', () => {
 
     const actions = storagesPage.cardActions('Archived Storage');
     await expect(actions.view).toBeVisible();
-    await expect(actions.edit).not.toBeVisible();
     await expect(actions.restore).toBeDisabled();
     await expect(actions.delete).toBeDisabled();
   });

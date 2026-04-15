@@ -257,9 +257,11 @@ test.describe('Given a Viewer member calls DELETE /storages', () => {
       // Sign in as viewer to obtain a fresh access token
       const { accessToken } = await apiSignIn(viewerUser.email, viewerUser.password);
 
-      // Attempt to DELETE a storage — RBAC guard must deny before any DB lookup
+      // Attempt to archive a storage — RBAC guard must deny before any DB lookup.
+      // The unified DELETE /storages/:uuid endpoint does not exist post per-type
+      // refactor; we hit the per-type archive route instead.
       const response = await fetch(
-        `${API_BASE}/storages/00000000-0000-0000-0000-000000000000`,
+        `${API_BASE}/storages/warehouses/00000000-0000-0000-0000-000000000000/archive`,
         {
           method: 'DELETE',
           headers: {

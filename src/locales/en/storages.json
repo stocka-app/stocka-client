@@ -257,7 +257,13 @@
       "customLost": "Custom icon and color will be lost when switching to a fixed type.",
       "tierLimit": "You have reached the limit for {{type}} in your {{tier}} plan.",
       "seePlans": "See plans"
-    }
+    },
+    "pendingTypeChange": {
+      "banner": "You are changing the type: {{from}} → {{to}}. Customize the data and save to apply.",
+      "revert": "Cancel change"
+    },
+    "roomTypeLabel": "Category",
+    "roomTypePlaceholder": "e.g. Kitchen, Laboratory, Lounge"
   },
   "contextCurrent": "Current context",
   "switcher": {
@@ -277,6 +283,7 @@
     "frozen": "This storage is frozen. It cannot receive or dispatch merchandise.",
     "archived": "This storage is archived. You can only view its history — it can no longer operate or receive merchandise.",
     "reactivate": "Reactivate",
+    "restore": "Restore",
     "close": "Close notice"
   },
   "modals": {
@@ -291,11 +298,35 @@
       "contextBlock": "You're currently working in this storage. Freezing it will switch the module to view-only mode until you reactivate it.",
       "lastActiveBlock": "This is your last operational storage. If you freeze it, you won't be able to perform any operations until you reactivate a storage.",
       "serverError": "We couldn't freeze the storage. Check your connection and try again."
+    },
+    "archive": {
+      "title": "Archive \"{{name}}\"?",
+      "body": "This storage will no longer show in active views. You can consult its history and restore it any time.",
+      "safetyLine": "You can restore it at any time.",
+      "confirm": "Archive",
+      "confirmAnyway": "Archive anyway",
+      "cancel": "Cancel",
+      "loading": "Archiving...",
+      "contextBlock": "You're currently working in this storage. Archiving it will switch the module to another or leave no active context.",
+      "lastActiveBlock": "This is your last operational storage. If you archive it, you won't be able to perform operations until you restore or create another one.",
+      "frozenInfoBlock": "This storage is frozen. Archiving will take it straight to history — you don't need to reactivate it first.",
+      "serverError": "We couldn't archive the storage. Check your connection and try again."
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\" permanently?",
+      "body": "This action cannot be undone. The full history of the storage will be lost, including movements, records, and configuration.",
+      "warningBlock": "You won't be able to recover this information later.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "loading": "Deleting...",
+      "notImplemented": "Feature in development. It will be available soon.",
+      "serverError": "We couldn't delete the storage. Check your connection and try again."
     }
   },
   "toasts": {
     "frozen": "\"{{name}}\" was frozen",
     "reactivated": "\"{{name}}\" was reactivated",
+    "archived": "\"{{name}}\" was archived",
     "errors": {
       "freezeFailed": "We couldn't freeze the storage. Try again.",
       "unfreezeFailed": "We couldn't reactivate the storage. Try again."
@@ -304,5 +335,9 @@
   "editInFrozen": {
     "banner": "This storage is frozen. You can edit its details but not operate with it.",
     "typeDisabledTooltip": "You can't change the type of a frozen storage. Reactivate it first."
+  },
+  "editInArchived": {
+    "banner": "This storage is archived. You can fix its details, but you can't operate with it until you restore it.",
+    "typeDisabledTooltip": "You can't change the type of an archived storage. Restore it first."
   }
 }

@@ -12,11 +12,11 @@ import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/use
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
-import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
 import { EditStorageDrawer } from '../components/EditStorageDrawer';
-import { ArchiveStorageModal } from '../components/ArchiveStorageModal';
+import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog';
+import { DeleteStorageDialog } from '../components/DeleteStorageDialog';
 import { FreezeConfirmDialog } from '../components/FreezeConfirmDialog';
 import type { EditStoragePayload } from '../hooks/useStorages';
 
@@ -79,6 +79,7 @@ export default function StoragesPage(): React.ReactElement {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    deleteStoragePermanent,
     freezeStorage,
     unfreezeStorage,
     getIsLastActive,
@@ -92,9 +93,17 @@ export default function StoragesPage(): React.ReactElement {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+  const [isArchiveLoading, setIsArchiveLoading] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  // H-07: freeze the source status the moment the dialog opens so variant 2.4
+  // (From FROZEN) stays stable even if the storage mutates mid-dialog.
+  const [archiveSourceStatus, setArchiveSourceStatus] = useState<'ACTIVE' | 'FROZEN'>('ACTIVE');
   const [isFreezeOpen, setIsFreezeOpen] = useState(false);
   const [isFreezeLoading, setIsFreezeLoading] = useState(false);
   const [freezeError, setFreezeError] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<'not_implemented' | 'server_error' | null>(null);
 
   // ── Auto-open create drawer when navigated from the sidebar StorageSwitcher
   //
@@ -113,10 +122,6 @@ export default function StoragesPage(): React.ReactElement {
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state, location.pathname, canDo, navigate]);
-
-  // ── Business rules ──────────────────────────────────────────────────────
-
-  const canArchiveStorage = (storage: Storage): boolean => storage.status === 'ACTIVE';
 
   // ── Handlers ────────────────────────────────────────────────────────────
 
@@ -172,6 +177,8 @@ export default function StoragesPage(): React.ReactElement {
 
   const handleArchiveClick = (storage: Storage): void => {
     setSelectedStorage(storage);
+    setArchiveError(null);
+    setArchiveSourceStatus(storage.status === 'FROZEN' ? 'FROZEN' : 'ACTIVE');
     setIsArchiveOpen(true);
   };
 
@@ -188,8 +195,9 @@ export default function StoragesPage(): React.ReactElement {
     id: string,
     type: StorageType,
     payload: EditStoragePayload,
-  ): Promise<{ error: 'name_taken' | 'archived' | 'address_required' | 'server_error' | null }> => {
-    const result = await editStorage(id, type, payload);
+    targetType?: StorageType,
+  ): Promise<ReturnType<typeof editStorage> extends Promise<infer R> ? R : never> => {
+    const result = await editStorage(id, type, payload, targetType);
     if (result.error === null) {
       toast.success(t('editDrawer.toast.success'));
     }
@@ -208,18 +216,52 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleArchiveConfirm = async (): Promise<void> => {
-    if (selectedStorage) {
-      await archiveStorage(selectedStorage.uuid);
+    if (!selectedStorage) return;
+    setIsArchiveLoading(true);
+    setArchiveError(null);
+    const ok = await archiveStorage(selectedStorage.uuid);
+    setIsArchiveLoading(false);
+    if (ok) {
+      setIsArchiveOpen(false);
+      toast.success(t('toasts.archived', { name: selectedStorage.name, defaultValue: '"{{name}}" fue archivada' }));
+    } else {
+      setArchiveError('server_error');
     }
   };
 
-  const handleDeleteClick = async (storage: Storage): Promise<void> => {
-    try {
-      await storagesService.destroy(storage.uuid);
-      toast.success(t('toast.deleted', { name: storage.name }));
-      fetchStorages();
-    } catch {
-      toast.error(t('toast.deleteFailed'));
+  const handleArchiveClose = (): void => {
+    if (!isArchiveLoading) {
+      setIsArchiveOpen(false);
+      setArchiveError(null);
+    }
+  };
+
+  const handleDeleteClick = (storage: Storage): void => {
+    setSelectedStorage(storage);
+    setDeleteError(null);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!selectedStorage) return;
+    setIsDeleteLoading(true);
+    setDeleteError(null);
+    const { error } = await deleteStoragePermanent(selectedStorage.uuid);
+    setIsDeleteLoading(false);
+    if (error === 'not_implemented') {
+      // Stub path in Sprint 2 — surface the banner, keep the dialog open so the
+      // user understands why. The real flow (typed confirmation) lands in a
+      // later story and will replace this branch with a success toast + close.
+      setDeleteError('not_implemented');
+    } else if (error === 'server_error') {
+      setDeleteError('server_error');
+    }
+  };
+
+  const handleDeleteClose = (): void => {
+    if (!isDeleteLoading) {
+      setIsDeleteOpen(false);
+      setDeleteError(null);
     }
   };
 
@@ -297,11 +339,15 @@ export default function StoragesPage(): React.ReactElement {
         typeCounts={typeCounts}
         tier={tier ?? 'FREE'}
       />
-      <ArchiveStorageModal
+      <ArchiveConfirmDialog
         open={isArchiveOpen}
         storage={selectedStorage}
-        canArchive={selectedStorage !== null ? canArchiveStorage(selectedStorage) : false}
-        onClose={() => setIsArchiveOpen(false)}
+        sourceStatus={archiveSourceStatus}
+        isContextActive={selectedStorage?.uuid === activeStorageId}
+        isLastActive={selectedStorage ? getIsLastActive(selectedStorage.uuid) : false}
+        isLoading={isArchiveLoading}
+        serverError={archiveError}
+        onClose={handleArchiveClose}
         onConfirm={handleArchiveConfirm}
       />
 
@@ -314,6 +360,15 @@ export default function StoragesPage(): React.ReactElement {
         serverError={freezeError}
         onClose={handleFreezeClose}
         onConfirm={handleFreezeConfirm}
+      />
+
+      <DeleteStorageDialog
+        open={isDeleteOpen}
+        storage={selectedStorage}
+        isLoading={isDeleteLoading}
+        serverError={deleteError}
+        onClose={handleDeleteClose}
+        onConfirm={handleDeleteConfirm}
       />
     </>
   );
@@ -726,6 +781,7 @@ export default function StoragesPage(): React.ReactElement {
                 canFreeze={canFreeze}
                 canUnfreeze={canUnfreeze}
                 canArchive={canDo('STORAGE_ARCHIVE')}
+                canRestore={canDo('STORAGE_RESTORE')}
                 canDelete={canDo('STORAGE_DELETE')}
                 onView={handleViewClick}
                 onEdit={handleEditClick}

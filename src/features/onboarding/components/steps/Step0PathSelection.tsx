@@ -47,7 +47,7 @@ export function Step0PathSelection({ onSelectPath }: Step0PathSelectionProps): R
         className={cardBase}
       >
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 bg-neutral-400 dark:bg-neutral-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand group-hover:scale-105 transition-all">
+          <div className="w-11 h-11 bg-neutral-400 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand group-hover:scale-105 transition-all">
             <Mail className="w-5 h-5 text-white" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">

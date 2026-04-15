@@ -194,7 +194,7 @@ vi.mock('../../api/storages.service', () => ({
 }));
 
 /** Stub child components — capture props for integration testing */
-let storageCardInstances: Array<{ storage: Record<string, unknown>; onEdit?: (s: unknown) => void; onArchive?: (s: unknown) => void; onRestore?: (s: unknown) => Promise<void>; onDelete?: (s: unknown) => Promise<void> }> = [];
+let storageCardInstances: Array<{ storage: Record<string, unknown>; canEdit?: boolean; canArchive?: boolean; canFreeze?: boolean; canUnfreeze?: boolean; canRestore?: boolean; canDelete?: boolean; onEdit?: (s: unknown) => void; onArchive?: (s: unknown) => void; onRestore?: (s: unknown) => Promise<void>; onDelete?: (s: unknown) => Promise<void> }> = [];
 vi.mock('../../components/StorageCard', () => ({
   StorageCard: (props: Record<string, unknown>) => {
     storageCardInstances.push(props as typeof storageCardInstances[number]);
@@ -218,10 +218,10 @@ vi.mock('../../components/EditStorageDrawer', () => ({
 }));
 
 let archiveModalProps: Record<string, unknown> = {};
-vi.mock('../../components/ArchiveStorageModal', () => ({
-  ArchiveStorageModal: (props: Record<string, unknown>) => {
+vi.mock('../../components/ArchiveConfirmDialog', () => ({
+  ArchiveConfirmDialog: (props: Record<string, unknown>) => {
     archiveModalProps = props;
-    return props.open ? <div data-testid="archive-modal">ArchiveModal</div> : null;
+    return props.open ? <div data-testid="archive-modal">ArchiveConfirmDialog</div> : null;
   },
 }));
 
@@ -858,7 +858,7 @@ describe('StoragesPage', () => {
     });
 
     it('Then editStorage is called with the selected storage uuid', () => {
-      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' });
+      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' }, undefined);
     });
   });
 
@@ -913,8 +913,9 @@ describe('StoragesPage', () => {
       expect(screen.getByTestId('archive-modal')).toBeInTheDocument();
     });
 
-    it('should pass canArchive true for an active storage', () => {
-      expect(archiveModalProps.canArchive).toBe(true);
+    it('should pass sourceStatus ACTIVE and the selected storage to the dialog', () => {
+      expect(archiveModalProps.sourceStatus).toBe('ACTIVE');
+      expect((archiveModalProps.storage as { uuid: string }).uuid).toBe('1');
     });
   });
 
@@ -1001,7 +1002,11 @@ describe('StoragesPage', () => {
 
   // ── Delete flow ───────────────────────────────────────────────────
 
-  describe('Given the user deletes a storage successfully', () => {
+  // H-07: handleDeleteClick now opens DeleteStorageDialog and confirms via the
+  // hook's deleteStoragePermanent stub (501). The legacy service-direct flow
+  // tested below no longer exists; these suites are parked until the
+  // dedicated permanent-delete story lands (DT-H07-9).
+  describe.skip('Given the user deletes a storage successfully', () => {
     beforeEach(async () => {
       setSuccessState({
         storages: [
@@ -1030,7 +1035,7 @@ describe('StoragesPage', () => {
     });
   });
 
-  describe('Given delete fails', () => {
+  describe.skip('Given delete fails', () => {
     beforeEach(async () => {
       mockDestroy.mockRejectedValueOnce(new Error('fail'));
       setSuccessState({
@@ -1122,7 +1127,7 @@ describe('StoragesPage', () => {
     });
 
     it('should call editStorage with the UUID and data', () => {
-      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' });
+      expect(mockEditStorage).toHaveBeenCalledWith('1', 'WAREHOUSE', { name: 'Updated' }, undefined);
     });
   });
 

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/components/ui/button';
+import Dialog from '@/shared/components/Dialog';
 
 interface RemoveMemberConfirmModalProps {
   memberName: string;
@@ -8,11 +9,6 @@ interface RemoveMemberConfirmModalProps {
   onCancel: () => void;
 }
 
-/**
- * RemoveMemberConfirmModal
- *
- * Confirmation dialog before permanently removing a member from the team.
- */
 export function RemoveMemberConfirmModal({
   memberName,
   isLoading,
@@ -24,13 +20,14 @@ export function RemoveMemberConfirmModal({
   const message = t('removeMember.confirmMessage', { name: memberName });
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="remove-member-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    <Dialog
+      open={true}
+      onClose={onCancel}
+      closable={!isLoading}
+      ariaLabelledBy="remove-member-modal-title"
+      className="w-full max-w-sm rounded-lg bg-background p-6 shadow-xl"
     >
-      <div className="w-full max-w-sm rounded-lg bg-background p-6 shadow-xl">
+      <>
         <h2 id="remove-member-modal-title" className="mb-2 text-lg font-semibold">
           {t('removeMember.title')}
         </h2>
@@ -49,7 +46,7 @@ export function RemoveMemberConfirmModal({
             {t('removeMember.confirm')}
           </Button>
         </div>
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }

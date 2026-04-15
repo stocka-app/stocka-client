@@ -34,8 +34,9 @@ vi.mock('@/store/rbac.store', () => {
     permissions: [],
     grants: [],
   };
-  const useRBACStore = vi.fn(() => store);
-  useRBACStore.getState = vi.fn(() => ({ loadPermissions: mockLoadPermissions }));
+  const useRBACStore = Object.assign(vi.fn(() => store), {
+    getState: vi.fn(() => ({ loadPermissions: mockLoadPermissions })),
+  });
   return { useRBACStore };
 });
 
@@ -43,7 +44,19 @@ vi.mock('@/store/rbac.store', () => {
 // Store state factories
 // ---------------------------------------------------------------------------
 
-type StoreState = ReturnType<typeof useAuthenticationStore>;
+// The authentication store is mocked above, so ReturnType<typeof useAuthenticationStore>
+// resolves to `unknown`. Define the subset of state the guards actually read.
+type StoreState = {
+  user: Record<string, unknown> | null;
+  isAuthenticated: boolean;
+  isInitializing: boolean;
+  isLoading: boolean;
+  error: string | null;
+  errorCode: string | null;
+  blockInfo: unknown;
+  emailVerificationRequired: boolean;
+  pendingVerificationEmail: string | null;
+};
 
 function buildStoreState(overrides: Partial<StoreState> = {}): StoreState {
   return {
@@ -202,7 +215,7 @@ describe('ProtectedRoute', () => {
             oauthProvider: null,
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
-          } as StoreState['user'],
+          } as unknown as StoreState['user'],
         }),
       );
     });

@@ -1,6 +1,5 @@
 import axiosInstance from '@/shared/lib/axios';
 import { storageSchema, storagesPageSchema } from '../schemas/storages.schema';
-import type { CreateStorageFormData } from '../schemas/storages.schema';
 import type { Storage, StoragesPage, StorageStatus, StorageType, TenantCapabilities } from '../types/storages.types';
 
 export interface ListStoragesParams {
@@ -28,15 +27,27 @@ const TYPE_SLUG: Record<StorageType, string> = {
   CUSTOM_ROOM: 'custom-rooms',
 };
 
+// H-07 per-transition change-type endpoints use singular target segments.
+const TYPE_SLUG_SINGULAR: Record<StorageType, string> = {
+  WAREHOUSE: 'warehouse',
+  STORE_ROOM: 'store-room',
+  CUSTOM_ROOM: 'custom-room',
+};
+
+export interface ChangeTypeMetadata {
+  name?: string;
+  description?: string | null;
+  /** null clears the address (STORE_ROOM / CUSTOM_ROOM targets only). */
+  address?: string | null;
+  roomType?: string;
+  icon?: string;
+  color?: string;
+}
+
 export const storagesService = {
   async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
     const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
     return storagesPageSchema.parse(unwrap(data));
-  },
-
-  async create(payload: CreateStorageFormData): Promise<Storage> {
-    const { data } = await axiosInstance.post('/storages', payload);
-    return storageSchema.parse(unwrap(data));
   },
 
   async createWarehouse(payload: {
@@ -50,7 +61,7 @@ export const storagesService = {
 
   async createStoreRoom(payload: {
     name: string;
-    address: string;
+    address?: string | null;
     description?: string;
   }): Promise<{ storageUUID: string }> {
     const { data } = await axiosInstance.post('/storages/store-rooms', payload);
@@ -60,7 +71,7 @@ export const storagesService = {
   async createCustomRoom(payload: {
     name: string;
     roomType: string;
-    address: string;
+    address?: string | null;
     description?: string;
     icon?: string;
     color?: string;
@@ -73,44 +84,50 @@ export const storagesService = {
     name?: string;
     description?: string | null;
     address?: string;
-  }): Promise<{ storageUUID: string }> {
+  }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/warehouses/${id}`, payload);
-    return unwrap(data) as { storageUUID: string };
+    return storageSchema.parse(unwrap(data));
   },
 
   async updateStoreRoom(id: string, payload: {
     name?: string;
     description?: string | null;
-    address?: string;
-  }): Promise<{ storageUUID: string }> {
+    address?: string | null;
+  }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/store-rooms/${id}`, payload);
-    return unwrap(data) as { storageUUID: string };
+    return storageSchema.parse(unwrap(data));
   },
 
   async updateCustomRoom(id: string, payload: {
     name?: string;
     description?: string | null;
-    address?: string;
+    address?: string | null;
     icon?: string;
     color?: string;
     roomType?: string;
-  }): Promise<{ storageUUID: string }> {
+  }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/custom-rooms/${id}`, payload);
-    return unwrap(data) as { storageUUID: string };
-  },
-
-  async changeType(id: string, type: StorageType): Promise<{ storageUUID: string }> {
-    const { data } = await axiosInstance.patch(`/storages/${id}/type`, { type });
-    return unwrap(data) as { storageUUID: string };
-  },
-
-  async archive(id: string): Promise<Storage> {
-    const { data } = await axiosInstance.delete(`/storages/${id}`);
     return storageSchema.parse(unwrap(data));
   },
 
-  async restore(id: string): Promise<Storage> {
-    const { data } = await axiosInstance.post(`/storages/${id}/restore`);
+  async changeType(
+    id: string,
+    sourceType: StorageType,
+    targetType: StorageType,
+    metadata?: ChangeTypeMetadata,
+  ): Promise<{ storageUUID: string }> {
+    const url = `/storages/${TYPE_SLUG[sourceType]}/${id}/convert-to-${TYPE_SLUG_SINGULAR[targetType]}`;
+    const { data } = await axiosInstance.patch(url, metadata ?? {});
+    return unwrap(data) as { storageUUID: string };
+  },
+
+  async archive(id: string, type: StorageType): Promise<Storage> {
+    const { data } = await axiosInstance.delete(`/storages/${TYPE_SLUG[type]}/${id}/archive`);
+    return storageSchema.parse(unwrap(data));
+  },
+
+  async restore(id: string, type: StorageType): Promise<Storage> {
+    const { data } = await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/restore`);
     return storageSchema.parse(unwrap(data));
   },
 
@@ -124,7 +141,7 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
-  async destroy(id: string): Promise<void> {
+  async deleteStoragePermanent(id: string): Promise<void> {
     await axiosInstance.delete(`/storages/${id}/permanent`);
   },
 

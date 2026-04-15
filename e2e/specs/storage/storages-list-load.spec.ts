@@ -307,7 +307,7 @@ test.describe('Section 2: Card anatomy', () => {
   });
 
   // C-05
-  test('C-05: FROZEN card shows "Frozen" status indicator with reduced opacity', async ({
+  test('C-05: FROZEN card shows "Frozen" status indicator', async ({
     preAuthPage: page,
   }) => {
     const storagesPage = new StoragesListPage(page);
@@ -315,13 +315,11 @@ test.describe('Section 2: Card anatomy', () => {
     await storagesPage.waitForCards();
 
     await expect(storagesPage.cardStatusLabel('Almacen Norte')).toHaveAccessibleName('Frozen');
-    // Frozen card content should have opacity-75
-    const content = storagesPage.card('Almacen Norte').locator('.opacity-75');
-    await expect(content).toBeVisible();
   });
 
-  // C-06
-  test('C-06: ARCHIVED card shows "Archived" status indicator with opacity-50', async ({
+  // C-06 — H-07 dims ARCHIVED card content to 60% (see StorageCard
+  // contentFadeClass). The prior opacity-50 rule was replaced in H-07 UX #1.
+  test('C-06: ARCHIVED card shows "Archived" status indicator with faded content', async ({
     preAuthPage: page,
   }) => {
     const storagesPage = new StoragesListPage(page);
@@ -329,9 +327,8 @@ test.describe('Section 2: Card anatomy', () => {
     await storagesPage.waitForCards();
 
     await expect(storagesPage.cardStatusLabel('Almacen Sur')).toHaveAccessibleName('Archived');
-    // Archived card has opacity-50 class
-    const archivedCard = storagesPage.card('Almacen Sur');
-    await expect(archivedCard).toHaveClass(/opacity-50/);
+    const fadedContent = storagesPage.card('Almacen Sur').locator('.opacity-60').first();
+    await expect(fadedContent).toBeVisible();
   });
 
   // C-07

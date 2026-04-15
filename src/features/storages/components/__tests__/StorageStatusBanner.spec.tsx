@@ -129,7 +129,7 @@ describe('StorageStatusBanner', () => {
   beforeEach(() => {
     user = userEvent.setup();
     vi.clearAllMocks();
-    mockPermissions.current = new Set<string>(['STORAGE_READ', 'STORAGE_UNFREEZE']);
+    mockPermissions.current = new Set<string>(['STORAGE_READ', 'STORAGE_UNFREEZE', 'STORAGE_RESTORE']);
     mockStoreState.activeStorageId = null;
     mockStoreState.storages = [activeStorage, frozenStorage, archivedStorage];
     mockStoreState.isLoading = false;
@@ -196,8 +196,8 @@ describe('StorageStatusBanner', () => {
     });
 
     it('Then the button is disabled while the promise is pending', async () => {
-      const controls: { resolve: (() => void) | null } = { resolve: null };
-      const pending = new Promise<void>((r) => {
+      const controls: { resolve: ((value: never) => void) | null } = { resolve: null };
+      const pending = new Promise<never>((r) => {
         controls.resolve = r;
       });
       const { storagesService } = await import('../../api/storages.service');
@@ -209,8 +209,8 @@ describe('StorageStatusBanner', () => {
       await waitFor(() => {
         expect(cta).toBeDisabled();
       });
-      controls.resolve?.();
-      await pending;
+      controls.resolve?.({} as never);
+      await pending.catch(() => { /* ignore */ });
     });
   });
 
@@ -390,10 +390,10 @@ describe('StorageStatusBanner', () => {
       mockRestoreResult.current = { ...archivedStorage, status: 'ACTIVE', archivedAt: null };
     });
 
-    describe('When the user clicks "Reactivar"', () => {
+    describe('When the user clicks "Restaurar"', () => {
       beforeEach(async () => {
         render(<StorageStatusBanner />);
-        const cta = screen.getByRole('button', { name: 'banners.reactivate' });
+        const cta = screen.getByRole('button', { name: 'banners.restore' });
         await user.click(cta);
       });
 
@@ -420,11 +420,11 @@ describe('StorageStatusBanner', () => {
       mockRestoreResult.current = new Error('restore boom');
     });
 
-    describe('When the user clicks "Reactivar"', () => {
+    describe('When the user clicks "Restaurar"', () => {
       beforeEach(async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
         render(<StorageStatusBanner />);
-        const cta = screen.getByRole('button', { name: 'banners.reactivate' });
+        const cta = screen.getByRole('button', { name: 'banners.restore' });
         await user.click(cta);
       });
 

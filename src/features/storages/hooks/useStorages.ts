@@ -6,7 +6,6 @@ import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/use
 import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
 import type {
-  CreateStorageFormData,
   CreateWarehouseFormData,
   CreateStoreRoomFormData,
   CreateCustomRoomFormData,
@@ -16,13 +15,20 @@ import type { Storage, StorageStatus, StorageType, StorageStatusSummary } from '
 const STORAGES_PAGE_LIMIT = 50;
 
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
-type EditError = 'name_taken' | 'archived' | 'address_required' | 'server_error' | null;
+type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
+/** Unified error returned by the combined edit + change-type flow. */
+export type EditOrChangeTypeError =
+  | Exclude<EditError, null>
+  | Exclude<ChangeTypeError, null>
+  | 'name_taken'
+  | null;
 
 export interface EditStoragePayload {
   name?: string;
   description?: string | null;
-  address?: string;
+  /** null clears the address (STORE_ROOM / CUSTOM_ROOM only — WAREHOUSE requires non-empty). */
+  address?: string | null;
   icon?: string;
   color?: string;
   roomType?: string;
@@ -47,15 +53,16 @@ function resolveCreateError(err: unknown): CreateError {
 }
 
 function resolveEditError(err: unknown): EditError {
+  // H-07: STORAGE_ARCHIVED_CANNOT_BE_UPDATED no longer exists — metadata is
+  // editable in ARCHIVED. Type-change is still blocked by change handlers
+  // (STORAGE_TYPE_LOCKED_WHILE_ARCHIVED) which flows through resolveChangeTypeError.
   const apiErr = err as Partial<{ statusCode: number; error: string }>;
   if (apiErr?.error === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
-  if (apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
   if (apiErr?.error === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
 
   if (axios.isAxiosError(err)) {
     const code = (err.response?.data as { error?: string } | undefined)?.error;
     if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
-    if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
     if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
   }
 
@@ -63,15 +70,19 @@ function resolveEditError(err: unknown): EditError {
 }
 
 function resolveChangeTypeError(err: unknown): ChangeTypeError {
+  // H-07: per-transition handlers emit STORAGE_TYPE_LOCKED_WHILE_ARCHIVED for
+  // ARCHIVED (same naming convention as WhileFrozen). The legacy
+  // STORAGE_ARCHIVED_CANNOT_BE_UPDATED no longer exists in the BE (error class
+  // deleted + no call-sites emit it).
   const apiErr = err as Partial<{ statusCode: number; error: string }>;
-  if (apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+  if (apiErr?.error === 'STORAGE_TYPE_LOCKED_WHILE_ARCHIVED') return 'archived';
   if (apiErr?.error === 'STORAGE_TYPE_LOCKED_WHILE_FROZEN') return 'frozen';
   if (apiErr?.error === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
   if (apiErr?.statusCode === 403) return 'tier_limit';
 
   if (axios.isAxiosError(err)) {
     const code = (err.response?.data as { error?: string } | undefined)?.error;
-    if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+    if (code === 'STORAGE_TYPE_LOCKED_WHILE_ARCHIVED') return 'archived';
     if (code === 'STORAGE_TYPE_LOCKED_WHILE_FROZEN') return 'frozen';
     if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
     if (err.response?.status === 403) return 'tier_limit';
@@ -129,16 +140,23 @@ export function useStorages(): {
   canFreeze: boolean;
   canUnfreeze: boolean;
   canArchive: boolean;
+  canRestore: boolean;
   canDelete: boolean;
   fetchStorages: () => Promise<void>;
-  createStorage: (payload: CreateStorageFormData) => Promise<boolean>;
   createWarehouse: (payload: CreateWarehouseFormData) => Promise<{ error: CreateError }>;
   createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
   createCustomRoom: (payload: CreateCustomRoomFormData) => Promise<{ error: CreateError }>;
-  editStorage: (id: string, type: StorageType, payload: EditStoragePayload) => Promise<{ error: EditError }>;
+  editStorage: (
+    id: string,
+    type: StorageType,
+    payload: EditStoragePayload,
+    targetType?: StorageType,
+  ) => Promise<{ error: EditOrChangeTypeError }>;
   changeStorageType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
+  /** H-07 stub — triggers the 501 endpoint so the UX path is exercised end-to-end. Always resolves with `not_implemented`. */
+  deleteStoragePermanent: (id: string) => Promise<{ error: 'not_implemented' | 'server_error' }>;
   freezeStorage: (id: string) => Promise<boolean>;
   unfreezeStorage: (id: string) => Promise<boolean>;
   getIsLastActive: (id: string) => boolean;
@@ -153,7 +171,6 @@ export function useStorages(): {
     error,
     setStorages,
     setPagination,
-    addStorage,
     updateStorage,
     setLoading,
     setError,
@@ -279,19 +296,6 @@ export function useStorages(): {
 
   // ── CRUD operations ────────────────────────────────────────────────────────
 
-  const createStorage = useCallback(
-    async (payload: CreateStorageFormData): Promise<boolean> => {
-      try {
-        const storage = await storagesService.create(payload);
-        addStorage(storage);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [addStorage],
-  );
-
   const createWarehouse = useCallback(
     async (payload: CreateWarehouseFormData): Promise<{ error: CreateError }> => {
       try {
@@ -339,78 +343,120 @@ export function useStorages(): {
   );
 
   const editStorage = useCallback(
-    async (id: string, type: StorageType, payload: EditStoragePayload): Promise<{ error: EditError }> => {
+    async (
+      id: string,
+      type: StorageType,
+      payload: EditStoragePayload,
+      targetType?: StorageType,
+    ): Promise<{ error: EditOrChangeTypeError }> => {
+      const isTypeChange = targetType !== undefined && targetType !== type;
+      if (isTypeChange) {
+        try {
+          await storagesService.changeType(id, type, targetType, payload);
+          await fetchStorages();
+          return { error: null };
+        } catch (err) {
+          return { error: resolveChangeTypeError(err) };
+        }
+      }
+
       try {
+        let updated: Storage;
         switch (type) {
           case 'WAREHOUSE':
-            await storagesService.updateWarehouse(id, payload);
+            updated = await storagesService.updateWarehouse(id, payload);
             break;
           case 'STORE_ROOM':
-            await storagesService.updateStoreRoom(id, payload);
+            updated = await storagesService.updateStoreRoom(id, payload);
             break;
           case 'CUSTOM_ROOM':
-            await storagesService.updateCustomRoom(id, payload);
+            updated = await storagesService.updateCustomRoom(id, payload);
             break;
         }
-        await fetchStorages();
+        updateStorage(updated);
         return { error: null };
       } catch (err) {
         return { error: resolveEditError(err) };
       }
     },
-    [fetchStorages],
+    [updateStorage, fetchStorages],
   );
 
   const changeStorageType = useCallback(
     async (id: string, targetType: StorageType): Promise<{ error: ChangeTypeError }> => {
+      const source = storages.find((s) => s.uuid === id);
+      if (!source) return { error: 'server_error' };
       try {
-        await storagesService.changeType(id, targetType);
+        await storagesService.changeType(id, source.type, targetType);
         await fetchStorages();
         return { error: null };
       } catch (err) {
         return { error: resolveChangeTypeError(err) };
       }
     },
-    [fetchStorages],
+    [storages, fetchStorages],
   );
 
-  const archiveStorage = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const storage = await storagesService.archive(id);
-        updateStorage(storage);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [updateStorage],
-  );
-
-  const restoreStorage = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const storage = await storagesService.restore(id);
-        updateStorage(storage);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [updateStorage],
-  );
-
-  // Applies a status-flip (ACTIVE ↔ FROZEN) locally to the summary and
-  // typeSummary counters so we don't have to refetch the whole list after a
-  // freeze/unfreeze. DT-H05-14 — now that the endpoint returns the updated
-  // storage (DT-H05-13) we can propagate the change in place.
+  // Applies a status-flip locally to the summary counters so we don't have to
+  // refetch the whole list after a freeze/unfreeze/archive/restore. The BE
+  // endpoints return the updated storage (post-H07 refactor), so we can
+  // propagate the change in place. The `type` param is kept for future
+  // per-type counter adjustments; current summary is tenant-wide.
   const shiftStatusCounters = useCallback(
-    (type: StorageType, from: StorageStatus, to: StorageStatus): void => {
+    (_type: StorageType, from: StorageStatus, to: StorageStatus): void => {
       setSummary((prev) => ({
         active: prev.active + (to === 'ACTIVE' ? 1 : 0) - (from === 'ACTIVE' ? 1 : 0),
         frozen: prev.frozen + (to === 'FROZEN' ? 1 : 0) - (from === 'FROZEN' ? 1 : 0),
         archived: prev.archived + (to === 'ARCHIVED' ? 1 : 0) - (from === 'ARCHIVED' ? 1 : 0),
       }));
+    },
+    [],
+  );
+
+  const archiveStorage = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return false;
+      try {
+        const updated = await storagesService.archive(id, target.type);
+        updateStorage(updated);
+        shiftStatusCounters(target.type, target.status, updated.status);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [storages, updateStorage, shiftStatusCounters],
+  );
+
+  const restoreStorage = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return false;
+      try {
+        const updated = await storagesService.restore(id, target.type);
+        updateStorage(updated);
+        shiftStatusCounters(target.type, target.status, updated.status);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [storages, updateStorage, shiftStatusCounters],
+  );
+
+  const deleteStoragePermanent = useCallback(
+    async (id: string): Promise<{ error: 'not_implemented' | 'server_error' }> => {
+      try {
+        await storagesService.deleteStoragePermanent(id);
+        // BE should return 501, so success is unexpected in Sprint 2. Treat as server_error for safety.
+        return { error: 'server_error' };
+      } catch (err) {
+        const apiErr = err as Partial<{ statusCode: number; error: string }>;
+        if (apiErr?.statusCode === 501) return { error: 'not_implemented' };
+        if (axios.isAxiosError(err) && err.response?.status === 501) return { error: 'not_implemented' };
+        return { error: 'server_error' };
+      }
     },
     [],
   );
@@ -494,6 +540,7 @@ export function useStorages(): {
   const canFreeze = canDo('STORAGE_FREEZE');
   const canUnfreeze = canDo('STORAGE_UNFREEZE');
   const canArchive = canDo('STORAGE_ARCHIVE');
+  const canRestore = canDo('STORAGE_RESTORE');
   const canDelete = canDo('STORAGE_DELETE');
 
   return {
@@ -528,6 +575,7 @@ export function useStorages(): {
     canFreeze,
     canUnfreeze,
     canArchive,
+    canRestore,
     canDelete,
     fetchStorages: () =>
       fetchStorages({
@@ -537,7 +585,6 @@ export function useStorages(): {
         ...(filterType !== null ? { type: filterType } : {}),
         ...(searchQuery !== '' ? { search: searchQuery } : {}),
       }),
-    createStorage,
     createWarehouse,
     createStoreRoom,
     createCustomRoom,
@@ -545,6 +592,7 @@ export function useStorages(): {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    deleteStoragePermanent,
     freezeStorage,
     unfreezeStorage,
     getIsLastActive,

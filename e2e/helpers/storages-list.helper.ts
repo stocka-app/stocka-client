@@ -229,6 +229,7 @@ export const RBAC_OWNER: RbacPayload = {
     'STORAGE_FREEZE',
     'STORAGE_UNFREEZE',
     'STORAGE_ARCHIVE',
+    'STORAGE_RESTORE',
     'STORAGE_DELETE',
   ],
 };
@@ -516,9 +517,17 @@ export async function mockEditPatch(
   const { status = 200, delay = 0, errorCode } = opts;
   const urlSuffix = `/api/storages/${type}/${uuid}`;
 
+  // BE update handlers now return the full updated Storage (post DT-H07-4),
+  // which the FE service parses via Zod. Echo a full-shape object so the
+  // parse succeeds and the drawer closes on save.
+  const typeUpper: 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM' =
+    type === 'warehouses' ? 'WAREHOUSE' : type === 'store-rooms' ? 'STORE_ROOM' : 'CUSTOM_ROOM';
   const body = errorCode
     ? { error: errorCode, message: errorCode }
-    : { success: true, data: { storageUUID: uuid } };
+    : {
+        success: true,
+        data: buildStorage({ uuid, type: typeUpper }),
+      };
 
   await page.route(
     (url) => url.pathname === urlSuffix,
@@ -539,24 +548,32 @@ export async function mockEditPatch(
   );
 }
 
-// ─── Change type PATCH mock ─────────────────────────────────────────────────
+// ─── Change type PATCH mock (per-transition endpoint) ───────────────────────
 
-interface MockChangeTypeOptions {
+type StorageTypePlural = 'warehouses' | 'store-rooms' | 'custom-rooms';
+type StorageTypeSingular = 'warehouse' | 'store-room' | 'custom-room';
+
+interface MockConvertToOptions {
   status?: number;
   errorCode?: string;
+  /** Captured request body — mutated by the mock so tests can assert on it. */
+  captured?: { body: unknown };
 }
 
 /**
- * Registers a page.route() mock for PATCH /api/storages/:uuid/type.
- * Must be called BEFORE navigating to /storages.
+ * Registers a page.route() mock for the per-transition endpoint:
+ * `PATCH /api/storages/{sourcePlural}/:uuid/convert-to-{targetSingular}`.
+ * Call BEFORE navigating. Optionally pass `captured` to inspect the body.
  */
-export async function mockChangeTypePatch(
+export async function mockConvertToPatch(
   page: Page,
+  sourcePlural: StorageTypePlural,
   uuid: string,
-  opts: MockChangeTypeOptions = {},
+  targetSingular: StorageTypeSingular,
+  opts: MockConvertToOptions = {},
 ): Promise<void> {
-  const { status = 200, errorCode } = opts;
-  const urlSuffix = `/api/storages/${uuid}/type`;
+  const { status = 200, errorCode, captured } = opts;
+  const urlSuffix = `/api/storages/${sourcePlural}/${uuid}/convert-to-${targetSingular}`;
 
   const body = errorCode
     ? { error: errorCode, message: errorCode }
@@ -568,6 +585,10 @@ export async function mockChangeTypePatch(
       if (route.request().method() !== 'PATCH') {
         await route.continue();
         return;
+      }
+      if (captured) {
+        const postData = route.request().postData();
+        captured.body = postData ? (JSON.parse(postData) as unknown) : null;
       }
       await route.fulfill({
         status,
