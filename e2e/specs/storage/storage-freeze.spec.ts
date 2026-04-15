@@ -150,6 +150,9 @@ async function mockEditPatchWarehouse(
   page: import('@playwright/test').Page,
   uuid: string,
 ): Promise<void> {
+  // Post DT-H07-4 the BE returns the full updated Storage; the FE service
+  // Zod-parses it, so we echo a full-shape object for the parse to succeed.
+  const updated = buildStorage({ uuid, type: 'WAREHOUSE' });
   await page.route(
     (url) => url.pathname === `/api/storages/warehouses/${uuid}`,
     async (route) => {
@@ -160,7 +163,7 @@ async function mockEditPatchWarehouse(
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { storageUUID: uuid } }),
+        body: JSON.stringify({ success: true, data: updated }),
       });
     },
   );

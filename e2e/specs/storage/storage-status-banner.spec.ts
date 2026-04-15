@@ -125,10 +125,11 @@ test.describe('StorageStatusBanner — Reactivate flow', () => {
         return;
       }
       unfreezeCalled = true;
+      const reactivated = { ...FROZEN_STORAGE, status: 'ACTIVE' as const, frozenAt: null };
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: null }),
+        body: JSON.stringify({ success: true, data: reactivated }),
       });
     });
 
