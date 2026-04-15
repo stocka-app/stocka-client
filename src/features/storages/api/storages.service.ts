@@ -73,18 +73,18 @@ export const storagesService = {
     name?: string;
     description?: string | null;
     address?: string;
-  }): Promise<{ storageUUID: string }> {
+  }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/warehouses/${id}`, payload);
-    return unwrap(data) as { storageUUID: string };
+    return storageSchema.parse(unwrap(data));
   },
 
   async updateStoreRoom(id: string, payload: {
     name?: string;
     description?: string | null;
     address?: string;
-  }): Promise<{ storageUUID: string }> {
+  }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/store-rooms/${id}`, payload);
-    return unwrap(data) as { storageUUID: string };
+    return storageSchema.parse(unwrap(data));
   },
 
   async updateCustomRoom(id: string, payload: {
@@ -94,9 +94,9 @@ export const storagesService = {
     icon?: string;
     color?: string;
     roomType?: string;
-  }): Promise<{ storageUUID: string }> {
+  }): Promise<Storage> {
     const { data } = await axiosInstance.patch(`/storages/custom-rooms/${id}`, payload);
-    return unwrap(data) as { storageUUID: string };
+    return storageSchema.parse(unwrap(data));
   },
 
   async changeType(id: string, type: StorageType): Promise<{ storageUUID: string }> {

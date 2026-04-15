@@ -352,24 +352,27 @@ export function useStorages(): {
   const editStorage = useCallback(
     async (id: string, type: StorageType, payload: EditStoragePayload): Promise<{ error: EditError }> => {
       try {
+        // DT-H07-4: BE now returns the updated Storage — propagate in place
+        // via updateStorage instead of a full refetch (drops one network trip).
+        let updated: Storage;
         switch (type) {
           case 'WAREHOUSE':
-            await storagesService.updateWarehouse(id, payload);
+            updated = await storagesService.updateWarehouse(id, payload);
             break;
           case 'STORE_ROOM':
-            await storagesService.updateStoreRoom(id, payload);
+            updated = await storagesService.updateStoreRoom(id, payload);
             break;
           case 'CUSTOM_ROOM':
-            await storagesService.updateCustomRoom(id, payload);
+            updated = await storagesService.updateCustomRoom(id, payload);
             break;
         }
-        await fetchStorages();
+        updateStorage(updated);
         return { error: null };
       } catch (err) {
         return { error: resolveEditError(err) };
       }
     },
-    [fetchStorages],
+    [updateStorage],
   );
 
   const changeStorageType = useCallback(
