@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
+import Dialog from '@/shared/components/Dialog';
 import { useOrganization } from '../hooks/useOrganization';
 
 interface TeamMember {
@@ -37,13 +38,14 @@ export function TransferOwnershipModal({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="transfer-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+    <Dialog
+      open={true}
+      onClose={onClose}
+      closable={!isSaving}
+      ariaLabelledBy="transfer-modal-title"
+      className="w-full max-w-md rounded-xl bg-surface-card shadow-xl p-6 space-y-5"
     >
-      <div className="w-full max-w-md rounded-xl bg-surface-card shadow-xl p-6 space-y-5">
+      <>
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2
@@ -136,7 +138,7 @@ export function TransferOwnershipModal({
             </div>
           </>
         )}
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }

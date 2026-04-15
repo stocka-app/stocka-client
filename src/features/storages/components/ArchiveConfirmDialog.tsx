@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+import Dialog from '@/shared/components/Dialog';
 import type { Storage } from '../types/storages.types';
 
 interface ArchiveConfirmDialogProps {
@@ -53,7 +54,7 @@ export function ArchiveConfirmDialog({
 }: ArchiveConfirmDialogProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
 
-  if (!open || !storage) return null;
+  if (!storage) return null;
 
   // Block priority (only one renders)
   const showLastActiveBlock = isLastActive;
@@ -61,27 +62,14 @@ export function ArchiveConfirmDialog({
   const showFrozenInfoBlock =
     !showLastActiveBlock && !showContextBlock && sourceStatus === 'FROZEN';
 
-  const handleBackdropClick = (): void => {
-    if (!isLoading) onClose();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent): void => {
-    if (e.key === 'Escape' && !isLoading) onClose();
-  };
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="archive-confirm-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      closable={!isLoading}
+      ariaLabelledBy="archive-confirm-dialog-title"
     >
-      <div
-        className="w-full max-w-md rounded-2xl bg-background p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <>
         {/* Main icon — neutral gray circle 56×56 */}
         <div className="mb-5 flex justify-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
@@ -227,7 +215,7 @@ export function ArchiveConfirmDialog({
             )}
           </Button>
         </div>
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }

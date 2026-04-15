@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+import Dialog from '@/shared/components/Dialog';
 import type { Storage } from '../types/storages.types';
 
 interface FreezeConfirmDialogProps {
@@ -48,33 +49,20 @@ export function FreezeConfirmDialog({
 }: FreezeConfirmDialogProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
 
-  if (!open || !storage) return null;
+  if (!storage) return null;
 
   // Last active subsumes context active (H-05 E2.4)
   const showInfoBlock = isContextActive && !isLastActive;
   const showWarningBlock = isLastActive;
 
-  const handleBackdropClick = (): void => {
-    if (!isLoading) onClose();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent): void => {
-    if (e.key === 'Escape' && !isLoading) onClose();
-  };
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="freeze-storage-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      closable={!isLoading}
+      ariaLabelledBy="freeze-storage-dialog-title"
     >
-      <div
-        className="w-full max-w-md rounded-2xl bg-background p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <>
         {/* Icon */}
         <div className="mb-5 flex justify-center">
           <span
@@ -183,7 +171,7 @@ export function FreezeConfirmDialog({
             )}
           </Button>
         </div>
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }

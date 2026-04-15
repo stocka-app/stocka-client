@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+import Dialog from '@/shared/components/Dialog';
 import { useOrganization } from '../hooks/useOrganization';
 
 interface CancelOrgModalProps {
@@ -23,13 +24,14 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cancel-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+    <Dialog
+      open={true}
+      onClose={onClose}
+      closable={!isSaving}
+      ariaLabelledBy="cancel-modal-title"
+      className="w-full max-w-md rounded-xl bg-surface-card shadow-xl p-6 space-y-5"
     >
-      <div className="w-full max-w-md rounded-xl bg-surface-card shadow-xl p-6 space-y-5">
+      <>
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2
@@ -102,7 +104,7 @@ export function CancelOrgModal({ businessName, onClose }: CancelOrgModalProps): 
             {t('dangerZone.cancelOrg.cancelButton')}
           </button>
         </div>
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }

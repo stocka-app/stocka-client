@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+import Dialog from '@/shared/components/Dialog';
 import type { Storage } from '../types/storages.types';
 
 interface DeleteStorageDialogProps {
@@ -38,29 +39,16 @@ export function DeleteStorageDialog({
 }: DeleteStorageDialogProps): React.ReactElement | null {
   const { t } = useTranslation('storages');
 
-  if (!open || !storage) return null;
-
-  const handleBackdropClick = (): void => {
-    if (!isLoading) onClose();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent): void => {
-    if (e.key === 'Escape' && !isLoading) onClose();
-  };
+  if (!storage) return null;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="delete-storage-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      closable={!isLoading}
+      ariaLabelledBy="delete-storage-dialog-title"
     >
-      <div
-        className="w-full max-w-md rounded-2xl bg-background p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <>
         {/* Main icon — red destructive circle 56×56 */}
         <div className="mb-5 flex justify-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
@@ -162,7 +150,7 @@ export function DeleteStorageDialog({
             )}
           </Button>
         </div>
-      </div>
-    </div>
+      </>
+    </Dialog>
   );
 }
