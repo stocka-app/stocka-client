@@ -93,6 +93,8 @@ interface StorageCardProps {
   canFreeze?: boolean;
   /** RBAC: user has STORAGE_UNFREEZE permission */
   canUnfreeze?: boolean;
+  /** RBAC: user has STORAGE_RESTORE permission (H-07) */
+  canRestore?: boolean;
   /** RBAC: user has STORAGE_DELETE permission */
   canDelete?: boolean;
   onView: (storage: Storage) => void;
@@ -113,6 +115,7 @@ export function StorageCard({
   canFreeze = false,
   canUnfreeze = false,
   canArchive = false,
+  canRestore = false,
   canDelete = false,
   onView,
   onEdit,
@@ -129,10 +132,17 @@ export function StorageCard({
   const isCustomRoom = storage.type === 'CUSTOM_ROOM';
 
   // Menu item enabled state — always visible, conditionally disabled.
-  const editDisabled = !canEdit || isArchived;
+  // H-07: edit is allowed in ARCHIVED (E5.2 — metadata editable).
+  const editDisabled = !canEdit;
   // H-05: FROZEN → ARCHIVED is allowed directly (no need to unfreeze first)
   const archiveDisabled = !canArchive || isArchived;
   const deleteDisabled = !canDelete || !isArchived;
+
+  // H-07: ARCHIVED cards dim content to 60% to signal "stopped" state. The
+  // context menu is explicitly kept at 100% so archive actions (Restore,
+  // Delete) stay fully interactive. FROZEN cards are NOT attenuated — color
+  // differentiation alone carries the semantic (blue border / blue dot).
+  const contentFadeClass = isArchived ? 'opacity-60' : '';
 
   return (
     <div
@@ -147,7 +157,7 @@ export function StorageCard({
           : cn(
               'border border-border',
               isArchived
-                ? 'bg-neutral-50 opacity-50'
+                ? 'bg-neutral-50'
                 : isFrozen
                   ? 'border-blue-400/30 bg-surface-card'
                   : 'bg-surface-card',
@@ -162,15 +172,21 @@ export function StorageCard({
           : undefined
       }
     >
-      {/* Left color bracket */}
+      {/* Left color bracket — faded with content on ARCHIVED (visual continuity) */}
       <div
-        className={cn('w-2.5 shrink-0', !isCustomRoom && TYPE_BRACKET_CLASSES[storage.type])}
+        className={cn(
+          'w-2.5 shrink-0',
+          !isCustomRoom && TYPE_BRACKET_CLASSES[storage.type],
+          contentFadeClass,
+        )}
         style={isCustomRoom ? { backgroundColor: storage.color } : undefined}
         aria-hidden="true"
       />
 
       {/* Content body */}
-      <div className={cn('flex min-w-0 flex-1 flex-col p-4', isFrozen && 'opacity-75')}>
+      <div className="flex min-w-0 flex-1 flex-col p-4">
+        {/* Main content — header + name + address — fades to 60% on ARCHIVED */}
+        <div className={cn('flex flex-col', contentFadeClass)}>
         {/* Header: icon + badge row, then name below */}
         <div className="mb-2 flex items-start justify-between">
           {/* Icon area */}
@@ -243,10 +259,14 @@ export function StorageCard({
             <p className="truncate text-sm text-neutral-600">{storage.address}</p>
           </div>
         )}
+        </div>
 
-        {/* Context menu — mt-auto pins footer to bottom when grid stretches this card */}
+        {/* Context menu — mt-auto pins footer to bottom when grid stretches this card.
+            The footer itself is NOT faded on ARCHIVED; only the product-count label
+            inherits the fade (wrapped below). The dropdown stays at 100% so
+            Restaurar/Eliminar remain fully interactive. */}
         <div className="mt-auto flex items-center justify-between border-t border-border pt-2">
-          <div className="flex items-center gap-1.5">
+          <div className={cn('flex items-center gap-1.5', contentFadeClass)}>
             <span className="material-symbols-outlined text-[16px] text-neutral-400">inventory_2</span>
             <span className="text-xs text-neutral-500">— {t('productCount')}</span>
           </div>
@@ -268,18 +288,18 @@ export function StorageCard({
                 </span>
                 {t('actions.view')}
               </DropdownMenuItem>
-              {!isArchived && (
-                <DropdownMenuItem
-                  disabled={editDisabled}
-                  onClick={() => !editDisabled && onEdit(storage)}
-                  className="group"
-                >
-                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-brand">
-                    edit
-                  </span>
-                  {t('actions.edit')}
-                </DropdownMenuItem>
-              )}
+              {/* H-07: Edit is now allowed in ARCHIVED (metadata editable per E5.2).
+                  Type-change stays locked by the drawer's typeLocked gate. */}
+              <DropdownMenuItem
+                disabled={editDisabled}
+                onClick={() => !editDisabled && onEdit(storage)}
+                className="group"
+              >
+                <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-brand">
+                  edit
+                </span>
+                {t('actions.edit')}
+              </DropdownMenuItem>
 
               {/* Divider — separates navigation from state-change actions (H-05 Pencil FASE 1) */}
               <DropdownMenuSeparator />
@@ -310,12 +330,12 @@ export function StorageCard({
               )}
               {isArchived ? (
                 <DropdownMenuItem
-                  disabled={!canArchive}
-                  onClick={() => canArchive && onRestore(storage)}
+                  disabled={!canRestore}
+                  onClick={() => canRestore && onRestore(storage)}
                   className="group"
                 >
                   <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-success">
-                    unarchive
+                    settings_backup_restore
                   </span>
                   {t('actions.restore')}
                 </DropdownMenuItem>

@@ -726,6 +726,7 @@ export default function StoragesPage(): React.ReactElement {
                 canFreeze={canFreeze}
                 canUnfreeze={canUnfreeze}
                 canArchive={canDo('STORAGE_ARCHIVE')}
+                canRestore={canDo('STORAGE_RESTORE')}
                 canDelete={canDo('STORAGE_DELETE')}
                 onView={handleViewClick}
                 onEdit={handleEditClick}
