@@ -292,6 +292,29 @@
       "contextBlock": "Estás trabajando en esta instalación ahora. Al congelarla, el módulo pasará a modo consulta hasta que la reactives.",
       "lastActiveBlock": "Esta es tu última instalación operativa. Si la congelas, no podrás realizar ninguna operación hasta que reactives una instalación.",
       "serverError": "No pudimos congelar la instalación. Revisa tu conexión e intenta de nuevo."
+    },
+    "archive": {
+      "title": "¿Archivar \"{{name}}\"?",
+      "body": "Esta instalación dejará de aparecer en las vistas activas. Podrás consultar su historial y restaurarla cuando quieras.",
+      "safetyLine": "Podrás restaurarla en cualquier momento.",
+      "confirm": "Archivar",
+      "confirmAnyway": "Archivar de todos modos",
+      "cancel": "Cancelar",
+      "loading": "Archivando...",
+      "contextBlock": "Estás trabajando en esta instalación ahora. Al archivarla, el módulo pasará a otra o quedará sin contexto activo.",
+      "lastActiveBlock": "Esta es tu última instalación operativa. Si la archivas, no podrás realizar operaciones hasta restaurar o crear otra.",
+      "frozenInfoBlock": "Esta instalación está congelada. Al archivarla pasará directamente a histórico — no es necesario reactivarla primero.",
+      "serverError": "No pudimos archivar la instalación. Revisa tu conexión e intenta de nuevo."
+    },
+    "delete": {
+      "title": "¿Eliminar \"{{name}}\" permanentemente?",
+      "body": "Esta acción no se puede deshacer. Se perderá el historial completo de la instalación, incluyendo movimientos, registros y configuración.",
+      "warningBlock": "No podrás recuperar esta información después.",
+      "confirm": "Eliminar",
+      "cancel": "Cancelar",
+      "loading": "Eliminando...",
+      "notImplemented": "Funcionalidad en desarrollo. Estará disponible próximamente.",
+      "serverError": "No pudimos eliminar la instalación. Revisa tu conexión e intenta de nuevo."
     }
   },
   "toasts": {

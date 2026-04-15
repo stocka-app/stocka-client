@@ -292,6 +292,29 @@
       "contextBlock": "You're currently working in this storage. Freezing it will switch the module to view-only mode until you reactivate it.",
       "lastActiveBlock": "This is your last operational storage. If you freeze it, you won't be able to perform any operations until you reactivate a storage.",
       "serverError": "We couldn't freeze the storage. Check your connection and try again."
+    },
+    "archive": {
+      "title": "Archive \"{{name}}\"?",
+      "body": "This storage will no longer show in active views. You can consult its history and restore it any time.",
+      "safetyLine": "You can restore it at any time.",
+      "confirm": "Archive",
+      "confirmAnyway": "Archive anyway",
+      "cancel": "Cancel",
+      "loading": "Archiving...",
+      "contextBlock": "You're currently working in this storage. Archiving it will switch the module to another or leave no active context.",
+      "lastActiveBlock": "This is your last operational storage. If you archive it, you won't be able to perform operations until you restore or create another one.",
+      "frozenInfoBlock": "This storage is frozen. Archiving will take it straight to history — you don't need to reactivate it first.",
+      "serverError": "We couldn't archive the storage. Check your connection and try again."
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\" permanently?",
+      "body": "This action cannot be undone. The full history of the storage will be lost, including movements, records, and configuration.",
+      "warningBlock": "You won't be able to recover this information later.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "loading": "Deleting...",
+      "notImplemented": "Feature in development. It will be available soon.",
+      "serverError": "We couldn't delete the storage. Check your connection and try again."
     }
   },
   "toasts": {
