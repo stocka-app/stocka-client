@@ -16,7 +16,7 @@ import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
 import { EditStorageDrawer } from '../components/EditStorageDrawer';
-import { ArchiveStorageModal } from '../components/ArchiveStorageModal';
+import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog';
 import { FreezeConfirmDialog } from '../components/FreezeConfirmDialog';
 import type { EditStoragePayload } from '../hooks/useStorages';
 
@@ -92,6 +92,11 @@ export default function StoragesPage(): React.ReactElement {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
+  const [isArchiveLoading, setIsArchiveLoading] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  // H-07: freeze the source status the moment the dialog opens so variant 2.4
+  // (From FROZEN) stays stable even if the storage mutates mid-dialog.
+  const [archiveSourceStatus, setArchiveSourceStatus] = useState<'ACTIVE' | 'FROZEN'>('ACTIVE');
   const [isFreezeOpen, setIsFreezeOpen] = useState(false);
   const [isFreezeLoading, setIsFreezeLoading] = useState(false);
   const [freezeError, setFreezeError] = useState<string | null>(null);
@@ -113,10 +118,6 @@ export default function StoragesPage(): React.ReactElement {
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state, location.pathname, canDo, navigate]);
-
-  // ── Business rules ──────────────────────────────────────────────────────
-
-  const canArchiveStorage = (storage: Storage): boolean => storage.status === 'ACTIVE';
 
   // ── Handlers ────────────────────────────────────────────────────────────
 
@@ -172,6 +173,8 @@ export default function StoragesPage(): React.ReactElement {
 
   const handleArchiveClick = (storage: Storage): void => {
     setSelectedStorage(storage);
+    setArchiveError(null);
+    setArchiveSourceStatus(storage.status === 'FROZEN' ? 'FROZEN' : 'ACTIVE');
     setIsArchiveOpen(true);
   };
 
@@ -208,8 +211,23 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleArchiveConfirm = async (): Promise<void> => {
-    if (selectedStorage) {
-      await archiveStorage(selectedStorage.uuid);
+    if (!selectedStorage) return;
+    setIsArchiveLoading(true);
+    setArchiveError(null);
+    const ok = await archiveStorage(selectedStorage.uuid);
+    setIsArchiveLoading(false);
+    if (ok) {
+      setIsArchiveOpen(false);
+      toast.success(t('toasts.archived', { name: selectedStorage.name, defaultValue: '"{{name}}" fue archivada' }));
+    } else {
+      setArchiveError('server_error');
+    }
+  };
+
+  const handleArchiveClose = (): void => {
+    if (!isArchiveLoading) {
+      setIsArchiveOpen(false);
+      setArchiveError(null);
     }
   };
 
@@ -297,11 +315,15 @@ export default function StoragesPage(): React.ReactElement {
         typeCounts={typeCounts}
         tier={tier ?? 'FREE'}
       />
-      <ArchiveStorageModal
+      <ArchiveConfirmDialog
         open={isArchiveOpen}
         storage={selectedStorage}
-        canArchive={selectedStorage !== null ? canArchiveStorage(selectedStorage) : false}
-        onClose={() => setIsArchiveOpen(false)}
+        sourceStatus={archiveSourceStatus}
+        isContextActive={selectedStorage?.uuid === activeStorageId}
+        isLastActive={selectedStorage ? getIsLastActive(selectedStorage.uuid) : false}
+        isLoading={isArchiveLoading}
+        serverError={archiveError}
+        onClose={handleArchiveClose}
         onConfirm={handleArchiveConfirm}
       />
 
