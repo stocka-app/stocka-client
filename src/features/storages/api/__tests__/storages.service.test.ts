@@ -233,13 +233,25 @@ describe('storagesService', () => {
   // ── changeType ────────────────────────────────────────────────────────────
 
   describe('changeType', () => {
-    it('calls PATCH /storages/:id/type with the new type and returns storageUUID', async () => {
+    it('calls PATCH /storages/{source-plural}/:id/convert-to-{target-singular} per-transition endpoint', async () => {
       mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-1' }));
 
-      const result = await storagesService.changeType('uuid-1', 'STORE_ROOM');
+      const result = await storagesService.changeType('uuid-1', 'WAREHOUSE', 'STORE_ROOM');
 
-      expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/uuid-1/type', { type: 'STORE_ROOM' });
+      expect(mockedAxios.patch).toHaveBeenCalledWith(
+        '/storages/warehouses/uuid-1/convert-to-store-room',
+      );
       expect(result).toEqual({ storageUUID: 'uuid-1' });
+    });
+
+    it('resolves the custom-room→warehouse transition to the correct URL', async () => {
+      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-2' }));
+
+      await storagesService.changeType('uuid-2', 'CUSTOM_ROOM', 'WAREHOUSE');
+
+      expect(mockedAxios.patch).toHaveBeenCalledWith(
+        '/storages/custom-rooms/uuid-2/convert-to-warehouse',
+      );
     });
   });
 

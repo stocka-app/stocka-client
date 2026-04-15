@@ -652,7 +652,13 @@ describe('Given useStorages orchestrates storage operations', () => {
 
       const response = await result.current.changeStorageType('storage-001', 'CUSTOM_ROOM');
       expect(response.error).toBeNull();
-      expect(vi.mocked(storagesService.changeType)).toHaveBeenCalledWith('storage-001', 'CUSTOM_ROOM');
+      // H-07 per-transition: service now receives (id, sourceType, targetType).
+      // storage-001 in the fixture is STORE_ROOM, so the call is STORE_ROOM → CUSTOM_ROOM.
+      expect(vi.mocked(storagesService.changeType)).toHaveBeenCalledWith(
+        'storage-001',
+        'STORE_ROOM',
+        'CUSTOM_ROOM',
+      );
     });
 
     it('Then returns error: tier_limit when the service responds with 403', async () => {

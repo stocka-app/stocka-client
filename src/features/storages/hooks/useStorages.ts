@@ -374,15 +374,17 @@ export function useStorages(): {
 
   const changeStorageType = useCallback(
     async (id: string, targetType: StorageType): Promise<{ error: ChangeTypeError }> => {
+      const source = storages.find((s) => s.uuid === id);
+      if (!source) return { error: 'server_error' };
       try {
-        await storagesService.changeType(id, targetType);
+        await storagesService.changeType(id, source.type, targetType);
         await fetchStorages();
         return { error: null };
       } catch (err) {
         return { error: resolveChangeTypeError(err) };
       }
     },
-    [fetchStorages],
+    [storages, fetchStorages],
   );
 
   // Applies a status-flip locally to the summary counters so we don't have to

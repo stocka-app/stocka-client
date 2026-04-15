@@ -28,6 +28,13 @@ const TYPE_SLUG: Record<StorageType, string> = {
   CUSTOM_ROOM: 'custom-rooms',
 };
 
+// H-07 per-transition change-type endpoints use singular target segments.
+const TYPE_SLUG_SINGULAR: Record<StorageType, string> = {
+  WAREHOUSE: 'warehouse',
+  STORE_ROOM: 'store-room',
+  CUSTOM_ROOM: 'custom-room',
+};
+
 export const storagesService = {
   async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
     const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
@@ -99,8 +106,13 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
-  async changeType(id: string, type: StorageType): Promise<{ storageUUID: string }> {
-    const { data } = await axiosInstance.patch(`/storages/${id}/type`, { type });
+  async changeType(
+    id: string,
+    sourceType: StorageType,
+    targetType: StorageType,
+  ): Promise<{ storageUUID: string }> {
+    const url = `/storages/${TYPE_SLUG[sourceType]}/${id}/convert-to-${TYPE_SLUG_SINGULAR[targetType]}`;
+    const { data } = await axiosInstance.patch(url);
     return unwrap(data) as { storageUUID: string };
   },
 
