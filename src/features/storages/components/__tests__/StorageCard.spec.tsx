@@ -412,6 +412,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
           onRestore={onRestore}
           onDelete={onDelete}
           canArchive={true}
+          canRestore={true}
         />,
       );
       await openContextMenu(user);

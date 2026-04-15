@@ -129,7 +129,7 @@ describe('StorageStatusBanner', () => {
   beforeEach(() => {
     user = userEvent.setup();
     vi.clearAllMocks();
-    mockPermissions.current = new Set<string>(['STORAGE_READ', 'STORAGE_UNFREEZE']);
+    mockPermissions.current = new Set<string>(['STORAGE_READ', 'STORAGE_UNFREEZE', 'STORAGE_RESTORE']);
     mockStoreState.activeStorageId = null;
     mockStoreState.storages = [activeStorage, frozenStorage, archivedStorage];
     mockStoreState.isLoading = false;
@@ -390,10 +390,10 @@ describe('StorageStatusBanner', () => {
       mockRestoreResult.current = { ...archivedStorage, status: 'ACTIVE', archivedAt: null };
     });
 
-    describe('When the user clicks "Reactivar"', () => {
+    describe('When the user clicks "Restaurar"', () => {
       beforeEach(async () => {
         render(<StorageStatusBanner />);
-        const cta = screen.getByRole('button', { name: 'banners.reactivate' });
+        const cta = screen.getByRole('button', { name: 'banners.restore' });
         await user.click(cta);
       });
 
@@ -420,11 +420,11 @@ describe('StorageStatusBanner', () => {
       mockRestoreResult.current = new Error('restore boom');
     });
 
-    describe('When the user clicks "Reactivar"', () => {
+    describe('When the user clicks "Restaurar"', () => {
       beforeEach(async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
         render(<StorageStatusBanner />);
-        const cta = screen.getByRole('button', { name: 'banners.reactivate' });
+        const cta = screen.getByRole('button', { name: 'banners.restore' });
         await user.click(cta);
       });
 

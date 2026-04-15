@@ -176,34 +176,44 @@ describe('storagesService', () => {
   // ── updateWarehouse ──────────────────────────────────────────────────────
 
   describe('updateWarehouse', () => {
-    it('calls PATCH /storages/warehouses/:id with payload and returns storageUUID', async () => {
-      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-1' }));
+    it('calls PATCH /storages/warehouses/:id with payload and returns the updated Storage', async () => {
+      const updated = { ...storageFixture, name: 'Almacen Norte' };
+      mockedAxios.patch.mockResolvedValueOnce(envelope(updated));
 
       const result = await storagesService.updateWarehouse('uuid-1', { name: 'Almacen Norte' });
 
       expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/warehouses/uuid-1', { name: 'Almacen Norte' });
-      expect(result).toEqual({ storageUUID: 'uuid-1' });
+      expect(result).toEqual(updated);
     });
   });
 
   // ── updateStoreRoom ───────────────────────────────────────────────────────
 
   describe('updateStoreRoom', () => {
-    it('calls PATCH /storages/store-rooms/:id with payload and returns storageUUID', async () => {
-      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-2' }));
+    it('calls PATCH /storages/store-rooms/:id with payload and returns the updated Storage', async () => {
+      const updated = { ...storageFixture, type: 'STORE_ROOM' as const, name: 'Back Store Updated' };
+      mockedAxios.patch.mockResolvedValueOnce(envelope(updated));
 
       const result = await storagesService.updateStoreRoom('uuid-2', { name: 'Back Store Updated' });
 
       expect(mockedAxios.patch).toHaveBeenCalledWith('/storages/store-rooms/uuid-2', { name: 'Back Store Updated' });
-      expect(result).toEqual({ storageUUID: 'uuid-2' });
+      expect(result).toEqual(updated);
     });
   });
 
   // ── updateCustomRoom ──────────────────────────────────────────────────────
 
   describe('updateCustomRoom', () => {
-    it('calls PATCH /storages/custom-rooms/:id with payload and returns storageUUID', async () => {
-      mockedAxios.patch.mockResolvedValueOnce(envelope({ storageUUID: 'uuid-3' }));
+    it('calls PATCH /storages/custom-rooms/:id with payload and returns the updated Storage', async () => {
+      const updated = {
+        ...storageFixture,
+        type: 'CUSTOM_ROOM' as const,
+        name: 'Updated Kitchen',
+        icon: 'kitchen',
+        color: '#0D9488',
+        roomType: 'Kitchen',
+      };
+      mockedAxios.patch.mockResolvedValueOnce(envelope(updated));
 
       const result = await storagesService.updateCustomRoom('uuid-3', {
         name: 'Updated Kitchen',
@@ -216,7 +226,7 @@ describe('storagesService', () => {
         icon: 'kitchen',
         color: '#0D9488',
       });
-      expect(result).toEqual({ storageUUID: 'uuid-3' });
+      expect(result).toEqual(updated);
     });
   });
 
