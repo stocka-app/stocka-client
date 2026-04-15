@@ -22,7 +22,7 @@ async function setupWithSmartFiltering(
   items: MockStorage[] = MIXED,
 ): Promise<void> {
   const rbacValue = JSON.stringify({
-    state: { role: 'owner', tier: 'FREE', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
+    state: { role: 'owner', tier: 'STARTER', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
     version: 0,
   });
 
@@ -34,7 +34,39 @@ async function setupWithSmartFiltering(
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'FREE', actions: RBAC_OWNER.actions, grants: [] } }),
+      body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'STARTER', actions: RBAC_OWNER.actions, grants: [] } }),
+    });
+  });
+
+  // Without a tierLimits-bearing JWT the app treats the user as FREE tier and
+  // tier-locks the Warehouse tab + disables search/sort controls. Fabricate a
+  // STARTER tier refresh response so filtering tests exercise the unlocked UI.
+  await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    const payload = btoa(
+      JSON.stringify({
+        sub: 'e2e-smart-filter-user',
+        email: 'filters@stocka.test',
+        tenantId: 'e2e-mock-tenant',
+        role: 'owner',
+        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 7200,
+      }),
+    )
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { accessToken: `${header}.${payload}.e2e-fake` },
+      }),
     });
   });
 
@@ -106,11 +138,11 @@ test.describe('Section 5: Filter by type (tabs)', () => {
     await storagesPage.tabWarehouses.click();
 
     // Wait for warehouse cards to appear
-    await expect(page.getByText('Almacen Central')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
 
     // Non-warehouse cards should be gone
-    await expect(page.getByText('Bodega Principal')).not.toBeVisible();
-    await expect(page.getByText('Area Exhibicion')).not.toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Area Exhibicion' }).first()).not.toBeVisible();
   });
 
   // T-03
@@ -123,8 +155,8 @@ test.describe('Section 5: Filter by type (tabs)', () => {
 
     await storagesPage.tabStoreRooms.click();
 
-    await expect(page.getByText('Bodega Principal')).toBeVisible();
-    await expect(page.getByText('Almacen Central')).not.toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
   // T-04
@@ -137,8 +169,8 @@ test.describe('Section 5: Filter by type (tabs)', () => {
 
     await storagesPage.tabCustomRooms.click();
 
-    await expect(page.getByText('Area Exhibicion')).toBeVisible();
-    await expect(page.getByText('Almacen Central')).not.toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Area Exhibicion' }).first()).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
   // T-05
@@ -161,7 +193,7 @@ test.describe('Section 5: Filter by type (tabs)', () => {
 
     // Filter to warehouses first
     await storagesPage.tabWarehouses.click();
-    await expect(page.getByText('Almacen Central')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
 
     // Click All
     await storagesPage.tabAll.click();
@@ -200,9 +232,9 @@ test.describe('Section 6: Filter by status', () => {
     await storagesPage.selectStatus('FROZEN');
 
     // Should show frozen storages
-    await expect(page.getByText('Almacen Norte')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).toBeVisible();
     // Active/archived should be hidden
-    await expect(page.getByText('Almacen Central')).not.toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
   // S-03
@@ -279,9 +311,9 @@ test.describe('Section 7: Search by name', () => {
 
     await storagesPage.search('Central');
 
-    await expect(page.getByText('Almacen Central')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
     // Others should be filtered out
-    await expect(page.getByText('Bodega Principal')).not.toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible();
   });
 
   // B-02
@@ -314,7 +346,7 @@ test.describe('Section 7: Search by name', () => {
     await storagesPage.waitForCards();
 
     await storagesPage.search('Central');
-    await expect(page.getByText('Almacen Central')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
 
     // Click the search chip to remove
     await storagesPage.filterChips().filter({ hasText: 'Central' }).click();
@@ -380,9 +412,11 @@ test.describe('Section 7: Search by name', () => {
 
     await storagesPage.search('xyznonexistent');
 
-    await expect(page.getByText('Check spelling')).toBeVisible();
-    await expect(page.getByText('Adjust filters')).toBeVisible();
-    await expect(page.getByText('Create new')).toBeVisible();
+    // Suggestion card titles render as <span> inside the StateComposition,
+    // not as <h3>. Match by visible text instead.
+    await expect(page.getByText('Check spelling', { exact: true })).toBeVisible();
+    await expect(page.getByText('Adjust filters', { exact: true })).toBeVisible();
+    await expect(page.getByText('Create new', { exact: true })).toBeVisible();
   });
 });
 
@@ -419,15 +453,22 @@ test.describe('Section 8: Sorting', () => {
 
     const ascNames = await storagesPage.getCardNames();
 
+    // Wait for the refetch triggered by toggleSort — otherwise getCardNames
+    // can read the stale (pre-refetch) order before React has re-rendered.
+    const descResponse = page.waitForResponse(
+      (res) => res.url().includes('/api/storages') && res.url().includes('sortOrder=DESC'),
+    );
     await storagesPage.toggleSort();
+    await descResponse;
 
-    // Wait for re-render
-    await page.waitForTimeout(500);
+    // Give React a micro-tick to commit the new list.
+    await expect(storagesPage.sortButton).toContainText('Z → A');
 
     const descNames = await storagesPage.getCardNames();
 
-    // The first and last items should be swapped
-    expect(ascNames[0]).not.toBe(descNames[0]);
+    // The active-context card is always pinned first regardless of sort
+    // (H-03 active storage treatment). Compare the non-pinned tail instead.
+    expect(ascNames.slice(1)[0]).not.toBe(descNames.slice(1)[0]);
   });
 });
 
@@ -448,9 +489,9 @@ test.describe('Section 9: Combined filters', () => {
     await storagesPage.search('Central');
 
     // Only Almacen Central (active warehouse) should match
-    await expect(page.getByText('Almacen Central')).toBeVisible();
-    await expect(page.getByText('Almacen Norte')).not.toBeVisible(); // frozen
-    await expect(page.getByText('Bodega Principal')).not.toBeVisible(); // wrong name
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).not.toBeVisible(); // frozen
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible(); // wrong name
   });
 
   // FC-02
@@ -464,8 +505,8 @@ test.describe('Section 9: Combined filters', () => {
     await storagesPage.tabWarehouses.click();
     await storagesPage.selectStatus('FROZEN');
 
-    await expect(page.getByText('Almacen Norte')).toBeVisible();
-    await expect(page.getByText('Almacen Central')).not.toBeVisible(); // active
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible(); // active
   });
 
   // FC-03
@@ -480,7 +521,7 @@ test.describe('Section 9: Combined filters', () => {
     await storagesPage.selectStatus('ACTIVE');
     await storagesPage.search('Central');
 
-    await expect(page.getByText('Almacen Central')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
     const names = await storagesPage.getCardNames();
     expect(names.length).toBe(1);
   });
@@ -518,6 +559,6 @@ test.describe('Section 9: Combined filters', () => {
     // Search should still be active
     await expect(storagesPage.filterChips().filter({ hasText: 'Central' })).toBeVisible();
     // Should show all "Central" storages regardless of status
-    await expect(page.getByText('Almacen Central')).toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
   });
 });

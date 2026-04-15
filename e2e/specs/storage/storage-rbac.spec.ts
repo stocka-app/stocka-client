@@ -56,6 +56,12 @@ const MOCK_STORAGES_RESPONSE = {
     page: 1,
     limit: 50,
     totalPages: 1,
+    summary: { active: 1, frozen: 0, archived: 1 },
+    typeSummary: {
+      WAREHOUSE: { active: 1, frozen: 0, archived: 0 },
+      STORE_ROOM: { active: 0, frozen: 0, archived: 0 },
+      CUSTOM_ROOM: { active: 0, frozen: 0, archived: 1 },
+    },
   },
 };
 
@@ -79,7 +85,7 @@ async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
   const rbacStorageValue = JSON.stringify({
     state: {
       role: rbac.role,
-      tier: 'FREE',
+      tier: 'STARTER',
       tenantStatus: 'ACTIVE',
       permissions: rbac.actions,
       grants: [],
@@ -101,7 +107,7 @@ async function setupAndNavigate(page: Page, rbac: RbacPayload): Promise<void> {
         success: true,
         data: {
           role: rbac.role,
-          tier: 'FREE',
+          tier: 'STARTER',
           actions: rbac.actions,
           grants: [],
         },
@@ -145,8 +151,10 @@ test.describe('Given a Viewer (STORAGE_READ only) on the Spaces page', () => {
       await spacesPage.openCardMenu('E2E Active Warehouse');
 
       await expect(spacesPage.viewButtons().first()).toBeVisible();
-      await expect(spacesPage.editButtons()).not.toBeVisible();
-      await expect(spacesPage.archiveButtons()).not.toBeVisible();
+      // For viewers, Edit/Archive are visible but disabled (Radix pattern).
+      // Delete only renders for archived storages — not present at all here.
+      await expect(spacesPage.editButtons().first()).toBeDisabled();
+      await expect(spacesPage.archiveButtons().first()).toBeDisabled();
       await expect(spacesPage.deleteButtons()).not.toBeVisible();
     });
 
@@ -184,7 +192,7 @@ test.describe(
     });
 
     test.describe('When they view the archived space card', () => {
-      test('Then Edit and Restore actions are shown', async ({ preAuthPage: page }) => {
+      test('Then Restore and Delete actions are shown', async ({ preAuthPage: page }) => {
         await setupAndNavigate(page, {
           role: 'manager',
           actions: ['STORAGE_READ', 'STORAGE_UPDATE', 'STORAGE_ARCHIVE', 'STORAGE_DELETE'],
@@ -194,8 +202,10 @@ test.describe(
         await spacesPage.waitForContent('E2E Archived Room');
         await spacesPage.openCardMenu('E2E Archived Room');
 
-        await expect(spacesPage.editButtons().first()).toBeVisible();
+        // Edit is hidden for archived storages (gated by `!isArchived` in StorageCard).
+        // Manager has STORAGE_ARCHIVE so Restore is visible; STORAGE_DELETE enables Delete.
         await expect(spacesPage.restoreButtons().first()).toBeVisible();
+        await expect(spacesPage.deleteButtons().first()).toBeVisible();
       });
     });
   },

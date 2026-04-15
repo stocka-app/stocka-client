@@ -34,9 +34,9 @@ test.describe('Given the drawer is open at Step 1', () => {
     await expect(drawer.storeRoomCard).toBeVisible();
     await expect(drawer.customRoomCard).toBeVisible();
 
-    // Exactly 3 radio cards — no extra cards
-    const allRadios = page.getByRole('radio');
-    await expect(allRadios).toHaveCount(3);
+    // Exactly 3 type cards
+    const allCards = page.locator('[data-testid^="type-card-"]');
+    await expect(allCards).toHaveCount(3);
   });
 
   test('CD-06: When the user selects Warehouse, Then Step 2 shows an address field', async ({
@@ -49,7 +49,7 @@ test.describe('Given the drawer is open at Step 1', () => {
 
     await drawer.selectType('WAREHOUSE');
 
-    await expect(page.getByText('STEP 2 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 2 OF 2')).toBeVisible();
     await expect(drawer.addressInput).toBeVisible();
   });
 
@@ -63,7 +63,7 @@ test.describe('Given the drawer is open at Step 1', () => {
 
     await drawer.selectType('STORE_ROOM');
 
-    await expect(page.getByText('STEP 2 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 2 OF 2')).toBeVisible();
     await expect(drawer.addressInput).toBeVisible();
   });
 
@@ -77,7 +77,7 @@ test.describe('Given the drawer is open at Step 1', () => {
 
     await drawer.selectType('CUSTOM_ROOM');
 
-    await expect(page.getByText('STEP 2 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 2 OF 2')).toBeVisible();
     await expect(drawer.iconColorSection).toBeVisible();
   });
 

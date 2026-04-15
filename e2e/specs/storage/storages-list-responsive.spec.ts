@@ -161,7 +161,7 @@ test.describe('Section 14: Dark mode', () => {
     await page.addInitScript((value: string) => {
       localStorage.setItem('rbac-storage', value);
     }, JSON.stringify({
-      state: { role: 'owner', tier: 'FREE', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
+      state: { role: 'owner', tier: 'STARTER', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
       version: 0,
     }));
 
@@ -169,7 +169,7 @@ test.describe('Section 14: Dark mode', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'FREE', actions: RBAC_OWNER.actions, grants: [] } }),
+        body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'STARTER', actions: RBAC_OWNER.actions, grants: [] } }),
       });
     });
 

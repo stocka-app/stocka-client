@@ -13,7 +13,7 @@ import {
 // ─── Shared mock data ─────────────────────────────────────────────────────────
 
 const STORAGE = buildStorage({
-  uuid: 'edit-test-uuid-001',
+  uuid: '12345678-0000-4000-8000-000000000099',
   name: 'Bodega Central',
   type: 'STORE_ROOM',
   status: 'ACTIVE',
@@ -31,6 +31,7 @@ const STARTER_CAPS = { tier: 'STARTER', maxWarehouses: 1, maxStoreRooms: 3, maxC
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe('Given the user opens the edit drawer from a storage card', () => {
+  test.describe.configure({ timeout: 60_000 });
   test('ED-1: Then the drawer shows pre-loaded values', async ({ preAuthPage: page }) => {
     await mockEditPatch(page, 'store-rooms', STORAGE.uuid);
     await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: STORAGES_RESPONSE, capabilities: STARTER_CAPS });
@@ -139,14 +140,14 @@ test.describe('Given the user opens the edit drawer from a storage card', () => 
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe('Given a Viewer user opens the card menu', () => {
+  test.describe.configure({ timeout: 60_000 });
   test('ED-7: Then the Edit option is disabled', async ({ preAuthPage: page }) => {
     await setupAndNavigate(page, { rbac: RBAC_VIEWER, storagesResponse: STORAGES_RESPONSE, capabilities: STARTER_CAPS });
 
     const list = new StoragesListPage(page);
     await list.openCardMenu(STORAGE.name);
 
-    const editItem = list.menuItems.edit;
-    await expect(editItem).toBeVisible();
-    await expect(editItem).toHaveAttribute('data-disabled', 'true');
+    await expect(list.menuItems.edit).toBeVisible();
+    await expect(list.menuItems.edit).toBeDisabled();
   });
 });

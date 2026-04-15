@@ -1,9 +1,35 @@
 import type { Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const USERS_FILE = resolve(__dirname, '../.auth/users.json');
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type StorageType = 'WAREHOUSE' | 'STORE_ROOM' | 'CUSTOM_ROOM';
 export type StorageStatus = 'ACTIVE' | 'FROZEN' | 'ARCHIVED';
+
+/**
+ * Reads the real tenantId from the storageState file saved by globalSetup.
+ * Used by tests that need to seed localStorage keys scoped by tenantId.
+ */
+export function getRealTenantId(): string | null {
+  try {
+    const stateFile = resolve(__dirname, '../.auth/user.json');
+    const state = JSON.parse(readFileSync(stateFile, 'utf-8'));
+    for (const origin of state.origins ?? []) {
+      for (const item of origin.localStorage ?? []) {
+        if (item.name === 'authentication-storage') {
+          const parsed = JSON.parse(item.value);
+          return parsed?.state?.user?.tenantId ?? null;
+        }
+      }
+    }
+  } catch { /* storageState not available */ }
+  return null;
+}
 
 export interface MockStorage {
   uuid: string;
@@ -270,6 +296,53 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
     });
   });
 
+  // ── Refresh session mock ──
+  // Always fabricate a JWT instantly — never proxy to the real backend.
+  // route.fetch() inside a handler blocks all subsequent handlers until it
+  // resolves, which causes the storages mock to hang → error state.
+  // Use the real user ID from globalSetup so the app recognizes the session.
+  // Read real user data from globalSetup for the fabricated JWT
+  let userId = 'e2e-fallback-uuid';
+  let userEmail = 'e2e@stocka.test';
+  let tenantId: string | null = null;
+  try {
+    const users = JSON.parse(readFileSync(USERS_FILE, 'utf-8'));
+    userId = users.verifiedUser?.userId ?? userId;
+    userEmail = users.verifiedUser?.email ?? userEmail;
+  } catch { /* users.json not available — use fallbacks */ }
+  // Read tenantId from storageState localStorage (saved by globalSetup/fixture)
+  try {
+    const stateFile = resolve(__dirname, '../.auth/user.json');
+    const state = JSON.parse(readFileSync(stateFile, 'utf-8'));
+    const origins = state.origins ?? [];
+    for (const origin of origins) {
+      for (const item of origin.localStorage ?? []) {
+        if (item.name === 'authentication-storage') {
+          const parsed = JSON.parse(item.value);
+          tenantId = parsed?.state?.user?.tenantId ?? null;
+        }
+      }
+    }
+  } catch { /* storageState not available */ }
+
+  await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+    const payload = btoa(JSON.stringify({
+      sub: userId, email: userEmail,
+      tenantId: tenantId ?? 'e2e-mock-tenant', role: rbac.role, displayName: 'E2E User',
+      tierLimits: capabilities
+        ? { tier: capabilities.tier, maxWarehouses: capabilities.maxWarehouses, maxStoreRooms: capabilities.maxStoreRooms, maxCustomRooms: capabilities.maxCustomRooms }
+        : { tier: rbac.tier ?? 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+      iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 7200,
+    })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const fakeToken = `${header.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}.${payload}.e2e-fake`;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: { accessToken: fakeToken } }),
+    });
+  });
+
   // ── Storages API mock ──
   await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
     if (route.request().method() !== 'GET') {
@@ -345,36 +418,14 @@ export async function setupAndNavigate(page: Page, opts: SetupOptions): Promise<
       });
     });
 
-    // Patch the JWT's tierLimits in the refresh-session response so
-    // useCapabilities reads the mocked tier instead of the real one.
-    // The frontend decodes JWTs without verifying the signature, so
-    // re-encoding the modified payload is safe for E2E tests.
-    await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
-      const response = await route.fetch();
-      const json = await response.json();
-      const token: string | undefined = json?.data?.accessToken;
-      if (token) {
-        const [header, payload, signature] = token.split('.');
-        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-        decoded.tierLimits = {
-          tier: capabilities.tier,
-          maxCustomRooms: capabilities.maxCustomRooms,
-          maxStoreRooms: capabilities.maxStoreRooms,
-          maxWarehouses: capabilities.maxWarehouses,
-        };
-        const patched = btoa(JSON.stringify(decoded))
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, '');
-        json.data.accessToken = [header, patched, signature].join('.');
-      }
-      await route.fulfill({ response, json });
-    });
   }
 
   await page.goto('/storages');
   await page.waitForURL('**/storages', { timeout: 15_000 });
-  await page.waitForLoadState('networkidle', { timeout: 10_000 });
+  // networkidle ensures the auth refresh completes before tests interact.
+  // Without it, the page is in a transient state and interactions fail.
+  // The catch prevents hanging forever if a background request stays open.
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
 }
 
 // ─── Create POST mock ─────────────────────────────────────────────────────────

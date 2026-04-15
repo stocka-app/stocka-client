@@ -61,13 +61,28 @@ export const test = base.extend<AuthTestFixtures, AuthWorkerFixtures>({
     const ctx = await browser.newContext({ storageState: STORAGE_STATE_FILE });
     const page = await ctx.newPage();
 
+    // Force English locale for deterministic selectors
+    await page.addInitScript(() => { localStorage.setItem('i18nextLng', 'en'); });
+
     await page.goto('/dashboard');
-    await page.waitForURL('**/dashboard', { timeout: 15_000 });
-    // Wait for hydrateAuth() (executeRefresh + getMe + loadPermissions) to complete
-    // before handing the page to the test. Without this, the test might navigate away
-    // while executeRefresh is still in-flight, causing the backend to rotate the token
-    // but the browser to discard the Set-Cookie response — invalidating the session.
-    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+
+    // If the refresh token was rotated/revoked, the app redirects to sign-in.
+    // Detect this and re-authenticate using saved credentials.
+    try {
+      await page.waitForURL('**/dashboard', { timeout: 10_000 });
+    } catch {
+      // Landed on sign-in — re-authenticate
+      const { verifiedUser } = JSON.parse(readFileSync(USERS_FILE, 'utf-8')) as {
+        verifiedUser: TestUser;
+      };
+      await page.waitForURL('**/sign-in', { timeout: 5_000 }).catch(() => {});
+      await page.getByLabel('Enter your username or email address').fill(verifiedUser.email);
+      await page.getByLabel('Enter your Password').fill(verifiedUser.password);
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+      await page.waitForURL('**/dashboard', { timeout: 15_000 });
+    }
+
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
 
     await use(page);
 

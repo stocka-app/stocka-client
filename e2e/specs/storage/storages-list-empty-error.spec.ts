@@ -21,8 +21,14 @@ test.describe('Section 3: Empty state', () => {
     const storagesPage = new StoragesListPage(page);
 
     await expect(storagesPage.emptyTitle()).toBeVisible();
-    // Warehouse icon in the state composition
-    await expect(page.getByText('warehouse').first()).toBeVisible();
+    // The `warehouse` material-symbols glyph is rendered with aria-hidden (and
+    // Playwright's getByText skips accessibility-hidden matches). Target the
+    // icon span directly inside the empty-state `[role="status"]` composition.
+    const emptyStateIcon = page
+      .locator('[role="status"]')
+      .locator('span.material-symbols-outlined', { hasText: 'warehouse' })
+      .first();
+    await expect(emptyStateIcon).toBeAttached();
   });
 
   // E-02
@@ -93,8 +99,8 @@ test.describe('Section 3: Empty state', () => {
     await storagesPage.emptyCreateButton().click();
 
     // Drawer should open at Step 1
-    await expect(page.getByRole('dialog', { name: 'New installation' })).toBeVisible();
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'New storage' })).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
   });
 });
 
@@ -164,7 +170,7 @@ test.describe('Section 4: Error state', () => {
     await page.addInitScript((value: string) => {
       localStorage.setItem('rbac-storage', value);
     }, JSON.stringify({
-      state: { role: 'owner', tier: 'FREE', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
+      state: { role: 'owner', tier: 'STARTER', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
       version: 0,
     }));
 
@@ -172,7 +178,24 @@ test.describe('Section 4: Error state', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'FREE', actions: RBAC_OWNER.actions, grants: [] } }),
+        body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'STARTER', actions: RBAC_OWNER.actions, grants: [] } }),
+      });
+    });
+
+    // Fabricate STARTER-tier JWT so the tier lock does not hide search/sort on the success state.
+    await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const payload = btoa(JSON.stringify({
+        sub: 'e2e-retry-user', email: 'retry@stocka.test',
+        tenantId: 'e2e-mock-tenant', role: 'owner',
+        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
+        iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 7200,
+      })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { accessToken: `${header}.${payload}.e2e-fake` } }),
       });
     });
 
@@ -198,7 +221,8 @@ test.describe('Section 4: Error state', () => {
     // Click retry
     await storagesPage.retryButton().click();
 
-    // Data should now load
-    await expect(page.getByText('Recovered Storage')).toBeVisible();
+    // Data should now load. Scope to the card heading — the sidebar switcher
+    // also renders the storage name as a button label.
+    await expect(page.getByRole('heading', { name: 'Recovered Storage' })).toBeVisible();
   });
 });

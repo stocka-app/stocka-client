@@ -34,7 +34,7 @@ test.describe('StorageSwitcher — Mobile viewport', () => {
 
     // At mobile width the sidebar is hidden by default — look for the
     // hamburger menu button and click it to open the drawer.
-    const hamburger = page.getByRole('button', { name: /sidebar\.open|Open sidebar|Menu/i });
+    const hamburger = page.getByRole('button', { name: /Open navigation|Abrir navegación/i });
     await expect(hamburger).toBeVisible({ timeout: 15_000 });
     await hamburger.click();
 

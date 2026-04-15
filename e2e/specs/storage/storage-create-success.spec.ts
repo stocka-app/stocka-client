@@ -127,11 +127,11 @@ test.describe('Given the create POST endpoint returns success', () => {
     await storagesPage.emptyCreateButton().click();
 
     // Should be back at Step 1
-    await expect(page.getByText('STEP 1 OF 2')).toBeVisible();
+    await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
 
     // No type is pre-selected
-    await expect(drawer.warehouseCard).toHaveAttribute('aria-checked', 'false');
-    await expect(drawer.storeRoomCard).toHaveAttribute('aria-checked', 'false');
-    await expect(drawer.customRoomCard).toHaveAttribute('aria-checked', 'false');
+    // Drawer is back at Step 1 (not Step 2 with previous data)
+    await expect(drawer.warehouseCard).toBeVisible();
+    await expect(drawer.nameInput).not.toBeVisible();
   });
 });

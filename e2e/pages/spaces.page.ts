@@ -13,7 +13,7 @@ export class SpacesPage {
   constructor(page: Page) {
     this.page = page;
 
-    this.heading = page.getByRole('heading', { name: /Spaces/i });
+    this.heading = page.getByRole('heading', { name: /Storages|Spaces/i });
     this.createButton = page.getByRole('button', { name: /New storage/i });
   }
 
@@ -27,12 +27,14 @@ export class SpacesPage {
    * Uses the space name text to confirm the list has rendered.
    */
   async waitForContent(spaceName: string): Promise<void> {
-    await this.page.getByText(spaceName).waitFor({ state: 'visible' });
+    // Card names render as h3 — sidebar storage switcher also shows the name
+    // but as a button label. Scope to h3 to avoid ambiguity.
+    await this.page.locator('h3').filter({ hasText: spaceName }).first().waitFor({ state: 'visible' });
   }
 
   /** Open the three-dot context menu on a card containing the given text */
   async openCardMenu(cardText: string): Promise<void> {
-    const card = this.page.getByText(cardText).locator('..').locator('..');
+    const card = this.page.locator('h3').filter({ hasText: cardText }).first().locator('..').locator('..');
     await card.getByLabel('Actions menu').click();
   }
 
