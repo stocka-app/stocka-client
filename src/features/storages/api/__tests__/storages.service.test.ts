@@ -111,19 +111,8 @@ describe('storagesService', () => {
     });
   });
 
-  // ── create ───────────────────────────────────────────────────────────────
-
-  describe('create', () => {
-    it('calls POST /storages with payload and returns unwrapped + parsed storage', async () => {
-      mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
-
-      const payload = { name: 'Almacen Central', type: 'WAREHOUSE' as const, address: 'Av. Reforma 123' };
-      const result = await storagesService.create(payload);
-
-      expect(mockedAxios.post).toHaveBeenCalledWith('/storages', payload);
-      expect(result).toEqual(storageFixture);
-    });
-  });
+  // The unified POST /storages endpoint was removed by the per-type refactor.
+  // Per-type creates are covered by createWarehouse/createStoreRoom/createCustomRoom below.
 
   // ── createWarehouse ──────────────────────────────────────────────────────
 

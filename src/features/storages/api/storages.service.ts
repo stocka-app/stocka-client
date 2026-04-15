@@ -1,6 +1,5 @@
 import axiosInstance from '@/shared/lib/axios';
 import { storageSchema, storagesPageSchema } from '../schemas/storages.schema';
-import type { CreateStorageFormData } from '../schemas/storages.schema';
 import type { Storage, StoragesPage, StorageStatus, StorageType, TenantCapabilities } from '../types/storages.types';
 
 export interface ListStoragesParams {
@@ -39,11 +38,6 @@ export const storagesService = {
   async list({ signal, ...queryParams }: ListStoragesParams = {}): Promise<StoragesPage> {
     const { data } = await axiosInstance.get('/storages', { params: queryParams, signal });
     return storagesPageSchema.parse(unwrap(data));
-  },
-
-  async create(payload: CreateStorageFormData): Promise<Storage> {
-    const { data } = await axiosInstance.post('/storages', payload);
-    return storageSchema.parse(unwrap(data));
   },
 
   async createWarehouse(payload: {

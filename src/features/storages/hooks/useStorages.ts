@@ -6,7 +6,6 @@ import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/use
 import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
 import type {
-  CreateStorageFormData,
   CreateWarehouseFormData,
   CreateStoreRoomFormData,
   CreateCustomRoomFormData,
@@ -137,7 +136,6 @@ export function useStorages(): {
   canRestore: boolean;
   canDelete: boolean;
   fetchStorages: () => Promise<void>;
-  createStorage: (payload: CreateStorageFormData) => Promise<boolean>;
   createWarehouse: (payload: CreateWarehouseFormData) => Promise<{ error: CreateError }>;
   createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
   createCustomRoom: (payload: CreateCustomRoomFormData) => Promise<{ error: CreateError }>;
@@ -161,7 +159,6 @@ export function useStorages(): {
     error,
     setStorages,
     setPagination,
-    addStorage,
     updateStorage,
     setLoading,
     setError,
@@ -286,19 +283,6 @@ export function useStorages(): {
   }, []);
 
   // ── CRUD operations ────────────────────────────────────────────────────────
-
-  const createStorage = useCallback(
-    async (payload: CreateStorageFormData): Promise<boolean> => {
-      try {
-        const storage = await storagesService.create(payload);
-        addStorage(storage);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [addStorage],
-  );
 
   const createWarehouse = useCallback(
     async (payload: CreateWarehouseFormData): Promise<{ error: CreateError }> => {
@@ -575,7 +559,6 @@ export function useStorages(): {
         ...(filterType !== null ? { type: filterType } : {}),
         ...(searchQuery !== '' ? { search: searchQuery } : {}),
       }),
-    createStorage,
     createWarehouse,
     createStoreRoom,
     createCustomRoom,

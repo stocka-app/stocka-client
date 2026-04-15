@@ -275,32 +275,9 @@ describe('Given useStorages orchestrates storage operations', () => {
     });
   });
 
-  describe('When createStorage is called with valid data', () => {
-    it('Then it calls the service and returns true on success', async () => {
-      vi.mocked(storagesService.create).mockResolvedValue(mockStoragesItems[0]);
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-
-      const success = await result.current.createStorage({
-        name: 'New Storage',
-        type: 'CUSTOM_ROOM',
-      });
-      expect(success).toBe(true);
-      expect(vi.mocked(storagesService.create)).toHaveBeenCalledTimes(1);
-    });
-
-    it('Then returns false when the service throws', async () => {
-      vi.mocked(storagesService.create).mockRejectedValue(new Error('Save failed'));
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-
-      const success = await result.current.createStorage({
-        name: 'New Storage',
-        type: 'CUSTOM_ROOM',
-      });
-      expect(success).toBe(false);
-    });
-  });
+  // createStorage/service.create removed — callers use per-type createWarehouse/
+  // createStoreRoom/createCustomRoom; the unified endpoint POST /storages no
+  // longer exists in the BE.
 
   describe('When createWarehouse is called with valid data', () => {
     it('Then it calls the service and returns error: null on success', async () => {
