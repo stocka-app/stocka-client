@@ -84,14 +84,14 @@ const DEFAULT_TYPE_COUNTS: EditStorageDrawerProps['typeCounts'] = {
 describe('Given the EditStorageDrawer opens with an active warehouse', () => {
   let user: ReturnType<typeof userEvent.setup>;
   let onClose: Mock;
-  let onEdit: Mock;
+  let onEdit: Mock & EditStorageDrawerProps['onEdit'];
   let onChangeType: Mock;
 
   beforeEach(() => {
     mockTheme.current = 'light';
     user = userEvent.setup();
     onClose = vi.fn();
-    onEdit = vi.fn().mockResolvedValue({ error: null });
+    onEdit = vi.fn().mockResolvedValue({ error: null }) as unknown as EditStorageDrawerProps['onEdit'] & Mock;
     onChangeType = vi.fn().mockResolvedValue({ error: null });
   });
 
@@ -526,13 +526,13 @@ describe('Given the EditStorageDrawer opens with an active warehouse', () => {
 describe('Given the EditStorageDrawer opens with a frozen storage', () => {
   let user: ReturnType<typeof userEvent.setup>;
   let onClose: Mock;
-  let onEdit: Mock;
+  let onEdit: Mock & EditStorageDrawerProps['onEdit'];
   let onChangeType: Mock;
 
   beforeEach(() => {
     user = userEvent.setup();
     onClose = vi.fn();
-    onEdit = vi.fn().mockResolvedValue({ error: null });
+    onEdit = vi.fn().mockResolvedValue({ error: null }) as unknown as EditStorageDrawerProps['onEdit'] & Mock;
     onChangeType = vi.fn().mockResolvedValue({ error: null });
   });
 
@@ -608,13 +608,13 @@ describe('Given the EditStorageDrawer opens with a frozen storage', () => {
 describe('Given the EditStorageDrawer opens with a custom room', () => {
   let user: ReturnType<typeof userEvent.setup>;
   let onClose: Mock;
-  let onEdit: Mock;
+  let onEdit: Mock & EditStorageDrawerProps['onEdit'];
   let onChangeType: Mock;
 
   beforeEach(() => {
     user = userEvent.setup();
     onClose = vi.fn();
-    onEdit = vi.fn().mockResolvedValue({ error: null });
+    onEdit = vi.fn().mockResolvedValue({ error: null }) as unknown as EditStorageDrawerProps['onEdit'] & Mock;
     onChangeType = vi.fn().mockResolvedValue({ error: null });
   });
 
@@ -747,13 +747,13 @@ describe('Given the EditStorageDrawer opens with a custom room', () => {
 describe('Given the EditStorageDrawer opens with a custom room and the user opens the icon picker', () => {
   let user: ReturnType<typeof userEvent.setup>;
   let onClose: Mock;
-  let onEdit: Mock;
+  let onEdit: Mock & EditStorageDrawerProps['onEdit'];
   let onChangeType: Mock;
 
   beforeEach(() => {
     user = userEvent.setup();
     onClose = vi.fn();
-    onEdit = vi.fn().mockResolvedValue({ error: null });
+    onEdit = vi.fn().mockResolvedValue({ error: null }) as unknown as EditStorageDrawerProps['onEdit'] & Mock;
     onChangeType = vi.fn().mockResolvedValue({ error: null });
   });
 
@@ -967,7 +967,7 @@ describe('Given the EditStorageDrawer opens with a custom room and the user chan
 
   beforeEach(() => {
     user = userEvent.setup();
-    onEdit = vi.fn().mockResolvedValue({ error: null });
+    onEdit = vi.fn().mockResolvedValue({ error: null }) as unknown as EditStorageDrawerProps['onEdit'] & Mock;
   });
 
   it('Then onEdit payload includes the changed color when submitted', async () => {
@@ -976,7 +976,7 @@ describe('Given the EditStorageDrawer opens with a custom room and the user chan
         open={true}
         storage={ACTIVE_CUSTOM_ROOM}
         onClose={vi.fn()}
-        onEdit={onEdit}
+        onEdit={onEdit as unknown as EditStorageDrawerProps['onEdit']}
         onChangeType={vi.fn().mockResolvedValue({ error: null })}
         limits={DEFAULT_LIMITS}
         typeCounts={DEFAULT_TYPE_COUNTS}

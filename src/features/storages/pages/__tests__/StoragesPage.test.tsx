@@ -194,7 +194,7 @@ vi.mock('../../api/storages.service', () => ({
 }));
 
 /** Stub child components — capture props for integration testing */
-let storageCardInstances: Array<{ storage: Record<string, unknown>; onEdit?: (s: unknown) => void; onArchive?: (s: unknown) => void; onRestore?: (s: unknown) => Promise<void>; onDelete?: (s: unknown) => Promise<void> }> = [];
+let storageCardInstances: Array<{ storage: Record<string, unknown>; canEdit?: boolean; canArchive?: boolean; canFreeze?: boolean; canUnfreeze?: boolean; canRestore?: boolean; canDelete?: boolean; onEdit?: (s: unknown) => void; onArchive?: (s: unknown) => void; onRestore?: (s: unknown) => Promise<void>; onDelete?: (s: unknown) => Promise<void> }> = [];
 vi.mock('../../components/StorageCard', () => ({
   StorageCard: (props: Record<string, unknown>) => {
     storageCardInstances.push(props as typeof storageCardInstances[number]);

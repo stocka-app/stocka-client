@@ -196,8 +196,8 @@ describe('StorageStatusBanner', () => {
     });
 
     it('Then the button is disabled while the promise is pending', async () => {
-      const controls: { resolve: (() => void) | null } = { resolve: null };
-      const pending = new Promise<void>((r) => {
+      const controls: { resolve: ((value: never) => void) | null } = { resolve: null };
+      const pending = new Promise<never>((r) => {
         controls.resolve = r;
       });
       const { storagesService } = await import('../../api/storages.service');
@@ -209,8 +209,8 @@ describe('StorageStatusBanner', () => {
       await waitFor(() => {
         expect(cta).toBeDisabled();
       });
-      controls.resolve?.();
-      await pending;
+      controls.resolve?.({} as never);
+      await pending.catch(() => { /* ignore */ });
     });
   });
 

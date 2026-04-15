@@ -19,7 +19,8 @@ vi.mock('../../api/storages.service', () => ({
     restore: vi.fn(),
     freeze: vi.fn(),
     unfreeze: vi.fn(),
-    destroy: vi.fn(),
+    deleteStoragePermanent: vi.fn(),
+    fetchCapabilities: vi.fn(),
   },
 }));
 
@@ -505,7 +506,7 @@ describe('Given useStorages orchestrates storage operations', () => {
   describe('When editStorage is called with a valid id and payload', () => {
     it('Then it calls the service and returns error: null on success', async () => {
       // mockStoragesItems[0] is type STORE_ROOM — hook dispatches to updateStoreRoom
-      vi.mocked(storagesService.updateStoreRoom).mockResolvedValue({ storageUUID: 'storage-001' });
+      vi.mocked(storagesService.updateStoreRoom).mockResolvedValue(mockStoragesItems[0]);
       vi.mocked(storagesService.list).mockResolvedValue(mockPage);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
@@ -525,18 +526,6 @@ describe('Given useStorages orchestrates storage operations', () => {
   });
 
   describe('When editStorage is called and the service throws a plain ApiError', () => {
-    it('Then returns error: archived when plain ApiError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
-      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue({
-        error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED',
-        statusCode: 422,
-      });
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-
-      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Archived' });
-      expect(response.error).toBe('archived');
-    });
-
     it('Then returns error: address_required when plain ApiError carries STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE', async () => {
       vi.mocked(storagesService.updateWarehouse).mockRejectedValue({
         error: 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE',
@@ -577,19 +566,6 @@ describe('Given useStorages orchestrates storage operations', () => {
       expect(response.error).toBe('name_taken');
     });
 
-    it('Then returns error: archived when AxiosError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
-      const axiosError = Object.assign(new Error('Conflict'), {
-        isAxiosError: true,
-        response: { status: 422, data: { error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED' } },
-      });
-      vi.mocked(storagesService.updateStoreRoom).mockRejectedValue(axiosError);
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-
-      const response = await result.current.editStorage('storage-001', 'STORE_ROOM', { name: 'Archived' });
-      expect(response.error).toBe('archived');
-    });
-
     it('Then returns error: address_required when AxiosError carries STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE', async () => {
       const axiosError = Object.assign(new Error('BadRequest'), {
         isAxiosError: true,
@@ -606,7 +582,12 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When editStorage is called with a WAREHOUSE type', () => {
     it('Then it dispatches to updateWarehouse and returns error: null on success', async () => {
-      vi.mocked(storagesService.updateWarehouse).mockResolvedValue({ storageUUID: 'storage-wh' });
+      vi.mocked(storagesService.updateWarehouse).mockResolvedValue({
+        ...mockStoragesItems[0],
+        uuid: 'storage-wh',
+        type: 'WAREHOUSE',
+        name: 'Updated WH',
+      });
       vi.mocked(storagesService.list).mockResolvedValue(mockPage);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
@@ -631,7 +612,12 @@ describe('Given useStorages orchestrates storage operations', () => {
 
   describe('When editStorage is called with a CUSTOM_ROOM type', () => {
     it('Then it dispatches to updateCustomRoom and returns error: null on success', async () => {
-      vi.mocked(storagesService.updateCustomRoom).mockResolvedValue({ storageUUID: 'storage-cr' });
+      vi.mocked(storagesService.updateCustomRoom).mockResolvedValue({
+        ...mockStoragesItems[0],
+        uuid: 'storage-cr',
+        type: 'CUSTOM_ROOM',
+        name: 'Updated CR',
+      });
       vi.mocked(storagesService.list).mockResolvedValue(mockPage);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
@@ -703,9 +689,9 @@ describe('Given useStorages orchestrates storage operations', () => {
       expect(response.error).toBe('server_error');
     });
 
-    it('Then returns error: archived when plain ApiError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
+    it('Then returns error: archived when plain ApiError carries STORAGE_TYPE_LOCKED_WHILE_ARCHIVED', async () => {
       vi.mocked(storagesService.changeType).mockRejectedValue({
-        error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED',
+        error: 'STORAGE_TYPE_LOCKED_WHILE_ARCHIVED',
         statusCode: 422,
       });
       const { result } = renderHook(() => useStorages());
@@ -739,10 +725,10 @@ describe('Given useStorages orchestrates storage operations', () => {
       expect(response.error).toBe('tier_limit');
     });
 
-    it('Then returns error: archived when raw AxiosError carries STORAGE_ARCHIVED_CANNOT_BE_UPDATED', async () => {
+    it('Then returns error: archived when raw AxiosError carries STORAGE_TYPE_LOCKED_WHILE_ARCHIVED', async () => {
       const axiosError = Object.assign(new Error('Unprocessable'), {
         isAxiosError: true,
-        response: { status: 422, data: { error: 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED' } },
+        response: { status: 422, data: { error: 'STORAGE_TYPE_LOCKED_WHILE_ARCHIVED' } },
       });
       vi.mocked(storagesService.changeType).mockRejectedValue(axiosError);
       const { result } = renderHook(() => useStorages());

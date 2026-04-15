@@ -68,27 +68,6 @@ async function openContextMenu(user: ReturnType<typeof userEvent.setup>): Promis
   await user.click(trigger);
 }
 
-/** Default no-op handlers — all required by the new StorageCard API. */
-const noop = vi.fn();
-
-/**
- * Minimal prop set for an active storage rendered by a Manager-equivalent role:
- * canEdit + canArchive enabled, no freeze/delete permission.
- */
-function activeManagerProps() {
-  return {
-    onView: noop,
-    onEdit: noop,
-    onFreeze: noop,
-    onUnfreeze: noop,
-    onArchive: noop,
-    onRestore: noop,
-    onDelete: noop,
-    canEdit: true,
-    canArchive: true,
-  };
-}
-
 describe('Given StorageCard renders a storage with role-based actions', () => {
   let user: ReturnType<typeof userEvent.setup>;
   const onEdit = vi.fn();

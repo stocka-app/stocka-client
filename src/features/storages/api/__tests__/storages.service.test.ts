@@ -236,13 +236,13 @@ describe('storagesService', () => {
   // ── archive ──────────────────────────────────────────────────────────────
 
   describe('archive', () => {
-    it('calls DELETE /storages/:id and returns the archived storage', async () => {
+    it('calls DELETE /storages/{type}/:id/archive and returns the archived storage', async () => {
       const archived = { ...storageFixture, status: 'ARCHIVED' as const, archivedAt: '2026-03-28T12:00:00Z' };
       mockedAxios.delete.mockResolvedValueOnce(envelope(archived));
 
-      const result = await storagesService.archive('uuid-1');
+      const result = await storagesService.archive('uuid-1', 'WAREHOUSE');
 
-      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/uuid-1');
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/warehouses/uuid-1/archive');
       expect(result).toEqual(archived);
     });
   });
@@ -250,23 +250,23 @@ describe('storagesService', () => {
   // ── restore ──────────────────────────────────────────────────────────────
 
   describe('restore', () => {
-    it('calls POST /storages/:id/restore and returns the restored storage', async () => {
+    it('calls POST /storages/{type}/:id/restore and returns the restored storage', async () => {
       mockedAxios.post.mockResolvedValueOnce(envelope(storageFixture));
 
-      const result = await storagesService.restore('uuid-1');
+      const result = await storagesService.restore('uuid-1', 'WAREHOUSE');
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/uuid-1/restore');
+      expect(mockedAxios.post).toHaveBeenCalledWith('/storages/warehouses/uuid-1/restore');
       expect(result).toEqual(storageFixture);
     });
   });
 
-  // ── destroy ──────────────────────────────────────────────────────────────
+  // ── deleteStoragePermanent (stub 501) ─────────────────────────────────────
 
-  describe('destroy', () => {
+  describe('deleteStoragePermanent', () => {
     it('calls DELETE /storages/:id/permanent', async () => {
       mockedAxios.delete.mockResolvedValueOnce({ data: {} });
 
-      await storagesService.destroy('uuid-1');
+      await storagesService.deleteStoragePermanent('uuid-1');
 
       expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/uuid-1/permanent');
     });
