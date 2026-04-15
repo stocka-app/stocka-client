@@ -3,6 +3,53 @@
 All notable changes to this project are documented here.
 
 
+## [0.18.3](https://github.com/stocka-app/stocka-client/compare/v0.18.2...v0.18.3) (2026-04-15)
+
+### 🐛 Bug Fixes
+
+* **e2e:** 60s timeout for freeze spec + scoped edit drawer locator ([03b7f4c](https://github.com/stocka-app/stocka-client/commit/03b7f4c06afebf267d3cdb136c213e56cdbdc9ca))
+* **e2e:** align selectors with current UI — sr-only STEP labels, aria-checked, i18n text ([aaefe31](https://github.com/stocka-app/stocka-client/commit/aaefe319831da642f124f7c23e23f47c02fd748e))
+* **e2e:** align storage specs with actual card/menu/drawer behavior ([3db0cfd](https://github.com/stocka-app/stocka-client/commit/3db0cfd4334589bf7a91acc6d879fa98a4a985df))
+* **e2e:** align tier at-limit tests with UI behavior (upgrade modal, not banner) ([3bf6c6c](https://github.com/stocka-app/stocka-client/commit/3bf6c6c245abdb6cda435febfd3b8278b77544f2))
+* **e2e:** auto re-authenticate in authenticatedPage fixture on session loss ([22dc01d](https://github.com/stocka-app/stocka-client/commit/22dc01d47ed0477155058f238044931988f37c66))
+* **e2e:** banner text filter + card h3 selector + duplicate continue clicks ([1b67dc1](https://github.com/stocka-app/stocka-client/commit/1b67dc17ae94780681d79d223ece62889c246674))
+* **e2e:** CD-38 CTA text is "Learn about plans" in upgrade modal ([6fd6a4d](https://github.com/stocka-app/stocka-client/commit/6fd6a4d5c549f869ebf4d53f5c4795b5ab57159e))
+* **e2e:** default tier limits to STARTER when capabilities omitted ([e2bb821](https://github.com/stocka-app/stocka-client/commit/e2bb8217c4cbaa1e4478131ebb6307673ccbb05a))
+* **e2e:** differentiate disabled vs not-rendered menu items by storage status ([b2b3e67](https://github.com/stocka-app/stocka-client/commit/b2b3e672046cc854186e61e6142ae27f1ba5c0ec))
+* **e2e:** disambiguate cancel button locators in edit drawer ([f16c02b](https://github.com/stocka-app/stocka-client/commit/f16c02b56bf4795625a8e54a27864c333141249d))
+* **e2e:** fabricate JWT in refresh mock + selectType clicks Continue + fix aria-checked ([ea2f886](https://github.com/stocka-app/stocka-client/commit/ea2f8862f7c3cc4ea0896aa6b7367045ec1fe2da))
+* **e2e:** hybrid refresh mock — proxy first, fabricate on failure ([bb95971](https://github.com/stocka-app/stocka-client/commit/bb95971fa17b1b3038d364d8fa1d6152334485c6))
+* **e2e:** include real tenantId in fabricated JWT from storageState ([e6daa9f](https://github.com/stocka-app/stocka-client/commit/e6daa9fcc428e26dc7db490e5fd5e7867274ed5a))
+* **e2e:** increase networkidle catch timeout to 10s for edit tests ([06c403d](https://github.com/stocka-app/stocka-client/commit/06c403d6475148ec550ad1242188333f98564362))
+* **e2e:** more at-limit + sidebar text disambiguation fixes ([3d83265](https://github.com/stocka-app/stocka-client/commit/3d83265eff7878d9b5ba8a4494dffff98d34ac60))
+* **e2e:** more freeze spec fixes — skip PW-H05-4, add archive warehouse ([cefb33a](https://github.com/stocka-app/stocka-client/commit/cefb33a04c63577d9ff0d3e1f367989ca969727c))
+* **e2e:** rbac spec — add summary/typeSummary + fix SpacesPage heading ([b37cd4c](https://github.com/stocka-app/stocka-client/commit/b37cd4c9ee81f2af51f1c28125fa513ba6d63a60))
+* **e2e:** rbac viewer test — write actions are disabled, not hidden ([fe9474e](https://github.com/stocka-app/stocka-client/commit/fe9474ec6a4d8d08f138615dd7ebf93c03180c81))
+* **e2e:** reduce networkidle to 3s + heading wait to free test budget ([b01c80a](https://github.com/stocka-app/stocka-client/commit/b01c80ac35eeb86dbcab855065590c6aade807cb))
+* **e2e:** remove page.evaluate from refresh route handler (deadlock fix) ([598cea0](https://github.com/stocka-app/stocka-client/commit/598cea05455f4d73f46b9d84760f2209416384e1))
+* **e2e:** replace networkidle with heading wait + fix ES→EN menu locators ([c3a8253](https://github.com/stocka-app/stocka-client/commit/c3a82531b06f8582904299b85b7e21904419de23))
+* **e2e:** restore networkidle with 5s catch — auth refresh needs to settle ([9232d5d](https://github.com/stocka-app/stocka-client/commit/9232d5de2af9a0fd5c610cb09dd04347982c851a))
+* **e2e:** revert to networkidle 10s catch — most stable configuration ([918d1ae](https://github.com/stocka-app/stocka-client/commit/918d1ae82030781528c180523bcd030a30339b1c))
+* **e2e:** scope CD-46 upgrade modal dismiss to the modal's dialog ([0ba15a5](https://github.com/stocka-app/stocka-client/commit/0ba15a51fd394085d9af590fb9e6c2126f10a6b6))
+* **e2e:** scope edit drawer locator to dialog with name "Edit storage" ([3a9a358](https://github.com/stocka-app/stocka-client/commit/3a9a358942ccf513c51a058f794faebdc55cc39a))
+* **e2e:** scope storage card lookups to 'main h3' ([ec02b21](https://github.com/stocka-app/stocka-client/commit/ec02b211449a69975c84ce26ad811a255aaf9e86))
+* **e2e:** skip flaky auth redirect test that corrupts session cascade ([95fbb24](https://github.com/stocka-app/stocka-client/commit/95fbb24f1513416c7636bb0b4ba1e41203534cbe))
+* **e2e:** slow timeout for tier/edit tests + fix CD-32 assertion ([9803dd9](https://github.com/stocka-app/stocka-client/commit/9803dd93740df3d86d46502e2ea5fcf87207030e))
+* **e2e:** switch list/rbac specs from FREE to STARTER tier ([fc34890](https://github.com/stocka-app/stocka-client/commit/fc3489028931af00947834ae831b0f568bc5ab48))
+* **e2e:** use EN locale text + valid UUIDs in freeze spec ([7869412](https://github.com/stocka-app/stocka-client/commit/786941217c1b2ff747afae41e15d1a458f25fbfd))
+* **e2e:** use real tenantId in PW-H05-1 active-storage localStorage seed ([9e2219e](https://github.com/stocka-app/stocka-client/commit/9e2219e88addb8d0d62e6b88c20fba8d9d07257a))
+* **e2e:** use real userId in fabricated JWT to prevent session mismatch ([b4bd985](https://github.com/stocka-app/stocka-client/commit/b4bd985a2a0137829735301b12db58e58af19f8f))
+* **e2e:** use STORE_ROOM in cancel tests (not tier-locked on FREE) ([f90bb40](https://github.com/stocka-app/stocka-client/commit/f90bb404902dff449d4d8d6670812fa0aa797096))
+* **e2e:** valid UUID for edit tests + instant JWT + toBeDisabled for ED-7 ([8c2a909](https://github.com/stocka-app/stocka-client/commit/8c2a909d10b50e133a6c29c0d894de7147631855))
+* **e2e:** wait for data-dependent content instead of heading only ([52c2dea](https://github.com/stocka-app/stocka-client/commit/52c2dea749a38891dd570ba16748e89f51206f1f))
+* **e2e:** wait for rendered content instead of networkidle ([717edb1](https://github.com/stocka-app/stocka-client/commit/717edb19ddda8733cce8194c6234d9e562ce6052))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — align frozen type selector with Pencil spec ([1ffd7e1](https://github.com/stocka-app/stocka-client/commit/1ffd7e14dd353c1998c040481286ce87964330a1))
+* **storages:** [STOC-319](https://austins-industries.atlassian.net/browse/STOC-319) — optimistic freeze/unfreeze + counter adjust ([19cff72](https://github.com/stocka-app/stocka-client/commit/19cff72b1e2c518ee2694436d73859da0c8ea2c9))
+
+### 🧹 Chores
+
+* **e2e:** revert freeze describe timeout — caused regression ([fad5f85](https://github.com/stocka-app/stocka-client/commit/fad5f85cc27a3502e378903e60067b8f4d02c6dc))
+
 ## [0.18.2](https://github.com/stocka-app/stocka-client/compare/v0.18.1...v0.18.2) (2026-04-14)
 
 ### 🐛 Bug Fixes
