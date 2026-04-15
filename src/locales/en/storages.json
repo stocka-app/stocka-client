@@ -277,6 +277,7 @@
     "frozen": "This storage is frozen. It cannot receive or dispatch merchandise.",
     "archived": "This storage is archived. You can only view its history — it can no longer operate or receive merchandise.",
     "reactivate": "Reactivate",
+    "restore": "Restore",
     "close": "Close notice"
   },
   "modals": {
@@ -304,5 +305,9 @@
   "editInFrozen": {
     "banner": "This storage is frozen. You can edit its details but not operate with it.",
     "typeDisabledTooltip": "You can't change the type of a frozen storage. Reactivate it first."
+  },
+  "editInArchived": {
+    "banner": "This storage is archived. You can fix its details, but you can't operate with it until you restore it.",
+    "typeDisabledTooltip": "You can't change the type of an archived storage. Restore it first."
   }
 }

@@ -16,7 +16,7 @@ import type { Storage, StorageStatus, StorageType, StorageStatusSummary } from '
 const STORAGES_PAGE_LIMIT = 50;
 
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
-type EditError = 'name_taken' | 'archived' | 'address_required' | 'server_error' | null;
+type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
 
 export interface EditStoragePayload {
@@ -47,15 +47,16 @@ function resolveCreateError(err: unknown): CreateError {
 }
 
 function resolveEditError(err: unknown): EditError {
+  // H-07: STORAGE_ARCHIVED_CANNOT_BE_UPDATED no longer exists — metadata is
+  // editable in ARCHIVED. Type-change is still blocked by change handlers
+  // (STORAGE_TYPE_LOCKED_WHILE_ARCHIVED) which flows through resolveChangeTypeError.
   const apiErr = err as Partial<{ statusCode: number; error: string }>;
   if (apiErr?.error === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
-  if (apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
   if (apiErr?.error === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
 
   if (axios.isAxiosError(err)) {
     const code = (err.response?.data as { error?: string } | undefined)?.error;
     if (code === 'STORAGE_NAME_ALREADY_EXISTS') return 'name_taken';
-    if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
     if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
   }
 
@@ -63,15 +64,22 @@ function resolveEditError(err: unknown): EditError {
 }
 
 function resolveChangeTypeError(err: unknown): ChangeTypeError {
+  // H-07 (Paso 1 BE): per-transition handlers emit STORAGE_TYPE_LOCKED_WHILE_ARCHIVED
+  // for ARCHIVED (same naming convention as WhileFrozen). The legacy code used
+  // STORAGE_ARCHIVED_CANNOT_BE_UPDATED — kept below for backwards-compat during
+  // rolling deploys; can be removed once BE is fully rolled out.
   const apiErr = err as Partial<{ statusCode: number; error: string }>;
-  if (apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+  if (
+    apiErr?.error === 'STORAGE_TYPE_LOCKED_WHILE_ARCHIVED' ||
+    apiErr?.error === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED'
+  ) return 'archived';
   if (apiErr?.error === 'STORAGE_TYPE_LOCKED_WHILE_FROZEN') return 'frozen';
   if (apiErr?.error === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
   if (apiErr?.statusCode === 403) return 'tier_limit';
 
   if (axios.isAxiosError(err)) {
     const code = (err.response?.data as { error?: string } | undefined)?.error;
-    if (code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
+    if (code === 'STORAGE_TYPE_LOCKED_WHILE_ARCHIVED' || code === 'STORAGE_ARCHIVED_CANNOT_BE_UPDATED') return 'archived';
     if (code === 'STORAGE_TYPE_LOCKED_WHILE_FROZEN') return 'frozen';
     if (code === 'STORAGE_ADDRESS_REQUIRED_FOR_WAREHOUSE') return 'address_required';
     if (err.response?.status === 403) return 'tier_limit';

@@ -277,6 +277,7 @@
     "frozen": "Esta instalación está congelada. No puede recibir ni despachar mercancía.",
     "archived": "Esta instalación está archivada. Solo puedes consultar su historial — ya no puede operar ni recibir mercancía.",
     "reactivate": "Reactivar",
+    "restore": "Restaurar",
     "close": "Cerrar aviso"
   },
   "modals": {
@@ -304,5 +305,9 @@
   "editInFrozen": {
     "banner": "Esta instalación está congelada. Puedes editar sus datos pero no operar con ella.",
     "typeDisabledTooltip": "No se puede cambiar el tipo de una instalación congelada. Reactívala primero."
+  },
+  "editInArchived": {
+    "banner": "Esta instalación está archivada. Puedes corregir sus datos, pero no operar con ella hasta restaurarla.",
+    "typeDisabledTooltip": "No se puede cambiar el tipo de una instalación archivada. Restáurala primero."
   }
 }

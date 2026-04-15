@@ -70,6 +70,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
   const updateStorageInStore = useStoragesStore((state) => state.updateStorage);
   const hasReadAccess = useRBACStore((state) => state.canDo('STORAGE_READ'));
   const canUnfreeze = useRBACStore((state) => state.canDo('STORAGE_UNFREEZE'));
+  const canRestore = useRBACStore((state) => state.canDo('STORAGE_RESTORE'));
 
   // ── Reset dismissed flag when active context changes ─────────────────────
   //
@@ -176,9 +177,10 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
         />
       </div>
 
-      {/* H-05: CTA visible only for roles with the correct permission.
-          FROZEN → canUnfreeze (STORAGE_UNFREEZE). ARCHIVED → always shown (existing behavior). */}
-      {(isFrozen ? canUnfreeze : true) && (
+      {/* CTA visible only for roles with the correct permission.
+          FROZEN → canUnfreeze (STORAGE_UNFREEZE) — label "Reactivar".
+          ARCHIVED → canRestore (STORAGE_RESTORE) — label "Restaurar" (H-07). */}
+      {(isFrozen ? canUnfreeze : canRestore) && (
         <Button
           type="button"
           variant="outline"
@@ -192,7 +194,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
               : 'border-neutral-500 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-700',
           )}
         >
-          {t('banners.reactivate')}
+          {isFrozen ? t('banners.reactivate') : t('banners.restore')}
         </Button>
       )}
 

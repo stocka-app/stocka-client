@@ -11,7 +11,7 @@ import type { EditStoragePayload } from '../hooks/useStorages';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type EditError = 'name_taken' | 'archived' | 'address_required' | 'server_error' | null;
+type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
 
 interface EditFormValues {
@@ -406,8 +406,7 @@ export function EditStorageDrawer({
     isSubmitting ||
     !isDirty ||
     nameValue.trim().length < 3 ||
-    (isWarehouse && addressValue.trim().length === 0) ||
-    serverError === 'archived';
+    (isWarehouse && addressValue.trim().length === 0);
 
   const typeLabel = (): string => {
     /* v8 ignore next — storage is always non-null here (guarded at line 418) */
@@ -516,32 +515,38 @@ export function EditStorageDrawer({
               {/* Type selector — Pencil spec fieldTipo.
                   FROZEN: squares render disabled with opacity-50 + native tooltip
                   explaining why (DT-H05-17 — alignment with Pencil FASE 5.2).
-                  ARCHIVED: section hidden entirely because editing metadata on an
-                  archived storage is out of scope. */}
-              {!isArchived && (
-                <div className="mx-6 mt-4">
-                  <p className="mb-2 text-xs font-medium text-neutral-500">
-                    {t('createDrawer.step1Title')}
-                  </p>
-                  <div className="flex gap-2.5">
+                  ARCHIVED (H-07): squares also disabled with opacity-50 + tooltip.
+                  Metadata edits are allowed in ARCHIVED (E5.2), only type-change is
+                  locked until restore. */}
+              <div className="mx-6 mt-4">
+                <p className="mb-2 text-xs font-medium text-neutral-500">
+                  {t('createDrawer.step1Title')}
+                </p>
+                <div className="flex gap-2.5">
                     {(['WAREHOUSE', 'STORE_ROOM', 'CUSTOM_ROOM'] as StorageType[]).map((type) => {
                       const isCurrent = storage.type === type;
                       const atLimit = isTypeAtLimit(type);
-                      const disabled = isFrozen || isChangingType || isSubmitting || atLimit;
+                      const typeLocked = isFrozen || isArchived;
+                      const disabled = typeLocked || isChangingType || isSubmitting || atLimit;
                       const sq = TYPE_SQUARE_CONFIGS[type];
+                      const lockedTooltip = isArchived
+                        ? t('editInArchived.typeDisabledTooltip')
+                        : isFrozen
+                          ? t('editInFrozen.typeDisabledTooltip')
+                          : undefined;
 
                       return (
                         <button
                           key={type}
                           type="button"
                           disabled={disabled}
-                          title={isFrozen ? t('editInFrozen.typeDisabledTooltip') : undefined}
-                          onClick={() => !isFrozen && handleTypeChange(type)}
+                          title={lockedTooltip}
+                          onClick={() => !typeLocked && handleTypeChange(type)}
                           className={cn(
                             'flex flex-1 flex-col items-center justify-center gap-1.5 rounded-xl transition-all',
-                            isFrozen && 'cursor-not-allowed opacity-50',
-                            !isFrozen && atLimit && !isCurrent && 'cursor-not-allowed opacity-40',
-                            !isFrozen && !atLimit && !isCurrent && 'cursor-pointer',
+                            typeLocked && 'cursor-not-allowed opacity-50',
+                            !typeLocked && atLimit && !isCurrent && 'cursor-not-allowed opacity-40',
+                            !typeLocked && !atLimit && !isCurrent && 'cursor-pointer',
                           )}
                           style={{
                             padding: '14px 8px',
@@ -607,17 +612,28 @@ export function EditStorageDrawer({
                       <span className="text-xs text-neutral-500">{t('editDrawer.submitting')}</span>
                     </div>
                   )}
-                </div>
-              )}
+              </div>
 
               {/* H-05: Frozen notice — metadata editable but type change blocked.
-                  The selector above is now visible-but-disabled; this banner
+                  The selector above is visible-but-disabled; this banner
                   still explains why so users aren't left guessing. */}
               {isFrozen && (
                 <div className="mx-6 mt-4 flex items-start gap-2.5 rounded-lg border border-info bg-info-bg p-3">
                   <span className="material-symbols-outlined shrink-0 text-[16px] text-info" aria-hidden="true">ac_unit</span>
                   <p className="text-xs leading-snug text-info">
                     {t('editInFrozen.banner')}
+                  </p>
+                </div>
+              )}
+
+              {/* H-07: Archived notice — metadata editable, type-change locked.
+                  Neutral gray to distinguish from the blue FROZEN banner (UX
+                  decision #8 — reinforces the difference between states). */}
+              {isArchived && (
+                <div className="mx-6 mt-4 flex items-start gap-2.5 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+                  <span className="material-symbols-outlined shrink-0 text-[16px] text-neutral-500" aria-hidden="true">inventory_2</span>
+                  <p className="text-xs leading-snug text-neutral-600">
+                    {t('editInArchived.banner')}
                   </p>
                 </div>
               )}
@@ -794,7 +810,7 @@ export function EditStorageDrawer({
               </div>
 
               {/* Server error banner */}
-              {(serverError === 'server_error' || serverError === 'archived') && (
+              {serverError === 'server_error' && (
                 <div className="mx-6 mb-2 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger-bg p-3">
                   <span className="material-symbols-outlined shrink-0 text-[18px] text-danger">
                     error
