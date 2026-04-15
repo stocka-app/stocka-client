@@ -12,11 +12,11 @@ import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/use
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
-import { storagesService } from '../api/storages.service';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
 import { EditStorageDrawer } from '../components/EditStorageDrawer';
 import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog';
+import { DeleteStorageDialog } from '../components/DeleteStorageDialog';
 import { FreezeConfirmDialog } from '../components/FreezeConfirmDialog';
 import type { EditStoragePayload } from '../hooks/useStorages';
 
@@ -79,6 +79,7 @@ export default function StoragesPage(): React.ReactElement {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    deleteStoragePermanent,
     freezeStorage,
     unfreezeStorage,
     getIsLastActive,
@@ -100,6 +101,9 @@ export default function StoragesPage(): React.ReactElement {
   const [isFreezeOpen, setIsFreezeOpen] = useState(false);
   const [isFreezeLoading, setIsFreezeLoading] = useState(false);
   const [freezeError, setFreezeError] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<'not_implemented' | 'server_error' | null>(null);
 
   // ── Auto-open create drawer when navigated from the sidebar StorageSwitcher
   //
@@ -231,13 +235,32 @@ export default function StoragesPage(): React.ReactElement {
     }
   };
 
-  const handleDeleteClick = async (storage: Storage): Promise<void> => {
-    try {
-      await storagesService.deleteStoragePermanent(storage.uuid);
-      toast.success(t('toast.deleted', { name: storage.name }));
-      fetchStorages();
-    } catch {
-      toast.error(t('toast.deleteFailed'));
+  const handleDeleteClick = (storage: Storage): void => {
+    setSelectedStorage(storage);
+    setDeleteError(null);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!selectedStorage) return;
+    setIsDeleteLoading(true);
+    setDeleteError(null);
+    const { error } = await deleteStoragePermanent(selectedStorage.uuid);
+    setIsDeleteLoading(false);
+    if (error === 'not_implemented') {
+      // Stub path in Sprint 2 — surface the banner, keep the dialog open so the
+      // user understands why. The real flow (typed confirmation) lands in a
+      // later story and will replace this branch with a success toast + close.
+      setDeleteError('not_implemented');
+    } else if (error === 'server_error') {
+      setDeleteError('server_error');
+    }
+  };
+
+  const handleDeleteClose = (): void => {
+    if (!isDeleteLoading) {
+      setIsDeleteOpen(false);
+      setDeleteError(null);
     }
   };
 
@@ -336,6 +359,15 @@ export default function StoragesPage(): React.ReactElement {
         serverError={freezeError}
         onClose={handleFreezeClose}
         onConfirm={handleFreezeConfirm}
+      />
+
+      <DeleteStorageDialog
+        open={isDeleteOpen}
+        storage={selectedStorage}
+        isLoading={isDeleteLoading}
+        serverError={deleteError}
+        onClose={handleDeleteClose}
+        onConfirm={handleDeleteConfirm}
       />
     </>
   );

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
+import { env } from '@/shared/lib/env';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -136,7 +137,11 @@ export function StorageCard({
   const editDisabled = !canEdit;
   // H-05: FROZEN → ARCHIVED is allowed directly (no need to unfreeze first)
   const archiveDisabled = !canArchive || isArchived;
-  const deleteDisabled = !canDelete || !isArchived;
+  // H-07: permanent delete is gated by a feature flag. In prod the item is
+  // disabled with a "in development" tooltip; in dev/staging it opens the
+  // dialog which exercises the BE 501 stub.
+  const isDeleteFeatureEnabled = env.VITE_STORAGE_DELETE_ENABLED;
+  const deleteDisabled = !canDelete || !isArchived || !isDeleteFeatureEnabled;
 
   // H-07: ARCHIVED cards dim content to 60% to signal "stopped" state. The
   // context menu is explicitly kept at 100% so archive actions (Restore,
@@ -355,10 +360,17 @@ export function StorageCard({
                 <DropdownMenuItem
                   disabled={deleteDisabled}
                   onClick={() => !deleteDisabled && onDelete(storage)}
+                  title={
+                    !isDeleteFeatureEnabled && canDelete
+                      ? t('actions.deleteInDevelopment', {
+                          defaultValue: 'Funcionalidad en desarrollo',
+                        })
+                      : undefined
+                  }
                   className="group"
                 >
                   <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-destructive">
-                    delete
+                    delete_forever
                   </span>
                   {t('actions.delete')}
                 </DropdownMenuItem>
