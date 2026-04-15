@@ -196,7 +196,7 @@ export function ArchiveConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="bg-neutral-600 text-white hover:bg-neutral-700"
+            className="bg-slate-700 text-white hover:bg-slate-800 disabled:bg-slate-700 disabled:text-white disabled:hover:bg-slate-700"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
