@@ -1021,3 +1021,43 @@ describe('Given the EditStorageDrawer opens with a custom room and the user chan
     }
   });
 });
+
+// H-07: cover the ARCHIVED mode banner + type-disabled tooltip.
+describe('Given the EditStorageDrawer opens with an ARCHIVED storage', () => {
+  const ARCHIVED_WAREHOUSE: Storage = {
+    uuid: '019012ab-0000-7000-8000-000000000099',
+    name: 'Archived WH',
+    type: 'WAREHOUSE',
+    status: 'ARCHIVED',
+    address: 'Av. Vieja 1',
+    roomType: null,
+    icon: 'warehouse',
+    color: '#3B82F6',
+    description: 'Archived primary warehouse',
+    archivedAt: '2026-04-01T00:00:00.000Z',
+    frozenAt: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-04-01T00:00:00.000Z',
+  };
+
+  it('Then the gray "archived" banner is shown and type squares expose the archived tooltip', () => {
+    render(
+      <EditStorageDrawer
+        open={true}
+        storage={ARCHIVED_WAREHOUSE}
+        onClose={vi.fn()}
+        onEdit={vi.fn().mockResolvedValue({ error: null })}
+        onChangeType={vi.fn().mockResolvedValue({ error: null })}
+        limits={DEFAULT_LIMITS}
+        typeCounts={DEFAULT_TYPE_COUNTS}
+        tier="STARTER"
+      />,
+    );
+
+    expect(screen.getByText('editInArchived.banner')).toBeInTheDocument();
+    const disabledSquares = document.querySelectorAll(
+      'button[title="editInArchived.typeDisabledTooltip"]',
+    );
+    expect(disabledSquares.length).toBeGreaterThan(0);
+  });
+});
