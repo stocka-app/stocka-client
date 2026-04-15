@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Storage } from '../../types/storages.types';
 
@@ -163,6 +163,65 @@ describe('DeleteStorageDialog', () => {
 
         expect(onClose).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('Given a user clicks the backdrop', () => {
+    describe('When not loading', () => {
+      it('Then onClose is invoked', async () => {
+        const onClose = vi.fn();
+        renderDialog({ onClose });
+
+        await user.click(screen.getByRole('dialog'));
+
+        expect(onClose).toHaveBeenCalled();
+      });
+    });
+
+    describe('When loading', () => {
+      it('Then onClose is NOT invoked', async () => {
+        const onClose = vi.fn();
+        renderDialog({ onClose, isLoading: true });
+
+        await user.click(screen.getByRole('dialog'));
+
+        expect(onClose).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Given a user presses ESC', () => {
+    describe('When not loading', () => {
+      it('Then onClose is invoked', () => {
+        const onClose = vi.fn();
+        renderDialog({ onClose });
+
+        fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+        expect(onClose).toHaveBeenCalled();
+      });
+    });
+
+    describe('When loading', () => {
+      it('Then onClose is NOT invoked', () => {
+        const onClose = vi.fn();
+        renderDialog({ onClose, isLoading: true });
+
+        fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+
+        expect(onClose).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Given the user clicks inside the dialog content (not backdrop)', () => {
+    it('Then onClose is NOT invoked (inner container stops the click)', async () => {
+      const onClose = vi.fn();
+      renderDialog({ onClose });
+
+      await user.click(screen.getByText(/Almacén Central/));
+
+      expect(onClose).not.toHaveBeenCalled();
     });
   });
 });

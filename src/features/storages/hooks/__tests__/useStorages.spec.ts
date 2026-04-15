@@ -1708,4 +1708,72 @@ describe('Given useStorages exposes active-context derived data', () => {
       expect(result.current.activeStorage?.name).toBe('Almacén Central');
     });
   });
+
+  // ── archive/restore no-target + catch branches (coverage) ─────────────────
+
+  describe('When archiveStorage is called with a storage not in the current list', () => {
+    it('Then it returns false without calling the service', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.archiveStorage('non-existent-uuid');
+      expect(success).toBe(false);
+      expect(vi.mocked(storagesService.archive)).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('When restoreStorage is called with a storage not in the current list', () => {
+    it('Then it returns false without calling the service', async () => {
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const success = await result.current.restoreStorage('non-existent-uuid');
+      expect(success).toBe(false);
+      expect(vi.mocked(storagesService.restore)).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── deleteStoragePermanent (DT-H07-9 stub) ─────────────────────────────────
+
+  describe('When deleteStoragePermanent stub is called', () => {
+    it('Then it returns not_implemented for plain ApiError statusCode 501', async () => {
+      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce({ statusCode: 501 });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.deleteStoragePermanent('storage-001');
+      expect(response.error).toBe('not_implemented');
+    });
+
+    it('Then it returns not_implemented for raw AxiosError with status 501', async () => {
+      const axiosError = Object.assign(new Error('Not Implemented'), {
+        isAxiosError: true,
+        response: { status: 501, data: {} },
+      });
+      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.deleteStoragePermanent('storage-001');
+      expect(response.error).toBe('not_implemented');
+    });
+
+    it('Then it returns server_error for a generic failure', async () => {
+      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce(new Error('boom'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.deleteStoragePermanent('storage-001');
+      expect(response.error).toBe('server_error');
+    });
+
+    it('Then it returns server_error when the service unexpectedly resolves', async () => {
+      vi.mocked(storagesService.deleteStoragePermanent).mockResolvedValueOnce(undefined);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const response = await result.current.deleteStoragePermanent('storage-001');
+      expect(response.error).toBe('server_error');
+    });
+  });
 });
