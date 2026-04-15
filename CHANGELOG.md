@@ -3,6 +3,81 @@
 All notable changes to this project are documented here.
 
 
+## [0.19.0](https://github.com/stocka-app/stocka-client/compare/v0.18.3...v0.19.0) (2026-04-15)
+
+> **Editar instalación unificado con cambio de tipo atómico (+ bug fixes asociados)**
+>
+> El drawer de edición ya no dispara un request al click del selector de tipo.
+> Ahora se acumula un `pendingType` localmente, se muestra un banner
+> "Cambiando tipo: X → Y" con un botón "Cancelar cambio", y un único
+> "Guardar cambios" manda edición + cambio de tipo en una sola llamada al
+> endpoint per-transición del BE (que a su vez los ejecuta dentro de una
+> transacción UoW — ver PR `stocka-server#57`). Cuando el target es
+> CUSTOM_ROOM, el drawer habilita un input editable de `roomType` y
+> pre-carga icon/color con defaults customizables.
+>
+> En paralelo, tres fixes relacionados:
+> - **Dirección opcional en Bodega y Personalizada**: el BE aceptaba `null`
+>   pero el drawer enviaba `''` (que el modelo ignoraba con truthy check),
+>   dejando la dirección "pegada" al reabrir el drawer. Ahora se envía
+>   `null` explícito al limpiar; al reabrir el drawer refleja el estado
+>   correctamente. WAREHOUSE sigue exigiendo dirección no-vacía (validación
+>   local deshabilita el submit si está en blanco).
+> - **Dark mode onboarding** (Step0 + Step4): los tokens `text-neutral-*`
+>   de Stocka invierten automáticamente en dark mode; los overrides
+>   `dark:text-neutral-100` forzaban el color opuesto al que se esperaba,
+>   dejando los labels "Almacén/Bodega/Espacio Personalizado" casi ilegibles.
+>   Eliminados los 15 overrides redundantes que rompían la inversión.
+> - **QA cleanup**: 10 tests Playwright pre-existentes que estaban rojos se
+>   repararon — la mayoría eran drift del helper `mockEditPatch` (el BE
+>   ahora retorna Storage completo post DT-H07-4 que el service Zod-parsea)
+>   y drift con cambios de UX H-07 (Edit visible en ARCHIVED, opacity-60 en
+>   content en lugar de opacity-50 en root, endpoint DELETE unificado
+>   reemplazado por per-type archive). 200/200 storage Playwright pasa.
+>
+> Ref: STOC-321 · STOC-450 · STOC-452 · STOC-448 · STOC-449 · Sprint 2 Almacenes.
+
+### ✨ Features
+
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — consume Storage response on edit (drop full refetch) — DT-H07-4 FE side ([241176a](https://github.com/stocka-app/stocka-client/commit/241176a419c54c6d3a4968ec04110d0985663a9a)), closes [stocka-server#57](https://github.com/stocka-app/stocka-server/issues/57)
+* **storages:** [STOC-321][STOC-450][STOC-452] | Sprint 2 | unified edit + change-type drawer with metadata + clear address via explicit null ([88b7e26](https://github.com/stocka-app/stocka-client/commit/88b7e26df7196215673e29c434a8dd6159dc8687))
+* **storages:** [STOC-375](https://austins-industries.atlassian.net/browse/STOC-375) — ArchiveConfirmDialog with 6 variants (base/context/last/from-frozen/loading/error) ([2db8bf2](https://github.com/stocka-app/stocka-client/commit/2db8bf2e7b3e9ef641ea7d4d4015ff5801505c5b)), closes [#6](https://github.com/stocka-app/stocka-client/issues/6)
+* **storages:** [STOC-376](https://austins-industries.atlassian.net/browse/STOC-376) — align service + hook with per-type archive/restore + canRestore flag + delete stub ([4d2f552](https://github.com/stocka-app/stocka-client/commit/4d2f552a63bfaca3f76bfa2b97666a7f798769c4))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — i18n keys for archive/delete modals + Vitest specs for new dialogs (20 tests) ([23eb99d](https://github.com/stocka-app/stocka-client/commit/23eb99d94022b8c605ae5744039319680e970b59))
+* **storages:** [STOC-445](https://austins-industries.atlassian.net/browse/STOC-445) — DeleteStorageDialog red-destructive entry point + VITE_STORAGE_DELETE_ENABLED flag ([417aba0](https://github.com/stocka-app/stocka-client/commit/417aba0226ce01cf3980552fbe7721c15992dbb9))
+* **storages:** [STOC-446](https://austins-industries.atlassian.net/browse/STOC-446) — StorageCard ARCHIVED opacity 60% + interactive menu + canRestore + edit allowed ([fb021e1](https://github.com/stocka-app/stocka-client/commit/fb021e18c3d2aae2dfdbf9baec30c4bb251df314))
+* **storages:** [STOC-447](https://austins-industries.atlassian.net/browse/STOC-447) — StorageStatusBanner ARCHIVED CTA + Drawer ARCHIVED mode (gray banner + type-disabled tooltip) ([8f88fc6](https://github.com/stocka-app/stocka-client/commit/8f88fc6ffd083f0ce3badda26f8e2edd5f316684))
+
+### 🐛 Bug Fixes
+
+* **onboarding:** [STOC-448](https://austins-industries.atlassian.net/browse/STOC-448) — dark mode — remove neutral-* dark overrides that force dark text over dark background ([3ee4158](https://github.com/stocka-app/stocka-client/commit/3ee41581fea91366adc0e317c53557c69e3565a4)), closes [#111827](https://github.com/stocka-app/stocka-client/issues/111827) [#f8fafc](https://github.com/stocka-app/stocka-client/issues/f8fafc) [#1e293b](https://github.com/stocka-app/stocka-client/issues/1e293b) [#cbd5e1](https://github.com/stocka-app/stocka-client/issues/cbd5e1)
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — ArchiveConfirmDialog primary button stays dark in dark mode ([1c42b5d](https://github.com/stocka-app/stocka-client/commit/1c42b5d5396abd525c1fc01052f7e1da38764b6b)), closes [#4B5563](https://github.com/stocka-app/stocka-client/issues/4B5563) [#cbd5e1](https://github.com/stocka-app/stocka-client/issues/cbd5e1)
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — FE changeType calls per-transition endpoint (fixes 404 on type change) ([e566b73](https://github.com/stocka-app/stocka-client/commit/e566b735dcc399747d68634cc4db5f9f33b4e400))
+
+### 🔧 Refactoring
+
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — drop VITE_STORAGE_DELETE_ENABLED — RBAC + BE stub already gate the action ([421d971](https://github.com/stocka-app/stocka-client/commit/421d971951672151b2987e745c5bfc2ac9f6396a))
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — remove dead create() service + createStorage hook ([ad5cb9a](https://github.com/stocka-app/stocka-client/commit/ad5cb9a85de05e22b0fea1ed034366bbbeab3fde))
+* **ui:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — extract shared Dialog shell + migrate 5 confirm modals (100% coverage preserved) ([6efddf0](https://github.com/stocka-app/stocka-client/commit/6efddf05833a531e32e8032e7452c3188227cd2b))
+
+### 🧹 Chores
+
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — drop legacy STORAGE_ARCHIVED_CANNOT_BE_UPDATED mapping (DT-H07-7 FE) ([209a8ea](https://github.com/stocka-app/stocka-client/commit/209a8eaf9c1c4b909ec4e4cb79769f8be2e1c993))
+
+### ✅ Tests
+
+* **e2e:** [STOC-397](https://austins-industries.atlassian.net/browse/STOC-397) — FASE 6 Paso 12 — Playwright specs for H-07 archive + restore flows (PW-H07-1..5) ([dbf3e4b](https://github.com/stocka-app/stocka-client/commit/dbf3e4bb2f213e73b3f14574e486d339dd7ba5bc))
+* **e2e:** [STOC-397](https://austins-industries.atlassian.net/browse/STOC-397) — FASE 7 Playwright — fix locale + RBAC for H-07 specs (5/5 pass) ([61354ad](https://github.com/stocka-app/stocka-client/commit/61354ad6b308fc4d0cdd5fa9847ba1856835f4a0))
+* **e2e:** [STOC-449](https://austins-industries.atlassian.net/browse/STOC-449) — repair 10 pre-existing Playwright tests (mockEditPatch + drift with H-07 UX) ([a2b8bc0](https://github.com/stocka-app/stocka-client/commit/a2b8bc038b517edba24b3639b8f6ad03753fb83e)), closes [UX#1](https://github.com/stocka-app/UX/issues/1)
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — FASE 7 FE validación — coverage gap trimming + backdrop/ESC/catch branches (2288 pass, 100%/100%/100%/99.86%) ([a82f976](https://github.com/stocka-app/stocka-client/commit/a82f97699c304f86f8b38dd2142baa78a28f130f))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — FASE 6 Paso 11 — fix broken suites after DT-H07-4/7 (tsc clean, 2258/2275 tests pass) ([3f10005](https://github.com/stocka-app/stocka-client/commit/3f10005a1e2852e29366066e7adb06f053ebd7da))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — FASE 6 Paso 11 runtime follow-up — 2271/2275 pass, 4 skipped (DT-H07-9) ([9a79878](https://github.com/stocka-app/stocka-client/commit/9a79878b39d3d05272e9095c25bd5faf91c83afb))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — FASE 7 FE unit coverage — close EditStorageDrawer ARCHIVED branches (100% all) ([ce23636](https://github.com/stocka-app/stocka-client/commit/ce2363607f28907c3787eaeb3cb96deb69cb0383))
+
+### 🎨 Styles
+
+* **Dialog:** enhance backdrop styling and improve Escape key handling ([ba44510](https://github.com/stocka-app/stocka-client/commit/ba44510a27bdae21c068418cfa8775bc7f3a9701))
+
 ## [0.18.3](https://github.com/stocka-app/stocka-client/compare/v0.18.2...v0.18.3) (2026-04-15)
 
 ### 🐛 Bug Fixes
