@@ -320,6 +320,7 @@
   "toasts": {
     "frozen": "\"{{name}}\" fue congelada",
     "reactivated": "\"{{name}}\" fue reactivada",
+    "archived": "\"{{name}}\" fue archivada",
     "errors": {
       "freezeFailed": "No pudimos congelar la instalación. Intenta de nuevo.",
       "unfreezeFailed": "No pudimos reactivar la instalación. Intenta de nuevo."

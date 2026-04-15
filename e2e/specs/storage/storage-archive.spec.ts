@@ -63,7 +63,7 @@ async function mockArchiveSuccess(
 // ─── PW-H07-1 — Archive happy path ─────────────────────────────────────────
 
 test.describe('Given an Owner opens the actions menu on an active warehouse', () => {
-  test('PW-H07-1: When they click Archivar and confirm, Then a success toast appears and the card shows ARCHIVED', async ({
+  test('PW-H07-1: When they click Archive and confirm, Then a success toast appears and the card shows ARCHIVED', async ({
     preAuthPage: page,
   }) => {
     const archivedResult = {
@@ -89,9 +89,9 @@ test.describe('Given an Owner opens the actions menu on an active warehouse', ()
     await expect(dialog).toBeVisible({ timeout: 5_000 });
     await expect(dialog).toContainText(ACTIVE_WAREHOUSE.name);
 
-    await dialog.getByRole('button', { name: /^Archivar$/i }).click();
+    await dialog.getByRole('button', { name: /^Archive$/i }).click();
 
-    await expect(page.getByText(new RegExp(`"${ACTIVE_WAREHOUSE.name}" fue archivada`))).toBeVisible({
+    await expect(page.getByText(new RegExp(`"${ACTIVE_WAREHOUSE.name}" was archived`))).toBeVisible({
       timeout: 5_000,
     });
 
@@ -102,7 +102,7 @@ test.describe('Given an Owner opens the actions menu on an active warehouse', ()
 // ─── PW-H07-2 — Archive last-active warning + "Archivar de todos modos" ───
 
 test.describe('Given an Owner tries to archive the only active storage', () => {
-  test('PW-H07-2: Then the dialog shows an amber warning and the primary button label is "Archivar de todos modos"', async ({
+  test('PW-H07-2: Then the dialog shows an amber warning and the primary button label is "Archive anyway"', async ({
     preAuthPage: page,
   }) => {
     const archivedResult = {
@@ -126,8 +126,8 @@ test.describe('Given an Owner tries to archive the only active storage', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
-    await expect(dialog).toContainText(/última instalación operativa/i);
-    await expect(dialog.getByRole('button', { name: /Archivar de todos modos/i })).toBeVisible();
+    await expect(dialog).toContainText(/last operational storage/i);
+    await expect(dialog.getByRole('button', { name: /Archive anyway/i })).toBeVisible();
   });
 });
 
@@ -159,11 +159,11 @@ test.describe('Given an Owner archives a FROZEN storage', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
-    await expect(dialog).toContainText(/congelada/i);
+    await expect(dialog).toContainText(/frozen/i);
 
-    await dialog.getByRole('button', { name: /^Archivar$/i }).click();
+    await dialog.getByRole('button', { name: /^Archive$/i }).click();
 
-    await expect(page.getByText(new RegExp(`"${FROZEN_WAREHOUSE.name}" fue archivada`))).toBeVisible({
+    await expect(page.getByText(new RegExp(`"${FROZEN_WAREHOUSE.name}" was archived`))).toBeVisible({
       timeout: 5_000,
     });
   });

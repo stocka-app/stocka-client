@@ -4,6 +4,7 @@ import {
   setupAndNavigate,
   buildStorage,
   buildStoragesResponse,
+  getRealTenantId,
   RBAC_OWNER,
 } from '../../helpers/storages-list.helper';
 import type { Page } from '@playwright/test';
@@ -55,7 +56,7 @@ async function mockRestoreSuccess(
 // ─── PW-H07-4 — Restore from card menu (happy path) ───────────────────────
 
 test.describe('Given an Owner opens the actions menu on an archived storage', () => {
-  test('PW-H07-4: When they click Restaurar, Then the storage transitions back to ACTIVE with a success toast', async ({
+  test('PW-H07-4: When they click Restore, Then the storage transitions back to ACTIVE with a success toast', async ({
     preAuthPage: page,
   }) => {
     const restoredResult = {
@@ -77,7 +78,7 @@ test.describe('Given an Owner opens the actions menu on an archived storage', ()
     await list.openCardMenu(ARCHIVED_WAREHOUSE.name);
     await list.menuItems.restore.click();
 
-    await expect(page.getByText(new RegExp(`${ARCHIVED_WAREHOUSE.name} restaurada`))).toBeVisible({
+    await expect(page.getByText(new RegExp(`${ARCHIVED_WAREHOUSE.name} restored`))).toBeVisible({
       timeout: 5_000,
     });
   });
@@ -89,7 +90,7 @@ test.describe('Given the active context is an archived storage', () => {
   test('PW-H07-5: Then the global status banner shows the gray ARCHIVED copy and the Restaurar CTA', async ({
     preAuthPage: page,
   }) => {
-    const tenantId = 'mock-tenant-id';
+    const tenantId = getRealTenantId() ?? 'mock-tenant-id';
     await page.addInitScript(
       ({ storageId, tId }: { storageId: string; tId: string }) => {
         const key = `stocka:active-storage:${tId}`;
@@ -105,7 +106,7 @@ test.describe('Given the active context is an archived storage', () => {
 
     const banner = page.getByRole('status');
     await expect(banner).toBeVisible({ timeout: 5_000 });
-    await expect(banner).toContainText(/archivada/i);
-    await expect(banner.getByRole('button', { name: /Restaurar/i })).toBeVisible();
+    await expect(banner).toContainText(/archived/i);
+    await expect(banner.getByRole('button', { name: /Restore/i })).toBeVisible();
   });
 });

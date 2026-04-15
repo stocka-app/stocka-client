@@ -320,6 +320,7 @@
   "toasts": {
     "frozen": "\"{{name}}\" was frozen",
     "reactivated": "\"{{name}}\" was reactivated",
+    "archived": "\"{{name}}\" was archived",
     "errors": {
       "freezeFailed": "We couldn't freeze the storage. Try again.",
       "unfreezeFailed": "We couldn't reactivate the storage. Try again."

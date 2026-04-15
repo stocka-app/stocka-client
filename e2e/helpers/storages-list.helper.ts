@@ -229,6 +229,7 @@ export const RBAC_OWNER: RbacPayload = {
     'STORAGE_FREEZE',
     'STORAGE_UNFREEZE',
     'STORAGE_ARCHIVE',
+    'STORAGE_RESTORE',
     'STORAGE_DELETE',
   ],
 };
