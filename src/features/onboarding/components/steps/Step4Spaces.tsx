@@ -380,7 +380,7 @@ export function Step4Spaces({
                 <Package className="w-5 h-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
+                <p className="font-semibold text-sm text-neutral-900">
                   {t('step4.storeRoom.title')}
                 </p>
                 <p className="text-xs text-neutral-500 mt-0.5">
@@ -403,7 +403,7 @@ export function Step4Spaces({
                 <Store className="w-5 h-5 text-brand" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
+                <p className="font-semibold text-sm text-neutral-900">
                   {t('step4.customRoom.title')}
                 </p>
                 <p className="text-xs text-neutral-500 mt-0.5">
@@ -444,7 +444,7 @@ export function Step4Spaces({
                   <p
                     className={cn(
                       'font-semibold text-sm',
-                      isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900 dark:text-neutral-100',
+                      isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900',
                     )}
                   >
                     {t('step4.warehouse.title')}
@@ -545,7 +545,7 @@ export function Step4Spaces({
             <Package className="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
+            <p className="font-semibold text-sm text-neutral-900">
               {t('step4.storeRoom.title')}
             </p>
             <p className="text-xs text-neutral-500">
@@ -584,7 +584,7 @@ export function Step4Spaces({
                 )}
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 block mb-1">
                     {t('step4.storeRoom.nameLabel')}
                   </label>
                   <Input
@@ -603,7 +603,7 @@ export function Step4Spaces({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 block mb-1">
                     {t('step4.storeRoom.addressLabel')}
                   </label>
                   <Input
@@ -650,7 +650,7 @@ export function Step4Spaces({
             <Store className="w-4 h-4 text-brand" aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
+            <p className="font-semibold text-sm text-neutral-900">
               {t('step4.customRoom.title')}
             </p>
             <p className="text-xs text-neutral-500">
@@ -690,7 +690,7 @@ export function Step4Spaces({
 
                 {/* Room type — suggestion chips + free text input */}
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-2">
+                  <label className="text-sm font-medium text-neutral-900 block mb-2">
                     {t('step4.customRoom.roomTypeLabel')}
                   </label>
 
@@ -734,7 +734,7 @@ export function Step4Spaces({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 block mb-1">
                     {t('step4.customRoom.nameLabel')}
                   </label>
                   <Input
@@ -753,7 +753,7 @@ export function Step4Spaces({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 block mb-1">
                     {t('step4.customRoom.addressLabel')}
                   </label>
                   <Input
@@ -790,10 +790,10 @@ export function Step4Spaces({
                       style={{ backgroundColor: room.color }}
                     />
                     <div className="flex-1 text-left">
-                      <p className="text-xs font-medium text-neutral-700 dark:text-neutral-200">{room.icon}</p>
+                      <p className="text-xs font-medium text-neutral-700">{room.icon}</p>
                       <p className="text-[10px] text-neutral-400">{room.color}</p>
                     </div>
-                    <span className="material-symbols-outlined text-[18px] text-neutral-400 dark:text-neutral-500">
+                    <span className="material-symbols-outlined text-[18px] text-neutral-400">
                       chevron_right
                     </span>
                   </button>
@@ -872,7 +872,7 @@ export function Step4Spaces({
               <p
                 className={cn(
                   'font-semibold text-sm',
-                  isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900 dark:text-neutral-100',
+                  isWarehouseLocked ? 'text-neutral-400' : 'text-neutral-900',
                 )}
               >
                 {t('step4.warehouse.title')}
@@ -903,7 +903,7 @@ export function Step4Spaces({
               <div key={index} className="space-y-3">
                 {/* Name */}
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 block mb-1">
                     {t('step4.warehouse.nameLabel')}
                   </label>
                   <Input
@@ -923,7 +923,7 @@ export function Step4Spaces({
 
                 {/* Address (required for warehouses) */}
                 <div>
-                  <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100 block mb-1">
+                  <label className="text-sm font-medium text-neutral-900 block mb-1">
                     {t('step4.warehouse.addressLabel')}
                   </label>
                   <Input
