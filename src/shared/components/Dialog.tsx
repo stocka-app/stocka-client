@@ -23,10 +23,13 @@ export default function Dialog({
 }: DialogProps): React.ReactElement | null {
   useEffect(() => {
     if (!open || !closable) return;
+
     const handler = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onClose();
     };
+
     window.addEventListener('keydown', handler);
+
     return () => window.removeEventListener('keydown', handler);
   }, [open, closable, onClose]);
 
@@ -41,7 +44,7 @@ export default function Dialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby={ariaLabelledBy}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-6 sm:px-0 md:py-12 lg:py-16 2xl:py-20 overflow-auto scrollbar-hide outline-none focus:outline-none"
       onClick={handleBackdropClick}
     >
       <div
