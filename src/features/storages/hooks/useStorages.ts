@@ -129,6 +129,7 @@ export function useStorages(): {
   canFreeze: boolean;
   canUnfreeze: boolean;
   canArchive: boolean;
+  canRestore: boolean;
   canDelete: boolean;
   fetchStorages: () => Promise<void>;
   createStorage: (payload: CreateStorageFormData) => Promise<boolean>;
@@ -139,6 +140,8 @@ export function useStorages(): {
   changeStorageType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   archiveStorage: (id: string) => Promise<boolean>;
   restoreStorage: (id: string) => Promise<boolean>;
+  /** H-07 stub — triggers the 501 endpoint so the UX path is exercised end-to-end. Always resolves with `not_implemented`. */
+  deleteStoragePermanent: (id: string) => Promise<{ error: 'not_implemented' | 'server_error' }>;
   freezeStorage: (id: string) => Promise<boolean>;
   unfreezeStorage: (id: string) => Promise<boolean>;
   getIsLastActive: (id: string) => boolean;
@@ -374,43 +377,66 @@ export function useStorages(): {
     [fetchStorages],
   );
 
-  const archiveStorage = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const storage = await storagesService.archive(id);
-        updateStorage(storage);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [updateStorage],
-  );
-
-  const restoreStorage = useCallback(
-    async (id: string): Promise<boolean> => {
-      try {
-        const storage = await storagesService.restore(id);
-        updateStorage(storage);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [updateStorage],
-  );
-
-  // Applies a status-flip (ACTIVE ↔ FROZEN) locally to the summary and
-  // typeSummary counters so we don't have to refetch the whole list after a
-  // freeze/unfreeze. DT-H05-14 — now that the endpoint returns the updated
-  // storage (DT-H05-13) we can propagate the change in place.
+  // Applies a status-flip locally to the summary counters so we don't have to
+  // refetch the whole list after a freeze/unfreeze/archive/restore. The BE
+  // endpoints return the updated storage (post-H07 refactor), so we can
+  // propagate the change in place. The `type` param is kept for future
+  // per-type counter adjustments; current summary is tenant-wide.
   const shiftStatusCounters = useCallback(
-    (type: StorageType, from: StorageStatus, to: StorageStatus): void => {
+    (_type: StorageType, from: StorageStatus, to: StorageStatus): void => {
       setSummary((prev) => ({
         active: prev.active + (to === 'ACTIVE' ? 1 : 0) - (from === 'ACTIVE' ? 1 : 0),
         frozen: prev.frozen + (to === 'FROZEN' ? 1 : 0) - (from === 'FROZEN' ? 1 : 0),
         archived: prev.archived + (to === 'ARCHIVED' ? 1 : 0) - (from === 'ARCHIVED' ? 1 : 0),
       }));
+    },
+    [],
+  );
+
+  const archiveStorage = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return false;
+      try {
+        const updated = await storagesService.archive(id, target.type);
+        updateStorage(updated);
+        shiftStatusCounters(target.type, target.status, updated.status);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [storages, updateStorage, shiftStatusCounters],
+  );
+
+  const restoreStorage = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return false;
+      try {
+        const updated = await storagesService.restore(id, target.type);
+        updateStorage(updated);
+        shiftStatusCounters(target.type, target.status, updated.status);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [storages, updateStorage, shiftStatusCounters],
+  );
+
+  const deleteStoragePermanent = useCallback(
+    async (id: string): Promise<{ error: 'not_implemented' | 'server_error' }> => {
+      try {
+        await storagesService.deleteStoragePermanent(id);
+        // BE should return 501, so success is unexpected in Sprint 2. Treat as server_error for safety.
+        return { error: 'server_error' };
+      } catch (err) {
+        const apiErr = err as Partial<{ statusCode: number; error: string }>;
+        if (apiErr?.statusCode === 501) return { error: 'not_implemented' };
+        if (axios.isAxiosError(err) && err.response?.status === 501) return { error: 'not_implemented' };
+        return { error: 'server_error' };
+      }
     },
     [],
   );
@@ -494,6 +520,7 @@ export function useStorages(): {
   const canFreeze = canDo('STORAGE_FREEZE');
   const canUnfreeze = canDo('STORAGE_UNFREEZE');
   const canArchive = canDo('STORAGE_ARCHIVE');
+  const canRestore = canDo('STORAGE_RESTORE');
   const canDelete = canDo('STORAGE_DELETE');
 
   return {
@@ -528,6 +555,7 @@ export function useStorages(): {
     canFreeze,
     canUnfreeze,
     canArchive,
+    canRestore,
     canDelete,
     fetchStorages: () =>
       fetchStorages({
@@ -545,6 +573,7 @@ export function useStorages(): {
     changeStorageType,
     archiveStorage,
     restoreStorage,
+    deleteStoragePermanent,
     freezeStorage,
     unfreezeStorage,
     getIsLastActive,

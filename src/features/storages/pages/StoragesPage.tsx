@@ -215,7 +215,7 @@ export default function StoragesPage(): React.ReactElement {
 
   const handleDeleteClick = async (storage: Storage): Promise<void> => {
     try {
-      await storagesService.destroy(storage.uuid);
+      await storagesService.deleteStoragePermanent(storage.uuid);
       toast.success(t('toast.deleted', { name: storage.name }));
       fetchStorages();
     } catch {

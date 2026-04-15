@@ -113,8 +113,8 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
         if (updated) updateStorageInStore(updated);
         toast.success(t('toasts.reactivated', { name: activeStorage.name }));
       } else {
-        // ARCHIVED → ACTIVE uses the unified /restore endpoint (out of scope H-05)
-        const updated = await storagesService.restore(activeStorage.uuid);
+        // ARCHIVED → ACTIVE — H-07 per-type /restore endpoint
+        const updated = await storagesService.restore(activeStorage.uuid, activeStorage.type);
         updateStorageInStore(updated);
         toast.success(t('toast.restored', { name: updated.name }));
       }

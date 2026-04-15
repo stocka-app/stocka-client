@@ -104,13 +104,13 @@ export const storagesService = {
     return unwrap(data) as { storageUUID: string };
   },
 
-  async archive(id: string): Promise<Storage> {
-    const { data } = await axiosInstance.delete(`/storages/${id}`);
+  async archive(id: string, type: StorageType): Promise<Storage> {
+    const { data } = await axiosInstance.delete(`/storages/${TYPE_SLUG[type]}/${id}/archive`);
     return storageSchema.parse(unwrap(data));
   },
 
-  async restore(id: string): Promise<Storage> {
-    const { data } = await axiosInstance.post(`/storages/${id}/restore`);
+  async restore(id: string, type: StorageType): Promise<Storage> {
+    const { data } = await axiosInstance.post(`/storages/${TYPE_SLUG[type]}/${id}/restore`);
     return storageSchema.parse(unwrap(data));
   },
 
@@ -124,7 +124,7 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
-  async destroy(id: string): Promise<void> {
+  async deleteStoragePermanent(id: string): Promise<void> {
     await axiosInstance.delete(`/storages/${id}/permanent`);
   },
 
