@@ -65,6 +65,7 @@ export default function StoragesPage(): React.ReactElement {
     searchQuery,
     sortOrder,
     isGated,
+    isOffline,
     setFilterStatus,
     setFilterType,
     setSearchQuery,
@@ -791,6 +792,7 @@ export default function StoragesPage(): React.ReactElement {
                 canArchive={canDo('STORAGE_ARCHIVE')}
                 canRestore={canDo('STORAGE_RESTORE')}
                 canDelete={canDo('STORAGE_DELETE')}
+                isOffline={isOffline}
                 onView={handleViewClick}
                 onEdit={handleEditClick}
                 onFreeze={handleFreezeClick}

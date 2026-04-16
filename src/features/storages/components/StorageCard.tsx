@@ -97,6 +97,8 @@ interface StorageCardProps {
   canRestore?: boolean;
   /** RBAC: user has STORAGE_DELETE permission */
   canDelete?: boolean;
+  /** True when the browser has no network connectivity. Restore is disabled (with a tooltip) while offline because the action requires a server round-trip and would otherwise fail silently from the user's perspective. */
+  isOffline?: boolean;
   onView: (storage: Storage) => void;
   onEdit: (storage: Storage) => void;
   onFreeze: (storage: Storage) => void;
@@ -117,6 +119,7 @@ export function StorageCard({
   canArchive = false,
   canRestore = false,
   canDelete = false,
+  isOffline = false,
   onView,
   onEdit,
   onFreeze,
@@ -136,6 +139,7 @@ export function StorageCard({
   const editDisabled = !canEdit;
   // H-05: FROZEN → ARCHIVED is allowed directly (no need to unfreeze first)
   const archiveDisabled = !canArchive || isArchived;
+  const restoreDisabled = !canRestore || isOffline;
   // H-07: permanent delete is gated purely by RBAC (STORAGE_DELETE is granted
   // only to OWNER/PARTNER). The BE still returns 501 in Sprint 2, which the
   // DeleteStorageDialog surfaces via its 'not_implemented' banner — no extra
@@ -334,9 +338,14 @@ export function StorageCard({
               )}
               {isArchived ? (
                 <DropdownMenuItem
-                  disabled={!canRestore}
-                  onClick={() => canRestore && onRestore(storage)}
-                  className="group"
+                  disabled={restoreDisabled}
+                  onClick={() => !restoreDisabled && onRestore(storage)}
+                  className={cn('group', isOffline && 'cursor-not-allowed opacity-40')}
+                  title={
+                    isOffline
+                      ? t('tooltips.offline', { defaultValue: 'Sin conexión.' })
+                      : undefined
+                  }
                 >
                   <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-success">
                     settings_backup_restore
