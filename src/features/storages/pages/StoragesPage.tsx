@@ -13,6 +13,7 @@ import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { OfflineBanner } from '@/shared/components/OfflineBanner';
 import { showUndoToast } from '../components/UndoToast';
 import { showUndoCompletedToast } from '../components/UndoCompletedToast';
+import { ArchivedStoragesFilter } from '../components/ArchivedStoragesFilter';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
@@ -640,11 +641,15 @@ export default function StoragesPage(): React.ReactElement {
           })}
         </div>
         <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
+        <ArchivedStoragesFilter
+          value={filterStatus}
+          summary={summary}
+          canRestore={canDo('STORAGE_RESTORE')}
+          onChange={setFilterStatus}
+        />
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
           disabled={isGated}
@@ -656,6 +661,28 @@ export default function StoragesPage(): React.ReactElement {
               feature={t(`types.${filterType}`)}
               onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
               onBack={() => setFilterType(null)}
+            />
+          </div>
+        ) : filterStatus === 'ARCHIVED' && summary.archived === 0 ? (
+          <div className="flex flex-1 items-center justify-center">
+            <StateComposition
+              icon="inventory_2"
+              variant="neutral"
+              title={t('empty.archived.title', { defaultValue: 'No tienes instalaciones archivadas' })}
+              description={t('empty.archived.description', {
+                defaultValue:
+                  'Cuando archives una instalación aparecerá aquí y podrás restaurarla en cualquier momento.',
+              })}
+              actions={
+                <Button
+                  type="button"
+                  onClick={() => setFilterStatus('ACTIVE')}
+                  className="gap-2 bg-brand text-white hover:bg-brand-hover"
+                >
+                  <span className="material-symbols-outlined text-[20px]">visibility</span>
+                  {t('empty.archived.viewActive', { defaultValue: 'Ver activas' })}
+                </Button>
+              }
             />
           </div>
         ) : isTypeTabOnly ? (
@@ -765,12 +792,18 @@ export default function StoragesPage(): React.ReactElement {
       {/* Stats bar */}
       <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
 
+      {/* Status filter pills — replaces the legacy <select> in SearchBar */}
+      <ArchivedStoragesFilter
+        value={filterStatus}
+        summary={summary}
+        canRestore={canDo('STORAGE_RESTORE')}
+        onChange={setFilterStatus}
+      />
+
       {/* Search bar — visible on all tabs, disabled when the tab is tier-gated */}
       <SearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         disabled={isGated}
@@ -925,16 +958,12 @@ function StatsBar({ activeCount, frozenCount, archivedCount }: { activeCount: nu
 function SearchBar({
   searchQuery,
   setSearchQuery,
-  filterStatus,
-  setFilterStatus,
   sortOrder,
   setSortOrder,
   disabled = false,
 }: {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  filterStatus: import('../types/storages.types').StorageStatus | null;
-  setFilterStatus: (s: import('../types/storages.types').StorageStatus | null) => void;
   sortOrder: string;
   setSortOrder: (o: 'ASC' | 'DESC') => void;
   disabled?: boolean;
@@ -965,26 +994,6 @@ function SearchBar({
           )}
         />
       </div>
-      <select
-        value={filterStatus ?? ''}
-        onChange={(e) =>
-          setFilterStatus(
-            e.target.value === '' ? null : (e.target.value as import('../types/storages.types').StorageStatus),
-          )
-        }
-        disabled={disabled}
-        className={cn(
-          'min-h-[44px] rounded-lg border border-border bg-surface-card px-3 py-2.5 text-sm outline-none',
-          disabled
-            ? 'cursor-not-allowed text-neutral-300'
-            : 'text-neutral-700 focus:ring-2 focus:ring-ring',
-        )}
-      >
-        <option value="">{t('controls.allStatuses')}</option>
-        <option value="ACTIVE">{t('statuses.ACTIVE')}</option>
-        <option value="FROZEN">{t('statuses.FROZEN')}</option>
-        <option value="ARCHIVED">{t('statuses.ARCHIVED')}</option>
-      </select>
       <button
         type="button"
         onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}
