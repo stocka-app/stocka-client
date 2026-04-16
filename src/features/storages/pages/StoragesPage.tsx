@@ -183,12 +183,20 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleRestoreClick = async (storage: Storage): Promise<void> => {
-    const ok = await restoreStorage(storage.uuid);
-    if (ok) {
+    const result = await restoreStorage(storage.uuid);
+    if (result.error === null) {
       toast.success(t('toast.restored', { name: storage.name }));
-    } else {
-      toast.error(t('toast.restoreFailed'));
+      return;
     }
+    if (result.error === 'tier_limit') {
+      toast.error(t('toast.restoreTierLimit', { defaultValue: 'No puedes restaurar: el plan actual no soporta más espacios de este tipo.' }));
+      return;
+    }
+    if (result.error === 'offline') {
+      toast.error(t('toast.restoreOffline', { defaultValue: 'Sin conexión. Intenta de nuevo cuando recuperes red.' }));
+      return;
+    }
+    toast.error(t('toast.restoreFailed'));
   };
 
   const handleEdit = async (

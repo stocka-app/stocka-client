@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import axios from 'axios';
 import { useStoragesStore } from '../store/storages.store';
 import { useRBACStore } from '@/store/rbac.store';
@@ -17,6 +17,8 @@ const STORAGES_PAGE_LIMIT = 50;
 type CreateError = 'name_taken' | 'tier_limit' | 'server_error' | null;
 type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
+/** Errors a restore call can resolve to. `not_archived` is the idempotent-conflict case (storage already ACTIVE). `tier_limit` covers the post-downgrade edge case the BE guards. `offline` short-circuits when the browser has no connectivity (no request fired). */
+export type RestoreError = 'not_archived' | 'not_found' | 'tier_limit' | 'offline' | 'server_error';
 /** Unified error returned by the combined edit + change-type flow. */
 export type EditOrChangeTypeError =
   | Exclude<EditError, null>
@@ -67,6 +69,53 @@ function resolveEditError(err: unknown): EditError {
   }
 
   return 'server_error';
+}
+
+function mapRestoreError(err: unknown): RestoreError {
+  const apiErr = err as Partial<{ statusCode: number; error: string }>;
+  if (apiErr?.error === 'STORAGE_NOT_ARCHIVED') return 'not_archived';
+  if (apiErr?.error === 'STORAGE_NOT_FOUND') return 'not_found';
+  if (
+    apiErr?.error === 'WAREHOUSE_REQUIRES_TIER_UPGRADE' ||
+    apiErr?.error === 'STORE_ROOM_LIMIT_REACHED' ||
+    apiErr?.error === 'CUSTOM_ROOM_LIMIT_REACHED' ||
+    apiErr?.statusCode === 403
+  ) {
+    return 'tier_limit';
+  }
+
+  if (axios.isAxiosError(err)) {
+    const code = (err.response?.data as { error?: string } | undefined)?.error;
+    if (code === 'STORAGE_NOT_ARCHIVED') return 'not_archived';
+    if (code === 'STORAGE_NOT_FOUND') return 'not_found';
+    if (
+      code === 'WAREHOUSE_REQUIRES_TIER_UPGRADE' ||
+      code === 'STORE_ROOM_LIMIT_REACHED' ||
+      code === 'CUSTOM_ROOM_LIMIT_REACHED' ||
+      err.response?.status === 403
+    ) {
+      return 'tier_limit';
+    }
+  }
+
+  return 'server_error';
+}
+
+function subscribeToOnlineStatus(callback: () => void): () => void {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
+
+function getOnlineSnapshot(): boolean {
+  return window.navigator.onLine;
+}
+
+function getOnlineServerSnapshot(): boolean {
+  return true;
 }
 
 function resolveChangeTypeError(err: unknown): ChangeTypeError {
@@ -126,6 +175,8 @@ export function useStorages(): {
   sortOrder: 'ASC' | 'DESC';
   /** True when the active filterType is completely locked on the current tier */
   isGated: boolean;
+  /** True when the browser reports no network connectivity. Consumers (CTAs, banners, undo toasts) read this to short-circuit destructive actions before they hit the wire. Backed by `navigator.onLine` + online/offline window events. */
+  isOffline: boolean;
   setFilterStatus: (status: StorageStatus | null) => void;
   setFilterType: (type: StorageType | null) => void;
   setSearchQuery: (query: string) => void;
@@ -154,7 +205,8 @@ export function useStorages(): {
   ) => Promise<{ error: EditOrChangeTypeError }>;
   changeStorageType: (id: string, targetType: StorageType) => Promise<{ error: ChangeTypeError }>;
   archiveStorage: (id: string) => Promise<boolean>;
-  restoreStorage: (id: string) => Promise<boolean>;
+  /** Resolves with `{ error: null }` on success or a typed `RestoreError` so callers (toast, undo, banner) can show specific messaging. Returns `{ error: 'offline' }` without firing a request when `isOffline` is true. */
+  restoreStorage: (id: string) => Promise<{ error: RestoreError | null }>;
   /** H-07 stub — triggers the 501 endpoint so the UX path is exercised end-to-end. Always resolves with `not_implemented`. */
   deleteStoragePermanent: (id: string) => Promise<{ error: 'not_implemented' | 'server_error' }>;
   freezeStorage: (id: string) => Promise<boolean>;
@@ -187,6 +239,13 @@ export function useStorages(): {
   const [currentPage, setCurrentPageState] = useState(1);
   const [summary, setSummary] = useState<StorageStatusSummary>(EMPTY_SUMMARY);
   const [typeCounts, setTypeCounts] = useState<TypeCounts>(EMPTY_TYPE_COUNTS);
+
+  const isOnline = useSyncExternalStore(
+    subscribeToOnlineStatus,
+    getOnlineSnapshot,
+    getOnlineServerSnapshot,
+  );
+  const isOffline = !isOnline;
 
   // Keep a ref with the latest filter values so fetchStorages can be called
   // with current state without being a dep of useEffect (avoids infinite loop).
@@ -430,19 +489,20 @@ export function useStorages(): {
   );
 
   const restoreStorage = useCallback(
-    async (id: string): Promise<boolean> => {
+    async (id: string): Promise<{ error: RestoreError | null }> => {
       const target = storages.find((s) => s.uuid === id);
-      if (!target) return false;
+      if (!target) return { error: 'not_found' };
+      if (isOffline) return { error: 'offline' };
       try {
         const updated = await storagesService.restore(id, target.type);
         updateStorage(updated);
         shiftStatusCounters(target.type, target.status, updated.status);
-        return true;
-      } catch {
-        return false;
+        return { error: null };
+      } catch (err) {
+        return { error: mapRestoreError(err) };
       }
     },
-    [storages, updateStorage, shiftStatusCounters],
+    [storages, isOffline, updateStorage, shiftStatusCounters],
   );
 
   const deleteStoragePermanent = useCallback(
@@ -563,6 +623,7 @@ export function useStorages(): {
     searchQuery,
     sortOrder,
     isGated,
+    isOffline,
     setFilterStatus,
     setFilterType,
     setSearchQuery,

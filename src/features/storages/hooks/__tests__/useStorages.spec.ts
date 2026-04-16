@@ -867,22 +867,22 @@ describe('Given useStorages orchestrates storage operations', () => {
   });
 
   describe('When restoreStorage is called with a valid id', () => {
-    it('Then it calls the service and returns true on success', async () => {
+    it('Then it calls the service and resolves with no error on success', async () => {
       vi.mocked(storagesService.restore).mockResolvedValue({ ...mockStoragesItems[2], status: 'ACTIVE' });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.restoreStorage('storage-003');
-      expect(success).toBe(true);
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: null });
     });
 
-    it('Then returns false when the service throws', async () => {
+    it('Then resolves with server_error when the service throws an unrecognized error', async () => {
       vi.mocked(storagesService.restore).mockRejectedValue(new Error('Restore failed'));
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.restoreStorage('storage-003');
-      expect(success).toBe(false);
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'server_error' });
     });
   });
 
@@ -1791,12 +1791,12 @@ describe('Given useStorages exposes active-context derived data', () => {
   });
 
   describe('When restoreStorage is called with a storage not in the current list', () => {
-    it('Then it returns false without calling the service', async () => {
+    it('Then it resolves with not_found without calling the service', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.restoreStorage('non-existent-uuid');
-      expect(success).toBe(false);
+      const outcome = await result.current.restoreStorage('non-existent-uuid');
+      expect(outcome).toEqual({ error: 'not_found' });
       expect(vi.mocked(storagesService.restore)).not.toHaveBeenCalled();
     });
   });

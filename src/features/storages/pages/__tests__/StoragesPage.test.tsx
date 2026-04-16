@@ -103,7 +103,7 @@ const {
   mockCreateCustomRoom: vi.fn().mockResolvedValue({ error: null }),
   mockEditStorage: vi.fn().mockResolvedValue(true),
   mockArchiveStorage: vi.fn().mockResolvedValue(true),
-  mockRestoreStorage: vi.fn().mockResolvedValue(true),
+  mockRestoreStorage: vi.fn().mockResolvedValue({ error: null }),
   mockFreezeStorage: vi.fn().mockResolvedValue(true),
   mockUnfreezeStorage: vi.fn().mockResolvedValue(true),
   mockGetIsLastActive: vi.fn().mockReturnValue(false),
@@ -980,7 +980,7 @@ describe('StoragesPage', () => {
 
   describe('Given restore fails', () => {
     beforeEach(async () => {
-      mockRestoreStorage.mockResolvedValueOnce(false);
+      mockRestoreStorage.mockResolvedValueOnce({ error: 'server_error' });
       setSuccessState({
         storages: [
           { uuid: '1', name: 'Archived One', type: 'WAREHOUSE', status: 'ARCHIVED' },
