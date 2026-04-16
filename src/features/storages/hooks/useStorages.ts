@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { useStoragesStore } from '../store/storages.store';
 import { useRBACStore } from '@/store/rbac.store';
+import { useOfflineStatus } from '@/shared/hooks/useOfflineStatus';
 import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { storagesService } from '../api/storages.service';
 import type { ListStoragesParams } from '../api/storages.service';
@@ -99,23 +100,6 @@ function mapRestoreError(err: unknown): RestoreError {
   }
 
   return 'server_error';
-}
-
-function subscribeToOnlineStatus(callback: () => void): () => void {
-  window.addEventListener('online', callback);
-  window.addEventListener('offline', callback);
-  return () => {
-    window.removeEventListener('online', callback);
-    window.removeEventListener('offline', callback);
-  };
-}
-
-function getOnlineSnapshot(): boolean {
-  return window.navigator.onLine;
-}
-
-function getOnlineServerSnapshot(): boolean {
-  return true;
 }
 
 function resolveChangeTypeError(err: unknown): ChangeTypeError {
@@ -240,12 +224,7 @@ export function useStorages(): {
   const [summary, setSummary] = useState<StorageStatusSummary>(EMPTY_SUMMARY);
   const [typeCounts, setTypeCounts] = useState<TypeCounts>(EMPTY_TYPE_COUNTS);
 
-  const isOnline = useSyncExternalStore(
-    subscribeToOnlineStatus,
-    getOnlineSnapshot,
-    getOnlineServerSnapshot,
-  );
-  const isOffline = !isOnline;
+  const { isOffline } = useOfflineStatus();
 
   // Keep a ref with the latest filter values so fetchStorages can be called
   // with current state without being a dep of useEffect (avoids infinite loop).

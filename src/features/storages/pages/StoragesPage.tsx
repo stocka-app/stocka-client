@@ -10,6 +10,7 @@ import { ProgressBar } from '@/shared/components/ProgressBar';
 import { useRBACStore } from '@/store/rbac.store';
 import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
+import { OfflineBanner } from '@/shared/components/OfflineBanner';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
@@ -678,6 +679,8 @@ export default function StoragesPage(): React.ReactElement {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <OfflineBanner className="mb-4" />
+
       {/* Header */}
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
