@@ -14,6 +14,7 @@ import { OfflineBanner } from '@/shared/components/OfflineBanner';
 import { showUndoToast } from '../components/UndoToast';
 import { showUndoCompletedToast } from '../components/UndoCompletedToast';
 import { ArchivedStoragesFilter } from '../components/ArchivedStoragesFilter';
+import { StorageDetailPanel } from '../components/StorageDetailPanel';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
@@ -96,6 +97,8 @@ export default function StoragesPage(): React.ReactElement {
   const navigate = useNavigate();
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailStorage, setDetailStorage] = useState<Storage | null>(null);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isArchiveLoading, setIsArchiveLoading] = useState(false);
@@ -134,9 +137,13 @@ export default function StoragesPage(): React.ReactElement {
     setIsCreateDrawerOpen(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- handler placeholder until detail page is implemented
-  const handleViewClick = (_storage: Storage): void => {
-    // TODO: navigate to storage detail page when implemented
+  const handleViewClick = (storage: Storage): void => {
+    setDetailStorage(storage);
+    setIsDetailOpen(true);
+  };
+
+  const handleDetailClose = (): void => {
+    setIsDetailOpen(false);
   };
 
   const handleEditClick = (storage: Storage): void => {
@@ -374,6 +381,28 @@ export default function StoragesPage(): React.ReactElement {
         onCreateWarehouse={createWarehouse}
         onCreateStoreRoom={createStoreRoom}
         onCreateCustomRoom={createCustomRoom}
+      />
+      {/* Detail panel — opened from clicking on a card */}
+      <StorageDetailPanel
+        open={isDetailOpen}
+        storage={detailStorage}
+        canUpdate={canDo('STORAGE_UPDATE')}
+        canUnfreeze={canUnfreeze}
+        canRestore={canDo('STORAGE_RESTORE')}
+        isOffline={isOffline}
+        onClose={handleDetailClose}
+        onEdit={(s) => {
+          handleDetailClose();
+          handleEditClick(s);
+        }}
+        onReactivate={(s) => {
+          handleDetailClose();
+          void handleUnfreezeClick(s);
+        }}
+        onRestore={(s) => {
+          handleDetailClose();
+          void handleRestoreClick(s);
+        }}
       />
       {/* Edit flow — drawer */}
       <EditStorageDrawer
