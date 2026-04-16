@@ -78,6 +78,11 @@
       "adjustFiltersDesc": "Intenta quitar algunos filtros activos para ampliar los resultados.",
       "createNew": "Crear nueva",
       "createNewDesc": "Si aún no existe, crea una nueva instalación ahora."
+    },
+    "archived": {
+      "title": "No tienes instalaciones archivadas",
+      "description": "Cuando archives una instalación aparecerá aquí y podrás restaurarla en cualquier momento.",
+      "viewActive": "Ver activas"
     }
   },
   "error": {
@@ -165,8 +170,47 @@
   "toast": {
     "restored": "{{name}} restaurada",
     "restoreFailed": "No se pudo restaurar la instalación",
+    "restoreTierLimit": "No puedes restaurar: el plan actual no soporta más espacios de este tipo.",
+    "restoreOffline": "Sin conexión. Intenta de nuevo cuando recuperes red.",
     "deleted": "{{name}} eliminada permanentemente",
     "deleteFailed": "No se pudo eliminar la instalación"
+  },
+  "tooltips": {
+    "offline": "Sin conexión."
+  },
+  "undoToast": {
+    "frozenTitle": "\"{{name}}\" fue congelada",
+    "archivedTitle": "\"{{name}}\" fue archivada",
+    "reactivatedTitle": "\"{{name}}\" fue reactivada",
+    "restoredTitle": "\"{{name}}\" fue restaurada",
+    "undo": "Deshacer"
+  },
+  "statusFilter": {
+    "all": "Todas",
+    "active": "Activas",
+    "frozen": "Congeladas",
+    "archived": "Archivadas",
+    "ariaLabel": "Filtrar por estado",
+    "archivedHint": "Las instalaciones archivadas se pueden restaurar desde el menú de cada tarjeta."
+  },
+  "detail": {
+    "close": "Cerrar",
+    "cta": {
+      "reactivate": "Reactivar",
+      "restore": "Restaurar",
+      "edit": "Editar"
+    },
+    "fields": {
+      "type": "Tipo",
+      "address": "Dirección",
+      "roomType": "Tipo de cuarto",
+      "description": "Descripción",
+      "icon": "Ícono",
+      "createdAt": "Creado",
+      "updatedAt": "Actualizado",
+      "frozenAt": "Congelado",
+      "archivedAt": "Archivado"
+    }
   },
   "productCount": "productos",
   "createDrawer": {

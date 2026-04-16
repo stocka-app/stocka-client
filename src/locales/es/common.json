@@ -54,5 +54,9 @@
     "currentTier": "Plan actual",
     "cta": "Ver planes",
     "close": "Cerrar"
+  },
+  "offline": {
+    "bannerTitle": "Sin conexión",
+    "bannerDescription": "Algunas acciones están desactivadas hasta que recuperes conexión."
   }
 }

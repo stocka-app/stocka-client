@@ -78,6 +78,11 @@
       "adjustFiltersDesc": "Try removing some active filters to broaden results.",
       "createNew": "Create new",
       "createNewDesc": "If it doesn't exist yet, create a new storage now."
+    },
+    "archived": {
+      "title": "No archived storages",
+      "description": "When you archive a storage it will appear here, and you can restore it at any time.",
+      "viewActive": "View active"
     }
   },
   "error": {
@@ -165,8 +170,47 @@
   "toast": {
     "restored": "{{name}} restored",
     "restoreFailed": "Could not restore storage",
+    "restoreTierLimit": "Cannot restore: your current plan does not support more storages of this type.",
+    "restoreOffline": "You are offline. Try again once you are back online.",
     "deleted": "{{name}} permanently deleted",
     "deleteFailed": "Could not delete storage"
+  },
+  "tooltips": {
+    "offline": "Offline."
+  },
+  "undoToast": {
+    "frozenTitle": "\"{{name}}\" was frozen",
+    "archivedTitle": "\"{{name}}\" was archived",
+    "reactivatedTitle": "\"{{name}}\" was reactivated",
+    "restoredTitle": "\"{{name}}\" was restored",
+    "undo": "Undo"
+  },
+  "statusFilter": {
+    "all": "All",
+    "active": "Active",
+    "frozen": "Frozen",
+    "archived": "Archived",
+    "ariaLabel": "Filter by status",
+    "archivedHint": "Archived storages can be restored from each card's menu."
+  },
+  "detail": {
+    "close": "Close",
+    "cta": {
+      "reactivate": "Reactivate",
+      "restore": "Restore",
+      "edit": "Edit"
+    },
+    "fields": {
+      "type": "Type",
+      "address": "Address",
+      "roomType": "Room type",
+      "description": "Description",
+      "icon": "Icon",
+      "createdAt": "Created",
+      "updatedAt": "Updated",
+      "frozenAt": "Frozen",
+      "archivedAt": "Archived"
+    }
   },
   "productCount": "products",
   "createDrawer": {
