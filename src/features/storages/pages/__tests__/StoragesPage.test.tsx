@@ -24,12 +24,19 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const { mockToastSuccess, mockToastError } = vi.hoisted(() => ({
+const { mockToastSuccess, mockToastError, mockToastCustom, mockToastDismiss } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
+  mockToastCustom: vi.fn(),
+  mockToastDismiss: vi.fn(),
 }));
 vi.mock('sonner', () => ({
-  toast: { success: mockToastSuccess, error: mockToastError },
+  toast: {
+    success: mockToastSuccess,
+    error: mockToastError,
+    custom: mockToastCustom,
+    dismiss: mockToastDismiss,
+  },
 }));
 
 const { mockCanDo } = vi.hoisted(() => ({

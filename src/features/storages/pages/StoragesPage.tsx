@@ -11,6 +11,8 @@ import { useRBACStore } from '@/store/rbac.store';
 import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
 import { OfflineBanner } from '@/shared/components/OfflineBanner';
+import { showUndoToast } from '../components/UndoToast';
+import { showUndoCompletedToast } from '../components/UndoCompletedToast';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
@@ -154,8 +156,20 @@ export default function StoragesPage(): React.ReactElement {
     const ok = await freezeStorage(selectedStorage.uuid);
     setIsFreezeLoading(false);
     if (ok) {
+      const snapshot = selectedStorage;
       setIsFreezeOpen(false);
-      toast.success(t('toasts.frozen', { name: selectedStorage.name }));
+      showUndoToast({
+        storageName: snapshot.name,
+        action: 'freeze',
+        onUndo: async () => {
+          const undone = await unfreezeStorage(snapshot.uuid);
+          if (undone) {
+            showUndoCompletedToast({ storageName: snapshot.name, action: 'freeze' });
+          } else {
+            toast.error(t('toasts.errors.unfreezeFailed'));
+          }
+        },
+      });
     } else {
       setFreezeError('server_error');
     }
@@ -232,8 +246,33 @@ export default function StoragesPage(): React.ReactElement {
     const ok = await archiveStorage(selectedStorage.uuid);
     setIsArchiveLoading(false);
     if (ok) {
+      const snapshot = selectedStorage;
       setIsArchiveOpen(false);
-      toast.success(t('toasts.archived', { name: selectedStorage.name, defaultValue: '"{{name}}" fue archivada' }));
+      showUndoToast({
+        storageName: snapshot.name,
+        action: 'archive',
+        onUndo: async () => {
+          const result = await restoreStorage(snapshot.uuid);
+          if (result.error === null) {
+            showUndoCompletedToast({ storageName: snapshot.name, action: 'archive' });
+          } else if (result.error === 'tier_limit') {
+            toast.error(
+              t('toast.restoreTierLimit', {
+                defaultValue:
+                  'No puedes restaurar: el plan actual no soporta más espacios de este tipo.',
+              }),
+            );
+          } else if (result.error === 'offline') {
+            toast.error(
+              t('toast.restoreOffline', {
+                defaultValue: 'Sin conexión. Intenta de nuevo cuando recuperes red.',
+              }),
+            );
+          } else {
+            toast.error(t('toast.restoreFailed'));
+          }
+        },
+      });
     } else {
       setArchiveError('server_error');
     }
