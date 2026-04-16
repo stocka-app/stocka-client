@@ -10,7 +10,7 @@ import type { Page } from '@playwright/test';
 import type { MockStorage } from '../../helpers/storages-list.helper';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// H-07 · Archivar instalación — PW-H07-1, PW-H07-2, PW-H07-3
+// Archive flow — PW-H06-1, PW-H06-2, PW-H06-3
 // ═════════════════════════════════════════════════════════════════════════════
 
 const ACTIVE_WAREHOUSE = buildStorage({
@@ -60,10 +60,10 @@ async function mockArchiveSuccess(
   );
 }
 
-// ─── PW-H07-1 — Archive happy path ─────────────────────────────────────────
+// ─── PW-H06-1 — Archive happy path ─────────────────────────────────────────
 
 test.describe('Given an Owner opens the actions menu on an active warehouse', () => {
-  test('PW-H07-1: When they click Archive and confirm, Then a success toast appears and the card shows ARCHIVED', async ({
+  test('PW-H06-1: When they click Archive and confirm, Then a success toast appears and the card shows ARCHIVED', async ({
     preAuthPage: page,
   }) => {
     const archivedResult = {
@@ -99,10 +99,10 @@ test.describe('Given an Owner opens the actions menu on an active warehouse', ()
   });
 });
 
-// ─── PW-H07-2 — Archive last-active warning + "Archivar de todos modos" ───
+// ─── PW-H06-2 — Archive last-active warning + "Archivar de todos modos" ───
 
 test.describe('Given an Owner tries to archive the only active storage', () => {
-  test('PW-H07-2: Then the dialog shows an amber warning and the primary button label is "Archive anyway"', async ({
+  test('PW-H06-2: Then the dialog shows an amber warning and the primary button label is "Archive anyway"', async ({
     preAuthPage: page,
   }) => {
     const archivedResult = {
@@ -131,10 +131,10 @@ test.describe('Given an Owner tries to archive the only active storage', () => {
   });
 });
 
-// ─── PW-H07-3 — Archive from FROZEN (info block azul) ─────────────────────
+// ─── PW-H06-3 — Archive from FROZEN (info block azul) ─────────────────────
 
 test.describe('Given an Owner archives a FROZEN storage', () => {
-  test('PW-H07-3: Then the dialog shows the blue info block about FROZEN and archive succeeds', async ({
+  test('PW-H06-3: Then the dialog shows the blue info block about FROZEN and archive succeeds', async ({
     preAuthPage: page,
   }) => {
     const archivedResult = {
@@ -166,5 +166,62 @@ test.describe('Given an Owner archives a FROZEN storage', () => {
     await expect(page.getByText(new RegExp(`"${FROZEN_WAREHOUSE.name}" was archived`))).toBeVisible({
       timeout: 5_000,
     });
+  });
+});
+
+// ─── PW-H06-6 — Undo flow: archive then restore from the toast ─────────────
+
+test.describe('Given the user just archived a storage and the undo toast is visible', () => {
+  test('PW-H06-6: When they click Undo, Then the storage is restored and the completion toast appears', async ({
+    preAuthPage: page,
+  }) => {
+    const archivedResult = {
+      ...ACTIVE_WAREHOUSE,
+      status: 'ARCHIVED' as const,
+      archivedAt: '2026-04-14T12:00:00.000Z',
+    };
+    const restoredResult = {
+      ...archivedResult,
+      status: 'ACTIVE' as const,
+      archivedAt: null,
+    };
+
+    await mockArchiveSuccess(page, 'warehouses', ACTIVE_WAREHOUSE.uuid, archivedResult);
+    await page.route(
+      (url) => url.pathname === `/api/storages/warehouses/${ACTIVE_WAREHOUSE.uuid}/restore`,
+      async (route) => {
+        if (route.request().method() !== 'POST') {
+          await route.continue();
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, data: restoredResult }),
+        });
+      },
+    );
+
+    await setupAndNavigate(page, {
+      rbac: RBAC_OWNER,
+      storagesResponse: buildStoragesResponse([ACTIVE_WAREHOUSE, SECOND_ACTIVE]),
+    });
+
+    const list = new StoragesListPage(page);
+    await list.waitForCards();
+
+    await list.openCardMenu(ACTIVE_WAREHOUSE.name);
+    await list.menuItems.archive.click();
+
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name: /^Archive$/i }).click();
+
+    const undoButton = page.getByRole('button', { name: /Undo/i });
+    await expect(undoButton).toBeVisible({ timeout: 5_000 });
+    await undoButton.click();
+
+    await expect(
+      page.getByText(new RegExp(`"${ACTIVE_WAREHOUSE.name}" was restored`)),
+    ).toBeVisible({ timeout: 5_000 });
   });
 });

@@ -317,8 +317,8 @@ test.describe('Section 2: Card anatomy', () => {
     await expect(storagesPage.cardStatusLabel('Almacen Norte')).toHaveAccessibleName('Frozen');
   });
 
-  // C-06 — H-07 dims ARCHIVED card content to 60% (see StorageCard
-  // contentFadeClass). The prior opacity-50 rule was replaced in H-07 UX #1.
+  // C-06 — ARCHIVED card content fades to 60% (see StorageCard
+  // contentFadeClass). Replaces the prior opacity-50 rule.
   test('C-06: ARCHIVED card shows "Archived" status indicator with faded content', async ({
     preAuthPage: page,
   }) => {

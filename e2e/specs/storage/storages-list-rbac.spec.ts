@@ -180,7 +180,7 @@ test.describe('Section 10: Actions — Frozen storage', () => {
 
 // ── Archived storage ─────────────────────────────────────────────────────────
 
-// Card menu rules for ARCHIVED (from StorageCard.tsx, post H-07 UX #E5.2):
+// Card menu rules for ARCHIVED (from StorageCard.tsx):
 //   - View always renders
 //   - Edit renders (metadata is editable in ARCHIVED; only type-change is
 //     locked inside the drawer)

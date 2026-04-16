@@ -11,7 +11,7 @@ import type { Page } from '@playwright/test';
 import type { MockStorage } from '../../helpers/storages-list.helper';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// H-07 · Restaurar instalación — PW-H07-4, PW-H07-5
+// Restore flow — PW-H06-4, PW-H06-5
 // ═════════════════════════════════════════════════════════════════════════════
 
 const ARCHIVED_WAREHOUSE = buildStorage({
@@ -53,10 +53,10 @@ async function mockRestoreSuccess(
   );
 }
 
-// ─── PW-H07-4 — Restore from card menu (happy path) ───────────────────────
+// ─── PW-H06-4 — Restore from card menu (happy path) ───────────────────────
 
 test.describe('Given an Owner opens the actions menu on an archived storage', () => {
-  test('PW-H07-4: When they click Restore, Then the storage transitions back to ACTIVE with a success toast', async ({
+  test('PW-H06-4: When they click Restore, Then the storage transitions back to ACTIVE with a success toast', async ({
     preAuthPage: page,
   }) => {
     const restoredResult = {
@@ -84,10 +84,10 @@ test.describe('Given an Owner opens the actions menu on an archived storage', ()
   });
 });
 
-// ─── PW-H07-5 — Banner ARCHIVED renders the "Restaurar" CTA ────────────────
+// ─── PW-H06-5 — Banner ARCHIVED renders the "Restaurar" CTA ────────────────
 
 test.describe('Given the active context is an archived storage', () => {
-  test('PW-H07-5: Then the global status banner shows the gray ARCHIVED copy and the Restaurar CTA', async ({
+  test('PW-H06-5: Then the global status banner shows the gray ARCHIVED copy and the Restaurar CTA', async ({
     preAuthPage: page,
   }) => {
     const tenantId = getRealTenantId() ?? 'mock-tenant-id';
@@ -108,5 +108,34 @@ test.describe('Given the active context is an archived storage', () => {
     await expect(banner).toBeVisible({ timeout: 5_000 });
     await expect(banner).toContainText(/archived/i);
     await expect(banner.getByRole('button', { name: /Restore/i })).toBeVisible();
+  });
+});
+
+// ─── PW-H06-7 — Offline disables the Restore menu item ─────────────────────
+
+test.describe('Given the browser reports no connectivity', () => {
+  test('PW-H06-7: When the user opens the menu of an archived storage, Then the Restore item is disabled', async ({
+    preAuthPage: page,
+  }) => {
+    await setupAndNavigate(page, {
+      rbac: RBAC_OWNER,
+      storagesResponse: buildStoragesResponse([ARCHIVED_WAREHOUSE, ACTIVE_WAREHOUSE]),
+    });
+
+    const list = new StoragesListPage(page);
+    await list.waitForCards();
+
+    // Force the renderer to report offline so useOfflineStatus flips to true
+    // before the user opens the menu. The window-level event mirrors what
+    // navigator.onLine + the online/offline listeners observe at runtime.
+    await page.evaluate(() => {
+      Object.defineProperty(window.navigator, 'onLine', { configurable: true, get: () => false });
+      window.dispatchEvent(new Event('offline'));
+    });
+
+    await list.openCardMenu(ARCHIVED_WAREHOUSE.name);
+    const restoreItem = list.menuItems.restore;
+    await expect(restoreItem).toBeVisible();
+    await expect(restoreItem).toHaveAttribute('aria-disabled', 'true');
   });
 });
