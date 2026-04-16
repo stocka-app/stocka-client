@@ -69,8 +69,8 @@ async function setTenantConfigToStarterByUserUuid(pool: Pool, userUuid: string):
   // asynchronously — same pattern as verifyUserEmail). Without this the UPDATE
   // can run BEFORE the row materializes and silently affect 0 rows.
   for (let attempt = 1; attempt <= 30; attempt++) {
-    const check = await pool.query<{ max_custom_rooms: number }>(
-      `SELECT tc.max_custom_rooms
+    const check = await pool.query(
+      `SELECT 1
        FROM tenants.tenant_config tc
        JOIN tenants.tenant_members tm ON tm.tenant_id = tc.tenant_id
        JOIN identity.users u ON u.id = tm.user_id
@@ -86,7 +86,7 @@ async function setTenantConfigToStarterByUserUuid(pool: Pool, userUuid: string):
     await new Promise((r) => setTimeout(r, 500));
   }
 
-  const result = await pool.query<{ max_custom_rooms: number }>(
+  const result = await pool.query(
     `UPDATE tenants.tenant_config tc
      SET tier = 'STARTER',
          max_warehouses = 3,
@@ -95,8 +95,7 @@ async function setTenantConfigToStarterByUserUuid(pool: Pool, userUuid: string):
          max_users = 5
      FROM tenants.tenant_members tm
      JOIN identity.users u ON u.id = tm.user_id
-     WHERE u.uuid = $1 AND tm.tenant_id = tc.tenant_id
-     RETURNING tc.tenant_id, tc.max_custom_rooms`,
+     WHERE u.uuid = $1 AND tm.tenant_id = tc.tenant_id`,
     [userUuid],
   );
   if ((result.rowCount ?? 0) === 0) {
@@ -104,10 +103,6 @@ async function setTenantConfigToStarterByUserUuid(pool: Pool, userUuid: string):
       `setTenantConfigToStarterByUserUuid: no tenant_config row updated for user uuid ${userUuid}`,
     );
   }
-  const row = result.rows[0];
-  console.log(
-    `[PW-H06-8] tenant_config updated: max_custom_rooms=${row.max_custom_rooms} for user ${userUuid}`,
-  );
 }
 
 test.describe('Given a STARTER tenant has 3/3 custom rooms with one archived (real BE, no mocks)', () => {
@@ -138,40 +133,10 @@ test.describe('Given a STARTER tenant has 3/3 custom rooms with one archived (re
     // 4. Re-sign in to refresh JWT with the (possibly updated) tenant claims
     const { accessToken } = await apiSignIn(userEmail, password);
 
-    // 5. Saturate the custom-room quota: 3 created (max), then archive one.
-    console.log(`[PW-H06-8] API_BASE resolved to: ${getApiBase()}`);
-
-    const debugConfig = async (label: string): Promise<void> => {
-      const cfg = await pool.query(
-        `SELECT tc.tier, tc.max_custom_rooms, tc.tenant_id
-         FROM tenants.tenant_config tc
-         JOIN tenants.tenant_members tm ON tm.tenant_id = tc.tenant_id
-         JOIN identity.users u ON u.id = tm.user_id
-         WHERE u.uuid = $1`,
-        [signUp.userId],
-      );
-      const rooms = await pool.query(
-        `SELECT cr.tenant_uuid, cr.name, cr.archived_at
-         FROM storage.custom_rooms cr
-         WHERE cr.tenant_uuid IN (
-           SELECT t.uuid FROM tenants.tenants t
-           JOIN tenants.tenant_members tm ON tm.tenant_id = t.id
-           JOIN identity.users u ON u.id = tm.user_id
-           WHERE u.uuid = $1
-         )`,
-        [signUp.userId],
-      );
-      console.log(
-        `[PW-H06-8] [${label}] cfg rows=`,
-        JSON.stringify(cfg.rows),
-        ' rooms=',
-        JSON.stringify(rooms.rows),
-      );
-    };
-
-    // Onboarding already seeds one custom room ("Tienda Principal"). With
-    // STARTER's max_custom_rooms = 3 we only need TWO more creates to reach
-    // saturation, then archive one to set up the bug scenario.
+    // 5. Saturate the custom-room quota. Onboarding already seeds one custom
+    // room ("Tienda Principal"). With STARTER's max_custom_rooms = 3 we only
+    // need TWO more creates to reach saturation, then archive one to set up
+    // the bug scenario.
     archivedUUID = await apiCreateCustomRoom(accessToken, 'Saturated CR Alpha');
     await apiCreateCustomRoom(accessToken, 'Saturated CR Beta');
     await apiArchiveCustomRoom(accessToken, archivedUUID);
