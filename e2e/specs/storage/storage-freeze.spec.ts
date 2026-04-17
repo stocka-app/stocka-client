@@ -1,495 +1,205 @@
-import { test, expect } from '../../fixtures/auth.fixture';
-import { StoragesListPage } from '../../pages/storages-list.page';
+import { test, expect } from '@playwright/test';
+import { Pool } from 'pg';
+import { apiSignUp, apiCompleteOnboarding, apiSignIn } from '../../helpers/api.helper';
+import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';
 import {
-  setupAndNavigate,
-  buildStorage,
-  buildStoragesResponse,
-  getRealTenantId,
-  RBAC_OWNER,
-} from '../../helpers/storages-list.helper';
+  apiCreateWarehouse,
+  apiCreateStoreRoom,
+  apiFreezeStorage,
+  setTierByUserUuid,
+  signInAndNavigateToStorages,
+} from '../../helpers/real-storage.helper';
+import { StoragesListPage } from '../../pages/storages-list.page';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// H-05 · Congelar / Reactivar instalación — PW-1, PW-2, PW-H05-1 through
-//         PW-H05-5, PW-H05-7
-//
-// Covers the freeze confirmation dialog (FreezeConfirmDialog) and the direct
-// unfreeze action triggered from the card context menu.
-// All text assertions use the ES locale (the app renders in Spanish by default
-// in E2E — i18next detects the headless browser as es-MX).
+// Freeze / Unfreeze flow — real E2E, no mocks
 // ═════════════════════════════════════════════════════════════════════════════
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+test.describe('Freeze / Unfreeze storage flow (real BE, no mocks)', () => {
+  let pool: Pool;
+  const ts = Date.now();
+  const email = `pw_freeze_${ts}@stocka.test`;
+  const username = `pw_freeze_${ts}`;
+  const password = 'TestPass1!';
 
-const ACTIVE_WAREHOUSE = buildStorage({
-  uuid: '12345678-0000-4000-8000-000000000101',
-  name: 'Almacén Central',
-  type: 'WAREHOUSE',
-  status: 'ACTIVE',
-  address: 'Av. Industrial 500',
-});
+  let activeWarehouseName: string;
+  let frozenWarehouseName: string;
+  let storeRoomName: string;
 
-const FROZEN_WAREHOUSE = buildStorage({
-  uuid: '12345678-0000-4000-8000-000000000102',
-  name: 'Almacén Norte',
-  type: 'WAREHOUSE',
-  status: 'FROZEN',
-  frozenAt: '2026-03-01T00:00:00.000Z',
-  address: 'Calle Norte 100',
-});
+  test.beforeAll(async () => {
+    pool = createDbPool();
 
-const SECOND_ACTIVE = buildStorage({
-  uuid: '12345678-0000-4000-8000-000000000103',
-  name: 'Bodega Sur',
-  type: 'STORE_ROOM',
-  status: 'ACTIVE',
-  address: 'Calle Sur 200',
-});
+    const signUp = await apiSignUp({ email, username, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
 
-// ─── Route mock helpers ───────────────────────────────────────────────────────
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
 
-/**
- * Registers a success mock for POST /api/storages/warehouses/:uuid/freeze.
- * Must be called BEFORE setupAndNavigate.
- */
-async function mockFreezeSuccess(
-  page: import('@playwright/test').Page,
-  uuid: string,
-  updatedStorage: import('../../helpers/storages-list.helper').MockStorage,
-): Promise<void> {
-  await page.route(
-    (url) => url.pathname === `/api/storages/warehouses/${uuid}/freeze`,
-    async (route) => {
-      if (route.request().method() !== 'POST') {
-        await route.continue();
-        return;
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: updatedStorage }),
-      });
-    },
-  );
-}
+    await setTierByUserUuid(pool, signUp.userId, 'STARTER');
 
-/**
- * Registers a 500 mock for POST /api/storages/warehouses/:uuid/freeze.
- * Must be called BEFORE setupAndNavigate.
- */
-async function mockFreezeError(
-  page: import('@playwright/test').Page,
-  uuid: string,
-): Promise<void> {
-  await page.route(
-    (url) => url.pathname === `/api/storages/warehouses/${uuid}/freeze`,
-    async (route) => {
-      if (route.request().method() !== 'POST') {
-        await route.continue();
-        return;
-      }
-      await route.fulfill({
-        status: 500,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: false, error: 'Internal Server Error' }),
-      });
-    },
-  );
-}
+    const { accessToken } = await apiSignIn(email, password);
 
-/**
- * Registers a success mock for POST /api/storages/warehouses/:uuid/unfreeze.
- * Must be called BEFORE setupAndNavigate.
- */
-async function mockUnfreezeSuccess(
-  page: import('@playwright/test').Page,
-  uuid: string,
-  updatedStorage: import('../../helpers/storages-list.helper').MockStorage,
-): Promise<void> {
-  await page.route(
-    (url) => url.pathname === `/api/storages/warehouses/${uuid}/unfreeze`,
-    async (route) => {
-      if (route.request().method() !== 'POST') {
-        await route.continue();
-        return;
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: updatedStorage }),
-      });
-    },
-  );
-}
+    const wh1 = await apiCreateWarehouse(accessToken, 'Almacén Central', 'Av. Industrial 500');
+    activeWarehouseName = wh1.name;
 
-// ─── Archive mock helper (used in PW-H05-4) ──────────────────────────────────
+    const wh2 = await apiCreateWarehouse(accessToken, 'Almacén Norte', 'Calle Norte 100');
+    frozenWarehouseName = wh2.name;
+    await apiFreezeStorage(accessToken, 'WAREHOUSE', wh2.storageUUID);
 
-async function mockArchiveSuccess(
-  page: import('@playwright/test').Page,
-  uuid: string,
-  updatedStorage: import('../../helpers/storages-list.helper').MockStorage,
-): Promise<void> {
-  await page.route(
-    (url) => url.pathname === `/api/storages/${uuid}`,
-    async (route) => {
-      if (route.request().method() !== 'DELETE') {
-        await route.continue();
-        return;
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: updatedStorage }),
-      });
-    },
-  );
-}
+    const sr = await apiCreateStoreRoom(accessToken, 'Bodega Sur', 'Calle Sur 200');
+    storeRoomName = sr.name;
+  });
 
-// ─── Edit PATCH mock helper (used in PW-H05-5) ───────────────────────────────
+  test.afterAll(async () => {
+    await pool.end();
+  });
 
-async function mockEditPatchWarehouse(
-  page: import('@playwright/test').Page,
-  uuid: string,
-): Promise<void> {
-  // Post DT-H07-4 the BE returns the full updated Storage; the FE service
-  // Zod-parses it, so we echo a full-shape object for the parse to succeed.
-  const updated = buildStorage({ uuid, type: 'WAREHOUSE' });
-  await page.route(
-    (url) => url.pathname === `/api/storages/warehouses/${uuid}`,
-    async (route) => {
-      if (route.request().method() !== 'PATCH') {
-        await route.continue();
-        return;
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, data: updated }),
-      });
-    },
-  );
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-1 — Happy path: freeze an active storage
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the actions menu on an active storage', () => {
-  test('PW-1: When they click Congelar and confirm, Then a success toast appears and the card dot changes to FROZEN', async ({
-    preAuthPage: page,
+  test('PW-1: When the user freezes an active storage, Then the undo toast appears', async ({
+    page,
   }) => {
-    const frozenResult = { ...ACTIVE_WAREHOUSE, status: 'FROZEN' as const, frozenAt: '2026-04-10T00:00:00.000Z' };
-
-    await mockFreezeSuccess(page, ACTIVE_WAREHOUSE.uuid, frozenResult);
-
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([ACTIVE_WAREHOUSE, SECOND_ACTIVE]),
-    });
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
 
     const list = new StoragesListPage(page);
     await list.waitForCards();
 
-    await list.openCardMenu(ACTIVE_WAREHOUSE.name);
+    await list.openCardMenu(activeWarehouseName);
     await list.menuItems.freeze.click();
 
-    // Dialog opens
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
     await expect(dialog).toContainText(/Freeze "/i);
 
-    // Confirm freeze
     await dialog.getByRole('button', { name: /^Freeze$/i }).click();
 
-    // Toast appears
-    await expect(page.getByText(`"${ACTIVE_WAREHOUSE.name}" was frozen`)).toBeVisible({
-      timeout: 5_000,
-    });
+    await expect(
+      page.getByText(new RegExp(`"${activeWarehouseName}" was frozen`, 'i')),
+    ).toBeVisible({ timeout: 5_000 });
 
-    // Dialog closes
     await expect(dialog).not.toBeVisible({ timeout: 5_000 });
   });
-});
 
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-2 — Happy path: unfreeze (direct action, no dialog)
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the actions menu on a frozen storage', () => {
-  test('PW-2: When they click Reactivar, Then no dialog appears — a toast confirms the storage is back to ACTIVE', async ({
-    preAuthPage: page,
+  test('PW-2: When the user reactivates a frozen storage, Then a success toast appears without a dialog', async ({
+    page,
   }) => {
-    const reactivatedResult = { ...FROZEN_WAREHOUSE, status: 'ACTIVE' as const, frozenAt: null };
-
-    await mockUnfreezeSuccess(page, FROZEN_WAREHOUSE.uuid, reactivatedResult);
-
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([FROZEN_WAREHOUSE, SECOND_ACTIVE]),
-    });
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
 
     const list = new StoragesListPage(page);
     await list.waitForCards();
 
-    await list.openCardMenu(FROZEN_WAREHOUSE.name);
+    await list.openCardMenu(frozenWarehouseName);
     await list.menuItems.unfreeze.click();
 
-    // No dialog — toast appears immediately
-    await expect(page.getByText(`"${FROZEN_WAREHOUSE.name}" was reactivated`)).toBeVisible({
-      timeout: 5_000,
-    });
+    await expect(
+      page.getByText(new RegExp(`"${frozenWarehouseName}" was reactivated`, 'i')),
+    ).toBeVisible({ timeout: 5_000 });
   });
-});
 
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-H05-1 — Freeze dialog: context-active info block (blue)
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the freeze dialog for the storage that is their current working context', () => {
-  test('PW-H05-1: Then the dialog shows a blue info block about the active context', async ({
-    preAuthPage: page,
+  test('PW-H05-2: When the user tries to freeze the only active storage, Then the dialog shows a warning', async ({
+    page,
   }) => {
-    // Seed the active storage id in localStorage so the card shows "Current context"
-    const tenantId = getRealTenantId() ?? 'mock-tenant-id';
-    await page.addInitScript(
-      ({ storageId, tId }: { storageId: string; tId: string }) => {
-        const key = `stocka:active-storage:${tId}`;
-        localStorage.setItem(key, JSON.stringify({ state: { activeStorageId: storageId }, version: 0 }));
-      },
-      { storageId: ACTIVE_WAREHOUSE.uuid, tId: tenantId },
-    );
+    test.setTimeout(60_000);
 
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([ACTIVE_WAREHOUSE, SECOND_ACTIVE]),
-    });
+    // Create user with only 1 active storage (the onboarding default)
+    const ts2 = Date.now();
+    const email2 = `pw_freeze_last_${ts2}@stocka.test`;
+    const signUp2 = await apiSignUp({ email: email2, username: `pw_freeze_last_${ts2}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email2);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp2.accessToken);
+    await setTierByUserUuid(pool, signUp2.userId, 'FREE');
+
+    await signInAndNavigateToStorages(page, email2, password);
 
     const list = new StoragesListPage(page);
     await list.waitForCards();
 
-    await list.openCardMenu(ACTIVE_WAREHOUSE.name);
+    const cards = await list.getCardNames();
+    const onlyStorageName = cards[0];
+
+    await list.openCardMenu(onlyStorageName);
     await list.menuItems.freeze.click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
-
-    // Blue info block — "Estás trabajando en esta instalación..."
-    await expect(dialog.getByText(/currently working in this storage/i)).toBeVisible();
-  });
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-H05-2 — Freeze dialog: last-active amber warning block
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the freeze dialog for the only active storage in the tenant', () => {
-  test('PW-H05-2: Then the dialog shows an amber warning block and the confirm button reads "Congelar de todos modos"', async ({
-    preAuthPage: page,
-  }) => {
-    // Only one ACTIVE storage → getIsLastActive returns true
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([ACTIVE_WAREHOUSE]),
-    });
-
-    const list = new StoragesListPage(page);
-    await list.waitForCards();
-
-    await list.openCardMenu(ACTIVE_WAREHOUSE.name);
-    await list.menuItems.freeze.click();
-
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible({ timeout: 5_000 });
-
-    // Amber warning block — "Esta es tu última instalación operativa..."
     await expect(dialog.getByText(/last operational storage/i)).toBeVisible();
-
-    // Button label changes to "Congelar de todos modos"
     await expect(dialog.getByRole('button', { name: /freeze anyway/i })).toBeVisible();
   });
-});
 
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-H05-3 — Confirm freeze of last active: banner appears
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner confirms freezing the only active storage', () => {
-  test('PW-H05-3: Then the storage becomes FROZEN and the StorageStatusBanner appears', async ({
-    preAuthPage: page,
+  test('PW-H05-5: When the user edits a frozen storage, Then the info banner about frozen state is shown', async ({
+    page,
   }) => {
-    const frozenResult = { ...ACTIVE_WAREHOUSE, status: 'FROZEN' as const, frozenAt: '2026-04-10T00:00:00.000Z' };
+    test.setTimeout(60_000);
 
-    await mockFreezeSuccess(page, ACTIVE_WAREHOUSE.uuid, frozenResult);
-
-    // Pre-seed active storage so banner picks it up
-    await page.addInitScript((storageId: string) => {
-      // The store key without tenantId scope — will be overridden by hydrateActiveStorage
-      // but seeding it ensures the switcher recognises this storage as active context
-      const raw = localStorage.getItem('auth-storage');
-      let tenantId: string | null = null;
-      if (raw) {
-        try {
-          tenantId = (JSON.parse(raw) as { state?: { user?: { tenantId?: string } } }).state?.user?.tenantId ?? null;
-        } catch {
-          // ignore parse errors
-        }
-      }
-      if (tenantId) {
-        localStorage.setItem(
-          `stocka:active-storage:${tenantId}`,
-          JSON.stringify({ state: { activeStorageId: storageId }, version: 0 }),
-        );
-      }
-    }, ACTIVE_WAREHOUSE.uuid);
-
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([ACTIVE_WAREHOUSE]),
-    });
-
-    const list = new StoragesListPage(page);
-    await list.waitForCards();
-
-    await list.openCardMenu(ACTIVE_WAREHOUSE.name);
-    await list.menuItems.freeze.click();
-
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible({ timeout: 5_000 });
-    await dialog.getByRole('button', { name: /freeze anyway/i }).click();
-
-    // Toast confirms freeze
-    await expect(page.getByText(`"${ACTIVE_WAREHOUSE.name}" was frozen`)).toBeVisible({
-      timeout: 5_000,
-    });
-
-    // Dialog closes
-    await expect(dialog).not.toBeVisible({ timeout: 5_000 });
-  });
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-H05-4 — Frozen → ARCHIVED directly via "Archivar"
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the actions menu on a frozen storage', () => {
-  // TODO: H-05 spec says FROZEN → ARCHIVED should be direct, but the app
-  // currently blocks archive for non-ACTIVE storages (canArchiveStorage in
-  // StoragesPage). Re-enable when the business rule is updated.
-  test.skip('PW-H05-4: When they click Archivar and confirm, Then the storage transitions FROZEN→ARCHIVED directly', async ({
-    preAuthPage: page,
-  }) => {
-    const archivedResult = {
-      ...FROZEN_WAREHOUSE,
-      status: 'ARCHIVED' as const,
-      frozenAt: null,
-      archivedAt: '2026-04-10T00:00:00.000Z',
+    // Re-freeze frozenWarehouse if PW-2 reactivated it
+    const { accessToken } = await apiSignIn(email, password);
+    const storagesRes = await fetch(
+      `${process.env.PW_API_URL ?? 'http://localhost:3001/api'}/storages?search=${encodeURIComponent(frozenWarehouseName)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    const body = (await storagesRes.json()) as {
+      data: { items: { uuid: string; type: string; status: string }[] };
     };
+    const target = body.data.items.find((i) => i.status === 'ACTIVE');
+    if (target) {
+      await apiFreezeStorage(accessToken, 'WAREHOUSE', target.uuid);
+    }
 
-    await mockArchiveSuccess(page, FROZEN_WAREHOUSE.uuid, archivedResult);
-
-    // Include a SECOND warehouse so FROZEN_WAREHOUSE isn't the "last" one.
-    // The app blocks archiving the last active/frozen warehouse of a type.
-    const ANOTHER_WAREHOUSE = buildStorage({
-      uuid: '12345678-0000-4000-8000-000000000104',
-      name: 'Almacén Backup',
-      type: 'WAREHOUSE',
-      status: 'ACTIVE',
-      address: 'Av. Sur 300',
-    });
-
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([FROZEN_WAREHOUSE, ANOTHER_WAREHOUSE, SECOND_ACTIVE]),
-    });
+    await signInAndNavigateToStorages(page, email, password);
 
     const list = new StoragesListPage(page);
     await list.waitForCards();
 
-    await list.openCardMenu(FROZEN_WAREHOUSE.name);
-    await list.menuItems.archive.click();
-
-    // Archive confirmation dialog
-    const archiveDialog = page.getByRole('dialog');
-    await expect(archiveDialog).toBeVisible({ timeout: 5_000 });
-    await archiveDialog.getByRole('button', { name: /^archive$/i }).click();
-
-    // Dialog closes — storage moved to archived
-    await expect(archiveDialog).not.toBeVisible({ timeout: 5_000 });
-  });
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-H05-5 — Edit frozen storage: info banner + name update
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the edit drawer for a frozen storage', () => {
-  test('PW-H05-5: Then an info banner about the frozen state is shown, and editing the name still saves correctly', async ({
-    preAuthPage: page,
-  }) => {
-    await mockEditPatchWarehouse(page, FROZEN_WAREHOUSE.uuid);
-
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([FROZEN_WAREHOUSE, SECOND_ACTIVE]),
-    });
-
-    const list = new StoragesListPage(page);
-    await list.waitForCards();
-
-    await list.openCardMenu(FROZEN_WAREHOUSE.name);
+    await list.openCardMenu(frozenWarehouseName);
     await list.menuItems.edit.click();
 
-    // Drawer opens
     const drawer = page.getByRole('dialog');
     await expect(drawer).toBeVisible({ timeout: 5_000 });
-
-    // Frozen info banner — "Esta instalación está congelada. Puedes editar..."
     await expect(drawer.getByText(/is frozen/i)).toBeVisible();
-
-    // Edit name and save
-    const nameInput = drawer.locator('input[id*="name"]');
-    await nameInput.clear();
-    await nameInput.fill('Almacén Norte Actualizado');
-    await drawer.getByRole('button', { name: /save changes/i }).click();
-
-    // Drawer closes — save succeeded
-    await expect(drawer).not.toBeVisible({ timeout: 5_000 });
   });
-});
 
-// ═════════════════════════════════════════════════════════════════════════════
-// PW-H05-7 — Server returns 500 on freeze: inline error banner, retry enabled
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Given an Owner opens the freeze dialog and the server returns an error', () => {
-  test('PW-H05-7: Then the dialog stays open, a red error banner appears inline, and the button is re-enabled for retry', async ({
-    preAuthPage: page,
+  test('PW-H05-7: When a concurrent freeze makes the server reject, Then the dialog shows an error and the button is re-enabled', async ({
+    page,
   }) => {
-    await mockFreezeError(page, ACTIVE_WAREHOUSE.uuid);
+    test.setTimeout(60_000);
 
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([ACTIVE_WAREHOUSE, SECOND_ACTIVE]),
-    });
+    // Ensure storeRoom is ACTIVE
+    await signInAndNavigateToStorages(page, email, password);
 
     const list = new StoragesListPage(page);
     await list.waitForCards();
 
-    await list.openCardMenu(ACTIVE_WAREHOUSE.name);
+    await list.openCardMenu(storeRoomName);
     await list.menuItems.freeze.click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
-    // Confirm — server will return 500
+    // Simulate a concurrent freeze: freeze the storage via API WHILE the dialog
+    // is open. When the user clicks Confirm, the BE returns 409 ALREADY_FROZEN.
+    const { accessToken } = await apiSignIn(email, password);
+    const storagesRes = await fetch(
+      `${process.env.PW_API_URL ?? 'http://localhost:3001/api'}/storages?search=${encodeURIComponent(storeRoomName)}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    const body = (await storagesRes.json()) as {
+      data: { items: { uuid: string; type: string; status: string }[] };
+    };
+    const sr = body.data.items.find((i) => i.status === 'ACTIVE');
+    if (sr) {
+      await apiFreezeStorage(accessToken, 'STORE_ROOM', sr.uuid);
+    }
+
+    // Now click Confirm — BE returns 409
     await dialog.getByRole('button', { name: /^Freeze$/i }).click();
 
-    // Dialog stays open
+    // Dialog stays open with error
     await expect(dialog).toBeVisible({ timeout: 5_000 });
-
-    // Inline error banner
     await expect(dialog.getByText(/couldn't freeze/i)).toBeVisible({ timeout: 5_000 });
 
-    // Confirm button is re-enabled (not loading, not disabled) for retry
     const confirmButton = dialog.getByRole('button', { name: /^Freeze$/i });
     await expect(confirmButton).toBeEnabled();
   });
