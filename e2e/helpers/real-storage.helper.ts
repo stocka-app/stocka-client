@@ -226,6 +226,24 @@ export async function setTierByUserUuid(
   }
 }
 
+/**
+ * Deletes all storages for a tenant so the empty state renders.
+ */
+export async function clearAllStoragesForUser(pool: Pool, userUuid: string): Promise<void> {
+  const tenantUuidQuery = `
+    SELECT t.uuid FROM tenants.tenants t
+    JOIN tenants.tenant_members tm ON tm.tenant_id = t.id
+    JOIN identity.users u ON u.id = tm.user_id
+    WHERE u.uuid = $1
+  `;
+  for (const table of ['custom_rooms', 'store_rooms', 'warehouses']) {
+    await pool.query(
+      `DELETE FROM storage.${table} WHERE tenant_uuid IN (${tenantUuidQuery})`,
+      [userUuid],
+    );
+  }
+}
+
 // ─── Navigation (real, no mocks) ────────────────────────────────────────────
 
 /**

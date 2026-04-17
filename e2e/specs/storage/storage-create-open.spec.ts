@@ -1,30 +1,54 @@
-import { test, expect } from '../../fixtures/auth.fixture';
+import { test, expect } from '@playwright/test';
+import { Pool } from 'pg';
+import { apiSignUp, apiCompleteOnboarding, apiSignIn } from '../../helpers/api.helper';
+import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';
+import {
+  apiCreateWarehouse,
+  clearAllStoragesForUser,
+  setTierByUserUuid,
+  signInAndNavigateToStorages,
+} from '../../helpers/real-storage.helper';
 import { StoragesListPage } from '../../pages/storages-list.page';
 import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
-import {
-  setupAndNavigate,
-  buildStorage,
-  buildStoragesResponse,
-  RBAC_OWNER,
-} from '../../helpers/storages-list.helper';
-
-// ─── Shared mock data ─────────────────────────────────────────────────────────
-
-const ONE_WAREHOUSE = buildStoragesResponse([
-  buildStorage({ name: 'Central Warehouse', type: 'WAREHOUSE', status: 'ACTIVE' }),
-]);
 
 // ═════════════════════════════════════════════════════════════════════════════
-// CD-01 — CD-04: Entry points that open the drawer
+// CD-01 — CD-04: Entry points that open the create drawer (real BE, no mocks)
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe('Given the user has STORAGE_CREATE permission and storages exist', () => {
+test.describe('Create drawer entry points (real BE, no mocks)', () => {
+  let pool: Pool;
+  const ts = Date.now();
+  const email = `pw_create_open_${ts}@stocka.test`;
+  const username = `pw_create_open_${ts}`;
+  const password = 'TestPass1!';
+  let userId: string;
+
+  test.beforeAll(async () => {
+    pool = createDbPool();
+
+    const signUp = await apiSignUp({ email, username, password });
+    userId = signUp.userId;
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, userId, 'STARTER');
+
+    const { accessToken } = await apiSignIn(email, password);
+    await apiCreateWarehouse(accessToken, 'Central Warehouse', 'Av. Industrial 500');
+  });
+
+  test.afterAll(async () => {
+    await pool.end();
+  });
+
   test('CD-01: When the user clicks the "New storage" header button, Then Step 1 of the drawer opens', async ({
-    preAuthPage: page,
+    page,
   }) => {
-    const drawer = new CreateStorageDrawerPage(page);
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
 
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: ONE_WAREHOUSE });
+    const drawer = new CreateStorageDrawerPage(page);
     await new StoragesListPage(page).waitForCards();
 
     await drawer.openDrawer();
@@ -34,17 +58,27 @@ test.describe('Given the user has STORAGE_CREATE permission and storages exist',
   });
 
   test('CD-02: When the user clicks the empty-state CTA, Then Step 1 of the drawer opens', async ({
-    preAuthPage: page,
+    page,
   }) => {
+    test.setTimeout(60_000);
+
+    // Create a user with zero storages (delete all after onboarding)
+    const ts2 = Date.now();
+    const email2 = `pw_create_empty_${ts2}@stocka.test`;
+    const signUp2 = await apiSignUp({ email: email2, username: `pw_create_empty_${ts2}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email2);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp2.accessToken);
+    await setTierByUserUuid(pool, signUp2.userId, 'STARTER');
+    await clearAllStoragesForUser(pool, signUp2.userId);
+
+    await signInAndNavigateToStorages(page, email2, password);
+
     const storagesPage = new StoragesListPage(page);
     const drawer = new CreateStorageDrawerPage(page);
 
-    await setupAndNavigate(page, {
-      rbac: RBAC_OWNER,
-      storagesResponse: buildStoragesResponse([]),
-    });
-
-    await expect(storagesPage.emptyCreateButton()).toBeVisible();
+    await expect(storagesPage.emptyCreateButton()).toBeVisible({ timeout: 10_000 });
     await storagesPage.emptyCreateButton().click();
 
     await expect(drawer.drawer).toBeVisible();
@@ -52,12 +86,13 @@ test.describe('Given the user has STORAGE_CREATE permission and storages exist',
   });
 
   test('CD-03: When the user clicks the inline create card in the grid, Then Step 1 of the drawer opens', async ({
-    preAuthPage: page,
+    page,
   }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+
     const storagesPage = new StoragesListPage(page);
     const drawer = new CreateStorageDrawerPage(page);
-
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: ONE_WAREHOUSE });
     await storagesPage.waitForCards();
 
     await storagesPage.createInlineCard.click();
@@ -66,13 +101,14 @@ test.describe('Given the user has STORAGE_CREATE permission and storages exist',
     await expect(page.locator('p').getByText('STEP 1 OF 2')).toBeVisible();
   });
 
-  test('CD-04: When the drawer is opened from any entry point, Then all 3 type cards are visible in Step 1', async ({
-    preAuthPage: page,
+  test('CD-04: When the drawer is opened, Then all 3 type cards are visible in Step 1', async ({
+    page,
   }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+
     const storagesPage = new StoragesListPage(page);
     const drawer = new CreateStorageDrawerPage(page);
-
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: ONE_WAREHOUSE });
     await storagesPage.waitForCards();
 
     await drawer.openDrawer();
