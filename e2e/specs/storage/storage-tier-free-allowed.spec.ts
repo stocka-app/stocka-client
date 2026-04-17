@@ -1,29 +1,43 @@
-import { test, expect } from '../../fixtures/auth.fixture';
-import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
+import { test, expect } from '@playwright/test';
+import { Pool } from 'pg';
+import { apiSignUp, apiCompleteOnboarding } from '../../helpers/api.helper';
+import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';
 import {
-  setupAndNavigate,
-  buildStorage,
-  buildStoragesResponse,
-  RBAC_OWNER,
-} from '../../helpers/storages-list.helper';
-
-// ─── FREE tier caps: 0 warehouses, 1 custom area, 1 store room ───────────────
-const FREE_CAPS = { tier: 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 };
+  clearAllStoragesForUser,
+  setTierByUserUuid,
+  signInAndNavigateToStorages,
+} from '../../helpers/real-storage.helper';
+import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// CD-39 — CD-41: FREE tier happy paths — storage types that are allowed
+// FREE tier happy paths — allowed types (real BE, no mocks)
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe('Given the user is on FREE tier with storage quota available', () => {
-  test('CD-39: When 0 storages exist and the user selects Custom area, Then Step 2 appears with no tier limit banner', async ({
-    preAuthPage: page,
-  }) => {
-    await setupAndNavigate(page, {
-      rbac: { ...RBAC_OWNER, tier: 'FREE' },
-      storagesResponse: buildStoragesResponse([]),
-      capabilities: FREE_CAPS,
-    });
+test.describe('FREE tier allowed types (real BE, no mocks)', () => {
+  let pool: Pool;
+  const ts = Date.now();
+  const password = 'TestPass1!';
 
+  test.beforeAll(async () => {
+    pool = createDbPool();
+  });
+
+  test.afterAll(async () => {
+    await pool.end();
+  });
+
+  test('CD-39: FREE with 0 storages — Custom area opens Step 2 with no tier banner', async ({ page }) => {
+    test.setTimeout(60_000);
+    const email = `pw_fa39_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_fa39_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'FREE');
+    await clearAllStoragesForUser(pool, signUp.userId);
+
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('CUSTOM_ROOM');
@@ -32,15 +46,18 @@ test.describe('Given the user is on FREE tier with storage quota available', () 
     await expect(drawer.tierLimitBanner).not.toBeVisible();
   });
 
-  test('CD-40: When 0 storages exist and the user selects Store Room, Then Step 2 appears with no tier limit banner', async ({
-    preAuthPage: page,
-  }) => {
-    await setupAndNavigate(page, {
-      rbac: { ...RBAC_OWNER, tier: 'FREE' },
-      storagesResponse: buildStoragesResponse([]),
-      capabilities: FREE_CAPS,
-    });
+  test('CD-40: FREE with 0 storages — Store Room opens Step 2 with no tier banner', async ({ page }) => {
+    test.setTimeout(60_000);
+    const email = `pw_fa40_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_fa40_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'FREE');
+    await clearAllStoragesForUser(pool, signUp.userId);
 
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
@@ -49,17 +66,18 @@ test.describe('Given the user is on FREE tier with storage quota available', () 
     await expect(drawer.tierLimitBanner).not.toBeVisible();
   });
 
-  test('CD-41: When 1 Custom area exists (1/1 used) and the user selects Store Room, Then Step 2 appears with no tier limit banner (store room quota is independent)', async ({
-    preAuthPage: page,
-  }) => {
-    await setupAndNavigate(page, {
-      rbac: { ...RBAC_OWNER, tier: 'FREE' },
-      storagesResponse: buildStoragesResponse([
-        buildStorage({ type: 'CUSTOM_ROOM', status: 'ACTIVE', name: 'Mi Área Personalizada' }),
-      ]),
-      capabilities: FREE_CAPS,
-    });
+  test('CD-41: FREE with 1 Custom area used — Store Room still opens Step 2 (independent quota)', async ({ page }) => {
+    test.setTimeout(60_000);
+    // Onboarding creates 1 custom room by default → 1/1 used for CR, but SR is 0/1
+    const email = `pw_fa41_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_fa41_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'FREE');
 
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.selectType('STORE_ROOM');
