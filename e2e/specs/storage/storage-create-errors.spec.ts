@@ -1,140 +1,114 @@
-import { test, expect } from '../../fixtures/auth.fixture';
-import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
+import { test, expect } from '@playwright/test';
+import { Pool } from 'pg';
+import { apiSignUp, apiCompleteOnboarding, apiSignIn } from '../../helpers/api.helper';
+import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';
 import {
-  setupAndNavigate,
-  buildStoragesResponse,
-  mockCreatePost,
-  RBAC_OWNER,
-} from '../../helpers/storages-list.helper';
-
-// ─── Shared setup ─────────────────────────────────────────────────────────────
-
-const EMPTY_RESPONSE = buildStoragesResponse([]);
-
-/**
- * STARTER capabilities — enough quota for all types so tier limits never fire
- * (FREE plan blocks warehouses entirely).
- */
-const STARTER_CAPS = { tier: 'STARTER', maxWarehouses: 1, maxStoreRooms: 3, maxCustomRooms: 3 };
+  apiCreateWarehouse,
+  clearAllStoragesForUser,
+  setTierByUserUuid,
+  signInAndNavigateToStorages,
+} from '../../helpers/real-storage.helper';
+import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// CD-29 — CD-32: Server error handling
+// CD-29 — CD-32: Server error handling (real BE, no mocks)
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe('Given the user has filled the Step 2 form and submits', () => {
-  test('CD-29: When the server returns 409 STORAGE_NAME_ALREADY_EXISTS, Then an inline name-taken error appears under the name field', async ({
-    preAuthPage: page,
-  }) => {
-    await mockCreatePost(page, 'warehouse', {
-      status: 409,
-      errorCode: 'STORAGE_NAME_ALREADY_EXISTS',
-    });
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
+test.describe('Create drawer error handling (real BE, no mocks)', () => {
+  let pool: Pool;
+  const ts = Date.now();
+  const password = 'TestPass1!';
 
+  test.beforeAll(async () => {
+    pool = createDbPool();
+  });
+
+  test.afterAll(async () => {
+    await pool.end();
+  });
+
+  test('CD-29: When the server returns STORAGE_NAME_ALREADY_EXISTS, Then an inline name-taken error appears', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    const email = `pw_err29_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_err29_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'STARTER');
+
+    const { accessToken } = await apiSignIn(email, password);
+    await apiCreateWarehouse(accessToken, 'Duplicate Name', 'Av. Test 1');
+
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
-
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.fillStep2({ name: 'Duplicate Name', address: 'Av. Test 1' });
+    await drawer.fillStep2({ name: 'Duplicate Name', address: 'Av. Test 2' });
     await drawer.submit();
 
     await expect(drawer.nameTakenError).toBeVisible({ timeout: 5_000 });
-    // Drawer stays open
     await expect(drawer.drawer).toBeVisible();
   });
 
-  test('CD-30: When a name-taken error is shown and the user submits a different name that succeeds, Then the error is cleared', async ({
-    preAuthPage: page,
-  }) => {
-    let callCount = 0;
+  test('CD-30: When a name-taken error is shown and the user retries with a different name, Then the error clears and the drawer closes', async ({ page }) => {
+    test.setTimeout(60_000);
 
-    // First POST → 409, second POST → 201
-    await page.route(
-      (url) => url.pathname === '/api/storages/warehouses',
-      async (route) => {
-        if (route.request().method() !== 'POST') {
-          await route.continue();
-          return;
-        }
-        callCount++;
-        if (callCount === 1) {
-          await route.fulfill({
-            status: 409,
-            contentType: 'application/json',
-            body: JSON.stringify({ error: 'STORAGE_NAME_ALREADY_EXISTS' }),
-          });
-        } else {
-          await route.fulfill({
-            status: 201,
-            contentType: 'application/json',
-            body: JSON.stringify({ success: true, data: { storageUUID: 'mock-uuid' } }),
-          });
-        }
-      },
-    );
+    const email = `pw_err30_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_err30_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'STARTER');
 
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
+    const { accessToken } = await apiSignIn(email, password);
+    await apiCreateWarehouse(accessToken, 'Taken Name', 'Av. Test 1');
 
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
-
     await drawer.openDrawer();
     await drawer.selectType('WAREHOUSE');
-    await drawer.fillStep2({ name: 'Duplicate Name', address: 'Av. Test 1' });
+    await drawer.fillStep2({ name: 'Taken Name', address: 'Av. Test 2' });
     await drawer.submit();
 
-    // Name-taken error appears
     await expect(drawer.nameTakenError).toBeVisible({ timeout: 5_000 });
 
-    // Change name and re-submit — the error is cleared on the next submit attempt
     await drawer.nameInput.fill('A Unique Name');
     await drawer.submit();
 
-    // On the second (successful) submit, the error is cleared and drawer closes
     await expect(drawer.nameTakenError).not.toBeVisible({ timeout: 5_000 });
     await expect(drawer.drawer).not.toBeVisible({ timeout: 5_000 });
   });
 
-  test('CD-31: When the server returns a 500 error, Then an error banner appears, the drawer stays open, and fields preserve their data', async ({
-    preAuthPage: page,
-  }) => {
-    await mockCreatePost(page, 'warehouse', { status: 500 });
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
+  // CD-31 requires the BE to return a 500 Internal Server Error for a valid
+  // create request, which cannot happen without mocking or corrupting state.
+  // The error banner + data preservation are covered by Vitest unit tests.
+  test.fixme('CD-31: When the server returns a 500 error, Then an error banner appears and fields preserve their data', async () => {});
 
+  test('CD-32: When the warehouse tier limit is reached and the user clicks Warehouse, Then the upgrade modal opens instead of Step 2', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    const email = `pw_err32_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_err32_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'STARTER', { maxWarehouses: 1 });
+
+    const { accessToken } = await apiSignIn(email, password);
+    await apiCreateWarehouse(accessToken, 'Saturated WH', 'Av. Test 1');
+
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
-
     await drawer.openDrawer();
-    await drawer.selectType('WAREHOUSE');
-    await drawer.fillStep2({ name: 'My Warehouse', address: 'Av. Industrial 500' });
-    await drawer.submit();
 
-    // Server error banner appears
-    await expect(drawer.serverErrorBanner).toBeVisible({ timeout: 5_000 });
+    // Click Warehouse card — FE detects tier limit at Step 1 and opens upgrade modal
+    await drawer.warehouseCard.click();
 
-    // Drawer stays open
-    await expect(drawer.drawer).toBeVisible();
-
-    // Entered data is preserved
-    await expect(drawer.nameInput).toHaveValue('My Warehouse');
-    await expect(drawer.addressInput).toHaveValue('Av. Industrial 500');
-  });
-
-  test('CD-32: When the server returns 403, Then the drawer stays open and shows a tier limit banner', async ({
-    preAuthPage: page,
-  }) => {
-    await mockCreatePost(page, 'warehouse', { status: 403 });
-    await setupAndNavigate(page, { rbac: RBAC_OWNER, storagesResponse: EMPTY_RESPONSE, capabilities: STARTER_CAPS });
-
-    const drawer = new CreateStorageDrawerPage(page);
-
-    await drawer.openDrawer();
-    await drawer.selectType('WAREHOUSE');
-    await drawer.fillStep2({ name: 'Blocked Warehouse', address: 'Calle Bloqueada 1' });
-    await drawer.submit();
-
-    // 403 → resolves to 'tier_limit' — the drawer stays open and shows the
-    // tier limit banner. Submit becomes disabled (tier_limit disables it).
-    await expect(drawer.drawer).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.tierLimitBanner).toBeVisible({ timeout: 5_000 });
-    await expect(drawer.submitButton).toBeDisabled();
+    // Upgrade modal opens (not Step 2)
+    await expect(page.getByText(/Learn about plans/i)).toBeVisible({ timeout: 5_000 });
   });
 });
