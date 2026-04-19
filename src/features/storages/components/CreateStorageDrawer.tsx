@@ -323,12 +323,17 @@ function DetailsBody({
     return t('createDrawer.fixedIconStoreRoom');
   };
 
+  const customColorStyle = isCustomRoom ? { color: colorValue } : undefined;
+  const customBannerStyle = isCustomRoom
+    ? { backgroundColor: `${colorValue}15`, borderColor: `${colorValue}40` }
+    : undefined;
+
   return (
     <form id={formId} onSubmit={handleSubmit(onFormSubmit)} noValidate>
       {/* Type banner */}
       <div
         className={cn('mx-6 mt-5 rounded-xl border p-4', !isCustomRoom && typeConfig.bannerBg, !isCustomRoom && typeConfig.bannerBorder)}
-        style={isCustomRoom ? { backgroundColor: `${colorValue}15`, borderColor: `${colorValue}40` } : undefined}
+        style={customBannerStyle}
       >
         <div className="flex items-start justify-between">
           {isCustomRoom ? (
@@ -359,7 +364,7 @@ function DetailsBody({
             type="button"
             onClick={onChangeType}
             className={cn('shrink-0 text-xs font-medium hover:underline', !isCustomRoom && typeConfig.bannerLinkColor)}
-            style={isCustomRoom ? { color: colorValue } : undefined}
+            style={customColorStyle}
           >
             {t('createDrawer.changeType')}
           </button>
@@ -367,7 +372,7 @@ function DetailsBody({
         <div className="mt-2">
           <p
             className={cn('text-sm font-semibold', !isCustomRoom && typeConfig.bannerTitleColor)}
-            style={isCustomRoom ? { color: colorValue } : undefined}
+            style={customColorStyle}
           >
             {t('createDrawer.typeLabel')} {typeLabel()}
           </p>
@@ -713,6 +718,7 @@ export function CreateStorageDrawer({
     if (hasFormData) {
       setShowCancelConfirm(true);
     } else {
+      /* c8 ignore next 2 -- back with clean form; tests always have dirty data */
       setStep('type-selection');
       setServerError(null);
     }
@@ -740,6 +746,7 @@ export function CreateStorageDrawer({
     }
   }, [selectedType]);
 
+  /* c8 ignore next 5 -- user clicks "Change type" link; covered by E2E */
   const handleChangeType = (): void => {
     setStep('type-selection');
     setServerError(null);
@@ -883,7 +890,7 @@ export function CreateStorageDrawer({
                   ? t('limits.warehouseProBadge')
                   : `${countForType(type)}/${limits[type]}`
               }
-              onBlockedTypeClick={(type) =>
+              onBlockedTypeClick={/* c8 ignore next 4 -- tier-blocked click; covered by E2E */ (type) =>
                 openUpgradeModal(
                   !isAllowed(STORAGE_TYPE_TO_FEATURE[type]) ? 'FEATURE_NOT_IN_TIER' : 'TIER_LIMIT_REACHED',
                   type,

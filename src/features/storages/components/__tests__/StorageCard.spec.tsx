@@ -422,6 +422,30 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
     });
   });
 
+  describe('When the browser is offline and the storage is archived', () => {
+    it('Then the restore menu item shows the offline tooltip and cursor-not-allowed class', async () => {
+      render(
+        <StorageCard
+          storage={archivedRoom}
+          onView={onView}
+          onEdit={onEdit}
+          onFreeze={onFreeze}
+          onUnfreeze={onUnfreeze}
+          onArchive={onArchive}
+          onRestore={onRestore}
+          onDelete={onDelete}
+          canArchive={true}
+          canRestore={true}
+          isOffline={true}
+        />,
+      );
+      await openContextMenu(user);
+      const restoreItem = await screen.findByRole('menuitem', { name: /actions\.restore/ });
+      expect(restoreItem).toHaveAttribute('title', 'tooltips.offline');
+      expect(restoreItem).toHaveClass('cursor-not-allowed');
+    });
+  });
+
   describe('When no action handlers are provided (Observer role)', () => {
     it('Then only the Ver más action is always shown', async () => {
       render(

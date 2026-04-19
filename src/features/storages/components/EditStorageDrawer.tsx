@@ -339,7 +339,7 @@ export function EditStorageDrawer({
   // ── Form submission ───────────────────────────────────────────────────────
 
   const handleFormSubmit = async (values: EditFormValues): Promise<void> => {
-    /* v8 ignore next — !originalValues is unreachable: originalValues is derived from storage (line 253-262) */
+    /* c8 ignore next — !originalValues is unreachable: originalValues is derived from storage (line 253-262) */
     if (!storage || !originalValues) return;
     setServerError(null);
     setChangeTypeError(null);
@@ -420,7 +420,7 @@ export function EditStorageDrawer({
   // ── Type change handler (local only — applied on submit) ─────────────────
 
   const handleTypePick = (targetType: StorageType): void => {
-    /* v8 ignore next — unreachable: the drawer short-circuits to a spinner when !storage (line 485-494). */
+    /* c8 ignore next — unreachable: the drawer short-circuits to a spinner when !storage (line 485-494). */
     if (!storage) return;
     setChangeTypeError(null);
     if (targetType === storage.type) {
@@ -445,7 +445,7 @@ export function EditStorageDrawer({
   };
 
   const handleRevertTypeChange = (): void => {
-    /* v8 ignore next — unreachable: button only renders when storage + originalValues exist. */
+    /* c8 ignore next — unreachable: button only renders when storage + originalValues exist. */
     if (!storage || !originalValues) return;
     setPendingType(null);
     setChangeTypeError(null);
@@ -486,7 +486,7 @@ export function EditStorageDrawer({
 
   const typeLabel = (type?: StorageType): string => {
     const target = type ?? effectiveType;
-    /* v8 ignore next — unreachable: target is always defined when this branch renders. */
+    /* c8 ignore next — unreachable: target is always defined when this branch renders. */
     if (!target) return '';
     if (target === 'WAREHOUSE') return t('createDrawer.warehouseLabel');
     if (target === 'STORE_ROOM') return t('createDrawer.storeRoomLabel');

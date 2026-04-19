@@ -39,9 +39,9 @@ export function useOAuthPopup(): UseOAuthPopupReturn {
 
   const processToken = useCallback(
     async (accessToken: string): Promise<void> => {
-      /* v8 ignore start: defence-in-depth guard untestable in jsdom */
+      /* c8 ignore start: defence-in-depth guard untestable in jsdom */
       if (processingRef.current) return;
-      /* v8 ignore stop */
+      /* c8 ignore stop */
       processingRef.current = true;
 
       cleanup();

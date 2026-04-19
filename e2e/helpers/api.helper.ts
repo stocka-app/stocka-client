@@ -194,6 +194,22 @@ export async function apiCompleteOnboarding(accessToken: string): Promise<{ tena
 }
 
 /**
+ * Triggers the forgot-password flow via the API.
+ * The backend sends a reset email (or silently succeeds for unknown emails).
+ */
+export async function apiForgotPassword(email: string): Promise<void> {
+  const response = await fetchWithRetry(`${API_BASE}/authentication/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!response.ok && response.status !== 429) {
+    const body = (await response.json()) as { message?: string };
+    throw new Error(`[api.helper] forgot-password failed (${response.status}): ${body.message ?? 'unknown'}`);
+  }
+}
+
+/**
  * Signs in an existing verified user via the API.
  * Returns the access token for use with authenticated API calls.
  */

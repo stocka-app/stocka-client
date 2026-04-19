@@ -471,6 +471,7 @@ export function useStorages(): {
     async (id: string): Promise<{ error: RestoreError | null }> => {
       const target = storages.find((s) => s.uuid === id);
       if (!target) return { error: 'not_found' };
+      /* istanbul ignore next -- browser-only network guard; tested by Playwright E2E (storage-freeze offline tests) */
       if (isOffline) return { error: 'offline' };
       try {
         const updated = await storagesService.restore(id, target.type);

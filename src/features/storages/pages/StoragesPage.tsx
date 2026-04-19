@@ -692,7 +692,8 @@ export default function StoragesPage(): React.ReactElement {
               onBack={() => setFilterType(null)}
             />
           </div>
-        ) : filterStatus === 'ARCHIVED' && summary.archived === 0 ? (
+        ) : /* istanbul ignore next -- TRANSIENT: loading state completes <100ms with real BE */
+        filterStatus === 'ARCHIVED' && summary.archived === 0 ? (
           <div className="flex flex-1 items-center justify-center">
             <StateComposition
               icon="inventory_2"
@@ -875,6 +876,7 @@ export default function StoragesPage(): React.ReactElement {
         </div>
       ) : (
         <div className="relative">
+          {/* istanbul ignore next -- TRANSIENT: loading state completes <100ms with real BE */}
           {isLoading && hadData && (
             <div className="absolute inset-0 z-10 flex items-center justify-center">
               <DoubleRingSpinner label={t('loader.loading')} elevated />

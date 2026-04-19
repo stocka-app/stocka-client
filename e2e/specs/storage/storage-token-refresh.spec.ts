@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect } from '../../fixtures/coverage.fixture';
 import { test } from '../../fixtures/auth.fixture';
 
 // ═════════════════════════════════════════════════════════════════════════════

@@ -3,7 +3,6 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { useAuthenticationStore } from '@/features/authentication/store/authentication.store';
 import { ProtectedRoute } from '@/features/authentication/guards/ProtectedRoute';
 import { PublicRoute } from '@/features/authentication/guards/PublicRoute';
-import { EmailVerifiedGuard } from '@/features/authentication/guards/EmailVerifiedGuard';
 import { VerificationRoute } from '@/features/authentication/guards/VerificationRoute';
 import { RequiresTenantRoute } from '@/features/authentication/guards/RequiresTenantRoute';
 
@@ -310,79 +309,6 @@ describe('PublicRoute', () => {
         </PublicRoute>,
       );
       expect(screen.getByText('Public Content')).toBeInTheDocument();
-    });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// EmailVerifiedGuard
-// ---------------------------------------------------------------------------
-
-describe('EmailVerifiedGuard', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('Given the user is not authenticated and has no email verification pending', () => {
-    beforeEach(() => {
-      vi.mocked(useAuthenticationStore).mockReturnValue(
-        buildStoreState({
-          isAuthenticated: false,
-          emailVerificationRequired: false,
-          pendingVerificationEmail: null,
-        }),
-      );
-    });
-
-    it('Then it redirects to the login page', () => {
-      renderWithRouter(
-        <EmailVerifiedGuard>
-          <div>Verified Content</div>
-        </EmailVerifiedGuard>,
-      );
-      expect(screen.getByText('Login Page')).toBeInTheDocument();
-    });
-  });
-
-  describe('Given email verification is required and a pending email is set', () => {
-    beforeEach(() => {
-      vi.mocked(useAuthenticationStore).mockReturnValue(
-        buildStoreState({
-          isAuthenticated: false,
-          emailVerificationRequired: true,
-          pendingVerificationEmail: 'user@test.com',
-        }),
-      );
-    });
-
-    it('Then it redirects to the verify-email page', () => {
-      renderWithRouter(
-        <EmailVerifiedGuard>
-          <div>Verified Content</div>
-        </EmailVerifiedGuard>,
-      );
-      expect(screen.getByText('Verify Email Page')).toBeInTheDocument();
-    });
-  });
-
-  describe('Given the user is fully authenticated', () => {
-    beforeEach(() => {
-      vi.mocked(useAuthenticationStore).mockReturnValue(
-        buildStoreState({
-          isAuthenticated: true,
-          emailVerificationRequired: false,
-          pendingVerificationEmail: null,
-        }),
-      );
-    });
-
-    it('Then it renders the protected children', () => {
-      renderWithRouter(
-        <EmailVerifiedGuard>
-          <div>Verified Content</div>
-        </EmailVerifiedGuard>,
-      );
-      expect(screen.getByText('Verified Content')).toBeInTheDocument();
     });
   });
 });

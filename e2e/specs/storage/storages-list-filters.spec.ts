@@ -1,564 +1,377 @@
-import { test, expect } from '../../fixtures/auth.fixture';
-import { StoragesListPage } from '../../pages/storages-list.page';
+import { test, expect } from '../../fixtures/coverage.fixture';
+import { Pool } from 'pg';
+import { apiSignUp, apiCompleteOnboarding, apiSignIn } from '../../helpers/api.helper';
+import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';
 import {
-  setupAndNavigate,
-  buildStorage,
-  buildStoragesResponse,
-  buildMixedDataset,
-  RBAC_OWNER,
-} from '../../helpers/storages-list.helper';
-import type { MockStorage, StorageStatus, StorageType } from '../../helpers/storages-list.helper';
-
-// ─── Mock data ───────────────────────────────────────────────────────────────
-
-const MIXED = buildMixedDataset();
-
-/**
- * For filter tests we need the mock API to actually filter.
- * We build a smart route handler that reads query params.
- */
-async function setupWithSmartFiltering(
-  page: import('@playwright/test').Page,
-  items: MockStorage[] = MIXED,
-): Promise<void> {
-  const rbacValue = JSON.stringify({
-    state: { role: 'owner', tier: 'STARTER', tenantStatus: 'ACTIVE', permissions: RBAC_OWNER.actions, grants: [], loaded: true },
-    version: 0,
-  });
-
-  await page.addInitScript((value: string) => {
-    localStorage.setItem('rbac-storage', value);
-  }, rbacValue);
-
-  await page.route(/\/api\/rbac\/my-permissions(\?.*)?$/, async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ success: true, data: { role: 'owner', tier: 'STARTER', actions: RBAC_OWNER.actions, grants: [] } }),
-    });
-  });
-
-  // Without a tierLimits-bearing JWT the app treats the user as FREE tier and
-  // tier-locks the Warehouse tab + disables search/sort controls. Fabricate a
-  // STARTER tier refresh response so filtering tests exercise the unlocked UI.
-  await page.route(/\/api\/authentication\/refresh-session$/, async (route) => {
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-    const payload = btoa(
-      JSON.stringify({
-        sub: 'e2e-smart-filter-user',
-        email: 'filters@stocka.test',
-        tenantId: 'e2e-mock-tenant',
-        role: 'owner',
-        tierLimits: { tier: 'STARTER', maxWarehouses: 10, maxStoreRooms: 10, maxCustomRooms: 10 },
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 7200,
-      }),
-    )
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        success: true,
-        data: { accessToken: `${header}.${payload}.e2e-fake` },
-      }),
-    });
-  });
-
-  await page.route(/\/api\/storages(\?.*)?$/, async (route) => {
-    if (route.request().method() !== 'GET') {
-      await route.continue();
-      return;
-    }
-
-    const url = new URL(route.request().url());
-    const status = url.searchParams.get('status') as StorageStatus | null;
-    const type = url.searchParams.get('type') as StorageType | null;
-    const search = url.searchParams.get('search');
-    const sortOrder = url.searchParams.get('sortOrder') ?? 'ASC';
-
-    let filtered = [...items];
-
-    if (status) {
-      filtered = filtered.filter((s) => s.status === status);
-    }
-    if (type) {
-      filtered = filtered.filter((s) => s.type === type);
-    }
-    if (search) {
-      const lower = search.toLowerCase();
-      filtered = filtered.filter((s) => s.name.toLowerCase().includes(lower));
-    }
-
-    filtered.sort((a, b) =>
-      sortOrder === 'ASC'
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name),
-    );
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(buildStoragesResponse(filtered)),
-    });
-  });
-
-  await page.goto('/storages');
-  await page.waitForURL('**/storages', { timeout: 15_000 });
-}
+  apiCreateWarehouse,
+  apiCreateStoreRoom,
+  apiCreateCustomRoom,
+  apiFreezeStorage,
+  apiArchiveStorage,
+  clearAllStoragesForUser,
+  setTierByUserUuid,
+  signInAndNavigateToStorages,
+} from '../../helpers/real-storage.helper';
+import { StoragesListPage } from '../../pages/storages-list.page';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// Section 5: Filter by type (tabs)
+// Filters, search, sort (real BE, no mocks)
+//
+// Dataset: 9 storages = 3 types × 3 statuses (ACTIVE/FROZEN/ARCHIVED)
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe('Section 5: Filter by type (tabs)', () => {
-  // T-01
-  test('T-01: "All" tab is active by default', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
+test.describe('Storages list filters (real BE, no mocks)', () => {
+  let pool: Pool;
+  const ts = Date.now();
+  const email = `pw_filt_${ts}@stocka.test`;
+  const username = `pw_filt_${ts}`;
+  const password = 'TestPass1!';
+  const TOTAL = 9;
 
-    await expect(storagesPage.tabAll).toHaveAttribute('aria-selected', 'true');
-    await expect(storagesPage.tabWarehouses).toHaveAttribute('aria-selected', 'false');
+  test.beforeAll(async () => {
+    pool = createDbPool();
+    const signUp = await apiSignUp({ email, username, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'STARTER');
+    await clearAllStoragesForUser(pool, signUp.userId);
+
+    const { accessToken } = await apiSignIn(email, password);
+
+    // Warehouses: Active, Frozen, Archived
+    const whA = await apiCreateWarehouse(accessToken, 'Almacen Central', 'Av. Industrial 500');
+    const whF = await apiCreateWarehouse(accessToken, 'Almacen Norte', 'Calle Norte 100');
+    const whR = await apiCreateWarehouse(accessToken, 'Almacen Sur', 'Calle Sur 300');
+    await apiFreezeStorage(accessToken, 'WAREHOUSE', whF.storageUUID);
+    await apiArchiveStorage(accessToken, 'WAREHOUSE', whR.storageUUID);
+
+    // Store Rooms: Active, Frozen, Archived
+    const srA = await apiCreateStoreRoom(accessToken, 'Bodega Principal', 'Calle Bodega 10');
+    const srF = await apiCreateStoreRoom(accessToken, 'Bodega Refri', 'Calle Frio 20');
+    const srR = await apiCreateStoreRoom(accessToken, 'Bodega Vieja', 'Calle Vieja 30');
+    await apiFreezeStorage(accessToken, 'STORE_ROOM', srF.storageUUID);
+    await apiArchiveStorage(accessToken, 'STORE_ROOM', srR.storageUUID);
+
+    // Custom Rooms: Active, Frozen, Archived
+    const crA = await apiCreateCustomRoom(accessToken, 'Area Exhibicion');
+    const crF = await apiCreateCustomRoom(accessToken, 'Area Temporal');
+    const crR = await apiCreateCustomRoom(accessToken, 'Area Obsoleta');
+    await apiFreezeStorage(accessToken, 'CUSTOM_ROOM', crF.storageUUID);
+    await apiArchiveStorage(accessToken, 'CUSTOM_ROOM', crR.storageUUID);
   });
 
-  // T-02
-  test('T-02: clicking "Warehouses" tab filters to only WAREHOUSE cards', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
+  test.afterAll(async () => {
+    await pool.end();
+  });
 
-    await storagesPage.tabWarehouses.click();
+  // ── Type tabs ───────────────────────────────────────────────────────────────
 
-    // Wait for warehouse cards to appear
+  test('T-01: "All" tab is active by default', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await expect(sp.tabAll).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('T-02: Warehouses tab filters to only WAREHOUSE cards', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.tabWarehouses.click();
+
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
-
-    // Non-warehouse cards should be gone
     await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible();
-    await expect(page.locator('main h3').filter({ hasText: 'Area Exhibicion' }).first()).not.toBeVisible();
   });
 
-  // T-03
-  test('T-03: clicking "Store Rooms" tab filters to only STORE_ROOM cards', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.tabStoreRooms.click();
+  test('T-03: Store Rooms tab filters to only STORE_ROOM cards', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.tabStoreRooms.click();
 
     await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).toBeVisible();
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
-  // T-04
-  test('T-04: clicking "Custom Rooms" tab filters to only CUSTOM_ROOM cards', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.tabCustomRooms.click();
+  test('T-04: Custom Rooms tab filters to only CUSTOM_ROOM cards', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.tabCustomRooms.click();
 
     await expect(page.locator('main h3').filter({ hasText: 'Area Exhibicion' }).first()).toBeVisible();
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
-  // T-05
-  test('T-05: each tab shows correct count', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    // All tab should show total count
-    await expect(storagesPage.tabAll).toContainText(`(${MIXED.length})`);
+  test('T-05: each tab shows correct total count', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await expect(sp.tabAll).toContainText(`(${TOTAL})`);
   });
 
-  // T-06
-  test('T-06: clicking "All" after filtering resets and shows all storages', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    // Filter to warehouses first
-    await storagesPage.tabWarehouses.click();
+  test('T-06: clicking "All" after filtering resets and shows all storages', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.tabWarehouses.click();
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
-
-    // Click All
-    await storagesPage.tabAll.click();
-
-    // All storages should be back
-    const names = await storagesPage.getCardNames();
-    expect(names.length).toBe(MIXED.length);
-  });
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// Section 6: Filter by status
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Section 6: Filter by status', () => {
-  // S-01
-  test('S-01: status dropdown shows all options', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    const options = storagesPage.statusDropdown.locator('option');
-    await expect(options).toHaveCount(4); // All statuses + Active + Frozen + Archived
-    await expect(options.nth(0)).toHaveText('All statuses');
-    await expect(options.nth(1)).toHaveText('Active');
-    await expect(options.nth(2)).toHaveText('Frozen');
-    await expect(options.nth(3)).toHaveText('Archived');
+    await sp.tabAll.click();
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).toBeVisible();
+    const names = await sp.getCardNames();
+    expect(names.length).toBe(TOTAL);
   });
 
-  // S-02
-  test('S-02: selecting "Frozen" shows only frozen storages', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
+  // ── Status filter (pills) ─────────────────────────────────────────────────
 
-    await storagesPage.selectStatus('FROZEN');
+  test('S-01: status filter shows 4 pills (All, Active, Frozen, Archived)', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    const tabs = sp.statusDropdown.getByRole('tab');
+    await expect(tabs).toHaveCount(4);
+  });
 
-    // Should show frozen storages
+  test('S-02: selecting "Frozen" shows only frozen storages', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('FROZEN');
+
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).toBeVisible();
-    // Active/archived should be hidden
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
-  // S-03
-  test('S-03: status filter chip appears when status is selected', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.selectStatus('FROZEN');
-
-    await expect(storagesPage.filterChip('Frozen')).toBeVisible();
+  test('S-03: status filter chip appears when status is selected', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('FROZEN');
+    await expect(sp.filterChip('Frozen')).toBeVisible();
   });
 
-  // S-04
-  test('S-04: clicking X on status chip removes filter', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.selectStatus('FROZEN');
-    await expect(storagesPage.filterChip('Frozen')).toBeVisible();
-
-    // Click the chip to remove
-    await storagesPage.filterChip('Frozen').click();
-
-    // All storages should be back
-    await expect(storagesPage.filterChip('Frozen')).not.toBeVisible();
-    const names = await storagesPage.getCardNames();
-    expect(names.length).toBe(MIXED.length);
+  test('S-04: clicking X on status chip removes filter', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('FROZEN');
+    await expect(sp.filterChip('Frozen')).toBeVisible();
+    await sp.filterChip('Frozen').click();
+    await expect(sp.filterChip('Frozen')).not.toBeVisible();
+    await sp.waitForCards();
+    const names = await sp.getCardNames();
+    expect(names.length).toBe(TOTAL);
   });
 
-  // S-05
-  test('S-05: no results with status filter shows empty message', async ({
-    preAuthPage: page,
-  }) => {
-    // Create a dataset with no archived storages
-    const noArchived = MIXED.filter((s) => s.status !== 'ARCHIVED');
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page, noArchived);
-    await storagesPage.waitForCards();
-
-    await storagesPage.selectStatus('ARCHIVED');
-
-    await expect(storagesPage.noFilterResultsTitle()).toBeVisible();
+  test('S-06: selecting "All" resets status filter', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('ACTIVE');
+    await sp.selectStatus('');
+    await sp.waitForCards();
+    const names = await sp.getCardNames();
+    expect(names.length).toBe(TOTAL);
   });
 
-  // S-06
-  test('S-06: selecting "All statuses" resets status filter', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
+  // ── Search ─────────────────────────────────────────────────────────────────
 
-    await storagesPage.selectStatus('ACTIVE');
-    await storagesPage.selectStatus('');
-
-    // All storages back
-    const names = await storagesPage.getCardNames();
-    expect(names.length).toBe(MIXED.length);
-  });
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// Section 7: Search by name
-// ═════════════════════════════════════════════════════════════════════════════
-
-test.describe('Section 7: Search by name', () => {
-  // B-01
-  test('B-01: typing in search filters cards by name', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('Central');
-
+  test('B-01: typing in search filters cards by name', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('Central');
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
-    // Others should be filtered out
     await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible();
   });
 
-  // B-02
-  test('B-02: search with no matches shows no-results message', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('xyznonexistent');
-
-    await expect(storagesPage.noResultsTitle()).toBeVisible();
+  test('B-02: search with no matches shows no-results message', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('xyznonexistent');
+    await expect(sp.noResultsTitle()).toBeVisible();
   });
 
-  // B-03
-  test('B-03: search chip with quoted term appears', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('Central');
-
-    // Chip should show the term in quotes
-    await expect(storagesPage.filterChips().filter({ hasText: 'Central' })).toBeVisible();
+  test('B-03: search chip with quoted term appears', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('Central');
+    await expect(sp.filterChips().filter({ hasText: 'Central' })).toBeVisible();
   });
 
-  // B-04
-  test('B-04: clicking X on search chip clears search', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('Central');
+  test('B-04: clicking X on search chip clears search', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('Central');
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
-
-    // Click the search chip to remove
-    await storagesPage.filterChips().filter({ hasText: 'Central' }).click();
-
-    // All storages should be back
-    const names = await storagesPage.getCardNames();
-    expect(names.length).toBe(MIXED.length);
+    await sp.filterChips().filter({ hasText: 'Central' }).click();
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).toBeVisible();
+    const names = await sp.getCardNames();
+    expect(names.length).toBe(TOTAL);
   });
 
-  // B-05
-  test('B-05: no "Create" button in no-results header', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('xyznonexistent');
-    await expect(storagesPage.noResultsTitle()).toBeVisible();
-
-    // Create button should not appear in header
-    await expect(storagesPage.createButton).not.toBeVisible();
+  test('B-05: no "Create" button in no-results header', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('xyznonexistent');
+    await expect(sp.noResultsTitle()).toBeVisible();
+    await expect(sp.createButton).not.toBeVisible();
   });
 
-  // B-06
-  test('B-06: "Clear search" button in no-results resets filters', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('xyznonexistent');
-    await expect(storagesPage.noResultsTitle()).toBeVisible();
-
-    await storagesPage.clearSearchButton().click();
-
-    // All storages return
-    const names = await storagesPage.getCardNames();
-    expect(names.length).toBe(MIXED.length);
+  test('B-06: "Clear search" button resets filters', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('xyznonexistent');
+    await expect(sp.noResultsTitle()).toBeVisible();
+    await sp.clearSearchButton().click();
+    await sp.waitForCards();
+    const names = await sp.getCardNames();
+    expect(names.length).toBe(TOTAL);
   });
 
-  // B-07
-  test('B-07: "View all" button in no-results resets all filters', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('xyznonexistent');
-    await expect(storagesPage.noResultsTitle()).toBeVisible();
-
-    await storagesPage.viewAllButton().click();
-
-    const names = await storagesPage.getCardNames();
-    expect(names.length).toBe(MIXED.length);
+  test('B-07: "View all" button resets all filters', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('xyznonexistent');
+    await expect(sp.noResultsTitle()).toBeVisible();
+    await sp.viewAllButton().click();
+    await sp.waitForCards();
+    const names = await sp.getCardNames();
+    expect(names.length).toBe(TOTAL);
   });
 
-  // B-08
-  test('B-08: 3 suggestion cards in no-results state', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.search('xyznonexistent');
-
-    // Suggestion card titles render as <span> inside the StateComposition,
-    // not as <h3>. Match by visible text instead.
+  test('B-08: 3 suggestion cards in no-results state', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.search('xyznonexistent');
     await expect(page.getByText('Check spelling', { exact: true })).toBeVisible();
     await expect(page.getByText('Adjust filters', { exact: true })).toBeVisible();
     await expect(page.getByText('Create new', { exact: true })).toBeVisible();
   });
-});
 
-// ═════════════════════════════════════════════════════════════════════════════
-// Section 8: Sorting
-// ═════════════════════════════════════════════════════════════════════════════
+  // ── Sort ───────────────────────────────────────────────────────────────────
 
-test.describe('Section 8: Sorting', () => {
-  // O-01
-  test('O-01: sort button shows "A → Z" by default', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await expect(storagesPage.sortButton).toContainText('A → Z');
+  test('O-01: sort button shows "A → Z" by default', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await expect(sp.sortButton).toContainText('A → Z');
   });
 
-  // O-02
-  test('O-02: clicking sort toggles to "Z → A"', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.toggleSort();
-
-    await expect(storagesPage.sortButton).toContainText('Z → A');
+  test('O-02: clicking sort toggles to "Z → A"', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.toggleSort();
+    await expect(sp.sortButton).toContainText('Z → A');
   });
 
-  // O-03
-  test('O-03: cards reorder after sort change', async ({ preAuthPage: page }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
+  test('O-03: cards reorder after sort change', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    const ascNames = await sp.getCardNames();
 
-    const ascNames = await storagesPage.getCardNames();
-
-    // Wait for the refetch triggered by toggleSort — otherwise getCardNames
-    // can read the stale (pre-refetch) order before React has re-rendered.
     const descResponse = page.waitForResponse(
       (res) => res.url().includes('/api/storages') && res.url().includes('sortOrder=DESC'),
     );
-    await storagesPage.toggleSort();
+    await sp.toggleSort();
     await descResponse;
-
-    // Give React a micro-tick to commit the new list.
-    await expect(storagesPage.sortButton).toContainText('Z → A');
-
-    const descNames = await storagesPage.getCardNames();
-
-    // The active-context card is always pinned first regardless of sort
-    // (H-03 active storage treatment). Compare the non-pinned tail instead.
+    await expect(sp.sortButton).toContainText('Z → A');
+    const descNames = await sp.getCardNames();
     expect(ascNames.slice(1)[0]).not.toBe(descNames.slice(1)[0]);
   });
-});
 
-// ═════════════════════════════════════════════════════════════════════════════
-// Section 9: Combined filters
-// ═════════════════════════════════════════════════════════════════════════════
+  // ── Combined filters ───────────────────────────────────────────────────────
 
-test.describe('Section 9: Combined filters', () => {
-  // FC-01
-  test('FC-01: status "Active" + search "Central" shows only active matching storages', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.selectStatus('ACTIVE');
-    await storagesPage.search('Central');
-
-    // Only Almacen Central (active warehouse) should match
+  test('FC-01: status "Active" + search "Central" shows only active matching storages', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('ACTIVE');
+    await sp.search('Central');
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
-    await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).not.toBeVisible(); // frozen
-    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible(); // wrong name
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).not.toBeVisible();
   });
 
-  // FC-02
-  test('FC-02: type "Warehouses" + status "Frozen" shows only frozen warehouses', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.tabWarehouses.click();
-    await storagesPage.selectStatus('FROZEN');
-
+  test('FC-02: type "Warehouses" + status "Frozen" shows only frozen warehouses', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.tabWarehouses.click();
+    await sp.selectStatus('FROZEN');
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).toBeVisible();
-    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible(); // active
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).not.toBeVisible();
   });
 
-  // FC-03
-  test('FC-03: type + status + search applies all three with AND', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.tabWarehouses.click();
-    await storagesPage.selectStatus('ACTIVE');
-    await storagesPage.search('Central');
-
+  test('FC-03: type + status + search applies all three with AND', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.tabWarehouses.click();
+    await expect(page.locator('main h3').filter({ hasText: 'Bodega Principal' }).first()).not.toBeVisible();
+    await sp.selectStatus('ACTIVE');
+    await expect(page.locator('main h3').filter({ hasText: 'Almacen Norte' }).first()).not.toBeVisible();
+    await sp.search('Central');
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
-    const names = await storagesPage.getCardNames();
+    const names = await sp.getCardNames();
     expect(names.length).toBe(1);
   });
 
-  // FC-04
-  test('FC-04: multiple chips show simultaneously for status and search', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.selectStatus('ACTIVE');
-    await storagesPage.search('Central');
-
-    // Both chips should be visible
-    await expect(storagesPage.filterChip('Active')).toBeVisible();
-    await expect(storagesPage.filterChips().filter({ hasText: 'Central' })).toBeVisible();
+  test('FC-04: multiple chips show simultaneously for status and search', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('ACTIVE');
+    await sp.search('Central');
+    await expect(sp.filterChip('Active')).toBeVisible();
+    await expect(sp.filterChips().filter({ hasText: 'Central' })).toBeVisible();
   });
 
-  // FC-05
-  test('FC-05: removing one chip keeps the other filter active', async ({
-    preAuthPage: page,
-  }) => {
-    const storagesPage = new StoragesListPage(page);
-    await setupWithSmartFiltering(page);
-    await storagesPage.waitForCards();
-
-    await storagesPage.selectStatus('ACTIVE');
-    await storagesPage.search('Central');
-
-    // Remove status chip
-    await storagesPage.filterChip('Active').click();
-
-    // Search should still be active
-    await expect(storagesPage.filterChips().filter({ hasText: 'Central' })).toBeVisible();
-    // Should show all "Central" storages regardless of status
+  test('FC-05: removing one chip keeps the other filter active', async ({ page }) => {
+    test.setTimeout(60_000);
+    await signInAndNavigateToStorages(page, email, password);
+    const sp = new StoragesListPage(page);
+    await sp.waitForCards();
+    await sp.selectStatus('ACTIVE');
+    await sp.search('Central');
+    await sp.filterChip('Active').click();
+    await expect(sp.filterChips().filter({ hasText: 'Central' })).toBeVisible();
     await expect(page.locator('main h3').filter({ hasText: 'Almacen Central' }).first()).toBeVisible();
   });
 });

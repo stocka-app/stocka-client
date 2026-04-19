@@ -1,4 +1,5 @@
-import { test as base, type Page } from '@playwright/test';
+import { test as coverageBase } from './coverage.fixture';
+import { type Page } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
@@ -58,7 +59,7 @@ function slotForSpec(testInfo: TestInfo): number {
  * Each onboardingPage test restores from storageState instead of doing a full UI sign-in,
  * saving ~5s per test (no form fill + waitForURL /onboarding roundtrip needed).
  */
-export const test = base.extend<OnboardingTestFixtures>({
+export const test = coverageBase.extend<OnboardingTestFixtures>({
   verifiedUser: async ({}, use, testInfo) => {
     const slot = slotForSpec(testInfo);
     const { onboardingUsers } = JSON.parse(readFileSync(USERS_FILE, 'utf-8')) as {

@@ -148,6 +148,98 @@ describe('StorageDetailPanel', () => {
     });
   });
 
+  describe('Given the browser is offline and the storage is FROZEN', () => {
+    describe('When the panel renders the Reactivar CTA', () => {
+      it('Then the button is disabled with offline styling', () => {
+        renderPanel({ status: 'FROZEN', isOffline: true });
+        const cta = screen.getByRole('button', { name: /Reactivar/ });
+        expect(cta).toBeDisabled();
+        expect(cta).toHaveClass('cursor-not-allowed');
+      });
+    });
+  });
+
+  describe('Given a CUSTOM_ROOM storage with roomType set', () => {
+    describe('When the panel renders', () => {
+      it('Then it shows the room type field', () => {
+        renderPanel({
+          storage: makeStorage({ type: 'CUSTOM_ROOM', roomType: 'Office' }),
+        });
+        expect(screen.getByText('Office')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given a FROZEN storage with frozenAt set', () => {
+    describe('When the panel renders', () => {
+      it('Then it shows the frozen date', () => {
+        renderPanel({
+          storage: makeStorage({
+            status: 'FROZEN',
+            frozenAt: '2026-03-15T08:00:00.000Z',
+          }),
+        });
+        expect(screen.getByText(/Congelado/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given an ARCHIVED storage with archivedAt set', () => {
+    describe('When the panel renders', () => {
+      it('Then it shows the archived date', () => {
+        renderPanel({
+          storage: makeStorage({
+            status: 'ARCHIVED',
+            archivedAt: '2026-04-01T12:00:00.000Z',
+          }),
+        });
+        expect(screen.getByText(/Archivado/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given an ACTIVE storage and the user can edit', () => {
+    describe('When the user clicks Editar', () => {
+      it('Then onEdit is called with the storage', async () => {
+        const user = userEvent.setup();
+        const { onEdit, storage } = renderPanel({ status: 'ACTIVE' });
+        await user.click(screen.getByRole('button', { name: /Editar/ }));
+        expect(onEdit).toHaveBeenCalledWith(storage);
+      });
+    });
+  });
+
+  describe('Given a storage with a null createdAt', () => {
+    describe('When the panel renders', () => {
+      it('Then formatDate returns the em-dash fallback', () => {
+        renderPanel({
+          storage: makeStorage({ createdAt: null as unknown as string }),
+        });
+        expect(screen.getByText('—')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given a storage with a date that causes DateTimeFormat to throw', () => {
+    describe('When the panel renders', () => {
+      it('Then the catch branch returns the raw ISO string', () => {
+        const OriginalDTF = Intl.DateTimeFormat;
+        vi.spyOn(Intl, 'DateTimeFormat').mockImplementation((...args) => {
+          const instance = new OriginalDTF(...args);
+          Object.defineProperty(instance, 'format', {
+            value: () => { throw new RangeError('Invalid time value'); },
+          });
+          return instance;
+        });
+        renderPanel({
+          storage: makeStorage({ createdAt: 'bad-date' }),
+        });
+        expect(screen.getByText('bad-date')).toBeInTheDocument();
+        vi.restoreAllMocks();
+      });
+    });
+  });
+
   describe('Given the user can not update the storage', () => {
     describe('When the panel renders', () => {
       it('Then the Editar button is omitted', () => {

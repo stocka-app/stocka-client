@@ -13,6 +13,7 @@ function getSnapshot(): boolean {
   return window.navigator.onLine;
 }
 
+/* istanbul ignore next -- SSR fallback required by useSyncExternalStore; unreachable in jsdom */
 function getServerSnapshot(): boolean {
   return true;
 }

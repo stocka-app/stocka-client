@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures/coverage.fixture';
 import { Pool } from 'pg';
 import { apiSignUp, apiCompleteOnboarding } from '../../helpers/api.helper';
 import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';

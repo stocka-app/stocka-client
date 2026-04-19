@@ -53,6 +53,7 @@ function ResetPasswordPage() {
       setIsLoading(true);
       await authenticationService.resetPassword(token, data.password);
       setView('success');
+    /* istanbul ignore next -- ERROR_HANDLER: token expired/invalid; covered by unit tests */
     } catch (err: unknown) {
       const errorCode = (err as ApiError).error;
       setInvalidReason(errorCode === 'TOKEN_EXPIRED' ? 'expired' : 'invalid');
