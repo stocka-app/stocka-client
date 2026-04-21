@@ -1,35 +1,46 @@
-import { test, expect } from '../../fixtures/auth.fixture';
-import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
+import { test, expect } from '../../fixtures/coverage.fixture';
+import { Pool } from 'pg';
+import { apiSignUp, apiCompleteOnboarding, apiSignIn } from '../../helpers/api.helper';
+import { createDbPool, verifyUserEmail } from '../../helpers/db.helper';
 import {
-  setupAndNavigate,
-  buildStorage,
-  buildStoragesResponse,
-  RBAC_OWNER,
-} from '../../helpers/storages-list.helper';
-
-// ─── FREE tier caps: 0 warehouses, 1 custom area, 1 store room ───────────────
-const FREE_CAPS = { tier: 'FREE', maxWarehouses: 0, maxStoreRooms: 1, maxCustomRooms: 1 };
-
-/** Both FREE storage slots consumed: 1 custom area + 1 store room (combined 2/2) */
-const FREE_SATURATED = buildStoragesResponse([
-  buildStorage({ type: 'CUSTOM_ROOM', status: 'ACTIVE', name: 'Mi Área Personalizada' }),
-  buildStorage({ type: 'STORE_ROOM', status: 'ACTIVE', name: 'Mi Bodeguita' }),
-]);
+  apiCreateStoreRoom,
+  setTierByUserUuid,
+  signInAndNavigateToStorages,
+} from '../../helpers/real-storage.helper';
+import { CreateStorageDrawerPage } from '../../pages/create-storage-drawer.page';
 
 // ═════════════════════════════════════════════════════════════════════════════
-// CD-42 — CD-43: FREE tier fully saturated — all types blocked
+// FREE tier fully saturated — all types blocked (real BE, no mocks)
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe('Given the user is on FREE tier with all storage slots consumed', () => {
-  test('CD-42: When 1 custom area and 1 store room exist (2/2 combined) and the user clicks Custom area, Then the upgrade modal opens', async ({
-    preAuthPage: page,
-  }) => {
-    await setupAndNavigate(page, {
-      rbac: { ...RBAC_OWNER, tier: 'FREE' },
-      storagesResponse: FREE_SATURATED,
-      capabilities: FREE_CAPS,
-    });
+test.describe('FREE tier saturated (real BE, no mocks)', () => {
+  let pool: Pool;
+  const ts = Date.now();
+  const password = 'TestPass1!';
 
+  test.beforeAll(async () => {
+    pool = createDbPool();
+  });
+
+  test.afterAll(async () => {
+    await pool.end();
+  });
+
+  test('CD-42: When all FREE slots are consumed and user clicks Custom area, Then the upgrade modal opens', async ({ page }) => {
+    test.setTimeout(60_000);
+    // Onboarding creates 1 custom room → 1/1. Create 1 store room → 1/1.
+    const email = `pw_fs42_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_fs42_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'FREE');
+
+    const { accessToken } = await apiSignIn(email, password);
+    await apiCreateStoreRoom(accessToken, 'Mi Bodeguita', 'Calle 1');
+
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.customRoomCard.click();
@@ -37,15 +48,20 @@ test.describe('Given the user is on FREE tier with all storage slots consumed', 
     await expect(drawer.upgradeModal).toBeVisible({ timeout: 5_000 });
   });
 
-  test('CD-43: When 1 custom area and 1 store room exist (2/2 combined) and the user clicks Store Room, Then the upgrade modal opens', async ({
-    preAuthPage: page,
-  }) => {
-    await setupAndNavigate(page, {
-      rbac: { ...RBAC_OWNER, tier: 'FREE' },
-      storagesResponse: FREE_SATURATED,
-      capabilities: FREE_CAPS,
-    });
+  test('CD-43: When all FREE slots are consumed and user clicks Store Room, Then the upgrade modal opens', async ({ page }) => {
+    test.setTimeout(60_000);
+    const email = `pw_fs43_${ts}@stocka.test`;
+    const signUp = await apiSignUp({ email, username: `pw_fs43_${ts}`, password });
+    await new Promise((r) => setTimeout(r, 300));
+    await verifyUserEmail(pool, email);
+    await new Promise((r) => setTimeout(r, 300));
+    await apiCompleteOnboarding(signUp.accessToken);
+    await setTierByUserUuid(pool, signUp.userId, 'FREE');
 
+    const { accessToken } = await apiSignIn(email, password);
+    await apiCreateStoreRoom(accessToken, 'Mi Bodeguita', 'Calle 1');
+
+    await signInAndNavigateToStorages(page, email, password);
     const drawer = new CreateStorageDrawerPage(page);
     await drawer.openDrawer();
     await drawer.storeRoomCard.click();

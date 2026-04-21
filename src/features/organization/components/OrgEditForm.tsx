@@ -55,20 +55,20 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
     await updateProfile({
       name: data.name,
       businessType: data.businessType,
-      /* v8 ignore start */
+      /* c8 ignore start */
       rfc: data.rfc ?? undefined,
-      /* v8 ignore stop */
+      /* c8 ignore stop */
     });
     onSaved();
   };
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    /* v8 ignore start */
+    /* c8 ignore start */
     const file = e.target.files?.[0];
     if (file) {
       await uploadLogo(file);
     }
-    /* v8 ignore stop */
+    /* c8 ignore stop */
   };
 
   const showNameStatus = watchedName !== profile.name && watchedName.length >= 2;
@@ -179,13 +179,13 @@ export function OrgEditForm({ profile, onCancel, onSaved }: OrgEditFormProps): R
           )}
           {...register('rfc')}
         />
-        {/* v8 ignore start */}
+        {/* c8 ignore start */}
         {errors.rfc && (
           <p className="mt-1 text-xs text-red-600 dark:text-red-400">
             {t(errors.rfc.message as string)}
           </p>
         )}
-        {/* v8 ignore stop */}
+        {/* c8 ignore stop */}
       </div>
 
       {/* Logo */}

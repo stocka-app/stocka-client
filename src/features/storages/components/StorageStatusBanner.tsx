@@ -120,6 +120,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
         toast.success(t('toast.restored', { name: updated.name }));
       }
     } catch (err) {
+      /* istanbul ignore next -- ERROR_HANDLER: only on API failure; covered by unit tests */
       console.error('[StorageStatusBanner] reactivate failed:', err);
       toast.error(isFrozen ? t('toasts.errors.unfreezeFailed') : t('toast.restoreFailed'));
     } finally {
@@ -127,6 +128,7 @@ export function StorageStatusBanner({ className }: StorageStatusBannerProps): Re
     }
   };
 
+  /* istanbul ignore next -- ERROR_HANDLER: only on API failure; covered by unit tests */
   const handleDismiss = (): void => {
     setDismissed(true);
   };

@@ -1,4 +1,5 @@
-import { test as base, type Page } from '@playwright/test';
+import { test as coverageBase } from './coverage.fixture';
+import { type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +47,7 @@ interface AuthWorkerFixtures {
   verifiedUser: TestUser;
 }
 
-export const test = base.extend<AuthTestFixtures, AuthWorkerFixtures>({
+export const test = coverageBase.extend<AuthTestFixtures, AuthWorkerFixtures>({
   verifiedUser: [
     async ({}, use) => {
       const { verifiedUser } = JSON.parse(readFileSync(USERS_FILE, 'utf-8')) as {

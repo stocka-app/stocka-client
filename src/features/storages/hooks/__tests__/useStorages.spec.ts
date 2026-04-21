@@ -51,6 +51,12 @@ vi.mock('@/shared/hooks/useTierCapabilities', () => ({
   },
 }));
 
+let mockIsOffline = false;
+
+vi.mock('@/shared/hooks/useOfflineStatus', () => ({
+  useOfflineStatus: () => ({ isOnline: !mockIsOffline, isOffline: mockIsOffline }),
+}));
+
 import { useStorages } from '../useStorages';
 import { storagesService } from '../../api/storages.service';
 import type { CreateWarehouseFormData, CreateStoreRoomFormData, CreateCustomRoomFormData } from '../../schemas/storages.schema';
@@ -216,6 +222,7 @@ describe('Given useStorages orchestrates storage operations', () => {
   beforeEach(() => {
     resetStore();
     vi.clearAllMocks();
+    mockIsOffline = false;
     vi.mocked(storagesService.list).mockResolvedValue(mockPage);
   });
 
@@ -867,22 +874,149 @@ describe('Given useStorages orchestrates storage operations', () => {
   });
 
   describe('When restoreStorage is called with a valid id', () => {
-    it('Then it calls the service and returns true on success', async () => {
+    it('Then it calls the service and resolves with no error on success', async () => {
       vi.mocked(storagesService.restore).mockResolvedValue({ ...mockStoragesItems[2], status: 'ACTIVE' });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.restoreStorage('storage-003');
-      expect(success).toBe(true);
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: null });
     });
 
-    it('Then returns false when the service throws', async () => {
+    it('Then resolves with server_error when the service throws an unrecognized error', async () => {
       vi.mocked(storagesService.restore).mockRejectedValue(new Error('Restore failed'));
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.restoreStorage('storage-003');
-      expect(success).toBe(false);
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'server_error' });
+    });
+
+    it('Then returns not_archived when plain ApiError carries STORAGE_NOT_ARCHIVED', async () => {
+      vi.mocked(storagesService.restore).mockRejectedValue({
+        error: 'STORAGE_NOT_ARCHIVED',
+        statusCode: 409,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'not_archived' });
+    });
+
+    it('Then returns not_found when plain ApiError carries STORAGE_NOT_FOUND', async () => {
+      vi.mocked(storagesService.restore).mockRejectedValue({
+        error: 'STORAGE_NOT_FOUND',
+        statusCode: 404,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'not_found' });
+    });
+
+    it('Then returns tier_limit when plain ApiError carries WAREHOUSE_REQUIRES_TIER_UPGRADE', async () => {
+      vi.mocked(storagesService.restore).mockRejectedValue({
+        error: 'WAREHOUSE_REQUIRES_TIER_UPGRADE',
+        statusCode: 403,
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'tier_limit' });
+    });
+
+    it('Then returns not_archived when raw AxiosError carries STORAGE_NOT_ARCHIVED', async () => {
+      const axiosError = Object.assign(new Error('Conflict'), {
+        isAxiosError: true,
+        response: { status: 409, data: { error: 'STORAGE_NOT_ARCHIVED' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'not_archived' });
+    });
+
+    it('Then returns not_found when raw AxiosError carries STORAGE_NOT_FOUND', async () => {
+      const axiosError = Object.assign(new Error('Not Found'), {
+        isAxiosError: true,
+        response: { status: 404, data: { error: 'STORAGE_NOT_FOUND' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'not_found' });
+    });
+
+    it('Then returns tier_limit when raw AxiosError carries WAREHOUSE_REQUIRES_TIER_UPGRADE', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: { error: 'WAREHOUSE_REQUIRES_TIER_UPGRADE' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'tier_limit' });
+    });
+
+    it('Then returns tier_limit when raw AxiosError carries STORE_ROOM_LIMIT_REACHED', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: { error: 'STORE_ROOM_LIMIT_REACHED' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'tier_limit' });
+    });
+
+    it('Then returns server_error when raw AxiosError has non-matching code and non-403 status', async () => {
+      const axiosError = Object.assign(new Error('Internal'), {
+        isAxiosError: true,
+        response: { status: 500, data: { error: 'UNKNOWN' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'server_error' });
+    });
+
+    it('Then returns tier_limit when raw AxiosError has 403 status without matching code', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: { error: 'GENERIC_FORBIDDEN' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'tier_limit' });
+    });
+
+    it('Then returns tier_limit when raw AxiosError carries CUSTOM_ROOM_LIMIT_REACHED', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: { error: 'CUSTOM_ROOM_LIMIT_REACHED' } },
+      });
+      vi.mocked(storagesService.restore).mockRejectedValue(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const outcome = await result.current.restoreStorage('storage-003');
+      expect(outcome).toEqual({ error: 'tier_limit' });
     });
   });
 
@@ -1464,6 +1598,7 @@ describe('Given useStorages resolves permission flags from the RBAC store', () =
   beforeEach(() => {
     resetStore();
     vi.clearAllMocks();
+    mockIsOffline = false;
     vi.mocked(storagesService.list).mockResolvedValue(mockPage);
   });
 
@@ -1791,12 +1926,12 @@ describe('Given useStorages exposes active-context derived data', () => {
   });
 
   describe('When restoreStorage is called with a storage not in the current list', () => {
-    it('Then it returns false without calling the service', async () => {
+    it('Then it resolves with not_found without calling the service', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const success = await result.current.restoreStorage('non-existent-uuid');
-      expect(success).toBe(false);
+      const outcome = await result.current.restoreStorage('non-existent-uuid');
+      expect(outcome).toEqual({ error: 'not_found' });
       expect(vi.mocked(storagesService.restore)).not.toHaveBeenCalled();
     });
   });
@@ -1844,4 +1979,5 @@ describe('Given useStorages exposes active-context derived data', () => {
       expect(response.error).toBe('server_error');
     });
   });
+
 });

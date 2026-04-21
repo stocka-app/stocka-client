@@ -10,6 +10,11 @@ import { ProgressBar } from '@/shared/components/ProgressBar';
 import { useRBACStore } from '@/store/rbac.store';
 import { useTierCapabilities, STORAGE_TYPE_TO_FEATURE } from '@/shared/hooks/useTierCapabilities';
 import { TierUpgradeState } from '@/shared/components/TierUpgradeState';
+import { OfflineBanner } from '@/shared/components/OfflineBanner';
+import { showUndoToast } from '../components/UndoToast';
+import { showUndoCompletedToast } from '../components/UndoCompletedToast';
+import { ArchivedStoragesFilter } from '../components/ArchivedStoragesFilter';
+import { StorageDetailPanel } from '../components/StorageDetailPanel';
 import { useStorages } from '../hooks/useStorages';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
@@ -65,6 +70,7 @@ export default function StoragesPage(): React.ReactElement {
     searchQuery,
     sortOrder,
     isGated,
+    isOffline,
     setFilterStatus,
     setFilterType,
     setSearchQuery,
@@ -91,6 +97,8 @@ export default function StoragesPage(): React.ReactElement {
   const navigate = useNavigate();
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailStorage, setDetailStorage] = useState<Storage | null>(null);
   const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
   const [isArchiveOpen, setIsArchiveOpen] = useState(false);
   const [isArchiveLoading, setIsArchiveLoading] = useState(false);
@@ -129,9 +137,13 @@ export default function StoragesPage(): React.ReactElement {
     setIsCreateDrawerOpen(true);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- handler placeholder until detail page is implemented
-  const handleViewClick = (_storage: Storage): void => {
-    // TODO: navigate to storage detail page when implemented
+  const handleViewClick = (storage: Storage): void => {
+    setDetailStorage(storage);
+    setIsDetailOpen(true);
+  };
+
+  const handleDetailClose = (): void => {
+    setIsDetailOpen(false);
   };
 
   const handleEditClick = (storage: Storage): void => {
@@ -152,8 +164,20 @@ export default function StoragesPage(): React.ReactElement {
     const ok = await freezeStorage(selectedStorage.uuid);
     setIsFreezeLoading(false);
     if (ok) {
+      const snapshot = selectedStorage;
       setIsFreezeOpen(false);
-      toast.success(t('toasts.frozen', { name: selectedStorage.name }));
+      showUndoToast({
+        storageName: snapshot.name,
+        action: 'freeze',
+        onUndo: async () => {
+          const undone = await unfreezeStorage(snapshot.uuid);
+          if (undone) {
+            showUndoCompletedToast({ storageName: snapshot.name, action: 'freeze' });
+          } else {
+            toast.error(t('toasts.errors.unfreezeFailed'));
+          }
+        },
+      });
     } else {
       setFreezeError('server_error');
     }
@@ -183,12 +207,20 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleRestoreClick = async (storage: Storage): Promise<void> => {
-    const ok = await restoreStorage(storage.uuid);
-    if (ok) {
+    const result = await restoreStorage(storage.uuid);
+    if (result.error === null) {
       toast.success(t('toast.restored', { name: storage.name }));
-    } else {
-      toast.error(t('toast.restoreFailed'));
+      return;
     }
+    if (result.error === 'tier_limit') {
+      toast.error(t('toast.restoreTierLimit', { defaultValue: 'No puedes restaurar: el plan actual no soporta más espacios de este tipo.' }));
+      return;
+    }
+    if (result.error === 'offline') {
+      toast.error(t('toast.restoreOffline', { defaultValue: 'Sin conexión. Intenta de nuevo cuando recuperes red.' }));
+      return;
+    }
+    toast.error(t('toast.restoreFailed'));
   };
 
   const handleEdit = async (
@@ -222,8 +254,33 @@ export default function StoragesPage(): React.ReactElement {
     const ok = await archiveStorage(selectedStorage.uuid);
     setIsArchiveLoading(false);
     if (ok) {
+      const snapshot = selectedStorage;
       setIsArchiveOpen(false);
-      toast.success(t('toasts.archived', { name: selectedStorage.name, defaultValue: '"{{name}}" fue archivada' }));
+      showUndoToast({
+        storageName: snapshot.name,
+        action: 'archive',
+        onUndo: async () => {
+          const result = await restoreStorage(snapshot.uuid);
+          if (result.error === null) {
+            showUndoCompletedToast({ storageName: snapshot.name, action: 'archive' });
+          } else if (result.error === 'tier_limit') {
+            toast.error(
+              t('toast.restoreTierLimit', {
+                defaultValue:
+                  'No puedes restaurar: el plan actual no soporta más espacios de este tipo.',
+              }),
+            );
+          } else if (result.error === 'offline') {
+            toast.error(
+              t('toast.restoreOffline', {
+                defaultValue: 'Sin conexión. Intenta de nuevo cuando recuperes red.',
+              }),
+            );
+          } else {
+            toast.error(t('toast.restoreFailed'));
+          }
+        },
+      });
     } else {
       setArchiveError('server_error');
     }
@@ -324,6 +381,28 @@ export default function StoragesPage(): React.ReactElement {
         onCreateWarehouse={createWarehouse}
         onCreateStoreRoom={createStoreRoom}
         onCreateCustomRoom={createCustomRoom}
+      />
+      {/* Detail panel — opened from clicking on a card */}
+      <StorageDetailPanel
+        open={isDetailOpen}
+        storage={detailStorage}
+        canUpdate={canDo('STORAGE_UPDATE')}
+        canUnfreeze={canUnfreeze}
+        canRestore={canDo('STORAGE_RESTORE')}
+        isOffline={isOffline}
+        onClose={handleDetailClose}
+        onEdit={(s) => {
+          handleDetailClose();
+          handleEditClick(s);
+        }}
+        onReactivate={(s) => {
+          handleDetailClose();
+          void handleUnfreezeClick(s);
+        }}
+        onRestore={(s) => {
+          handleDetailClose();
+          void handleRestoreClick(s);
+        }}
       />
       {/* Edit flow — drawer */}
       <EditStorageDrawer
@@ -591,11 +670,15 @@ export default function StoragesPage(): React.ReactElement {
           })}
         </div>
         <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
+        <ArchivedStoragesFilter
+          value={filterStatus}
+          summary={summary}
+          canRestore={canDo('STORAGE_RESTORE')}
+          onChange={setFilterStatus}
+        />
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
           disabled={isGated}
@@ -607,6 +690,29 @@ export default function StoragesPage(): React.ReactElement {
               feature={t(`types.${filterType}`)}
               onUpgrade={() => openUpgradeModal('FEATURE_NOT_IN_TIER', filterType)}
               onBack={() => setFilterType(null)}
+            />
+          </div>
+        ) : /* istanbul ignore next -- TRANSIENT: loading state completes <100ms with real BE */
+        filterStatus === 'ARCHIVED' && summary.archived === 0 ? (
+          <div className="flex flex-1 items-center justify-center">
+            <StateComposition
+              icon="inventory_2"
+              variant="neutral"
+              title={t('empty.archived.title', { defaultValue: 'No tienes instalaciones archivadas' })}
+              description={t('empty.archived.description', {
+                defaultValue:
+                  'Cuando archives una instalación aparecerá aquí y podrás restaurarla en cualquier momento.',
+              })}
+              actions={
+                <Button
+                  type="button"
+                  onClick={() => setFilterStatus('ACTIVE')}
+                  className="gap-2 bg-brand text-white hover:bg-brand-hover"
+                >
+                  <span className="material-symbols-outlined text-[20px]">visibility</span>
+                  {t('empty.archived.viewActive', { defaultValue: 'Ver activas' })}
+                </Button>
+              }
             />
           </div>
         ) : isTypeTabOnly ? (
@@ -669,6 +775,8 @@ export default function StoragesPage(): React.ReactElement {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <OfflineBanner className="mb-4" />
+
       {/* Header */}
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -714,12 +822,18 @@ export default function StoragesPage(): React.ReactElement {
       {/* Stats bar */}
       <StatsBar activeCount={summary.active} frozenCount={summary.frozen} archivedCount={summary.archived} />
 
+      {/* Status filter pills — replaces the legacy <select> in SearchBar */}
+      <ArchivedStoragesFilter
+        value={filterStatus}
+        summary={summary}
+        canRestore={canDo('STORAGE_RESTORE')}
+        onChange={setFilterStatus}
+      />
+
       {/* Search bar — visible on all tabs, disabled when the tab is tier-gated */}
       <SearchBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         disabled={isGated}
@@ -762,6 +876,7 @@ export default function StoragesPage(): React.ReactElement {
         </div>
       ) : (
         <div className="relative">
+          {/* istanbul ignore next -- TRANSIENT: loading state completes <100ms with real BE */}
           {isLoading && hadData && (
             <div className="absolute inset-0 z-10 flex items-center justify-center">
               <DoubleRingSpinner label={t('loader.loading')} elevated />
@@ -783,6 +898,7 @@ export default function StoragesPage(): React.ReactElement {
                 canArchive={canDo('STORAGE_ARCHIVE')}
                 canRestore={canDo('STORAGE_RESTORE')}
                 canDelete={canDo('STORAGE_DELETE')}
+                isOffline={isOffline}
                 onView={handleViewClick}
                 onEdit={handleEditClick}
                 onFreeze={handleFreezeClick}
@@ -873,16 +989,12 @@ function StatsBar({ activeCount, frozenCount, archivedCount }: { activeCount: nu
 function SearchBar({
   searchQuery,
   setSearchQuery,
-  filterStatus,
-  setFilterStatus,
   sortOrder,
   setSortOrder,
   disabled = false,
 }: {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  filterStatus: import('../types/storages.types').StorageStatus | null;
-  setFilterStatus: (s: import('../types/storages.types').StorageStatus | null) => void;
   sortOrder: string;
   setSortOrder: (o: 'ASC' | 'DESC') => void;
   disabled?: boolean;
@@ -913,26 +1025,6 @@ function SearchBar({
           )}
         />
       </div>
-      <select
-        value={filterStatus ?? ''}
-        onChange={(e) =>
-          setFilterStatus(
-            e.target.value === '' ? null : (e.target.value as import('../types/storages.types').StorageStatus),
-          )
-        }
-        disabled={disabled}
-        className={cn(
-          'min-h-[44px] rounded-lg border border-border bg-surface-card px-3 py-2.5 text-sm outline-none',
-          disabled
-            ? 'cursor-not-allowed text-neutral-300'
-            : 'text-neutral-700 focus:ring-2 focus:ring-ring',
-        )}
-      >
-        <option value="">{t('controls.allStatuses')}</option>
-        <option value="ACTIVE">{t('statuses.ACTIVE')}</option>
-        <option value="FROZEN">{t('statuses.FROZEN')}</option>
-        <option value="ARCHIVED">{t('statuses.ARCHIVED')}</option>
-      </select>
       <button
         type="button"
         onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}

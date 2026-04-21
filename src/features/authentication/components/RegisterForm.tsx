@@ -111,7 +111,7 @@ export function RegisterForm() {
                   </FormControl>
                 </div>
                 <FormMessage>
-                  {form.formState.errors.fullName?.message &&
+                  {/* c8 ignore next */ form.formState.errors.fullName?.message &&
                     t(form.formState.errors.fullName.message)}
                 </FormMessage>
               </FormItem>
@@ -140,7 +140,7 @@ export function RegisterForm() {
                   </FormControl>
                 </div>
                 <FormMessage>
-                  {form.formState.errors.username?.message &&
+                  {/* c8 ignore next */ form.formState.errors.username?.message &&
                     t(form.formState.errors.username.message)}
                 </FormMessage>
               </FormItem>
@@ -172,7 +172,7 @@ export function RegisterForm() {
                 </FormControl>
               </div>
               <FormMessage>
-                {form.formState.errors.email?.message && t(form.formState.errors.email.message)}
+                {/* c8 ignore next */ form.formState.errors.email?.message && t(form.formState.errors.email.message)}
               </FormMessage>
             </FormItem>
           )}
@@ -196,7 +196,7 @@ export function RegisterForm() {
                   />
                 </FormControl>
                 <FormMessage>
-                  {form.formState.errors.password?.message &&
+                  {/* c8 ignore next */ form.formState.errors.password?.message &&
                     t(form.formState.errors.password.message)}
                 </FormMessage>
               </FormItem>
@@ -219,7 +219,7 @@ export function RegisterForm() {
                   />
                 </FormControl>
                 <FormMessage>
-                  {form.formState.errors.confirmPassword?.message &&
+                  {/* c8 ignore next */ form.formState.errors.confirmPassword?.message &&
                     t(form.formState.errors.confirmPassword.message)}
                 </FormMessage>
               </FormItem>

@@ -171,6 +171,105 @@ export async function findTenantByUserUuid(pool: Pool, userUuid: string): Promis
 }
 
 /**
+ * Inserts a password-reset token for the given email so E2E tests can
+ * navigate to /reset-password?token=<plainToken> without intercepting emails.
+ *
+ * The backend hashes tokens with SHA-256 before storing, so we do the same.
+ * Returns the plain token to use in the URL.
+ */
+export async function insertPasswordResetToken(
+  pool: Pool,
+  email: string,
+  expiresInMinutes = 30,
+): Promise<string> {
+  const { createHash, randomBytes } = await import('node:crypto');
+  const plainToken = randomBytes(32).toString('hex');
+  const tokenHash = createHash('sha256').update(plainToken).digest('hex');
+
+  const accountResult = await pool.query<{ id: number }>(
+    `SELECT id FROM accounts.credential_accounts WHERE email = $1`,
+    [email],
+  );
+  if (accountResult.rows.length === 0) {
+    throw new Error(`[db.helper] No credential_account for email: ${email}`);
+  }
+
+  await pool.query(
+    `INSERT INTO authn.password_reset_tokens (uuid, credential_account_id, token_hash, expires_at, created_at, updated_at)
+     VALUES (gen_random_uuid(), $1, $2, NOW() + INTERVAL '${expiresInMinutes} minutes', NOW(), NOW())`,
+    [accountResult.rows[0].id, tokenHash],
+  );
+
+  return plainToken;
+}
+
+/**
+ * Inserts an expired password-reset token for testing the "token expired" flow.
+ */
+export async function insertExpiredPasswordResetToken(
+  pool: Pool,
+  email: string,
+): Promise<string> {
+  const { createHash, randomBytes } = await import('node:crypto');
+  const plainToken = randomBytes(32).toString('hex');
+  const tokenHash = createHash('sha256').update(plainToken).digest('hex');
+
+  const accountResult = await pool.query<{ id: number }>(
+    `SELECT id FROM accounts.credential_accounts WHERE email = $1`,
+    [email],
+  );
+  if (accountResult.rows.length === 0) {
+    throw new Error(`[db.helper] No credential_account for email: ${email}`);
+  }
+
+  await pool.query(
+    `INSERT INTO authn.password_reset_tokens (uuid, credential_account_id, token_hash, expires_at, created_at, updated_at)
+     VALUES (gen_random_uuid(), $1, $2, NOW() - INTERVAL '1 hour', NOW(), NOW())`,
+    [accountResult.rows[0].id, tokenHash],
+  );
+
+  return plainToken;
+}
+
+/**
+ * Inserts a known email verification code for the given email so E2E tests can
+ * submit the code without intercepting the actual email.
+ *
+ * Returns the plain 6-character code to enter in the form.
+ */
+export async function insertVerificationCode(
+  pool: Pool,
+  email: string,
+  code = 'ABC123',
+  expiresInMinutes = 10,
+): Promise<string> {
+  const { createHash } = await import('node:crypto');
+  const codeHash = createHash('sha256').update(code).digest('hex');
+
+  const accountResult = await pool.query<{ id: number }>(
+    `SELECT id FROM accounts.credential_accounts WHERE email = $1`,
+    [email],
+  );
+  if (accountResult.rows.length === 0) {
+    throw new Error(`[db.helper] No credential_account for email: ${email}`);
+  }
+
+  // Remove any existing verification tokens for this account
+  await pool.query(
+    `DELETE FROM authn.email_verification_tokens WHERE credential_account_id = $1`,
+    [accountResult.rows[0].id],
+  );
+
+  await pool.query(
+    `INSERT INTO authn.email_verification_tokens (uuid, credential_account_id, code_hash, expires_at, created_at, updated_at)
+     VALUES (gen_random_uuid(), $1, $2, NOW() + INTERVAL '${expiresInMinutes} minutes', NOW(), NOW())`,
+    [accountResult.rows[0].id, codeHash],
+  );
+
+  return code;
+}
+
+/**
  * Returns the account id for the given email, or null if not found.
  * Useful for verifying that a sign-up actually created the user.
  */

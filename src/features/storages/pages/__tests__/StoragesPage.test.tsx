@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import StoragesPage from '../StoragesPage';
 
@@ -24,12 +24,19 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const { mockToastSuccess, mockToastError } = vi.hoisted(() => ({
+const { mockToastSuccess, mockToastError, mockToastCustom, mockToastDismiss } = vi.hoisted(() => ({
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
+  mockToastCustom: vi.fn(),
+  mockToastDismiss: vi.fn(),
 }));
 vi.mock('sonner', () => ({
-  toast: { success: mockToastSuccess, error: mockToastError },
+  toast: {
+    success: mockToastSuccess,
+    error: mockToastError,
+    custom: mockToastCustom,
+    dismiss: mockToastDismiss,
+  },
 }));
 
 const { mockCanDo } = vi.hoisted(() => ({
@@ -103,7 +110,7 @@ const {
   mockCreateCustomRoom: vi.fn().mockResolvedValue({ error: null }),
   mockEditStorage: vi.fn().mockResolvedValue(true),
   mockArchiveStorage: vi.fn().mockResolvedValue(true),
-  mockRestoreStorage: vi.fn().mockResolvedValue(true),
+  mockRestoreStorage: vi.fn().mockResolvedValue({ error: null }),
   mockFreezeStorage: vi.fn().mockResolvedValue(true),
   mockUnfreezeStorage: vi.fn().mockResolvedValue(true),
   mockGetIsLastActive: vi.fn().mockReturnValue(false),
@@ -564,8 +571,14 @@ describe('StoragesPage', () => {
       expect(screen.getByPlaceholderText('controls.search')).toBeInTheDocument();
     });
 
-    it('should show the status filter dropdown', () => {
-      expect(screen.getByText('controls.allStatuses')).toBeInTheDocument();
+    it('should show the status filter pills', () => {
+      const filterTablist = screen.getByRole('tablist', { name: /Filtrar por estado/i });
+      const tabs = within(filterTablist).getAllByRole('tab');
+      expect(tabs).toHaveLength(4);
+      expect(tabs[0]).toHaveTextContent(/Todas/);
+      expect(tabs[1]).toHaveTextContent(/Activas/);
+      expect(tabs[2]).toHaveTextContent(/Congeladas/);
+      expect(tabs[3]).toHaveTextContent(/Archivadas/);
     });
 
     it('should show the sort toggle with A to Z', () => {
@@ -704,10 +717,8 @@ describe('StoragesPage', () => {
     beforeEach(async () => {
       setSuccessState();
       render(<StoragesPage />);
-      await user.selectOptions(
-        screen.getByDisplayValue('controls.allStatuses'),
-        'ACTIVE',
-      );
+      const filterTablist = screen.getByRole('tablist', { name: /Filtrar por estado/i });
+      await user.click(within(filterTablist).getByRole('tab', { name: /Activas/ }));
     });
 
     it('should call setFilterStatus with ACTIVE', () => {
@@ -720,10 +731,8 @@ describe('StoragesPage', () => {
       setSuccessState();
       mocks.filterStatus = 'ACTIVE';
       render(<StoragesPage />);
-      await user.selectOptions(
-        screen.getByDisplayValue('statuses.ACTIVE'),
-        '',
-      );
+      const filterTablist = screen.getByRole('tablist', { name: /Filtrar por estado/i });
+      await user.click(within(filterTablist).getByRole('tab', { name: /Todas/ }));
     });
 
     it('should call setFilterStatus with null', () => {
@@ -980,7 +989,7 @@ describe('StoragesPage', () => {
 
   describe('Given restore fails', () => {
     beforeEach(async () => {
-      mockRestoreStorage.mockResolvedValueOnce(false);
+      mockRestoreStorage.mockResolvedValueOnce({ error: 'server_error' });
       setSuccessState({
         storages: [
           { uuid: '1', name: 'Archived One', type: 'WAREHOUSE', status: 'ARCHIVED' },

@@ -302,6 +302,11 @@ describe('Given the CreateStorageDrawer is open', () => {
           'createDrawer.namePlaceholderCustomRoom',
         );
       });
+
+      it('Then the change-type link uses the custom room color as inline style', () => {
+        const changeTypeButton = screen.getByText('createDrawer.changeType');
+        expect(changeTypeButton).toHaveStyle({ color: '#EC4899' });
+      });
     });
 
     describe('When the user clicks the icon/color picker button', () => {

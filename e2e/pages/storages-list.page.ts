@@ -52,7 +52,7 @@ export class StoragesListPage {
     this.createButton = page.getByRole('button', { name: 'New storage' });
 
     // Tabs (role="tab")
-    this.tabAll = page.getByRole('tab', { name: /^All/ });
+    this.tabAll = page.getByRole('tab', { name: /^All\s*\(/ });
     this.tabWarehouses = page.getByRole('tab', { name: /^Warehouses/ });
     this.tabStoreRooms = page.getByRole('tab', { name: /^Store Rooms/ });
     this.tabCustomRooms = page.getByRole('tab', { name: /^Custom Rooms/ });
@@ -63,7 +63,7 @@ export class StoragesListPage {
 
     // Search / filter / sort
     this.searchInput = page.getByPlaceholder('Search storages...');
-    this.statusDropdown = page.locator('select');
+    this.statusDropdown = page.getByRole('tablist', { name: /Filter by status|Filtrar por estado/i });
     this.sortButton = page.getByRole('button', { name: /[AZ] → [AZ]/ });
 
     // Skeleton state
@@ -181,7 +181,7 @@ export class StoragesListPage {
 
   /** Filter chip buttons (status / search chips) */
   filterChips(): Locator {
-    return this.page.locator('button.inline-flex.items-center.gap-1.rounded-full');
+    return this.page.locator('button.inline-flex.items-center.gap-1.rounded-full:not([role="tab"])');
   }
 
   filterChip(text: string): Locator {
@@ -245,7 +245,13 @@ export class StoragesListPage {
   }
 
   async selectStatus(status: 'ACTIVE' | 'FROZEN' | 'ARCHIVED' | ''): Promise<void> {
-    await this.statusDropdown.selectOption(status);
+    const labels: Record<string, RegExp> = {
+      ACTIVE: /^Active|^Activas/,
+      FROZEN: /^Frozen|^Congeladas/,
+      ARCHIVED: /^Archived|^Archivadas/,
+      '': /^All|^Todas/,
+    };
+    await this.statusDropdown.getByRole('tab', { name: labels[status] }).click();
   }
 
   async search(query: string): Promise<void> {

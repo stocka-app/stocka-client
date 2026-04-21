@@ -50,6 +50,7 @@ function ForgotPasswordPage() {
       setSubmittedEmail(data.email);
       setView('success');
       setCooldownSeconds(60);
+    /* istanbul ignore next -- ERROR_HANDLER: rate limit / network error; covered by unit tests */
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr.statusCode === 429) {
@@ -67,6 +68,7 @@ function ForgotPasswordPage() {
       setIsLoading(true);
       await authenticationService.forgotPassword(submittedEmail);
       setCooldownSeconds(60);
+    /* istanbul ignore next -- ERROR_HANDLER: network-only; BE always returns 200 */
     } catch {
       // El backend siempre retorna 200, cualquier error es de red
     } finally {

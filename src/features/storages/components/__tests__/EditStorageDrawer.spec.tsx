@@ -973,6 +973,38 @@ describe('Given the EditStorageDrawer opens with a custom room that has no addre
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+// Clear address on non-warehouse — covers address null branch (line 362)
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('Given the EditStorageDrawer opens with a custom room that has an address', () => {
+  it('Then clearing the address and submitting sends null (not empty string)', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn().mockResolvedValue({ error: null });
+    render(
+      <EditStorageDrawer
+        open={true}
+        storage={ACTIVE_CUSTOM_ROOM}
+        onClose={vi.fn()}
+        onEdit={onEdit}
+        onChangeType={vi.fn().mockResolvedValue({ error: null })}
+        limits={DEFAULT_LIMITS}
+        typeCounts={DEFAULT_TYPE_COUNTS}
+        tier="STARTER"
+      />,
+    );
+    const addressInput = screen.getByRole('textbox', { name: /createDrawer\.addressLabel/i });
+    await user.clear(addressInput);
+    await user.click(screen.getByRole('button', { name: 'editDrawer.submit' }));
+    expect(onEdit).toHaveBeenCalledWith(
+      ACTIVE_CUSTOM_ROOM.uuid,
+      'CUSTOM_ROOM',
+      expect.objectContaining({ address: null }),
+      undefined,
+    );
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 // Color change via picker — covers line 331 (payload.color = values.color)
 // ═════════════════════════════════════════════════════════════════════════════
 
