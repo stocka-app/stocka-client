@@ -3,6 +3,73 @@
 All notable changes to this project are documented here.
 
 
+## [0.20.0](https://github.com/stocka-app/stocka-client/compare/v0.18.3...v0.20.0) (2026-04-24)
+
+### ✨ Features
+
+* **shared:** [STOC-460](https://austins-industries.atlassian.net/browse/STOC-460) — extract useOfflineStatus hook and add OfflineBanner ([5f375fe](https://github.com/stocka-app/stocka-client/commit/5f375fef359a60f9524e3ff5ba5195b2af58ade5))
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — consume Storage response on edit (drop full refetch) — DT-H07-4 FE side ([241176a](https://github.com/stocka-app/stocka-client/commit/241176a419c54c6d3a4968ec04110d0985663a9a)), closes [stocka-server#57](https://github.com/stocka-app/stocka-server/issues/57)
+* **storages:** [STOC-321][STOC-450][STOC-452] | Sprint 2 | unified edit + change-type drawer with metadata + clear address via explicit null ([88b7e26](https://github.com/stocka-app/stocka-client/commit/88b7e26df7196215673e29c434a8dd6159dc8687))
+* **storages:** [STOC-368](https://austins-industries.atlassian.net/browse/STOC-368) — disable restore menu item when offline ([3ed7f2b](https://github.com/stocka-app/stocka-client/commit/3ed7f2b9b1801b7e8b0c07c028535ebacbf6d773))
+* **storages:** [STOC-369](https://austins-industries.atlassian.net/browse/STOC-369) — type restoreStorage outcome and expose isOffline ([bcbf69c](https://github.com/stocka-app/stocka-client/commit/bcbf69ccabd01fe65330d20b0f06e233c0d78e1a))
+* **storages:** [STOC-375](https://austins-industries.atlassian.net/browse/STOC-375) — ArchiveConfirmDialog with 6 variants (base/context/last/from-frozen/loading/error) ([2db8bf2](https://github.com/stocka-app/stocka-client/commit/2db8bf2e7b3e9ef641ea7d4d4015ff5801505c5b)), closes [#6](https://github.com/stocka-app/stocka-client/issues/6)
+* **storages:** [STOC-376](https://austins-industries.atlassian.net/browse/STOC-376) — align service + hook with per-type archive/restore + canRestore flag + delete stub ([4d2f552](https://github.com/stocka-app/stocka-client/commit/4d2f552a63bfaca3f76bfa2b97666a7f798769c4))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — i18n keys for archive/delete modals + Vitest specs for new dialogs (20 tests) ([23eb99d](https://github.com/stocka-app/stocka-client/commit/23eb99d94022b8c605ae5744039319680e970b59))
+* **storages:** [STOC-445](https://austins-industries.atlassian.net/browse/STOC-445) — DeleteStorageDialog red-destructive entry point + VITE_STORAGE_DELETE_ENABLED flag ([417aba0](https://github.com/stocka-app/stocka-client/commit/417aba0226ce01cf3980552fbe7721c15992dbb9))
+* **storages:** [STOC-446](https://austins-industries.atlassian.net/browse/STOC-446) — StorageCard ARCHIVED opacity 60% + interactive menu + canRestore + edit allowed ([fb021e1](https://github.com/stocka-app/stocka-client/commit/fb021e18c3d2aae2dfdbf9baec30c4bb251df314))
+* **storages:** [STOC-447](https://austins-industries.atlassian.net/browse/STOC-447) — StorageStatusBanner ARCHIVED CTA + Drawer ARCHIVED mode (gray banner + type-disabled tooltip) ([8f88fc6](https://github.com/stocka-app/stocka-client/commit/8f88fc6ffd083f0ce3badda26f8e2edd5f316684))
+* **storages:** [STOC-457](https://austins-industries.atlassian.net/browse/STOC-457) — add StorageDetailPanel with contextual recovery CTAs ([3883099](https://github.com/stocka-app/stocka-client/commit/3883099c8de0f241720f13111c58f18a58956812))
+* **storages:** [STOC-458](https://austins-industries.atlassian.net/browse/STOC-458) — replace status select with ArchivedStoragesFilter pills and dedicated empty state ([c6ca323](https://github.com/stocka-app/stocka-client/commit/c6ca3231cb7beeef172d3bf82433bbe0fc4121e9))
+* **storages:** [STOC-459](https://austins-industries.atlassian.net/browse/STOC-459) — add UndoToast and UndoCompletedToast for freeze/archive ([6b6c30e](https://github.com/stocka-app/stocka-client/commit/6b6c30e92dd278970a5cad6a3f5e028375459431))
+
+### 🐛 Bug Fixes
+
+* **onboarding:** [STOC-448](https://austins-industries.atlassian.net/browse/STOC-448) — dark mode — remove neutral-* dark overrides that force dark text over dark background ([3ee4158](https://github.com/stocka-app/stocka-client/commit/3ee41581fea91366adc0e317c53557c69e3565a4)), closes [#111827](https://github.com/stocka-app/stocka-client/issues/111827) [#f8fafc](https://github.com/stocka-app/stocka-client/issues/f8fafc) [#1e293b](https://github.com/stocka-app/stocka-client/issues/1e293b) [#cbd5e1](https://github.com/stocka-app/stocka-client/issues/cbd5e1)
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — ArchiveConfirmDialog primary button stays dark in dark mode ([1c42b5d](https://github.com/stocka-app/stocka-client/commit/1c42b5d5396abd525c1fc01052f7e1da38764b6b)), closes [#4B5563](https://github.com/stocka-app/stocka-client/issues/4B5563) [#cbd5e1](https://github.com/stocka-app/stocka-client/issues/cbd5e1)
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — FE changeType calls per-transition endpoint (fixes 404 on type change) ([e566b73](https://github.com/stocka-app/stocka-client/commit/e566b735dcc399747d68634cc4db5f9f33b4e400))
+
+### 🔧 Refactoring
+
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — drop VITE_STORAGE_DELETE_ENABLED — RBAC + BE stub already gate the action ([421d971](https://github.com/stocka-app/stocka-client/commit/421d971951672151b2987e745c5bfc2ac9f6396a))
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — remove dead create() service + createStorage hook ([ad5cb9a](https://github.com/stocka-app/stocka-client/commit/ad5cb9a85de05e22b0fea1ed034366bbbeab3fde))
+* **ui:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — extract shared Dialog shell + migrate 5 confirm modals (100% coverage preserved) ([6efddf0](https://github.com/stocka-app/stocka-client/commit/6efddf05833a531e32e8032e7452c3188227cd2b))
+
+### 🧹 Chores
+
+* **release:** [skip ci] 0.19.0 ([75d727b](https://github.com/stocka-app/stocka-client/commit/75d727b4096419c19e741a93685a8748d6183787))
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — drop legacy STORAGE_ARCHIVED_CANNOT_BE_UPDATED mapping (DT-H07-7 FE) ([209a8ea](https://github.com/stocka-app/stocka-client/commit/209a8eaf9c1c4b909ec4e4cb79769f8be2e1c993))
+* **storages:** [STOC-454](https://austins-industries.atlassian.net/browse/STOC-454) — drop debug logs from saturated-restore E2E ([57ca166](https://github.com/stocka-app/stocka-client/commit/57ca166eba74cc8effe51d0df4186d2a774c1a6c))
+
+### ✅ Tests
+
+* **e2e:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — 100% coverage — rewrite all specs without mocks + auth/shared E2E + coverage infrastructure ([c38918c](https://github.com/stocka-app/stocka-client/commit/c38918c269a70aaf05c66826e0b477b52b870047))
+* **e2e:** [STOC-397](https://austins-industries.atlassian.net/browse/STOC-397) — FASE 6 Paso 12 — Playwright specs for H-07 archive + restore flows (PW-H07-1..5) ([dbf3e4b](https://github.com/stocka-app/stocka-client/commit/dbf3e4bb2f213e73b3f14574e486d339dd7ba5bc))
+* **e2e:** [STOC-397](https://austins-industries.atlassian.net/browse/STOC-397) — FASE 7 Playwright — fix locale + RBAC for H-07 specs (5/5 pass) ([61354ad](https://github.com/stocka-app/stocka-client/commit/61354ad6b308fc4d0cdd5fa9847ba1856835f4a0))
+* **e2e:** [STOC-449](https://austins-industries.atlassian.net/browse/STOC-449) — repair 10 pre-existing Playwright tests (mockEditPatch + drift with H-07 UX) ([a2b8bc0](https://github.com/stocka-app/stocka-client/commit/a2b8bc038b517edba24b3639b8f6ad03753fb83e)), closes [UX#1](https://github.com/stocka-app/UX/issues/1)
+* **storages:** [STOC-321](https://austins-industries.atlassian.net/browse/STOC-321) — FASE 7 FE validación — coverage gap trimming + backdrop/ESC/catch branches (2288 pass, 100%/100%/100%/99.86%) ([a82f976](https://github.com/stocka-app/stocka-client/commit/a82f97699c304f86f8b38dd2142baa78a28f130f))
+* **storages:** [STOC-370](https://austins-industries.atlassian.net/browse/STOC-370) — persist H-06 i18n keys and cover new components ([e8b331f](https://github.com/stocka-app/stocka-client/commit/e8b331ffd6c1048d2f950bc1e1e24b92f60117c9))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — FASE 6 Paso 11 — fix broken suites after DT-H07-4/7 (tsc clean, 2258/2275 tests pass) ([3f10005](https://github.com/stocka-app/stocka-client/commit/3f10005a1e2852e29366066e7adb06f053ebd7da))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — FASE 6 Paso 11 runtime follow-up — 2271/2275 pass, 4 skipped (DT-H07-9) ([9a79878](https://github.com/stocka-app/stocka-client/commit/9a79878b39d3d05272e9095c25bd5faf91c83afb))
+* **storages:** [STOC-377](https://austins-industries.atlassian.net/browse/STOC-377) — FASE 7 FE unit coverage — close EditStorageDrawer ARCHIVED branches (100% all) ([ce23636](https://github.com/stocka-app/stocka-client/commit/ce2363607f28907c3787eaeb3cb96deb69cb0383))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rename PW-H07 to PW-H06 and cover Undo + offline E2E ([aa2827e](https://github.com/stocka-app/stocka-client/commit/aa2827e5394b2eafecf7f2867a8a390b80e2620f))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite archive + freeze Playwright specs without mocks ([8b5382d](https://github.com/stocka-app/stocka-client/commit/8b5382dcd8cddeb423a4b186bcea9813fc041ea9))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite create-open, step1, form-validation, cancel specs without mocks ([c66efb5](https://github.com/stocka-app/stocka-client/commit/c66efb53d5e92645e8c2385185264b6cc2e436ff))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite create-tier spec without mocks ([c31ac70](https://github.com/stocka-app/stocka-client/commit/c31ac704bb33a826203be28b6be5fda635d4fd17))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite edit + change-type specs without mocks ([c1be1ac](https://github.com/stocka-app/stocka-client/commit/c1be1aca2a7a4ab940eb1dc31ff510a76e126a91))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite icon-color, success, errors create specs without mocks ([7226aa4](https://github.com/stocka-app/stocka-client/commit/7226aa44a51940adf285fc269a7cf26b810414c9))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite RBAC spec without mocks ([986a8c7](https://github.com/stocka-app/stocka-client/commit/986a8c7f816888009f5e669c7e7a6dadd29ff7db))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite status-banner spec without mocks ([616617e](https://github.com/stocka-app/stocka-client/commit/616617e6bac016e74bf08ea24fb31d7c9a79d990))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite storage-restore Playwright spec without mocks ([f7b027e](https://github.com/stocka-app/stocka-client/commit/f7b027eecfca7fd319066285ec89c7e82b1d8783))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite storages-list-tier spec without mocks ([2b45ed2](https://github.com/stocka-app/stocka-client/commit/2b45ed2e8e0ac79e60a854a828efe20ebca29673))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite switcher + remaining tier + token-refresh specs without mocks ([76cde9e](https://github.com/stocka-app/stocka-client/commit/76cde9e2dbeb34d7f7b971121edd409c1da1efb4))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite switcher-mobile + token-refresh specs without mocks ([a1645eb](https://github.com/stocka-app/stocka-client/commit/a1645eb223a5a52b1ba6f3c05d457fd50a1bd6ff))
+* **storages:** [STOC-396](https://austins-industries.atlassian.net/browse/STOC-396) — rewrite tier-free-allowed, tier-free-saturated, tier-starter-extended specs without mocks ([77c6093](https://github.com/stocka-app/stocka-client/commit/77c609323b7125dcd193044609f98ec5ad390cb0))
+* **storages:** [STOC-454](https://austins-industries.atlassian.net/browse/STOC-454) — reproduce saturated-restore bug as a real Playwright E2E ([2d62612](https://github.com/stocka-app/stocka-client/commit/2d626123a709c178b70b8e60983bccc4d87db80c))
+
+### 🎨 Styles
+
+* **Dialog:** enhance backdrop styling and improve Escape key handling ([ba44510](https://github.com/stocka-app/stocka-client/commit/ba44510a27bdae21c068418cfa8775bc7f3a9701))
+
 ## [0.19.0](https://github.com/stocka-app/stocka-client/compare/v0.18.3...v0.19.0) (2026-04-15)
 
 > **Editar instalación unificado con cambio de tipo atómico (+ bug fixes asociados)**
