@@ -20,6 +20,15 @@ type EditError = 'name_taken' | 'address_required' | 'server_error' | null;
 type ChangeTypeError = 'archived' | 'frozen' | 'tier_limit' | 'address_required' | 'server_error' | null;
 /** Errors a restore call can resolve to. `not_archived` is the idempotent-conflict case (storage already ACTIVE). `tier_limit` covers the post-downgrade edge case the BE guards. `offline` short-circuits when the browser has no connectivity (no request fired). */
 export type RestoreError = 'not_archived' | 'not_found' | 'tier_limit' | 'offline' | 'server_error';
+/**
+ * Errors a permanent-delete call can resolve to.
+ * - `not_archived`: 409 — BE precondition (storage must be ARCHIVED). Defensive: UI gates the action.
+ * - `not_found`: 404 — storage no longer exists (already deleted by a concurrent actor). UI removes it from store.
+ * - `forbidden`: 403 — RBAC. Defensive fallback: `canPermanentlyDelete` should prevent opening the dialog.
+ * - `offline`: browser offline guard — no request was fired.
+ * - `server_error`: 500 / timeout / unexpected network failure.
+ */
+export type PermanentDeleteError = 'not_archived' | 'not_found' | 'forbidden' | 'offline' | 'server_error';
 /** Unified error returned by the combined edit + change-type flow. */
 export type EditOrChangeTypeError =
   | Exclude<EditError, null>
@@ -102,6 +111,23 @@ function mapRestoreError(err: unknown): RestoreError {
   return 'server_error';
 }
 
+function mapPermanentDeleteError(err: unknown): PermanentDeleteError {
+  const apiErr = err as Partial<{ statusCode: number; error: string }>;
+  if (apiErr?.error === 'STORAGE_NOT_ARCHIVED') return 'not_archived';
+  if (apiErr?.error === 'STORAGE_NOT_FOUND') return 'not_found';
+  if (apiErr?.statusCode === 403) return 'forbidden';
+
+  if (axios.isAxiosError(err)) {
+    const code = (err.response?.data as { error?: string } | undefined)?.error;
+    if (code === 'STORAGE_NOT_ARCHIVED') return 'not_archived';
+    if (code === 'STORAGE_NOT_FOUND') return 'not_found';
+    if (err.response?.status === 403) return 'forbidden';
+    if (err.response?.status === 404) return 'not_found';
+  }
+
+  return 'server_error';
+}
+
 function resolveChangeTypeError(err: unknown): ChangeTypeError {
   // H-07: per-transition handlers emit STORAGE_TYPE_LOCKED_WHILE_ARCHIVED for
   // ARCHIVED (same naming convention as WhileFrozen). The legacy
@@ -177,6 +203,8 @@ export function useStorages(): {
   canArchive: boolean;
   canRestore: boolean;
   canDelete: boolean;
+  /** Returns true when the user has STORAGE_DELETE permission AND the storage is ARCHIVED. Both gates must pass for the permanent-delete action to be available. */
+  canPermanentlyDelete: (storage: Storage) => boolean;
   fetchStorages: () => Promise<void>;
   createWarehouse: (payload: CreateWarehouseFormData) => Promise<{ error: CreateError }>;
   createStoreRoom: (payload: CreateStoreRoomFormData) => Promise<{ error: CreateError }>;
@@ -191,8 +219,13 @@ export function useStorages(): {
   archiveStorage: (id: string) => Promise<boolean>;
   /** Resolves with `{ error: null }` on success or a typed `RestoreError` so callers (toast, undo, banner) can show specific messaging. Returns `{ error: 'offline' }` without firing a request when `isOffline` is true. */
   restoreStorage: (id: string) => Promise<{ error: RestoreError | null }>;
-  /** H-07 stub — triggers the 501 endpoint so the UX path is exercised end-to-end. Always resolves with `not_implemented`. */
-  deleteStoragePermanent: (id: string) => Promise<{ error: 'not_implemented' | 'server_error' }>;
+  /**
+   * Permanently deletes an ARCHIVED storage. Returns `{ error: null }` on success (204) and removes
+   * the storage from the local store optimistically. On 404, also removes from store (already gone
+   * in BE — concurrent actor) and returns `{ error: 'not_found' }`. Returns `{ error: 'offline' }`
+   * without firing a request when `isOffline` is true.
+   */
+  deleteStoragePermanent: (id: string) => Promise<{ error: PermanentDeleteError | null }>;
   freezeStorage: (id: string) => Promise<boolean>;
   unfreezeStorage: (id: string) => Promise<boolean>;
   getIsLastActive: (id: string) => boolean;
@@ -402,7 +435,12 @@ export function useStorages(): {
         let updated: Storage;
         switch (type) {
           case 'WAREHOUSE':
-            updated = await storagesService.updateWarehouse(id, payload);
+            // WAREHOUSE address must be non-null (required field); null is not accepted
+            // by the service layer. Callers pass null only for STORE_ROOM / CUSTOM_ROOM.
+            updated = await storagesService.updateWarehouse(id, {
+              ...payload,
+              address: payload.address ?? undefined,
+            });
             break;
           case 'STORE_ROOM':
             updated = await storagesService.updateStoreRoom(id, payload);
@@ -486,19 +524,39 @@ export function useStorages(): {
   );
 
   const deleteStoragePermanent = useCallback(
-    async (id: string): Promise<{ error: 'not_implemented' | 'server_error' }> => {
+    async (id: string): Promise<{ error: PermanentDeleteError | null }> => {
+      const target = storages.find((s) => s.uuid === id);
+      if (!target) return { error: 'not_found' };
+      /* istanbul ignore next -- browser-only network guard; tested by Playwright E2E (storage-delete offline tests) */
+      if (isOffline) return { error: 'offline' };
       try {
-        await storagesService.deleteStoragePermanent(id);
-        // BE should return 501, so success is unexpected in Sprint 2. Treat as server_error for safety.
-        return { error: 'server_error' };
+        await storagesService.permanentDelete(id, target.type);
+        // 204 success — remove from local store and decrement archived counter (precondition: always ARCHIVED).
+        setStorages(storages.filter((s) => s.uuid !== id));
+        setSummary((prev) => ({ ...prev, archived: Math.max(0, prev.archived - 1) }));
+        setTypeCounts((prev) => ({
+          ...prev,
+          [target.type]: Math.max(0, prev[target.type] - 1),
+          total: Math.max(0, prev.total - 1),
+        }));
+        return { error: null };
       } catch (err) {
-        const apiErr = err as Partial<{ statusCode: number; error: string }>;
-        if (apiErr?.statusCode === 501) return { error: 'not_implemented' };
-        if (axios.isAxiosError(err) && err.response?.status === 501) return { error: 'not_implemented' };
-        return { error: 'server_error' };
+        const mapped = mapPermanentDeleteError(err);
+        // 404 means the storage no longer exists on the server (concurrent delete).
+        // Remove it from the local store for consistency even though it's an error path.
+        if (mapped === 'not_found') {
+          setStorages(storages.filter((s) => s.uuid !== id));
+          setSummary((prev) => ({ ...prev, archived: Math.max(0, prev.archived - 1) }));
+          setTypeCounts((prev) => ({
+            ...prev,
+            [target.type]: Math.max(0, prev[target.type] - 1),
+            total: Math.max(0, prev.total - 1),
+          }));
+        }
+        return { error: mapped };
       }
     },
-    [],
+    [storages, isOffline, setStorages, setSummary, setTypeCounts],
   );
 
   const freezeStorage = useCallback(
@@ -583,6 +641,12 @@ export function useStorages(): {
   const canRestore = canDo('STORAGE_RESTORE');
   const canDelete = canDo('STORAGE_DELETE');
 
+  // canPermanentlyDelete depends on canDelete so it must be declared after it.
+  const canPermanentlyDelete = useCallback(
+    (storage: Storage): boolean => canDelete && storage.status === 'ARCHIVED',
+    [canDelete],
+  );
+
   return {
     storages,
     sortedStorages,
@@ -618,6 +682,7 @@ export function useStorages(): {
     canArchive,
     canRestore,
     canDelete,
+    canPermanentlyDelete,
     fetchStorages: () =>
       fetchStorages({
         page: currentPage,

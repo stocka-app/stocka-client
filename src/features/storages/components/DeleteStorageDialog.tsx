@@ -3,14 +3,15 @@ import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import Dialog from '@/shared/components/Dialog';
 import type { Storage } from '../types/storages.types';
+import type { PermanentDeleteError } from '../hooks/useStorages';
 
 interface DeleteStorageDialogProps {
   open: boolean;
   storage: Storage | null;
   /** True while the delete request is in flight. */
   isLoading: boolean;
-  /** Non-null when the server returned an error — renders a red inline banner. In Sprint 2 the BE stub returns 501 and the error is 'not_implemented'. */
-  serverError: 'not_implemented' | 'server_error' | null;
+  /** Non-null when the operation returned an error — renders a red inline banner. */
+  serverError: PermanentDeleteError | null;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -96,7 +97,7 @@ export function DeleteStorageDialog({
           </p>
         </div>
 
-        {/* Server error banner — 501 stub surfaces as 'not_implemented' */}
+        {/* Error banner */}
         {serverError && (
           <div className="mt-4 flex items-start gap-3 rounded-lg border border-destructive bg-destructive/10 p-3">
             <span
@@ -106,14 +107,10 @@ export function DeleteStorageDialog({
               cancel
             </span>
             <p className="text-[13px] leading-snug text-destructive">
-              {serverError === 'not_implemented'
-                ? t('modals.delete.notImplemented', {
-                    defaultValue: 'Funcionalidad en desarrollo. Estará disponible próximamente.',
-                  })
-                : t('modals.delete.serverError', {
-                    defaultValue:
-                      'No pudimos eliminar la instalación. Revisa tu conexión e intenta de nuevo.',
-                  })}
+              {t('modals.delete.serverError', {
+                defaultValue:
+                  'No pudimos eliminar la instalación. Revisa tu conexión e intenta de nuevo.',
+              })}
             </p>
           </div>
         )}

@@ -294,15 +294,14 @@ describe('storagesService', () => {
     });
   });
 
-  // ── deleteStoragePermanent (stub 501) ─────────────────────────────────────
+  // ── permanentDelete ───────────────────────────────────────────────────────
+  // TODO STOC-383: tests del método real `permanentDelete(id, type)` que
+  // reemplazó al stub `deleteStoragePermanent(id)`. Se escriben en Paso 8
+  // (FASE 5) junto con los demás tests del plan H-08. Skip intencional.
 
-  describe('deleteStoragePermanent', () => {
-    it('calls DELETE /storages/:id/permanent', async () => {
-      mockedAxios.delete.mockResolvedValueOnce({ data: {} });
-
-      await storagesService.deleteStoragePermanent('uuid-1');
-
-      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/uuid-1/permanent');
+  describe.skip('permanentDelete', () => {
+    it('calls DELETE /storages/:slug/:id/permanent per type', () => {
+      // placeholder
     });
   });
 

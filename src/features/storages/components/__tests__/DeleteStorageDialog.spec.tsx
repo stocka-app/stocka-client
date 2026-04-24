@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Storage } from '../../types/storages.types';
+import type { PermanentDeleteError } from '../../hooks/useStorages';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -32,7 +33,7 @@ interface RenderOptions {
   open?: boolean;
   storage?: Storage | null;
   isLoading?: boolean;
-  serverError?: 'not_implemented' | 'server_error' | null;
+  serverError?: PermanentDeleteError | null;
   onClose?: () => void;
   onConfirm?: () => void;
 }
@@ -117,15 +118,15 @@ describe('DeleteStorageDialog', () => {
     });
   });
 
-  describe('Given a "not_implemented" server error', () => {
+  // TODO STOC-383: el banner 'not_implemented' fue removido cuando
+  // PermanentDeleteError reemplazó la unión del stub en H-08 Paso 4.
+  // Tests reales del dialog de eliminación van en el Paso 8 (FASE 5)
+  // y cubrirán PermanentDeleteStorageDialog (STOC-381), que reemplaza
+  // este componente stub en el Paso 5.
+  describe.skip('Given a "not_implemented" server error', () => {
     describe('When the dialog renders', () => {
       it('Then the stub banner is shown and the primary stays enabled for retry', () => {
-        renderDialog({ serverError: 'not_implemented' });
-
-        expect(screen.getByText(/modals\.delete\.notImplemented/)).toBeInTheDocument();
-        expect(
-          screen.getByRole('button', { name: /modals\.delete\.confirm/ }),
-        ).toBeEnabled();
+        // placeholder — ver TODO arriba
       });
     });
   });

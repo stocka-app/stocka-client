@@ -23,7 +23,7 @@ import { EditStorageDrawer } from '../components/EditStorageDrawer';
 import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog';
 import { DeleteStorageDialog } from '../components/DeleteStorageDialog';
 import { FreezeConfirmDialog } from '../components/FreezeConfirmDialog';
-import type { EditStoragePayload } from '../hooks/useStorages';
+import type { EditStoragePayload, PermanentDeleteError } from '../hooks/useStorages';
 
 // ─── Type tab configuration ─────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ export default function StoragesPage(): React.ReactElement {
   const [freezeError, setFreezeError] = useState<string | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState<'not_implemented' | 'server_error' | null>(null);
+  const [deleteError, setDeleteError] = useState<PermanentDeleteError | null>(null);
 
   // ── Auto-open create drawer when navigated from the sidebar StorageSwitcher
   //
@@ -305,13 +305,13 @@ export default function StoragesPage(): React.ReactElement {
     setDeleteError(null);
     const { error } = await deleteStoragePermanent(selectedStorage.uuid);
     setIsDeleteLoading(false);
-    if (error === 'not_implemented') {
-      // Stub path in Sprint 2 — surface the banner, keep the dialog open so the
-      // user understands why. The real flow (typed confirmation) lands in a
-      // later story and will replace this branch with a success toast + close.
-      setDeleteError('not_implemented');
-    } else if (error === 'server_error') {
-      setDeleteError('server_error');
+    if (error === null) {
+      // Success — storage was removed from the store optimistically by the hook.
+      // Dialog close + success feedback are handled by PermanentDeleteStorageDialog (Paso 5).
+      setIsDeleteOpen(false);
+    } else {
+      // Surface error in the dialog banner for all non-null error variants.
+      setDeleteError(error);
     }
   };
 

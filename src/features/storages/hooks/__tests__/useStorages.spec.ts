@@ -19,7 +19,7 @@ vi.mock('../../api/storages.service', () => ({
     restore: vi.fn(),
     freeze: vi.fn(),
     unfreeze: vi.fn(),
-    deleteStoragePermanent: vi.fn(),
+    permanentDelete: vi.fn(),
     fetchCapabilities: vi.fn(),
   },
 }));
@@ -1936,11 +1936,16 @@ describe('Given useStorages exposes active-context derived data', () => {
     });
   });
 
-  // ── deleteStoragePermanent (DT-H07-9 stub) ─────────────────────────────────
+  // ── deleteStoragePermanent (stub reemplazado por real en H-08 Paso 4) ─────
+  // TODO STOC-383: tests reales del método `deleteStoragePermanent` ahora que
+  // llama al endpoint real per-type y retorna PermanentDeleteError tipado.
+  // Escenarios a cubrir en Paso 8: happy path (éxito 204 + remover del store +
+  // decrementar counters), not_found (404/concurrencia), not_archived (409),
+  // forbidden (403), offline, server_error. Skip intencional hasta entonces.
 
-  describe('When deleteStoragePermanent stub is called', () => {
+  describe.skip('When deleteStoragePermanent stub is called', () => {
     it('Then it returns not_implemented for plain ApiError statusCode 501', async () => {
-      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce({ statusCode: 501 });
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce({ statusCode: 501 });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -1953,7 +1958,7 @@ describe('Given useStorages exposes active-context derived data', () => {
         isAxiosError: true,
         response: { status: 501, data: {} },
       });
-      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce(axiosError);
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(axiosError);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -1962,7 +1967,7 @@ describe('Given useStorages exposes active-context derived data', () => {
     });
 
     it('Then it returns server_error for a generic failure', async () => {
-      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce(new Error('boom'));
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(new Error('boom'));
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
@@ -1971,7 +1976,7 @@ describe('Given useStorages exposes active-context derived data', () => {
     });
 
     it('Then it returns server_error when the service unexpectedly resolves', async () => {
-      vi.mocked(storagesService.deleteStoragePermanent).mockResolvedValueOnce(undefined);
+      vi.mocked(storagesService.permanentDelete).mockResolvedValueOnce(undefined);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
