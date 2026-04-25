@@ -1,10 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import Dialog from '@/shared/components/Dialog';
 import type { Storage } from '../types/storages.types';
 import type { PermanentDeleteError } from '../hooks/useStorages';
+
+// ─── Countdown configuration ─────────────────────────────────────────────────
+
+/** Grace window before the actual delete request fires. The user can cancel
+ * during this window and no network call is made. Long enough to read
+ * "wait, that wasn't what I meant" reflexes; short enough not to feel
+ * paternalistic. */
+const COUNTDOWN_DURATION_MS = 5000;
+/** Tick frequency for the progress ring animation. 50ms ≈ 20 fps — smooth
+ * enough for the eye while keeping React updates inexpensive. */
+const COUNTDOWN_TICK_MS = 50;
+/** SVG ring geometry. Stroke goes around the circle's perimeter; the
+ * dashoffset technique drains it from full to empty as time passes. */
+const RING_RADIUS = 56;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -67,7 +82,59 @@ export function DeleteStorageDialog({
 
   const [typed, setTyped] = useState('');
   const [showError, setShowError] = useState(false);
+  /** Remaining grace-window time in ms; null when not in countdown state. */
+  const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  // ── Countdown helpers ──────────────────────────────────────────────────────
+
+  const stopCountdown = useCallback((): void => {
+    if (countdownIntervalRef.current !== null) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdownRemaining(null);
+  }, []);
+
+  const startCountdown = useCallback((): void => {
+    const startTime = Date.now();
+    setCountdownRemaining(COUNTDOWN_DURATION_MS);
+
+    countdownIntervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, COUNTDOWN_DURATION_MS - elapsed);
+
+      if (remaining <= 0) {
+        stopCountdown();
+        onConfirm();
+        return;
+      }
+      setCountdownRemaining(remaining);
+    }, COUNTDOWN_TICK_MS);
+  }, [onConfirm, stopCountdown]);
+
+  // Cleanup interval on unmount + abort countdown if dialog closes mid-window.
+  // Also cancel countdown if a server error arrives (e.g. concurrency variant).
+  useEffect(() => {
+    if (!open || serverError !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: react to external prop transitions (dialog closed by parent or server error returned) by clearing the in-flight timer; setState happens at most once per transition, not on every render.
+      stopCountdown();
+    }
+  }, [open, serverError, stopCountdown]);
+
+  useEffect(() => {
+    return () => stopCountdown();
+  }, [stopCountdown]);
+
+  // Auto-focus the cancel button when entering countdown — its single primary
+  // action and being focusable means ESC + Enter are both intuitive ways out.
+  useEffect(() => {
+    if (countdownRemaining !== null) {
+      cancelButtonRef.current?.focus();
+    }
+  }, [countdownRemaining]);
 
   // Reset internal state whenever the dialog opens / storage changes.
   // This guarantees that reopening after a cancel or after a success always
@@ -129,7 +196,9 @@ export function DeleteStorageDialog({
       setShowError(true);
       return;
     }
-    onConfirm();
+    // Defer the actual onConfirm() until after the 5s grace window. The
+    // network call only fires if the user does NOT cancel during countdown.
+    startCountdown();
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -179,6 +248,121 @@ export function DeleteStorageDialog({
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {t('permanentDelete.buttons.close')}
+            </Button>
+          </div>
+        </>
+      </Dialog>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // VARIANT: Countdown grace window — between confirm-click and request fire
+  // ─────────────────────────────────────────────────────────────────────────
+  //
+  // Rendered while a 5-second cancellation timer is active. The user has
+  // already typed the storage name and clicked "Eliminar permanentemente",
+  // but the network request hasn't fired yet — they can still abort. Both
+  // the explicit Cancel button AND the dialog's native exits (ESC, backdrop)
+  // route to `stopCountdown`, so every door out is safe.
+
+  if (countdownRemaining !== null) {
+    const secondsRemaining = Math.ceil(countdownRemaining / 1000);
+    const progress = countdownRemaining / COUNTDOWN_DURATION_MS;
+    const dashOffset = (1 - progress) * RING_CIRCUMFERENCE;
+
+    // Native dialog exits (ESC, backdrop) during countdown route to a unified
+    // cancel: stop the timer AND close the dialog entirely. This mirrors what
+    // the user expects ("ESC cancels everything") instead of leaving them in
+    // a half-state in the form view.
+    const cancelCountdownAndClose = (): void => {
+      stopCountdown();
+      onClose();
+    };
+
+    return (
+      <Dialog
+        open={open}
+        onClose={cancelCountdownAndClose}
+        closable={true}
+        ariaLabelledBy="delete-storage-dialog-title"
+      >
+        <>
+          {/* Progress ring + countdown number */}
+          <div className="mb-4 flex justify-center">
+            <div className="relative h-32 w-32">
+              <svg
+                className="h-full w-full -rotate-90"
+                viewBox="0 0 128 128"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="64"
+                  cy="64"
+                  r={RING_RADIUS}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  className="text-destructive/15"
+                />
+                <circle
+                  cx="64"
+                  cy="64"
+                  r={RING_RADIUS}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  className="text-destructive"
+                  style={{
+                    strokeDasharray: RING_CIRCUMFERENCE,
+                    strokeDashoffset: dashOffset,
+                    transition: `stroke-dashoffset ${COUNTDOWN_TICK_MS}ms linear`,
+                  }}
+                />
+              </svg>
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-label={t('permanentDelete.countdown.ariaTimeRemaining', {
+                  seconds: secondsRemaining,
+                })}
+              >
+                <span className="text-5xl font-bold tabular-nums text-destructive">
+                  {secondsRemaining}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Title — name visible so the user confirms what's being deleted */}
+          <h2
+            id="delete-storage-dialog-title"
+            className="mb-2 text-center text-base font-semibold text-neutral-900"
+          >
+            {t('permanentDelete.countdown.title', { name: storage.name })}
+          </h2>
+
+          {/* Reassurance subtitle */}
+          <p className="text-center text-sm leading-relaxed text-neutral-600">
+            {t('permanentDelete.countdown.subtitle')}
+          </p>
+
+          {/* Single prominent cancel — also pre-focused so Enter triggers it */}
+          <div className="mt-6 flex justify-center">
+            <Button
+              ref={cancelButtonRef}
+              type="button"
+              onClick={stopCountdown}
+              className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <span
+                className="material-symbols-outlined text-[16px]"
+                aria-hidden="true"
+              >
+                close
+              </span>
+              {t('permanentDelete.countdown.cancelButton', { seconds: secondsRemaining })}
             </Button>
           </div>
         </>

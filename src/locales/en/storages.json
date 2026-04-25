@@ -363,6 +363,12 @@
     "toast": {
       "success": "\"{{name}}\" was deleted",
       "contextChanged": "You are now working in \"{{name}}\""
+    },
+    "countdown": {
+      "title": "Deleting \"{{name}}\"",
+      "subtitle": "If you change your mind, you can still cancel.",
+      "cancelButton": "Cancel ({{seconds}}s)",
+      "ariaTimeRemaining": "{{seconds}} seconds remaining before deletion"
     }
   },
   "modals": {

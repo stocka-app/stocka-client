@@ -363,6 +363,12 @@
     "toast": {
       "success": "\"{{name}}\" fue eliminada",
       "contextChanged": "Ahora estás trabajando en \"{{name}}\""
+    },
+    "countdown": {
+      "title": "Eliminando \"{{name}}\"",
+      "subtitle": "Si cambias de opinión, aún puedes cancelar.",
+      "cancelButton": "Cancelar ({{seconds}}s)",
+      "ariaTimeRemaining": "Quedan {{seconds}} segundos antes de eliminar"
     }
   },
   "modals": {
