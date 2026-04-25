@@ -330,6 +330,33 @@
     "restore": "Restaurar",
     "close": "Cerrar aviso"
   },
+  "permanentDelete": {
+    "title": "¿Eliminar \"{{name}}\" permanentemente?",
+    "body": "Esta acción no se puede deshacer.",
+    "consequences": {
+      "heading": "Se perderá de forma definitiva:",
+      "history": "El historial completo de movimientos",
+      "activity": "Los registros de actividad",
+      "config": "La configuración y metadatos"
+    },
+    "input": {
+      "label": "Escribe \"{{name}}\" para confirmar",
+      "error": "El nombre no coincide. Escríbelo exactamente como aparece arriba."
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "confirm": "Eliminar permanentemente",
+      "confirming": "Eliminando...",
+      "close": "Cerrar"
+    },
+    "error": {
+      "network": "No pudimos eliminar la instalación. Revisa tu conexión e intenta de nuevo.",
+      "concurrent": {
+        "title": "Esta instalación ya fue eliminada",
+        "body": "Alguien más en tu equipo eliminó \"{{name}}\" antes que tú. La lista se actualizará automáticamente."
+      }
+    }
+  },
   "modals": {
     "freeze": {
       "title": "¿Congelar \"{{name}}\"?",

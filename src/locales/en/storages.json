@@ -330,6 +330,33 @@
     "restore": "Restore",
     "close": "Close notice"
   },
+  "permanentDelete": {
+    "title": "Delete \"{{name}}\" permanently?",
+    "body": "This action cannot be undone.",
+    "consequences": {
+      "heading": "The following will be permanently lost:",
+      "history": "The complete movement history",
+      "activity": "Activity logs",
+      "config": "Configuration and metadata"
+    },
+    "input": {
+      "label": "Type \"{{name}}\" to confirm",
+      "error": "Name does not match. Type it exactly as shown above."
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "confirm": "Delete permanently",
+      "confirming": "Deleting...",
+      "close": "Close"
+    },
+    "error": {
+      "network": "We couldn't delete the storage. Check your connection and try again.",
+      "concurrent": {
+        "title": "This storage was already deleted",
+        "body": "Someone else on your team deleted \"{{name}}\" before you did. The list will refresh automatically."
+      }
+    }
+  },
   "modals": {
     "freeze": {
       "title": "Freeze \"{{name}}\"?",
