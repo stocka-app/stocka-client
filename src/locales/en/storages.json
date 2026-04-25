@@ -359,7 +359,11 @@
     "menuItem": "Delete permanently",
     "menuItemAriaLabel": "Delete {{name}} permanently",
     "detailCta": "Delete",
-    "detailCtaAriaLabel": "Delete {{name}} permanently — this action cannot be undone"
+    "detailCtaAriaLabel": "Delete {{name}} permanently — this action cannot be undone",
+    "toast": {
+      "success": "\"{{name}}\" was deleted",
+      "contextChanged": "You are now working in \"{{name}}\""
+    }
   },
   "modals": {
     "freeze": {

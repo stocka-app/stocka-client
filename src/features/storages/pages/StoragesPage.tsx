@@ -16,6 +16,7 @@ import { showUndoCompletedToast } from '../components/UndoCompletedToast';
 import { ArchivedStoragesFilter } from '../components/ArchivedStoragesFilter';
 import { StorageDetailPanel } from '../components/StorageDetailPanel';
 import { useStorages } from '../hooks/useStorages';
+import { selectFallbackStorage } from '../utils/select-fallback-storage';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
@@ -91,6 +92,7 @@ export default function StoragesPage(): React.ReactElement {
     getIsLastActive,
     canFreeze,
     canUnfreeze,
+    setActiveStorage,
   } = useStorages();
 
   const location = useLocation();
@@ -301,17 +303,40 @@ export default function StoragesPage(): React.ReactElement {
 
   const handleDeleteConfirm = async (): Promise<void> => {
     if (!selectedStorage) return;
+    const deletedSnapshot = selectedStorage;
+    const wasContextActive = deletedSnapshot.uuid === activeStorageId;
+
     setIsDeleteLoading(true);
     setDeleteError(null);
-    const { error } = await deleteStoragePermanent(selectedStorage.uuid);
+    const { error } = await deleteStoragePermanent(deletedSnapshot.uuid);
     setIsDeleteLoading(false);
-    if (error === null) {
-      // Success — storage was removed from the store optimistically by the hook.
-      // Dialog close + success feedback are handled by PermanentDeleteStorageDialog (Paso 5).
-      setIsDeleteOpen(false);
-    } else {
-      // Surface error in the dialog banner for all non-null error variants.
+
+    if (error !== null) {
       setDeleteError(error);
+      return;
+    }
+
+    setIsDeleteOpen(false);
+    toast.success(t('permanentDelete.toast.success', { name: deletedSnapshot.name }));
+
+    if (!wasContextActive) return;
+
+    // Active context was deleted — pick a fallback (oldest ACTIVE → FROZEN → ARCHIVED)
+    // and notify the user with a secondary info toast 300ms later so the two
+    // messages read sequentially instead of stacking.
+    const remaining = storages.filter((s) => s.uuid !== deletedSnapshot.uuid);
+    const fallback = selectFallbackStorage(remaining, {
+      priorityOrder: ['ACTIVE', 'FROZEN', 'ARCHIVED'],
+      sortBy: 'createdAt',
+      direction: 'asc',
+    });
+
+    setActiveStorage(fallback?.uuid ?? null);
+
+    if (fallback !== null) {
+      setTimeout(() => {
+        toast.info(t('permanentDelete.toast.contextChanged', { name: fallback.name }));
+      }, 300);
     }
   };
 
