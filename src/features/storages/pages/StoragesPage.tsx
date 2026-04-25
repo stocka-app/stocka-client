@@ -389,6 +389,7 @@ export default function StoragesPage(): React.ReactElement {
         canUpdate={canDo('STORAGE_UPDATE')}
         canUnfreeze={canUnfreeze}
         canRestore={canDo('STORAGE_RESTORE')}
+        canDelete={canDo('STORAGE_DELETE')}
         isOffline={isOffline}
         onClose={handleDetailClose}
         onEdit={(s) => {
@@ -402,6 +403,10 @@ export default function StoragesPage(): React.ReactElement {
         onRestore={(s) => {
           handleDetailClose();
           void handleRestoreClick(s);
+        }}
+        onDelete={(s) => {
+          handleDetailClose();
+          handleDeleteClick(s);
         }}
       />
       {/* Edit flow — drawer */}

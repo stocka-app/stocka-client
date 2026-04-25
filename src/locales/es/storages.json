@@ -355,7 +355,11 @@
         "title": "Esta instalación ya fue eliminada",
         "body": "Alguien más en tu equipo eliminó \"{{name}}\" antes que tú. La lista se actualizará automáticamente."
       }
-    }
+    },
+    "menuItem": "Eliminar permanentemente",
+    "menuItemAriaLabel": "Eliminar permanentemente {{name}}",
+    "detailCta": "Eliminar",
+    "detailCtaAriaLabel": "Eliminar permanentemente {{name}} — esta acción no se puede deshacer"
   },
   "modals": {
     "freeze": {

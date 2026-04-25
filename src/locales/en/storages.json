@@ -355,7 +355,11 @@
         "title": "This storage was already deleted",
         "body": "Someone else on your team deleted \"{{name}}\" before you did. The list will refresh automatically."
       }
-    }
+    },
+    "menuItem": "Delete permanently",
+    "menuItemAriaLabel": "Delete {{name}} permanently",
+    "detailCta": "Delete",
+    "detailCtaAriaLabel": "Delete {{name}} permanently — this action cannot be undone"
   },
   "modals": {
     "freeze": {
