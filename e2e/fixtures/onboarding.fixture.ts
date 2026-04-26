@@ -1,4 +1,4 @@
-import { test as coverageBase } from './coverage.fixture';
+import { test as coverageBase, dumpCoverage } from './coverage.fixture';
 import { type Page } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
 import { readFileSync } from 'node:fs';
@@ -88,6 +88,8 @@ export const test = coverageBase.extend<OnboardingTestFixtures>({
     // Ensure any fire-and-forget API calls (e.g. selectPath's saveProgress) complete
     // before saving state and closing the context, so the backend is in sync for the next test.
     await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
+
+    await dumpCoverage(page);
 
     // Roll the storageState forward so the next test has a valid refresh token.
     await ctx.storageState({ path: stateFile });

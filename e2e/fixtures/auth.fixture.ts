@@ -1,4 +1,4 @@
-import { test as coverageBase } from './coverage.fixture';
+import { test as coverageBase, dumpCoverage } from './coverage.fixture';
 import { type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -87,6 +87,11 @@ export const test = coverageBase.extend<AuthTestFixtures, AuthWorkerFixtures>({
 
     await use(page);
 
+    // Capture instrumented `window.__coverage__` before the context is torn
+    // down — fixture isn't reached by coverage.fixture's `page` override
+    // because authenticatedPage creates its own context/page.
+    await dumpCoverage(page);
+
     // Roll the storageState forward so the next test has a valid refresh token.
     await ctx.storageState({ path: STORAGE_STATE_FILE });
     await ctx.close();
@@ -97,6 +102,8 @@ export const test = coverageBase.extend<AuthTestFixtures, AuthWorkerFixtures>({
     const page = await ctx.newPage();
 
     await use(page);
+
+    await dumpCoverage(page);
 
     // Roll the storageState forward.
     await ctx.storageState({ path: STORAGE_STATE_FILE });

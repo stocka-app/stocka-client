@@ -348,7 +348,7 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleUpgrade = (): void => {
-    /* c8 ignore next */
+    /* istanbul ignore next */
     openUpgradeModal('FEATURE_NOT_IN_TIER', filterType ?? 'WAREHOUSE');
   };
 

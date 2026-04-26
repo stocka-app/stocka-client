@@ -718,7 +718,7 @@ export function CreateStorageDrawer({
     if (hasFormData) {
       setShowCancelConfirm(true);
     } else {
-      /* c8 ignore next 2 -- back with clean form; tests always have dirty data */
+      /* istanbul ignore next 2 -- back with clean form; tests always have dirty data */
       setStep('type-selection');
       setServerError(null);
     }
@@ -746,7 +746,7 @@ export function CreateStorageDrawer({
     }
   }, [selectedType]);
 
-  /* c8 ignore next 5 -- user clicks "Change type" link; covered by E2E */
+  /* istanbul ignore next 5 -- user clicks "Change type" link; covered by E2E */
   const handleChangeType = (): void => {
     setStep('type-selection');
     setServerError(null);
@@ -890,7 +890,7 @@ export function CreateStorageDrawer({
                   ? t('limits.warehouseProBadge')
                   : `${countForType(type)}/${limits[type]}`
               }
-              onBlockedTypeClick={/* c8 ignore next 4 -- tier-blocked click; covered by E2E */ (type) =>
+              onBlockedTypeClick={/* istanbul ignore next 4 -- tier-blocked click; covered by E2E */ (type) =>
                 openUpgradeModal(
                   !isAllowed(STORAGE_TYPE_TO_FEATURE[type]) ? 'FEATURE_NOT_IN_TIER' : 'TIER_LIMIT_REACHED',
                   type,

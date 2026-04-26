@@ -305,4 +305,28 @@ describe('StorageDetailPanel', () => {
       });
     });
   });
+
+  describe('Given the canDelete prop is omitted (default false)', () => {
+    describe('When the panel renders an ARCHIVED storage', () => {
+      it('Then the permanent-delete CTA is omitted', () => {
+        render(
+          <StorageDetailPanel
+            storage={makeStorage({ status: 'ARCHIVED' })}
+            open={true}
+            canUpdate={true}
+            canUnfreeze={true}
+            canRestore={true}
+            isOffline={false}
+            onClose={vi.fn()}
+            onEdit={vi.fn()}
+            onReactivate={vi.fn()}
+            onRestore={vi.fn()}
+          />,
+        );
+        expect(
+          screen.queryByRole('button', { name: /permanentDelete\.detailCtaAriaLabel/ }),
+        ).not.toBeInTheDocument();
+      });
+    });
+  });
 });
