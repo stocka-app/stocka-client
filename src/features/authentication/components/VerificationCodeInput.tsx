@@ -42,7 +42,7 @@ export function VerificationCodeInput({
 
   // Focus en el primer input al montar
   useEffect(() => {
-    /* c8 ignore next 2 -- defensive: ref always attached in browser */
+    /* istanbul ignore next 2 -- defensive: ref always attached in browser */
     if (autoFocus && inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
@@ -65,7 +65,7 @@ export function VerificationCodeInput({
       onChange(newDigits.join(''));
 
       // Auto-avance al siguiente input si se escribió un carácter
-      /* c8 ignore next 2 -- auto-advance; branch when at last digit */
+      /* istanbul ignore next 2 -- auto-advance; branch when at last digit */
       if (inputValue && index < length - 1) {
         inputRefs.current[index + 1]?.focus();
       }

@@ -13,6 +13,10 @@ interface StorageDetailPanelProps {
   canUpdate: boolean;
   canUnfreeze: boolean;
   canRestore: boolean;
+  /** RBAC: user has STORAGE_DELETE permission. The destructive CTA is omitted
+   * from the DOM (not rendered disabled) when false so MANAGER/VIEWER never
+   * see the entry point. */
+  canDelete?: boolean;
   /** True when the browser reports no connectivity. Disables the primary CTA
    * with a tooltip so the user sees why the action cannot fire. */
   isOffline?: boolean;
@@ -20,6 +24,7 @@ interface StorageDetailPanelProps {
   onEdit: (storage: Storage) => void;
   onReactivate: (storage: Storage) => void;
   onRestore: (storage: Storage) => void;
+  onDelete?: (storage: Storage) => void;
 }
 
 const STATUS_BADGE: Record<StorageStatus, string> = {
@@ -53,11 +58,13 @@ export function StorageDetailPanel({
   canUpdate,
   canUnfreeze,
   canRestore,
+  canDelete = false,
   isOffline = false,
   onClose,
   onEdit,
   onReactivate,
   onRestore,
+  onDelete,
 }: StorageDetailPanelProps): React.ReactElement {
   const { t, i18n } = useTranslation('storages');
 
@@ -137,6 +144,24 @@ export function StorageDetailPanel({
                 <span className="material-symbols-outlined text-[18px]">edit</span>
                 {t('detail.cta.edit', { defaultValue: 'Editar' })}
               </Button>
+            )}
+            {storage.status === 'ARCHIVED' && canDelete && onDelete && (
+              <>
+                <span
+                  aria-hidden="true"
+                  className="mx-1 h-6 w-px self-center bg-border"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onDelete(storage)}
+                  aria-label={t('permanentDelete.detailCtaAriaLabel', { name: storage.name })}
+                  className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <span className="material-symbols-outlined text-[18px]">delete_forever</span>
+                  {t('permanentDelete.detailCta')}
+                </Button>
+              </>
             )}
           </div>
 

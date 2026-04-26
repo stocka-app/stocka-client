@@ -330,6 +330,47 @@
     "restore": "Restaurar",
     "close": "Cerrar aviso"
   },
+  "permanentDelete": {
+    "title": "¿Eliminar \"{{name}}\" permanentemente?",
+    "body": "Esta acción no se puede deshacer.",
+    "consequences": {
+      "heading": "Se perderá de forma definitiva:",
+      "history": "El historial completo de movimientos",
+      "activity": "Los registros de actividad",
+      "config": "La configuración y metadatos"
+    },
+    "input": {
+      "label": "Escribe \"{{name}}\" para confirmar",
+      "error": "El nombre no coincide. Escríbelo exactamente como aparece arriba."
+    },
+    "buttons": {
+      "cancel": "Cancelar",
+      "confirm": "Eliminar permanentemente",
+      "confirming": "Eliminando...",
+      "close": "Cerrar"
+    },
+    "error": {
+      "network": "No pudimos eliminar la instalación. Revisa tu conexión e intenta de nuevo.",
+      "concurrent": {
+        "title": "Esta instalación ya fue eliminada",
+        "body": "Alguien más en tu equipo eliminó \"{{name}}\" antes que tú. La lista se actualizará automáticamente."
+      }
+    },
+    "menuItem": "Eliminar permanentemente",
+    "menuItemAriaLabel": "Eliminar permanentemente {{name}}",
+    "detailCta": "Eliminar",
+    "detailCtaAriaLabel": "Eliminar permanentemente {{name}} — esta acción no se puede deshacer",
+    "toast": {
+      "success": "\"{{name}}\" fue eliminada",
+      "contextChanged": "Ahora estás trabajando en \"{{name}}\""
+    },
+    "countdown": {
+      "title": "Eliminando \"{{name}}\"",
+      "subtitle": "Si cambias de opinión, aún puedes cancelar.",
+      "cancelButton": "Cancelar ({{seconds}}s)",
+      "ariaTimeRemaining": "Quedan {{seconds}} segundos antes de eliminar"
+    }
+  },
   "modals": {
     "freeze": {
       "title": "¿Congelar \"{{name}}\"?",

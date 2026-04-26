@@ -19,7 +19,7 @@ vi.mock('../../api/storages.service', () => ({
     restore: vi.fn(),
     freeze: vi.fn(),
     unfreeze: vi.fn(),
-    deleteStoragePermanent: vi.fn(),
+    permanentDelete: vi.fn(),
     fetchCapabilities: vi.fn(),
   },
 }));
@@ -1936,48 +1936,196 @@ describe('Given useStorages exposes active-context derived data', () => {
     });
   });
 
-  // ── deleteStoragePermanent (DT-H07-9 stub) ─────────────────────────────────
-
-  describe('When deleteStoragePermanent stub is called', () => {
-    it('Then it returns not_implemented for plain ApiError statusCode 501', async () => {
-      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce({ statusCode: 501 });
+  describe('When deleteStoragePermanent is called', () => {
+    it('Then it returns not_found if the local store has no matching storage', async () => {
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const response = await result.current.deleteStoragePermanent('storage-001');
-      expect(response.error).toBe('not_implemented');
+      const response = await result.current.deleteStoragePermanent('does-not-exist');
+      expect(response.error).toBe('not_found');
+      expect(vi.mocked(storagesService.permanentDelete)).not.toHaveBeenCalled();
     });
 
-    it('Then it returns not_implemented for raw AxiosError with status 501', async () => {
-      const axiosError = Object.assign(new Error('Not Implemented'), {
-        isAxiosError: true,
-        response: { status: 501, data: {} },
+    it('Then a 204 success removes the storage from the local store and decrements archived counter', async () => {
+      vi.mocked(storagesService.permanentDelete).mockResolvedValueOnce(undefined);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      expect(target).toBeDefined();
+      const archivedBefore = result.current.summary.archived;
+      const totalBefore = result.current.typeCounts.total;
+
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBeNull();
+      await waitFor(() => {
+        expect(result.current.storages.find((s) => s.uuid === target!.uuid)).toBeUndefined();
       });
-      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce(axiosError);
-      const { result } = renderHook(() => useStorages());
-      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
-
-      const response = await result.current.deleteStoragePermanent('storage-001');
-      expect(response.error).toBe('not_implemented');
+      expect(result.current.summary.archived).toBe(Math.max(0, archivedBefore - 1));
+      expect(result.current.typeCounts.total).toBe(Math.max(0, totalBefore - 1));
     });
 
-    it('Then it returns server_error for a generic failure', async () => {
-      vi.mocked(storagesService.deleteStoragePermanent).mockRejectedValueOnce(new Error('boom'));
+    it('Then a STORAGE_NOT_ARCHIVED API error returns "not_archived"', async () => {
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce({
+        statusCode: 409,
+        error: 'STORAGE_NOT_ARCHIVED',
+      });
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const response = await result.current.deleteStoragePermanent('storage-001');
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('not_archived');
+    });
+
+    it('Then a STORAGE_NOT_FOUND API error returns "not_found" AND removes the stale row', async () => {
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce({
+        statusCode: 404,
+        error: 'STORAGE_NOT_FOUND',
+      });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('not_found');
+      await waitFor(() => {
+        expect(result.current.storages.find((s) => s.uuid === target!.uuid)).toBeUndefined();
+      });
+    });
+
+    it('Then a 403 ApiError returns "forbidden"', async () => {
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce({ statusCode: 403 });
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('forbidden');
+    });
+
+    it('Then a raw AxiosError with STORAGE_NOT_ARCHIVED in response.data returns "not_archived"', async () => {
+      const axiosError = Object.assign(new Error('Conflict'), {
+        isAxiosError: true,
+        response: { status: 409, data: { error: 'STORAGE_NOT_ARCHIVED' } },
+      });
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('not_archived');
+    });
+
+    it('Then a raw AxiosError with STORAGE_NOT_FOUND in response.data returns "not_found"', async () => {
+      const axiosError = Object.assign(new Error('Not Found'), {
+        isAxiosError: true,
+        response: { status: 404, data: { error: 'STORAGE_NOT_FOUND' } },
+      });
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('not_found');
+    });
+
+    it('Then a raw AxiosError with status 403 returns "forbidden"', async () => {
+      const axiosError = Object.assign(new Error('Forbidden'), {
+        isAxiosError: true,
+        response: { status: 403, data: {} },
+      });
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('forbidden');
+    });
+
+    it('Then a raw AxiosError with status 404 returns "not_found"', async () => {
+      const axiosError = Object.assign(new Error('Not Found'), {
+        isAxiosError: true,
+        response: { status: 404, data: {} },
+      });
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(axiosError);
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
+      expect(response.error).toBe('not_found');
+    });
+
+    it('Then any unrecognized failure returns "server_error"', async () => {
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(new Error('boom'));
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
       expect(response.error).toBe('server_error');
     });
 
-    it('Then it returns server_error when the service unexpectedly resolves', async () => {
-      vi.mocked(storagesService.deleteStoragePermanent).mockResolvedValueOnce(undefined);
+    it('Then an AxiosError without a response object falls through to "server_error"', async () => {
+      const axiosError = Object.assign(new Error('Network'), {
+        isAxiosError: true,
+        response: undefined,
+      });
+      vi.mocked(storagesService.permanentDelete).mockRejectedValueOnce(axiosError);
       const { result } = renderHook(() => useStorages());
       await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
 
-      const response = await result.current.deleteStoragePermanent('storage-001');
+      const target = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const response = await result.current.deleteStoragePermanent(target!.uuid);
+
       expect(response.error).toBe('server_error');
     });
   });
 
+  describe('When canPermanentlyDelete is queried', () => {
+    it('Then it requires both canDelete capability AND ARCHIVED status', async () => {
+      mockPermissions = [
+        'STORAGE_CREATE',
+        'STORAGE_READ',
+        'STORAGE_UPDATE',
+        'STORAGE_DELETE',
+        'STORAGE_FREEZE',
+        'STORAGE_ARCHIVE',
+      ];
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const archived = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      const active = result.current.storages.find((s) => s.status === 'ACTIVE');
+      expect(archived).toBeDefined();
+      expect(active).toBeDefined();
+
+      expect(result.current.canPermanentlyDelete(archived!)).toBe(true);
+      expect(result.current.canPermanentlyDelete(active!)).toBe(false);
+    });
+
+    it('Then it returns false for any storage when STORAGE_DELETE is missing', async () => {
+      mockPermissions = ['STORAGE_READ'];
+      const { result } = renderHook(() => useStorages());
+      await waitFor(() => expect(result.current.storages.length).toBeGreaterThan(0));
+
+      const archived = result.current.storages.find((s) => s.status === 'ARCHIVED');
+      expect(archived).toBeDefined();
+
+      expect(result.current.canPermanentlyDelete(archived!)).toBe(false);
+    });
+  });
 });

@@ -27,8 +27,8 @@ export default defineConfig({
     // Exclude Playwright e2e specs — they run via `npm run test:e2e`, not Vitest
     exclude: ['**/node_modules/**', '**/dist/**', '**/dist-e2e/**', 'e2e/**'],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'lcov', 'html'],
+      provider: 'istanbul',
+      reporter: ['text', 'lcov', 'html', 'json'],
       // Blacklist strategy: include everything, exclude only what is truly not unit-testable
       include: ['src/**/*.{ts,tsx}'],
       exclude: [

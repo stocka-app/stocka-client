@@ -365,16 +365,20 @@ export function StorageCard({
                 </DropdownMenuItem>
               )}
               {isArchived && (
-                <DropdownMenuItem
-                  disabled={deleteDisabled}
-                  onClick={() => !deleteDisabled && onDelete(storage)}
-                  className="group"
-                >
-                  <span className="material-symbols-outlined mr-2 text-[16px] transition-colors group-hover:text-destructive">
-                    delete_forever
-                  </span>
-                  {t('actions.delete')}
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={deleteDisabled}
+                    onClick={() => !deleteDisabled && onDelete(storage)}
+                    aria-label={t('permanentDelete.menuItemAriaLabel', { name: storage.name })}
+                    className="group text-destructive focus:bg-destructive/10 focus:text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive"
+                  >
+                    <span className="material-symbols-outlined mr-2 text-[16px] text-destructive">
+                      delete_forever
+                    </span>
+                    {t('permanentDelete.menuItem')}
+                  </DropdownMenuItem>
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

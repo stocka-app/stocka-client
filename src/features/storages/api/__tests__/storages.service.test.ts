@@ -294,15 +294,29 @@ describe('storagesService', () => {
     });
   });
 
-  // ── deleteStoragePermanent (stub 501) ─────────────────────────────────────
+  describe('permanentDelete', () => {
+    it('calls DELETE /storages/warehouses/:id/permanent for WAREHOUSE type', async () => {
+      mockedAxios.delete.mockResolvedValueOnce({});
 
-  describe('deleteStoragePermanent', () => {
-    it('calls DELETE /storages/:id/permanent', async () => {
-      mockedAxios.delete.mockResolvedValueOnce({ data: {} });
+      await storagesService.permanentDelete('uuid-1', 'WAREHOUSE');
 
-      await storagesService.deleteStoragePermanent('uuid-1');
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/warehouses/uuid-1/permanent');
+    });
 
-      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/uuid-1/permanent');
+    it('calls DELETE /storages/store-rooms/:id/permanent for STORE_ROOM type', async () => {
+      mockedAxios.delete.mockResolvedValueOnce({});
+
+      await storagesService.permanentDelete('uuid-2', 'STORE_ROOM');
+
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/store-rooms/uuid-2/permanent');
+    });
+
+    it('calls DELETE /storages/custom-rooms/:id/permanent for CUSTOM_ROOM type', async () => {
+      mockedAxios.delete.mockResolvedValueOnce({});
+
+      await storagesService.permanentDelete('uuid-3', 'CUSTOM_ROOM');
+
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/custom-rooms/uuid-3/permanent');
     });
   });
 

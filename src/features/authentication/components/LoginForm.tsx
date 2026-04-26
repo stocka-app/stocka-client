@@ -215,7 +215,7 @@ export function LoginForm() {
                 </FormControl>
               </div>
               <FormMessage>
-                {/* c8 ignore next */ form.formState.errors.emailOrUsername?.message &&
+                {/* istanbul ignore next */ form.formState.errors.emailOrUsername?.message &&
                   t(form.formState.errors.emailOrUsername.message)}
               </FormMessage>
             </FormItem>
@@ -236,7 +236,7 @@ export function LoginForm() {
                 />
               </FormControl>
               <FormMessage>
-                {/* c8 ignore next */ form.formState.errors.password?.message &&
+                {/* istanbul ignore next */ form.formState.errors.password?.message &&
                   t(form.formState.errors.password.message)}
               </FormMessage>
             </FormItem>

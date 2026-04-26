@@ -141,8 +141,8 @@ export const storagesService = {
     return storageSchema.parse(unwrap(data));
   },
 
-  async deleteStoragePermanent(id: string): Promise<void> {
-    await axiosInstance.delete(`/storages/${id}/permanent`);
+  async permanentDelete(id: string, type: StorageType): Promise<void> {
+    await axiosInstance.delete(`/storages/${TYPE_SLUG[type]}/${id}/permanent`);
   },
 
   async fetchCapabilities(signal?: AbortSignal): Promise<TenantCapabilities> {

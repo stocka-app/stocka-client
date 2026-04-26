@@ -16,6 +16,7 @@ import { showUndoCompletedToast } from '../components/UndoCompletedToast';
 import { ArchivedStoragesFilter } from '../components/ArchivedStoragesFilter';
 import { StorageDetailPanel } from '../components/StorageDetailPanel';
 import { useStorages } from '../hooks/useStorages';
+import { selectFallbackStorage } from '../utils/select-fallback-storage';
 import type { Storage, StorageType } from '../types/storages.types';
 import { StorageCard } from '../components/StorageCard';
 import { CreateStorageDrawer } from '../components/CreateStorageDrawer';
@@ -23,7 +24,7 @@ import { EditStorageDrawer } from '../components/EditStorageDrawer';
 import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog';
 import { DeleteStorageDialog } from '../components/DeleteStorageDialog';
 import { FreezeConfirmDialog } from '../components/FreezeConfirmDialog';
-import type { EditStoragePayload } from '../hooks/useStorages';
+import type { EditStoragePayload, PermanentDeleteError } from '../hooks/useStorages';
 
 // ─── Type tab configuration ─────────────────────────────────────────────────
 
@@ -91,6 +92,7 @@ export default function StoragesPage(): React.ReactElement {
     getIsLastActive,
     canFreeze,
     canUnfreeze,
+    setActiveStorage,
   } = useStorages();
 
   const location = useLocation();
@@ -111,7 +113,7 @@ export default function StoragesPage(): React.ReactElement {
   const [freezeError, setFreezeError] = useState<string | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState<'not_implemented' | 'server_error' | null>(null);
+  const [deleteError, setDeleteError] = useState<PermanentDeleteError | null>(null);
 
   // ── Auto-open create drawer when navigated from the sidebar StorageSwitcher
   //
@@ -301,17 +303,40 @@ export default function StoragesPage(): React.ReactElement {
 
   const handleDeleteConfirm = async (): Promise<void> => {
     if (!selectedStorage) return;
+    const deletedSnapshot = selectedStorage;
+    const wasContextActive = deletedSnapshot.uuid === activeStorageId;
+
     setIsDeleteLoading(true);
     setDeleteError(null);
-    const { error } = await deleteStoragePermanent(selectedStorage.uuid);
+    const { error } = await deleteStoragePermanent(deletedSnapshot.uuid);
     setIsDeleteLoading(false);
-    if (error === 'not_implemented') {
-      // Stub path in Sprint 2 — surface the banner, keep the dialog open so the
-      // user understands why. The real flow (typed confirmation) lands in a
-      // later story and will replace this branch with a success toast + close.
-      setDeleteError('not_implemented');
-    } else if (error === 'server_error') {
-      setDeleteError('server_error');
+
+    if (error !== null) {
+      setDeleteError(error);
+      return;
+    }
+
+    setIsDeleteOpen(false);
+    toast.success(t('permanentDelete.toast.success', { name: deletedSnapshot.name }));
+
+    if (!wasContextActive) return;
+
+    // Active context was deleted — pick a fallback (oldest ACTIVE → FROZEN → ARCHIVED)
+    // and notify the user with a secondary info toast 300ms later so the two
+    // messages read sequentially instead of stacking.
+    const remaining = storages.filter((s) => s.uuid !== deletedSnapshot.uuid);
+    const fallback = selectFallbackStorage(remaining, {
+      priorityOrder: ['ACTIVE', 'FROZEN', 'ARCHIVED'],
+      sortBy: 'createdAt',
+      direction: 'asc',
+    });
+
+    setActiveStorage(fallback?.uuid ?? null);
+
+    if (fallback !== null) {
+      setTimeout(() => {
+        toast.info(t('permanentDelete.toast.contextChanged', { name: fallback.name }));
+      }, 300);
     }
   };
 
@@ -323,7 +348,7 @@ export default function StoragesPage(): React.ReactElement {
   };
 
   const handleUpgrade = (): void => {
-    /* c8 ignore next */
+    /* istanbul ignore next */
     openUpgradeModal('FEATURE_NOT_IN_TIER', filterType ?? 'WAREHOUSE');
   };
 
@@ -389,6 +414,7 @@ export default function StoragesPage(): React.ReactElement {
         canUpdate={canDo('STORAGE_UPDATE')}
         canUnfreeze={canUnfreeze}
         canRestore={canDo('STORAGE_RESTORE')}
+        canDelete={canDo('STORAGE_DELETE')}
         isOffline={isOffline}
         onClose={handleDetailClose}
         onEdit={(s) => {
@@ -402,6 +428,10 @@ export default function StoragesPage(): React.ReactElement {
         onRestore={(s) => {
           handleDetailClose();
           void handleRestoreClick(s);
+        }}
+        onDelete={(s) => {
+          handleDetailClose();
+          handleDeleteClick(s);
         }}
       />
       {/* Edit flow — drawer */}

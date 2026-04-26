@@ -110,9 +110,12 @@ test.describe('Restore storage flow (real BE, no mocks)', () => {
     await list.openCardMenu(archivedWarehouseName);
     await list.menuItems.view.click();
 
-    // The detail panel shows a Restore CTA for archived storages
+    // The detail panel shows a Restore CTA for archived storages. Filter by
+    // hasText to avoid matching the new permanent-delete CTA whose aria-label
+    // includes the storage name (which may contain "Restaurar" depending on
+    // the test fixture name).
     await expect(
-      page.getByRole('button', { name: /Restore|Restaurar/i }),
+      page.getByRole('button').filter({ hasText: /^(?:settings_backup_restore\s*)?(Restore|Restaurar)$/ }),
     ).toBeVisible({ timeout: 5_000 });
   });
 

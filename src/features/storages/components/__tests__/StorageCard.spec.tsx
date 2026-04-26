@@ -213,7 +213,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       );
       await openContextMenu(user);
       await screen.findByRole('menuitem', { name: /actions\.view/ });
-      expect(screen.queryByRole('menuitem', { name: /actions\.delete/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /permanentDelete\.menuItemAriaLabel/ })).not.toBeInTheDocument();
     });
   });
 
@@ -255,7 +255,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       // For FROZEN storages, the component renders archive (not disabled — H-05 allows freeze→archive).
       // However, the frozen storage shows the archive item as part of the state-change section.
       // Validate that the delete action is absent.
-      expect(screen.queryByRole('menuitem', { name: /actions\.delete/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /permanentDelete\.menuItemAriaLabel/ })).not.toBeInTheDocument();
     });
 
     it('Then the delete action is not shown for a frozen storage', async () => {
@@ -276,7 +276,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       );
       await openContextMenu(user);
       await screen.findByRole('menuitem', { name: /actions\.view/ });
-      expect(screen.queryByRole('menuitem', { name: /actions\.delete/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /permanentDelete\.menuItemAriaLabel/ })).not.toBeInTheDocument();
     });
 
     it('Then Ver más is still shown for a frozen storage', async () => {
@@ -332,7 +332,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       );
       await openContextMenu(user);
       expect(await screen.findByRole('menuitem', { name: /actions\.view/ })).toBeInTheDocument();
-      expect(screen.getByRole('menuitem', { name: /actions\.delete/ })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /permanentDelete\.menuItemAriaLabel/ })).toBeInTheDocument();
     });
 
     it('Then the Archivar action is not shown for an archived storage', async () => {
@@ -466,7 +466,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
       // Without canEdit, edit is still rendered but disabled
       // Without canArchive, archive is still rendered but disabled
       // delete is not shown for active storages regardless
-      expect(screen.queryByRole('menuitem', { name: /actions\.delete/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /permanentDelete\.menuItemAriaLabel/ })).not.toBeInTheDocument();
     });
   });
 
@@ -573,7 +573,7 @@ describe('Given StorageCard renders a storage with role-based actions', () => {
         />,
       );
       await openContextMenu(user);
-      const deleteItem = await screen.findByRole('menuitem', { name: /actions\.delete/ });
+      const deleteItem = await screen.findByRole('menuitem', { name: /permanentDelete\.menuItemAriaLabel/ });
       await user.click(deleteItem);
       expect(onDelete).toHaveBeenCalledWith(archivedRoom);
     });

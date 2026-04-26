@@ -160,21 +160,21 @@ export function Step4Spaces({
     });
   }, []);
 
-  /* c8 ignore start: defensive guard — add button not rendered at max capacity */
+  /* istanbul ignore start: defensive guard — add button not rendered at max capacity */
   const addCustomRoom = useCallback(() => {
     if (maxCustomRooms === -1 || customRooms.length < maxCustomRooms) {
       setCustomRooms((prev) => [...prev, { roomType: '', customRoomType: '', name: '', address: '', icon: DEFAULT_ICON, color: DEFAULT_COLOR }]);
     }
   }, [customRooms.length, maxCustomRooms]);
-  /* c8 ignore stop */
+  /* istanbul ignore stop */
 
-  /* c8 ignore start: defensive guard — remove button not rendered when only 1 room */
+  /* istanbul ignore start: defensive guard — remove button not rendered when only 1 room */
   const removeCustomRoom = useCallback((index: number) => {
     if (customRooms.length > 1) {
       setCustomRooms((prev) => prev.filter((_, i) => i !== index));
     }
   }, [customRooms.length]);
-  /* c8 ignore stop */
+  /* istanbul ignore stop */
 
   // Store room handlers
   const updateStoreRoom = useCallback((index: number, field: keyof StoreRoomState, value: string) => {
@@ -194,21 +194,21 @@ export function Step4Spaces({
     });
   }, []);
 
-  /* c8 ignore start: defensive guard — add button not rendered at max capacity */
+  /* istanbul ignore start: defensive guard — add button not rendered at max capacity */
   const addStoreRoom = useCallback(() => {
     if (maxStoreRooms === -1 || storeRooms.length < maxStoreRooms) {
       setStoreRooms((prev) => [...prev, { name: '', address: '' }]);
     }
   }, [storeRooms.length, maxStoreRooms]);
-  /* c8 ignore stop */
+  /* istanbul ignore stop */
 
-  /* c8 ignore start: defensive guard — remove button not rendered when only 1 room */
+  /* istanbul ignore start: defensive guard — remove button not rendered when only 1 room */
   const removeStoreRoom = useCallback((index: number) => {
     if (storeRooms.length > 1) {
       setStoreRooms((prev) => prev.filter((_, i) => i !== index));
     }
   }, [storeRooms.length]);
-  /* c8 ignore stop */
+  /* istanbul ignore stop */
 
   // Warehouse handlers
   const updateWarehouse = useCallback((index: number, field: keyof WarehouseState, value: string) => {

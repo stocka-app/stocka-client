@@ -86,7 +86,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
     async (e?: React.FormEvent) => {
       e?.preventDefault();
 
-      /* c8 ignore next -- guard: tests always submit with valid 6-char code */
+      /* istanbul ignore next -- guard: tests always submit with valid 6-char code */
       if (code.length !== 6 || isLoading || isCodeExpired) return;
 
       try {
@@ -95,7 +95,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
 
         // Redirigir al dashboard después de un breve momento
         setTimeout(() => {
-          /* c8 ignore next */
+          /* istanbul ignore next */
           navigate('/dashboard', { replace: true });
         }, 1500);
       } catch {
@@ -151,7 +151,7 @@ export function VerifyEmailForm({ email: _email }: VerifyEmailFormProps) {
     } catch (err) {
       const apiError = err as ApiError;
       // Extraer cooldown del error si existe y devolverlo para que ResendButton lo maneje
-      /* c8 ignore next 4 -- ERROR_HANDLER: resend cooldown parsing; covered by unit tests */
+      /* istanbul ignore next 4 -- ERROR_HANDLER: resend cooldown parsing; covered by unit tests */
       if (apiError.error === 'RESEND_COOLDOWN_ACTIVE') {
         const match = apiError.message?.match(/(\d+)\s*seconds?/i);
         if (match) {

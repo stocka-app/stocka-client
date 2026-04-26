@@ -159,12 +159,12 @@ export const authenticationService = {
    * @param provider - 'google' | 'microsoft'
    * @returns The popup Window reference, or null when the popup was blocked.
    */
-  /* c8 ignore start -- opens real browser popup; not testable in jsdom */
+  /* istanbul ignore start -- opens real browser popup; not testable in jsdom */
   initiateOAuth(provider: OAuthProvider): Window | null {
     const url = `${this.getOAuthUrl(provider)}?mode=popup`;
     return openOAuthPopup(url);
   },
-  /* c8 ignore stop */
+  /* istanbul ignore stop */
 };
 
 export default authenticationService;

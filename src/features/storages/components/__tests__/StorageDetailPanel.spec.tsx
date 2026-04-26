@@ -36,6 +36,8 @@ interface RenderArgs {
   canUpdate?: boolean;
   canUnfreeze?: boolean;
   canRestore?: boolean;
+  canDelete?: boolean;
+  withOnDelete?: boolean;
 }
 
 function renderPanel(args: RenderArgs = {}): {
@@ -43,6 +45,7 @@ function renderPanel(args: RenderArgs = {}): {
   onEdit: ReturnType<typeof vi.fn>;
   onReactivate: ReturnType<typeof vi.fn>;
   onRestore: ReturnType<typeof vi.fn>;
+  onDelete: ReturnType<typeof vi.fn>;
   storage: Storage | null;
 } {
   const {
@@ -52,6 +55,8 @@ function renderPanel(args: RenderArgs = {}): {
     canUpdate = true,
     canUnfreeze = true,
     canRestore = true,
+    canDelete = false,
+    withOnDelete = true,
   } = args;
   const finalStorage =
     'storage' in args
@@ -61,6 +66,7 @@ function renderPanel(args: RenderArgs = {}): {
   const onEdit = vi.fn();
   const onReactivate = vi.fn();
   const onRestore = vi.fn();
+  const onDelete = vi.fn();
   render(
     <StorageDetailPanel
       storage={finalStorage}
@@ -68,14 +74,16 @@ function renderPanel(args: RenderArgs = {}): {
       canUpdate={canUpdate}
       canUnfreeze={canUnfreeze}
       canRestore={canRestore}
+      canDelete={canDelete}
       isOffline={isOffline}
       onClose={onClose}
       onEdit={onEdit}
       onReactivate={onReactivate}
       onRestore={onRestore}
+      onDelete={withOnDelete ? onDelete : undefined}
     />,
   );
-  return { onClose, onEdit, onReactivate, onRestore, storage: finalStorage };
+  return { onClose, onEdit, onReactivate, onRestore, onDelete, storage: finalStorage };
 }
 
 describe('StorageDetailPanel', () => {
@@ -265,6 +273,59 @@ describe('StorageDetailPanel', () => {
       it('Then no header content is mounted', () => {
         renderPanel({ storage: null });
         expect(screen.queryByText(/WH Norte/)).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given an ARCHIVED storage with delete capability and onDelete handler', () => {
+    describe('When the user clicks the permanent-delete CTA', () => {
+      it('Then onDelete is called with the storage', async () => {
+        const user = userEvent.setup();
+        const { onDelete, storage } = renderPanel({
+          status: 'ARCHIVED',
+          canDelete: true,
+        });
+
+        await user.click(
+          screen.getByRole('button', { name: /permanentDelete\.detailCtaAriaLabel/ }),
+        );
+
+        expect(onDelete).toHaveBeenCalledWith(storage);
+      });
+    });
+  });
+
+  describe('Given an ARCHIVED storage but no canDelete capability', () => {
+    describe('When the panel renders', () => {
+      it('Then the permanent-delete CTA is omitted', () => {
+        renderPanel({ status: 'ARCHIVED', canDelete: false });
+        expect(
+          screen.queryByRole('button', { name: /permanentDelete\.detailCtaAriaLabel/ }),
+        ).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given the canDelete prop is omitted (default false)', () => {
+    describe('When the panel renders an ARCHIVED storage', () => {
+      it('Then the permanent-delete CTA is omitted', () => {
+        render(
+          <StorageDetailPanel
+            storage={makeStorage({ status: 'ARCHIVED' })}
+            open={true}
+            canUpdate={true}
+            canUnfreeze={true}
+            canRestore={true}
+            isOffline={false}
+            onClose={vi.fn()}
+            onEdit={vi.fn()}
+            onReactivate={vi.fn()}
+            onRestore={vi.fn()}
+          />,
+        );
+        expect(
+          screen.queryByRole('button', { name: /permanentDelete\.detailCtaAriaLabel/ }),
+        ).not.toBeInTheDocument();
       });
     });
   });

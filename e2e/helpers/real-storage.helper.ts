@@ -173,6 +173,27 @@ export async function apiUnfreezeStorage(
   }
 }
 
+/**
+ * Permanently deletes an archived storage by hitting the per-type DELETE
+ * endpoint. Returns 204 on success; throws otherwise. Used by E2E specs
+ * to simulate concurrency (e.g. a parallel deletion by another actor)
+ * before the UI fires its own request.
+ */
+export async function apiDeletePermanentStorage(
+  token: string,
+  type: StorageType,
+  uuid: string,
+): Promise<void> {
+  const res = await fetch(`${getApiBase()}/storages/${TYPE_SLUG[type]}/${uuid}/permanent`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`apiDeletePermanentStorage(${uuid}) failed (${res.status}): ${body}`);
+  }
+}
+
 // ─── DB: Tier config mutations ──────────────────────────────────────────────
 
 export async function setTierByUserUuid(

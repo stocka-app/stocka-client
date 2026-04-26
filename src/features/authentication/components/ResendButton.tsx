@@ -61,7 +61,7 @@ export function ResendButton({
 
   // Manejar click de reenvío
   const handleResend = useCallback(async () => {
-    /* c8 ignore next -- guard: tests always call when enabled */
+    /* istanbul ignore next -- guard: tests always call when enabled */
     if (cooldownSeconds > 0 || isLoading || disabled) return;
 
     setIsLoading(true);
@@ -70,11 +70,11 @@ export function ResendButton({
 
       if (result) {
         // Actualizar cooldown y reenvíos restantes
-        /* c8 ignore next 2 -- conditional: onResend may not return cooldownSeconds */
+        /* istanbul ignore next 2 -- conditional: onResend may not return cooldownSeconds */
         if (result.cooldownSeconds !== undefined) {
           setCooldownSeconds(result.cooldownSeconds);
         }
-        /* c8 ignore next 2 -- conditional: onResend may not return remainingResends */
+        /* istanbul ignore next 2 -- conditional: onResend may not return remainingResends */
         if (result.remainingResends !== undefined) {
           setRemainingResends(result.remainingResends);
         }

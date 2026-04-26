@@ -48,6 +48,14 @@ describe('VerificationCodeInput', () => {
     });
   });
 
+  describe('Given autoFocus is omitted (default true)', () => {
+    it('Then the first input is focused on mount', () => {
+      render(<VerificationCodeInput value="" onChange={vi.fn()} />);
+      const inputs = screen.getAllByRole('textbox');
+      expect(document.activeElement).toBe(inputs[0]);
+    });
+  });
+
   // ── Custom length ─────────────────────────────────────────────────
 
   describe('Given length is 4', () => {
