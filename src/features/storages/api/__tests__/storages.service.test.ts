@@ -294,14 +294,29 @@ describe('storagesService', () => {
     });
   });
 
-  // ── permanentDelete ───────────────────────────────────────────────────────
-  // TODO STOC-383: tests del método real `permanentDelete(id, type)` que
-  // reemplazó al stub `deleteStoragePermanent(id)`. Se escriben en Paso 8
-  // (FASE 5) junto con los demás tests del plan H-08. Skip intencional.
+  describe('permanentDelete', () => {
+    it('calls DELETE /storages/warehouses/:id/permanent for WAREHOUSE type', async () => {
+      mockedAxios.delete.mockResolvedValueOnce({});
 
-  describe.skip('permanentDelete', () => {
-    it('calls DELETE /storages/:slug/:id/permanent per type', () => {
-      // placeholder
+      await storagesService.permanentDelete('uuid-1', 'WAREHOUSE');
+
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/warehouses/uuid-1/permanent');
+    });
+
+    it('calls DELETE /storages/store-rooms/:id/permanent for STORE_ROOM type', async () => {
+      mockedAxios.delete.mockResolvedValueOnce({});
+
+      await storagesService.permanentDelete('uuid-2', 'STORE_ROOM');
+
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/store-rooms/uuid-2/permanent');
+    });
+
+    it('calls DELETE /storages/custom-rooms/:id/permanent for CUSTOM_ROOM type', async () => {
+      mockedAxios.delete.mockResolvedValueOnce({});
+
+      await storagesService.permanentDelete('uuid-3', 'CUSTOM_ROOM');
+
+      expect(mockedAxios.delete).toHaveBeenCalledWith('/storages/custom-rooms/uuid-3/permanent');
     });
   });
 

@@ -316,28 +316,156 @@ describe('DeleteStorageDialog', () => {
     });
   });
 
-  // ── Typing and submit — TODO STOC-383 ─────────────────────────────────────
-
-  // TODO STOC-383: Full typing-friction tests (states 2, 3, 4 — partial, incorrect, correct)
-  // and the submit flow (state 5 + onConfirm invocation) are covered in Paso 8 (FASE 5).
-  // The assertions below are a minimal smoke test to confirm the happy-path type→submit flow.
   describe('Given a user types the exact storage name and submits', () => {
     describe('When the user types the exact name and clicks confirm', () => {
-      it('Then the confirm button becomes enabled and onConfirm is called', async () => {
+      it('Then the confirm button becomes enabled and the countdown screen takes over', async () => {
         const onConfirm = vi.fn();
         renderDialog({ onConfirm });
 
         const input = screen.getByRole('textbox');
         await user.type(input, 'Almacén Central');
 
-        // After typing the full match, click the confirm button
         const confirmBtn = screen.getByRole('button', {
           name: /permanentDelete\.buttons\.confirm/,
         });
         expect(confirmBtn).not.toBeDisabled();
         await user.click(confirmBtn);
 
-        expect(onConfirm).toHaveBeenCalledTimes(1);
+        // The 5-second grace window starts: the cancel button becomes the
+        // primary affordance and onConfirm has NOT yet fired.
+        expect(
+          await screen.findByRole('button', {
+            name: /permanentDelete\.countdown\.cancelButton/,
+          }),
+        ).toBeInTheDocument();
+        expect(onConfirm).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Given the user clicks Cancel during the countdown', () => {
+    describe('When the cancel button is pressed before the timer completes', () => {
+      it('Then the countdown aborts and onConfirm is never invoked', async () => {
+        const onConfirm = vi.fn();
+        renderDialog({ onConfirm });
+
+        await user.type(screen.getByRole('textbox'), 'Almacén Central');
+        await user.click(
+          screen.getByRole('button', { name: /permanentDelete\.buttons\.confirm/ }),
+        );
+
+        const cancelBtn = await screen.findByRole('button', {
+          name: /permanentDelete\.countdown\.cancelButton/,
+        });
+        await user.click(cancelBtn);
+
+        expect(onConfirm).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Given the user lets the 5-second grace window expire', () => {
+    describe('When the timer reaches zero', () => {
+      it('Then onConfirm is finally invoked exactly once', async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        try {
+          const onConfirm = vi.fn();
+          renderDialog({ onConfirm });
+
+          await user.type(screen.getByRole('textbox'), 'Almacén Central');
+          await user.click(
+            screen.getByRole('button', { name: /permanentDelete\.buttons\.confirm/ }),
+          );
+
+          await screen.findByRole('button', {
+            name: /permanentDelete\.countdown\.cancelButton/,
+          });
+
+          vi.advanceTimersByTime(5100);
+
+          expect(onConfirm).toHaveBeenCalledTimes(1);
+        } finally {
+          vi.useRealTimers();
+        }
+      });
+    });
+  });
+
+  describe('Given the user types a non-matching name and blurs the input', () => {
+    describe('When focus leaves the field', () => {
+      it('Then the inline error becomes visible (typing-friction signal)', async () => {
+        renderDialog();
+
+        const input = screen.getByRole('textbox');
+        await user.type(input, 'Wrong name');
+        await user.tab();
+
+        expect(
+          screen.getByText(/permanentDelete\.input\.error/),
+        ).toBeInTheDocument();
+      });
+    });
+
+    describe('When the user resumes typing after the error appeared', () => {
+      it('Then the inline error is cleared on the next keystroke', async () => {
+        renderDialog();
+
+        const input = screen.getByRole('textbox');
+        await user.type(input, 'Wrong');
+        await user.tab();
+        expect(screen.getByText(/permanentDelete\.input\.error/)).toBeInTheDocument();
+
+        await user.click(input);
+        await user.type(input, 'X');
+
+        expect(
+          screen.queryByText(/permanentDelete\.input\.error/),
+        ).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Given the user submits the form via Enter without typing the exact name', () => {
+    describe('When the form fires onSubmit with a non-matching name', () => {
+      it('Then the inline error is shown and onConfirm is never called', async () => {
+        const onConfirm = vi.fn();
+        renderDialog({ onConfirm });
+
+        const input = screen.getByRole('textbox');
+        await user.type(input, 'Wrong');
+
+        // Submit the form directly to bypass the disabled button
+        const form = input.closest('form');
+        expect(form).not.toBeNull();
+        fireEvent.submit(form!);
+
+        expect(
+          screen.getByText(/permanentDelete\.input\.error/),
+        ).toBeInTheDocument();
+        expect(onConfirm).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Given the user presses ESC during the countdown', () => {
+    describe('When the dialog requests close mid-countdown', () => {
+      it('Then onClose is called and onConfirm is never invoked', async () => {
+        const onClose = vi.fn();
+        const onConfirm = vi.fn();
+        renderDialog({ onClose, onConfirm });
+
+        await user.type(screen.getByRole('textbox'), 'Almacén Central');
+        await user.click(
+          screen.getByRole('button', { name: /permanentDelete\.buttons\.confirm/ }),
+        );
+        await screen.findByRole('button', {
+          name: /permanentDelete\.countdown\.cancelButton/,
+        });
+
+        await user.keyboard('{Escape}');
+
+        expect(onClose).toHaveBeenCalled();
+        expect(onConfirm).not.toHaveBeenCalled();
       });
     });
   });
