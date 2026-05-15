@@ -3,6 +3,26 @@
 All notable changes to this project are documented here.
 
 
+## [0.21.0](https://github.com/stocka-app/stocka-client/compare/v0.20.0...v0.21.0) (2026-05-15)
+
+### ✨ Features
+
+* **storages:** [STOC-322](https://austins-industries.atlassian.net/browse/STOC-322) — add 5s countdown grace window before permanent delete ([bad3cc1](https://github.com/stocka-app/stocka-client/commit/bad3cc1bbb10999de8b29a1bb9e2442f2179a02b))
+* **storages:** [STOC-381](https://austins-industries.atlassian.net/browse/STOC-381) — rewrite permanent delete dialog with typing friction and 6 visual states ([c40ece8](https://github.com/stocka-app/stocka-client/commit/c40ece8a7455d2db63b2fe59f058bf97e25b23f9))
+* **storages:** [STOC-382](https://austins-industries.atlassian.net/browse/STOC-382) — replace H-07 delete stub with real permanentDelete per-type + canPermanentlyDelete helper ([4294754](https://github.com/stocka-app/stocka-client/commit/42947549dba7668943d534145686a814465ef198))
+* **storages:** [STOC-462](https://austins-industries.atlassian.net/browse/STOC-462) — add permanent delete entry points (kebab divider + detail panel ghost-danger CTA) ([3923e09](https://github.com/stocka-app/stocka-client/commit/3923e097a26a1b773613b8a9e4949bf145fc0a87))
+* **storages:** [STOC-463](https://austins-industries.atlassian.net/browse/STOC-463) — fallback active context on permanent delete with secondary info toast ([2bb9c47](https://github.com/stocka-app/stocka-client/commit/2bb9c477270730fa321c219e0666cc1def217796))
+
+### 🧹 Chores
+
+* **gitignore:** remove coverage and nyc_output directories from .gitignore ([d1035b1](https://github.com/stocka-app/stocka-client/commit/d1035b1db204402c91f9631782df626a7318b1b8))
+
+### ✅ Tests
+
+* **coverage:** [STOC-383](https://austins-industries.atlassian.net/browse/STOC-383) — merged 100% FE coverage (vitest unit + Playwright e2e) ([007fe28](https://github.com/stocka-app/stocka-client/commit/007fe289475d606d331f2a737e6f1e36d5079eea))
+* **storages:** [STOC-383](https://austins-industries.atlassian.net/browse/STOC-383) — unwrap H-08 placeholders to reach 100% FE coverage ([c3931f5](https://github.com/stocka-app/stocka-client/commit/c3931f5205846a3b114348f6b93fa5200e7fc42f))
+* **storages:** [STOC-464](https://austins-industries.atlassian.net/browse/STOC-464) — add Playwright e2e for permanent delete flow ([5bbcb22](https://github.com/stocka-app/stocka-client/commit/5bbcb2290248ba1237c9655a3634c0556fb5d4f4))
+
 ## [0.20.0](https://github.com/stocka-app/stocka-client/compare/v0.18.3...v0.20.0) (2026-04-24)
 
 ### ✨ Features
