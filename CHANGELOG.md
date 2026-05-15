@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 
 
+## [0.21.1](https://github.com/stocka-app/stocka-client/compare/v0.21.0...v0.21.1) (2026-05-15)
+
+### 🧹 Chores
+
+* **billing:** install @stripe/stripe-js 9.5.0 in FE ([e0061cf](https://github.com/stocka-app/stocka-client/commit/e0061cf58548e4b7f5ae63e4f8715241ce32b555))
+
 ## [0.21.0](https://github.com/stocka-app/stocka-client/compare/v0.20.0...v0.21.0) (2026-05-15)
 
 ### ✨ Features
